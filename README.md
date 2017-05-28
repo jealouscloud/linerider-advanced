@@ -27,9 +27,11 @@ This program features code from the following libraries. Their license informati
 nanosvg https://github.com/memononen/nanosvg
 
 Microsoft Public License
+
 NVorbis https://github.com/ioctlLR/NVorbis
 
 MIT License
+
 gwen-dotnet https://code.google.com/archive/p/gwen-dotnet/
 QuickFont https://github.com/opcon/QuickFont
 NGraphics https://github.com/praeclarum/NGraphics
