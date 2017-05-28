@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{ADDA2F43-96C0-497F-8216-29C67ABC9806}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Gwen</RootNamespace>
+    <AssemblyName>Gwen</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <BaseIntermediateOutputPath>obj</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\dependencies</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Debug\Gwen.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\vs10\Team Tools\Static Analysis Tools\\Rule Sets;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisRuleDirectories>;C:\vs10\Team Tools\Static Analysis Tools\FxCop\\Rules;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Align.cs" />
+    <Compile Include="Anim\Animation.cs" />
+    <Compile Include="Anim\Size\Height.cs" />
+    <Compile Include="Anim\Size\Width.cs" />
+    <Compile Include="Anim\TimedAnimation.cs" />
+    <Compile Include="ControlInternal\CategoryButton.cs" />
+    <Compile Include="ControlInternal\CategoryHeaderButton.cs" />
+    <Compile Include="ControlInternal\ColorButton.cs" />
+    <Compile Include="ControlInternal\ColorDisplay.cs" />
+    <Compile Include="ControlInternal\DownArrow.cs" />
+    <Compile Include="ControlInternal\MenuDivider.cs" />
+    <Compile Include="ControlInternal\Modal.cs" />
+    <Compile Include="ControlInternal\Resizer.cs" />
+    <Compile Include="ControlInternal\RightArrow.cs" />
+    <Compile Include="ControlInternal\SliderBar.cs" />
+    <Compile Include="ControlInternal\SplitterBar.cs" />
+    <Compile Include="ControlInternal\TabControlInner.cs" />
+    <Compile Include="ControlInternal\TreeNodeLabel.cs" />
+    <Compile Include="ControlInternal\TreeToggleButton.cs" />
+    <Compile Include="ControlInternal\UpDownButton_Down.cs" />
+    <Compile Include="ControlInternal\UpDownButton_Up.cs" />
+    <Compile Include="ControlInternal\CloseButton.cs" />
+    <Compile Include="Control\CollapsibleCategory.cs" />
+    <Compile Include="Control\CollapsibleList.cs" />
+    <Compile Include="Control\DockBase.cs" />
+    <Compile Include="Control\DockedTabControl.cs" />
+    <Compile Include="Control\EnumRadioButtonGroup.cs" />
+    <Compile Include="Control\EventArguments\ClickedEventArgs.cs" />
+    <Compile Include="Control\EventArguments\ItemSelectedEventArgs.cs" />
+    <Compile Include="Control\IntSlider.cs" />
+    <Compile Include="Control\MultilineTextBox.cs" />
+    <Compile Include="Control\Property\KeyProperty.cs" />
+    <Compile Include="Control\Property\LabelProperty.cs" />
+    <Compile Include="Control\VerticalSplitter.cs" />
+    <Compile Include="Control\Layout\Positioner.cs" />
+    <Compile Include="Control\MessageBox.cs" />
+    <Compile Include="Control\ProgressBar.cs" />
+    <Compile Include="Control\Properties.cs" />
+    <Compile Include="Control\PropertyRow.cs" />
+    <Compile Include="ControlInternal\PropertyRowLabel.cs" />
+    <Compile Include="Control\PropertyTree.cs" />
+    <Compile Include="ControlInternal\PropertyTreeNode.cs" />
+    <Compile Include="Control\Property\PropertyBase.cs" />
+    <Compile Include="Control\Property\Check.cs" />
+    <Compile Include="Control\Property\Color.cs" />
+    <Compile Include="Control\Property\Text.cs" />
+    <Compile Include="Control\ResizableControl.cs" />
+    <Compile Include="Control\RichLabel.cs" />
+    <Compile Include="Control\StatusBar.cs" />
+    <Compile Include="Control\TabStrip.cs" />
+    <Compile Include="Control\TabButton.cs" />
+    <Compile Include="Control\ColorPicker.cs" />
+    <Compile Include="ControlInternal\Dragger.cs" />
+    <Compile Include="ControlInternal\Highlight.cs" />
+    <Compile Include="ControlInternal\ScrollBarBar.cs" />
+    <Compile Include="ControlInternal\ScrollBarButton.cs" />
+    <Compile Include="ControlInternal\Text.cs" />
+    <Compile Include="Control\ControlBase.cs" />
+    <Compile Include="Control\ScrollBar.cs" />
+    <Compile Include="Control\Button.cs" />
+    <Compile Include="Control\Canvas.cs" />
+    <Compile Include="Control\CheckBox.cs" />
+    <Compile Include="Control\ColorLerpBox.cs" />
+    <Compile Include="Control\ColorSlider.cs" />
+    <Compile Include="Control\CrossSplitter.cs" />
+    <Compile Include="Control\GroupBox.cs" />
+    <Compile Include="Control\HorizontalSlider.cs" />
+    <Compile Include="Control\HSVColorPicker.cs" />
+    <Compile Include="Control\IColorPicker.cs" />
+    <Compile Include="Control\LabeledCheckBox.cs" />
+    <Compile Include="Control\ComboBox.cs" />
+    <Compile Include="Control\HorizontalScrollBar.cs" />
+    <Compile Include="Control\ImagePanel.cs" />
+    <Compile Include="Control\Label.cs" />
+    <Compile Include="Control\LabeledRadioButton.cs" />
+    <Compile Include="Control\Layout\Splitter.cs" />
+    <Compile Include="Control\Layout\Table.cs" />
+    <Compile Include="Control\Layout\TableRow.cs" />
+    <Compile Include="Control\ListBox.cs" />
+    <Compile Include="Control\ListBoxRow.cs" />
+    <Compile Include="Control\Menu.cs" />
+    <Compile Include="Control\MenuItem.cs" />
+    <Compile Include="Control\MenuStrip.cs" />
+    <Compile Include="Control\NumericUpDown.cs" />
+    <Compile Include="Control\RadioButton.cs" />
+    <Compile Include="Control\RadioButtonGroup.cs" />
+    <Compile Include="Control\ScrollControl.cs" />
+    <Compile Include="Control\Slider.cs" />
+    <Compile Include="Control\TabControl.cs" />
+    <Compile Include="Control\TabTitleBar.cs" />
+    <Compile Include="Control\TextBox.cs" />
+    <Compile Include="Control\TextBoxNumeric.cs" />
+    <Compile Include="Control\TextBoxPassword.cs" />
+    <Compile Include="Control\TreeControl.cs" />
+    <Compile Include="Control\TreeNode.cs" />
+    <Compile Include="Control\VerticalScrollBar.cs" />
+    <Compile Include="Control\VerticalSlider.cs" />
+    <Compile Include="Control\HorizontalSplitter.cs" />
+    <Compile Include="Control\WindowControl.cs" />
+    <Compile Include="Font.cs" />
+    <Compile Include="HSV.cs" />
+    <Compile Include="Input\InputHandler.cs" />
+    <Compile Include="Input\KeyData.cs" />
+    <Compile Include="Margin.cs" />
+    <Compile Include="Padding.cs" />
+    <Compile Include="Key.cs" />
+    <Compile Include="Platform\Windows.cs" />
+    <Compile Include="Pos.cs" />
+    <Compile Include="Platform\Neutral.cs" />
+    <Compile Include="Skin\Simple.cs" />
+    <Compile Include="Skin\SkinColors.cs" />
+    <Compile Include="Skin\TexturedBase.cs" />
+    <Compile Include="Skin\Texturing\Bordered.cs" />
+    <Compile Include="Skin\Texturing\Single.cs" />
+    <Compile Include="Texture.cs" />
+    <Compile Include="ToolTip.cs" />
+    <Compile Include="DragDrop\DragAndDrop.cs" />
+    <Compile Include="DragDrop\Package.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Renderer\RendererBase.cs" />
+    <Compile Include="Renderer\ICacheToTexture.cs" />
+    <Compile Include="Skin\SkinBase.cs" />
+    <Compile Include="Util.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="readme.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

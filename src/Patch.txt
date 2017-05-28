@@ -1,0 +1,31 @@
+﻿0.2->0.3
+Recording introduced
+frame cap to prevent memory overflow
+Major code rework.
+Fixed font issues on unix based systems.
+Flag timer position changed.
+Removed fast foward/slow mo buttons, to test.
+
+0.3rc1->0.3rc2
+Backspace didnt live update
+iterations on left/right need to stop
+Issues with erasing on certain grid points.
+red lines didnt look right while drawing sometimes
+sol export was broken
+space bar
+Fixed a line visual bug
+Fixed backspace problem on textboxes
+T selects hand tool now
+Scenery rendering should be faster but take slightly longer to load than in 0.2. This should also reduce ingame lag.
+Fixed recording for some PCs
+Recording now reports % of encoding
+Tracks now save with converted oggs now.
+Ogg conversion also now tells you in the window title %
+
+//STILL HAVENT FIXED ZOOM ISSUE ON LINUX
+plans next:
+more feedback from icons cursors etc
+select tool replace line adjust tool
+small console box?
+change line type quickly
+Need to make ogg usage load less, and remove console and just parse text from it

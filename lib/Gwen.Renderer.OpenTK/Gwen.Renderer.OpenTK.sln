@@ -1,0 +1,14 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gwen.Renderer.OpenTK", "Gwen.Renderer.OpenTK.csproj", "{41650C82-D630-4E5C-845A-F1513C8FDC99}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{41650C82-D630-4E5C-845A-F1513C8FDC99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41650C82-D630-4E5C-845A-F1513C8FDC99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,204 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <ProjectGuid>{657DBC6D-C3EA-4398-A3FA-DDB73C14F71B}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
+    <RootNamespace>MatterHackers.Agg</RootNamespace>
+    <AssemblyName>AGG</AssemblyName>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <NoStdLib>False</NoStdLib>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\MatterControl\</SolutionDir>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>Full</DebugType>
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <Optimize>False</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>None</DebugType>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>True</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <BaseAddress>4194304</BaseAddress>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <FileAlignment>4096</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>..\dependencies</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <PlatformTarget>x86</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>Default</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="OpenTK">
+      <HintPath>..\dependencies\OpenTK.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="agg_array.cs" />
+    <Compile Include="agg_basics.cs" />
+    <Compile Include="agg_bounding_rect.cs" />
+    <Compile Include="agg_bspline.cs" />
+    <Compile Include="agg_clip_liang_barsky.cs" />
+    <Compile Include="agg_color_gray.cs" />
+    <Compile Include="agg_color_rgba.cs" />
+    <Compile Include="agg_dda_line.cs" />
+    <Compile Include="agg_gamma_functions.cs" />
+    <Compile Include="agg_image_filters.cs" />
+    <Compile Include="agg_line_aa_basics.cs" />
+    <Compile Include="agg_math.cs" />
+    <Compile Include="agg_pattern_filters_rgba.cs" />
+    <Compile Include="agg_rasterizer_cells_aa.cs" />
+    <Compile Include="agg_rasterizer_compound_aa.cs" />
+    <Compile Include="agg_rasterizer_outline_aa.cs" />
+    <Compile Include="BorderDouble.cs" />
+    <Compile Include="Collections\IBoundedItem.cs" />
+    <Compile Include="Collections\BoundingVolumeHierarchy.cs" />
+    <Compile Include="Collections\UnboundCollection.cs" />
+    <Compile Include="StatisticsTracker.cs" />
+    <Compile Include="TraceTiming.cs" />
+    <Compile Include="DumpCallStackIfSlow.cs" />
+    <Compile Include="Font\TextWrapping.cs" />
+    <Compile Include="Image\ImageSequence.cs" />
+    <Compile Include="PluginFinder.cs" />
+    <Compile Include="RectangleFloat.cs" />
+    <Compile Include="RectangleDouble.cs" />
+    <Compile Include="RectangleInt.cs" />
+    <Compile Include="RootedObjectEventHandler.cs" />
+    <Compile Include="ScanlineRasterizer.cs" />
+    <Compile Include="ShapePath.cs" />
+    <Compile Include="StringHelper.cs" />
+    <Compile Include="VectorClipper.cs" />
+    <Compile Include="OutlineRenderer.cs" />
+    <Compile Include="ImageLineRenderer.cs" />
+    <Compile Include="ScanlineRenderer.cs" />
+    <Compile Include="agg_scanline_bin.cs" />
+    <Compile Include="agg_simul_eq.cs" />
+    <Compile Include="agg_span_allocator.cs" />
+    <Compile Include="agg_span_gradient.cs" />
+    <Compile Include="agg_span_image_filter.cs" />
+    <Compile Include="agg_span_image_filter_gray.cs" />
+    <Compile Include="agg_span_image_filter_rgb.cs" />
+    <Compile Include="agg_span_image_filter_rgba.cs" />
+    <Compile Include="agg_span_interpolator_linear.cs" />
+    <Compile Include="agg_span_interpolator_persp.cs" />
+    <Compile Include="agg_span_subdiv_adaptor.cs" />
+    <Compile Include="Array2D.cs" />
+    <Compile Include="FloodFiller.cs" />
+    <Compile Include="Font\LiberationSansFont.cs" />
+    <Compile Include="Font\TypeFacePrinter.cs" />
+    <Compile Include="Font\TypeFace.cs" />
+    <Compile Include="GammaLookUpTable.cs" />
+    <Compile Include="Graphics2D.cs" />
+    <Compile Include="IColorType.cs" />
+    <Compile Include="Image\IImage.cs" />
+    <Compile Include="Image\ImageBuffer.cs" />
+    <Compile Include="Image\ImageBufferFloat.cs" />
+    <Compile Include="Image\ImageGraphics2D.cs" />
+    <Compile Include="Image\ImageProxy.cs" />
+    <Compile Include="Image\ImageTgaIO.cs" />
+    <Compile Include="IMarkers.cs" />
+    <Compile Include="Image\RecursiveBlur.cs" />
+    <Compile Include="IScanline.cs" />
+    <Compile Include="IVertexDest.cs" />
+    <Compile Include="Image\agg_alpha_mask_u8.cs" />
+    <Compile Include="Image\AlphaMaskAdaptor.cs" />
+    <Compile Include="Image\ClippingProxy.cs" />
+    <Compile Include="Image\Gray.cs" />
+    <Compile Include="Image\rgb.cs" />
+    <Compile Include="Image\rgba.cs" />
+    <Compile Include="Image\Transposer.cs" />
+    <Compile Include="Point2D.cs" />
+    <Compile Include="quicksort.cs" />
+    <Compile Include="RasterBufferAccessors.cs" />
+    <Compile Include="RasterizerScanline\agg_scanline_p.cs" />
+    <Compile Include="RasterizerScanline\agg_scanline_u.cs" />
+    <Compile Include="Transform\Affine.cs" />
+    <Compile Include="Transform\Bilinear.cs" />
+    <Compile Include="Transform\ITransform.cs" />
+    <Compile Include="Transform\Perspective.cs" />
+    <Compile Include="Transform\Viewport.cs" />
+    <Compile Include="VertexSource\Contour.cs" />
+    <Compile Include="VertexSource\ContourGenerator.cs" />
+    <Compile Include="VertexSource\VertexSourceAdapter.cs" />
+    <Compile Include="VertexSource\Stroke.cs" />
+    <Compile Include="VertexSource\agg_curves.cs" />
+    <Compile Include="VertexSource\agg_gsv_text.cs" />
+    <Compile Include="VertexSource\agg_span_gouraud.cs" />
+    <Compile Include="VertexSource\agg_span_gouraud_rgba.cs" />
+    <Compile Include="VertexSource\ApplyTransform.cs" />
+    <Compile Include="VertexSource\Arc.cs" />
+    <Compile Include="VertexSource\Ellipse.cs" />
+    <Compile Include="VertexSource\FlattenCurve.cs" />
+    <Compile Include="VertexSource\IVertexSource.cs" />
+    <Compile Include="VertexSource\PathStorage.cs" />
+    <Compile Include="VertexSource\RoundedRect.cs" />
+    <Compile Include="Font\StyledTypeFace.cs" />
+    <Compile Include="VertexSource\StrokeGenerator.cs" />
+    <Compile Include="agg_VertexSequence.cs" />
+    <Compile Include="VertexSource\StrokeMath.cs" />
+    <Compile Include="VertexSource\IGenerator.cs" />
+    <Compile Include="VertexSource\VertexSourceIO.cs" />
+    <Compile Include="VectorMath\AxisAlignedBoundingBox.cs" />
+    <Compile Include="VectorMath\MathHelper.cs" />
+    <Compile Include="VectorMath\Matrix4x4.cs" />
+    <Compile Include="VectorMath\Plane.cs" />
+    <Compile Include="VectorMath\PlaneFloat.cs" />
+    <Compile Include="VectorMath\Quaternion.cs" />
+    <Compile Include="VectorMath\Ray.cs" />
+    <Compile Include="VectorMath\TrackBallController.cs" />
+    <Compile Include="VectorMath\Vector2.cs" />
+    <Compile Include="VectorMath\Vector3.cs" />
+    <Compile Include="VectorMath\Vector3Float.cs" />
+    <Compile Include="VectorMath\Vector4.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="VectorMath\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>
