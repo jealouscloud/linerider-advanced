@@ -23,6 +23,9 @@ All files are designed to output to 'build'.
 linerider-advanced is licensed under GPL3.
 
 # libraries
+i lazily included the ffmpeg binaries in this solution. info here https://ffmpeg.org/
+i'll figure something better out sometime.
+
 This program features code from the following libraries. Their license information can be found in LICENSES.txt:
 nanosvg https://github.com/memononen/nanosvg
 
