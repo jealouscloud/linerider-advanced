@@ -1,0 +1,13 @@
+lib/**/obj
+lib/.vs
+lib/packages
+lib/**/OpenTK.dll.config
+lib/tools
+src/obj
+src/.vs
+*.dll
+*.pdb
+build/linerider.exe
+build/OpenTK.xml
+*.user
+build/OpenTK.dll.config
