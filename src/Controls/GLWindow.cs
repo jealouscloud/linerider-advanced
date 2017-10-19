@@ -601,7 +601,7 @@ namespace linerider
                 }
                 if (input.IsKeyDown(Key.I))
                 {
-                    Track.Start(true, false, true, true);
+                    Track.Start(true, true, true, true);
                     return;
                 }
 
