@@ -103,16 +103,29 @@ namespace linerider.Drawing
 
         public void SetVertex(int index, Vertex v)
         {
-            vertices[index] = v;
+            lock (SyncRoot)
+            {
+                vertices[index] = v;
+                if (Opacity)
+                {
+                    alphas[index] = v.a;
+                }
+            }
         }
         public void SetIndex(int index, int index2)
         {
-            indices[index] = index2;
+            lock (SyncRoot)
+            {
+                indices[index] = index2;
+            }
         }
 
         public int GetIndex(int index)
         {
-            return indices[index];
+            lock (SyncRoot)
+            {
+                return indices[index];
+            }
         }
         public void SetIndices(List<int> ind)
         {
