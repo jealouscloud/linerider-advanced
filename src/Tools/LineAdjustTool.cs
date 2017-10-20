@@ -319,10 +319,13 @@ namespace linerider
                 }
                 Select(snap, pos);
             }
-            snap = SnapLine(gamepos) as StandardLine;
-            if (snap != null)
+            else
             {
-                Select(snap,pos);
+                snap = SnapLine(gamepos) as StandardLine;
+                if (snap != null)
+                {
+                    Select(snap, pos);
+                }
             }
             base.OnMouseRightDown(pos);
         }
@@ -355,7 +358,7 @@ namespace linerider
             {
                 if (selectionwindow.UserData != line)
                 {
-                    selectionwindow.Parent.RemoveChild(selectionwindow, true);
+                    selectionwindow.Close();
                     selectionwindow = null;
                 }
             }
@@ -469,7 +472,7 @@ namespace linerider
                     nud.Min = 1;
                     nud.Max = 3;
                     nud.Value = (line as RedLine).Multiplier;
-                    nud.ValueChanged += Nud_ValueChanged;
+                    nud.ValueChanged += nud_redlinemultiplier_ValueChanged;
                     nud.UserData = line;
                     Label l = new Label(container1);
                     l.Y = 137;
@@ -806,13 +809,14 @@ namespace linerider
             return p2;
         }
 
-        private void Nud_ValueChanged(ControlBase sender, EventArgs arguments)
+        private void nud_redlinemultiplier_ValueChanged(ControlBase sender, EventArgs arguments)
         {
             var l = (StandardLine)sender.UserData;
             if (l is RedLine)
             {
                 var rl = (RedLine)l;
                 rl.Multiplier = (int)Math.Round(((NumericUpDown)sender).Value);
+                game.Track.LineChanged(rl);
                 game.Track.TrackUpdated();
                 game.Invalidate();
             }
