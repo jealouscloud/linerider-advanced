@@ -48,7 +48,7 @@ namespace linerider
         #region Fields
         public static string BinariesFolder = "bin";
         public readonly static CultureInfo Culture = new CultureInfo("en-US");
-        public static readonly string WindowTitle = "Line Rider: Advanced 1.0";
+        public static readonly string WindowTitle = "Line Rider: Advanced 1.01";
         public static Random Random;
         private static bool _crashed;
         private static GLWindow glGame;
