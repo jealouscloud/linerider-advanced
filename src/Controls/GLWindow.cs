@@ -906,7 +906,7 @@ namespace linerider
             //  btn = createbutton(Content.gwell_tool, Content.gwell_tool, "Gravity Well Tool (T)",
             //       "gwelltool");
             //   btn.Clicked += (o, e) => { SetTool(Tools.GwellTool); };
-            btn = createbutton(GameResources.move_icon, GameResources.move_icon_white, "Hand Tool (Space)", "handtool");
+            btn = createbutton(GameResources.move_icon, GameResources.move_icon_white, "Hand Tool (Space) (T)", "handtool");
             btn.Clicked += (o, e) =>
             {
                 SetTool(Tools.HandTool);
