@@ -103,16 +103,29 @@ namespace linerider.Drawing
 
         public void SetVertex(int index, Vertex v)
         {
-            vertices[index] = v;
+            lock (SyncRoot)
+            {
+                vertices[index] = v;
+                if (Opacity)
+                {
+                    alphas[index] = v.a;
+                }
+            }
         }
         public void SetIndex(int index, int index2)
         {
-            indices[index] = index2;
+            lock (SyncRoot)
+            {
+                indices[index] = index2;
+            }
         }
 
         public int GetIndex(int index)
         {
-            return indices[index];
+            lock (SyncRoot)
+            {
+                return indices[index];
+            }
         }
         public void SetIndices(List<int> ind)
         {
@@ -199,58 +212,56 @@ namespace linerider.Drawing
         {
             lock (SyncRoot)
             {
-                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-                GL.EnableClientState(ArrayCap.VertexArray);
-                GL.EnableClientState(ArrayCap.ColorArray);
-                GL.EnableClientState(ArrayCap.TextureCoordArray);
-                GLEnableCap blend = null;
-                if (SetBlend)
+                using (new GLEnableCap(EnableCap.Texture2D))
+                using (new GLEnableCap(EnableCap.Blend))
                 {
-					blend = new GLEnableCap(EnableCap.Blend);
-                }
-                if (Texture != 0)
-                {
-                    GL.BindTexture(TextureTarget.Texture2D, Texture);
-                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
-                }
-                if (vCount != 0 && (!Indexed || iCount != 0))
-                {
-                    unsafe
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+                    GL.EnableClientState(ArrayCap.VertexArray);
+                    GL.EnableClientState(ArrayCap.ColorArray);
+                    GL.EnableClientState(ArrayCap.TextureCoordArray);
+                    if (Texture != 0)
                     {
-                        fixed (float* ptr1 = &vertices[0].Position.X)
-                        fixed (byte* ptr2 = &vertices[0].r)
-                        fixed (float* ptr3 = &vertices[0].u)
+                        GL.BindTexture(TextureTarget.Texture2D, Texture);
+                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+                    }
+                    if (vCount != 0 && (!Indexed || iCount != 0))
+                    {
+                        unsafe
                         {
-                            GL.VertexPointer(2, VertexPointerType.Float, Vertex.Size, (IntPtr)ptr1);
-                            GL.ColorPointer(4, ColorPointerType.UnsignedByte, Vertex.Size, (IntPtr)ptr2);
-                            GL.TexCoordPointer(2, TexCoordPointerType.Float, Vertex.Size, (IntPtr)ptr3);
+                            fixed (float* ptr1 = &vertices[0].Position.X)
+                            fixed (byte* ptr2 = &vertices[0].r)
+                            fixed (float* ptr3 = &vertices[0].u)
+                            {
+                                GL.VertexPointer(2, VertexPointerType.Float, Vertex.Size, (IntPtr)ptr1);
+                                GL.ColorPointer(4, ColorPointerType.UnsignedByte, Vertex.Size, (IntPtr)ptr2);
+                                GL.TexCoordPointer(2, TexCoordPointerType.Float, Vertex.Size, (IntPtr)ptr3);
 
-                            if (Indexed)
-                            {
-                                fixed (int* ptr4 = &indices[0])
+                                if (Indexed)
                                 {
-                                    GL.DrawElements(mode, iCount, DrawElementsType.UnsignedInt, (IntPtr)ptr4);
+                                    fixed (int* ptr4 = &indices[0])
+                                    {
+                                        GL.DrawElements(mode, iCount, DrawElementsType.UnsignedInt, (IntPtr)ptr4);
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                GL.DrawArrays(mode, 0, vCount);
+                                else
+                                {
+                                    GL.DrawArrays(mode, 0, vCount);
+                                }
                             }
                         }
                     }
-                }
-                GL.BindTexture(TextureTarget.Texture2D, 0);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+                    if (Texture != 0)
+                    {
+                        GL.BindTexture(TextureTarget.Texture2D, 0);
+                    }
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 
-                GL.DisableClientState(ArrayCap.TextureCoordArray);
-                GL.DisableClientState(ArrayCap.ColorArray);
-                GL.DisableClientState(ArrayCap.VertexArray);
-				if (blend != null)
-                {
-					blend.Dispose();
+                    GL.DisableClientState(ArrayCap.TextureCoordArray);
+                    GL.DisableClientState(ArrayCap.ColorArray);
+                    GL.DisableClientState(ArrayCap.VertexArray);
                 }
             }
         }

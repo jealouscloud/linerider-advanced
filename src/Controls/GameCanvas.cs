@@ -905,7 +905,7 @@ namespace linerider
             var frame = loc.Frame;
             if (frame > 400) //many frames, will likely lag the game. Update the window as a fallback.
             {
-                if (frame > 10000) //too many frames, could lag the game very bad.
+                if (frame > 24000) //too many frames, could lag the game very bad.
                 {
                     SetTooltip(FlagTool, "Flag is incalculable.");
                     game.Invalidate();

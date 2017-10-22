@@ -856,34 +856,31 @@ namespace linerider
 				game.Scheduler.Reset();
 				Fpswatch.Restart();
 				if (ghoststart && _flag != null)
-				{
-					var dict = new List<ConcurrentDictionary<int, StandardLine>>();
-					var state = new Rider();
-					Reset(state);
-					List<Rider> states = new List<Rider>();
-					states.Add(state.Clone());
-					for (int i = 0; i < _flag.Frame; i++)
-					{
-						var c = Tick(state);
-						if (c.Count != 0)
-							dict.Add(c);
-						states.Add(state.Clone());
-					}
+                {
+                    foreach (var v in ActiveTriggers)
+                    {
+                        v.Reset();
+                    }
+                    ActiveTriggers.Clear();
 
-					for (var i = 0; i < state.ModelAnchors.Length; i++)
+                    _track.RiderState.Reset(_track.Start, _track);
+                    _track.Reset();
+                    game.SetIteration(6, true);
+                    for (int i = 0; i < _flag.Frame; i++)
+                    {
+                        _track.NextFrame();
+                    }
+
+					for (var i = 0; i < _track.RiderState.ModelAnchors.Length; i++)
 					{
-						if (state.ModelAnchors[i].Position != _flag.State.ModelAnchors[i].Position ||
-							state.ModelAnchors[i].Prev != _flag.State.ModelAnchors[i].Prev)
+						if (_track.RiderState.ModelAnchors[i].Position != _flag.State.ModelAnchors[i].Position ||
+                            _track.RiderState.ModelAnchors[i].Prev != _flag.State.ModelAnchors[i].Prev)
 						{
 							game.Canvas.SetFlagTooltip(false);
 							game.Invalidate();
 							return;
 						}
 					}
-
-					_track.Frame = _flag.Frame;
-					_track.RiderStates = states;
-					_track.RiderState = states[states.Count - 1].Clone();
 					slider.Min = 0;
 					slider.Max = _track.RiderStates.Count - 1;
 					slider.Value = _track.Frame;

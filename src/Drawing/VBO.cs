@@ -43,7 +43,6 @@ namespace linerider.Drawing
         private int _ibo;
         public readonly bool Indexed = false;
         public int Texture = 0;
-        public bool SetBlend = true;
         public bool Opacity = false;
         public bool Locking = false;
         private object SyncRoot = new object();
@@ -136,7 +135,8 @@ namespace linerider.Drawing
 					vertices[i] = v;
 				}
 				_opacity = opacity;
-			}
+                UpdateVertices();
+            }
         }
 
         public void SetVertex(int index, Vertex v)
@@ -250,81 +250,81 @@ namespace linerider.Drawing
         {
             lock (SyncRoot)
             {
-                GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-                if (Indexed)
-                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ibo);
-                GL.EnableClientState(ArrayCap.VertexArray);
-                GL.EnableClientState(ArrayCap.ColorArray);
-                GL.EnableClientState(ArrayCap.TextureCoordArray);
-				GLEnableCap blend = null;
-                if (SetBlend)
+                using (new GLEnableCap(EnableCap.Texture2D))
+                using (new GLEnableCap(EnableCap.Blend))
                 {
-					blend = new GLEnableCap(EnableCap.Blend);
-                }
-                GL.BindTexture(TextureTarget.Texture2D, Texture);
-                if (Texture != 0)
-                {
-                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
-                }
-				if (ChangedVerticies.Count != 0 && !_reloadVertices)
-                {
-                    unsafe
-                    {
-                        foreach (var change in ChangedVerticies)
-                        {
-                            var vert = vertices[change];
-                            GL.BufferSubData(BufferTarget.ArrayBuffer, new IntPtr(Vertex.Size * change),
-                                new IntPtr(Vertex.Size), ref vert);
-                        }
-                        ChangedVerticies.Clear();
-                    }
-                }
-				if (ChangedIndices.Count != 0 && !_reloadIndices)
-				{
-					unsafe
-					{
-						foreach (var change in ChangedIndices)
-						{
-							var ind = indices[change];
-							GL.BufferSubData(BufferTarget.ElementArrayBuffer, new IntPtr(sizeof(int) * change),new IntPtr(sizeof(int)), ref ind);
-						}
-						ChangedIndices.Clear();
-					}
-				}
-                if (_reloadVertices)
-				{
-					ChangedVerticies.Clear();
-					GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(vertices.Length * Vertex.Size), vertices, BufferUsageHint.DynamicDraw);
-                    _reloadVertices = false;
-                }
-
-                if (_reloadIndices && Indexed)
-                {
-					ChangedIndices.Clear();
-					GL.BufferData(BufferTarget.ElementArrayBuffer, new IntPtr(indices.Length * sizeof(int)), indices, BufferUsageHint.StreamDraw);
-                    _reloadIndices = false;
-                }
-				if (vCount != 0 && (!Indexed || iCount != 0))
-                {
-                    GL.VertexPointer(2, VertexPointerType.Float, Vertex.Size, 0);
-                    GL.ColorPointer(4, ColorPointerType.UnsignedByte, Vertex.Size, 8);
-                    GL.TexCoordPointer(2, TexCoordPointerType.Float, Vertex.Size, 12);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
                     if (Indexed)
-						GL.DrawElements(mode, iCount, DrawElementsType.UnsignedInt, 0);
-                    else
-						GL.DrawArrays(mode, 0, vCount);
-                }
-                GL.BindTexture(TextureTarget.Texture2D, 0);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+                        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ibo);
+                    GL.EnableClientState(ArrayCap.VertexArray);
+                    GL.EnableClientState(ArrayCap.ColorArray);
+                    GL.EnableClientState(ArrayCap.TextureCoordArray);
+                    GLEnableCap blend = null;
+                    GL.BindTexture(TextureTarget.Texture2D, Texture);
+                    if (Texture != 0)
+                    {
+                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+                    }
+                    if (ChangedVerticies.Count != 0 && !_reloadVertices)
+                    {
+                        unsafe
+                        {
+                            foreach (var change in ChangedVerticies)
+                            {
+                                var vert = vertices[change];
+                                GL.BufferSubData(BufferTarget.ArrayBuffer, new IntPtr(Vertex.Size * change),
+                                    new IntPtr(Vertex.Size), ref vert);
+                            }
+                            ChangedVerticies.Clear();
+                        }
+                    }
+                    if (ChangedIndices.Count != 0 && !_reloadIndices)
+                    {
+                        unsafe
+                        {
+                            foreach (var change in ChangedIndices)
+                            {
+                                var ind = indices[change];
+                                GL.BufferSubData(BufferTarget.ElementArrayBuffer, new IntPtr(sizeof(int) * change), new IntPtr(sizeof(int)), ref ind);
+                            }
+                            ChangedIndices.Clear();
+                        }
+                    }
+                    if (_reloadVertices)
+                    {
+                        ChangedVerticies.Clear();
+                        GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(vertices.Length * Vertex.Size), vertices, BufferUsageHint.DynamicDraw);
+                        _reloadVertices = false;
+                    }
 
-                GL.DisableClientState(ArrayCap.TextureCoordArray);
-                GL.DisableClientState(ArrayCap.ColorArray);
-                GL.DisableClientState(ArrayCap.VertexArray);
-                if (blend != null)
-                {
-					blend.Dispose();
+                    if (_reloadIndices && Indexed)
+                    {
+                        ChangedIndices.Clear();
+                        GL.BufferData(BufferTarget.ElementArrayBuffer, new IntPtr(indices.Length * sizeof(int)), indices, BufferUsageHint.StreamDraw);
+                        _reloadIndices = false;
+                    }
+                    if (vCount != 0 && (!Indexed || iCount != 0))
+                    {
+                        GL.VertexPointer(2, VertexPointerType.Float, Vertex.Size, 0);
+                        GL.ColorPointer(4, ColorPointerType.UnsignedByte, Vertex.Size, 8);
+                        GL.TexCoordPointer(2, TexCoordPointerType.Float, Vertex.Size, 12);
+                        if (Indexed)
+                            GL.DrawElements(mode, iCount, DrawElementsType.UnsignedInt, 0);
+                        else
+                            GL.DrawArrays(mode, 0, vCount);
+                    }
+                    GL.BindTexture(TextureTarget.Texture2D, 0);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+
+                    GL.DisableClientState(ArrayCap.TextureCoordArray);
+                    GL.DisableClientState(ArrayCap.ColorArray);
+                    GL.DisableClientState(ArrayCap.VertexArray);
+                    if (blend != null)
+                    {
+                        blend.Dispose();
+                    }
                 }
             }
         }

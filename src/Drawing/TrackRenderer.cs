@@ -114,7 +114,7 @@ namespace linerider.Drawing
 		{
 			using (new GLEnableCap(EnableCap.Texture2D))
 			{
-				GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.OneMinusSrcAlpha);
+				GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 				GameDrawingMatrix.Enter();
 				try
 				{
@@ -226,7 +226,8 @@ namespace linerider.Drawing
 				if (_lines.TryGetValue(line.ID, out lv))
 				{
 					LineChangedFreeVertices(lv.coloredtrackline);
-					DrawTrackLine(line, true);
+
+					var newcoloredline = DrawTrackLine(line, true);//chance the colored line could change in type, like 3x multiplier
 
 					LineChangedFreeVertices(lv.blacktrackline);
 					DrawBasicTrackLine((Vector2)line.Position, (Vector2)line.Position2,
@@ -251,7 +252,14 @@ namespace linerider.Drawing
 
 					LineChangedFreeVertices(lv.gwell);
 					DrawGWell(line as StandardLine);
-				}
+
+                    if (lv.coloredtrackline.Count != newcoloredline.Count)//line indices changed, remind the vao
+                    {
+                        RequiresUpdate = true;
+                        lv.coloredtrackline = newcoloredline;
+                        _lines[line.ID] = lv;
+                    }
+                }
 			}
 		}
 
