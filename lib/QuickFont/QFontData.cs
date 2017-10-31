@@ -92,13 +92,13 @@ namespace QuickFont
 
             try
             {
-                pageCount = int.Parse(input[0]);
+                pageCount = int.Parse(input[0],Helper.Culture);
                 int glyphCount = int.Parse(input[1]);
 
                 for (int i = 0; i < glyphCount; i++)
                 {
                     var vals = input[2 + i].Split(' ');
-                    var glyph = new QFontGlyph(int.Parse(vals[1]), new Rectangle(int.Parse(vals[2]), int.Parse(vals[3]), int.Parse(vals[4]), int.Parse(vals[5])), int.Parse(vals[6]), vals[0][0]);
+                    var glyph = new QFontGlyph(int.Parse(vals[1],Helper.Culture), new Rectangle(int.Parse(vals[2],Helper.Culture), int.Parse(vals[3],Helper.Culture), int.Parse(vals[4],Helper.Culture), int.Parse(vals[5],Helper.Culture)), int.Parse(vals[6],Helper.Culture), vals[0][0]);
 
                     CharSetMapping.Add(vals[0][0], glyph);
                     charSetList.Add(vals[0][0]);
