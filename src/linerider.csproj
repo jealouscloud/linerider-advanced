@@ -10,6 +10,7 @@
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
     <ReleaseVersion>1.0</ReleaseVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -22,7 +23,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -35,6 +35,7 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>6</LangVersion>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -53,8 +54,11 @@
     <Compile Include="Models.cs" />
     <Compile Include="FrameSleep.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="Settings.cs" />
-    <Compile Include="Settings.Designer.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
     <Compile Include="Track.cs" />
     <Compile Include="UndoManager.cs" />
     <Compile Include="Audio\AudioDevice.cs" />
@@ -236,6 +240,13 @@
     <EmbeddedResource Include="Resources\White\play_icon_white.png" />
     <EmbeddedResource Include="Resources\White\rewind_white.png" />
     <EmbeddedResource Include="Resources\White\stop_icon_white.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

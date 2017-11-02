@@ -149,7 +149,8 @@ namespace linerider
 		internal readonly FPSCounter FpsCounter = new FPSCounter();
 		private readonly object _trackWriteLock = new object();
 		private readonly object _trackPlaybackLock = new object();
-		private TrackRenderer _renderer;
+        private readonly Stopwatch _frameTimer = Stopwatch.StartNew();
+        private TrackRenderer _renderer;
 		private SceneryRenderer _sceneryrenderer;
 		public bool Animating;
 		public bool Paused;
@@ -163,6 +164,9 @@ namespace linerider
 		private int _readCount;
 		private int _startFrame;
 		private FloatRect _trackrect;
+        private Rider _lerpNextFrame;
+        private Rider _interpolatedRider;
+        private Vector2d _normalCameraPos;
 		public int Frame => _track.Frame;
 		public int CurrentFrame => Animating ? _track.Frame + _startFrame : 0;
 		public int LineCount => _track.Lines.Count;
@@ -440,7 +444,6 @@ namespace linerider
 				this.momentum = momentum;
 			}
 		}
-
 		public void Render()
 		{
 			var rect = Camera.GetRenderRect(Zoom, game.RenderSize.Width, game.RenderSize.Height);
@@ -490,7 +493,8 @@ namespace linerider
 			}
 			else
 			{
-				commands.Add(new RiderDrawCommand(RiderState.Clone(), game.SettingDrawContactPoints ? 0.4f : 1, true,
+                var state = (_interpolatedRider ?? RiderState).Clone();
+                commands.Add(new RiderDrawCommand(state, game.SettingDrawContactPoints ? 0.4f : 1, true,
 					game.SettingDrawContactPoints, game.SettingMomentumVectors));
 			}
 			if (game.SettingOnionSkinning && _track.RiderStates.Count != 0 && Animating)
@@ -974,7 +978,7 @@ namespace linerider
 			return _track.Diagnose(state);
 		}
 
-		public void Update(int times)
+		public void Update(int times, float interpolate=0)
 		{
 			var slider = (HorizontalIntSlider)game.Canvas.FindChildByName("timeslider");
 			if (slider.Held)
@@ -983,11 +987,34 @@ namespace linerider
 				Camera.UpdateCamera();
 				return;
 			}
+            if (times == 0)
+            {
+                if (_track.Frame > 0)
+                {
+                    if (_lerpNextFrame == null)
+                    {
+                        _lerpNextFrame = RiderState.Clone();
+                        Tick(_lerpNextFrame);
+                        Camera.AimPosition = CameraAroundRider(_lerpNextFrame);
+                    }
+                    _interpolatedRider = RiderState.Interpolate(_lerpNextFrame, interpolate);
+                    Camera.ViewPosition = _normalCameraPos;
+                    Camera.UpdateCamera(interpolate);
+                    game.AllowTrackRender = true;
+                }
+            }
 			for (var i = 0; i < times; i++)
 			{
+                if (_lerpNextFrame != null)
+                {
+                    Camera.ViewPosition = _normalCameraPos;
+                }
+                _interpolatedRider = null;
+                _lerpNextFrame = null;
 				NextFrame();
 				Camera.AimPosition = CameraAroundRider(RiderState);
 				Camera.UpdateCamera();
+                _normalCameraPos = Camera.ViewPosition;
 				for (var ix = ActiveTriggers.Count - 1; ix >= 0; --ix)
 					if (ActiveTriggers[ix].Activate())
 						ActiveTriggers.RemoveAt(ix);

@@ -33,15 +33,11 @@ namespace linerider.Game
 		public Vector2d ViewPosition { get; set; }
 
 		public Vector2d AimPosition;
-		public void UpdateCamera()
-		{
-			if (Math.Abs((ViewPosition - AimPosition).Length) < 1 || !Settings.Default.SmoothCamera)
-				return;
-			ViewPosition = Vector2d.Lerp(ViewPosition, AimPosition, 0.33333333f / 2);
-			if (Math.Abs((AimPosition - ViewPosition).Length) < 0.1)
-			{
-				ViewPosition = AimPosition;
-			}
+
+		public void UpdateCamera(float percent = 1)
+        {
+            if (Settings.Default.SmoothCamera)
+                ViewPosition = CameraSmooth(ViewPosition,AimPosition,percent);
 		}
 		public static Vector2 EllipseClamp(FloatRect rect, Vector2 position)
 		{
@@ -88,7 +84,20 @@ namespace linerider.Game
 			pos -= sz / 2;
 			return new FloatRect(pos, sz);
 		}
-		private FloatRect GetRenderRectOriginal(float zoom, float width, float height)
+
+        private Vector2d CameraSmooth(Vector2d currentposition, Vector2d aim, float percent)
+        {
+            if (Math.Abs((currentposition - aim).Length) >= 1)
+            {
+                currentposition = Vector2d.Lerp(currentposition, Vector2d.Lerp(currentposition, aim, 1.0 / 8.0), percent);
+                if (Math.Abs((aim - currentposition).Length) < 0.1)
+                {
+                    return aim;
+                }
+            }
+            return currentposition;
+        }
+        private FloatRect GetRenderRectOriginal(float zoom, float width, float height)
 		{
 			Vector2 viewpos = (Vector2)ViewPosition;
 
