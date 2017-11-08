@@ -271,7 +271,7 @@ namespace linerider
                 if (!TrackRecorder.Recording)
                     SwapBuffers();
             }
-            //LimitFPS();
+            LimitFPS();
         }
 
         public void GameUpdate()
@@ -292,7 +292,7 @@ namespace linerider
             }
             if (Track.Playing)
             {
-                Track.Update(updates,Math.Min(1,Scheduler.ElapsedPercent));
+                Track.Update(updates);
                 if (Track.Frame % 40 == 0)
                 {
                     var sp = AudioPlayback.SongPosition;

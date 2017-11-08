@@ -57,21 +57,6 @@ namespace linerider
             Rider ret = new Rider(this);
             return ret;
         }
-        public Rider Interpolate(Rider rider2, float percent)
-        {
-            Rider ret = new Rider(this);
-            for (int i = 0; i < ret.ModelAnchors.Length; i++)
-            {
-                ret.ModelAnchors[i].Position = Vector2d.Lerp(ret.ModelAnchors[i].Position, rider2.ModelAnchors[i].Position, percent);
-                ret.ModelAnchors[i].Prev = Vector2d.Lerp(ret.ModelAnchors[i].Prev, rider2.ModelAnchors[i].Prev, percent);
-            }
-            for (int i = 0; i < ret.ScarfAnchors.Length; i++)
-            {
-                ret.ScarfAnchors[i].Position = Vector2d.Lerp(ret.ScarfAnchors[i].Position, rider2.ScarfAnchors[i].Position, percent);
-                ret.ScarfAnchors[i].Prev = Vector2d.Lerp(ret.ScarfAnchors[i].Prev, rider2.ScarfAnchors[i].Prev, percent);
-            }
-            return ret;
-        }
         public System.Drawing.Point GetAnchorOffset(int anchorID)
         {
             return new System.Drawing.Point(Endpoints[anchorID] >> 8, Endpoints[anchorID] & 0xFF);
@@ -248,7 +233,7 @@ namespace linerider
             if (r.Next((int)val, 5) == 4)
             {
                 bool left = r.Next(0, 2) == 1;//flutter left or right
-                val = Math.Min(val / 40, 0.005);
+                val = Math.Min(val / 40, 0.015);
                 for (int i = 0; i < ScarfAnchors.Length; i++)
                 {
                     var add = (ScarfAnchors[i].Prev - ScarfAnchors[i].Position).PerpendicularLeft * val *

@@ -31,15 +31,6 @@ namespace linerider
         private double updateperiod = 0;
         private bool reset = true;
 
-        public float ElapsedPercent
-        {
-            get
-            {
-                var totalelapsed = sw.Elapsed.TotalSeconds;
-                var elapsed = totalelapsed - lastupdate;
-                return (float)(elapsed / updateperiod);
-            }
-        }
         public int UpdatesPerSecond
         {
             get
