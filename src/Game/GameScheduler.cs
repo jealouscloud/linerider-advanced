@@ -47,6 +47,16 @@ namespace linerider
             }
         }
 
+        public float ElapsedPercent
+        {
+            get
+            {
+                var totalelapsed = sw.Elapsed.TotalSeconds;
+                var elapsed = totalelapsed - lastupdate;
+                return (float)(elapsed / updateperiod);
+            }
+        }
+
         public int UnqueueUpdates()
         {
             if (updateperiod == 0) return 1;

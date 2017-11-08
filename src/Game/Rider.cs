@@ -57,14 +57,33 @@ namespace linerider
             Rider ret = new Rider(this);
             return ret;
         }
+
+        public Rider Lerp(Rider rider2, float percent)
+        {
+            Rider ret = new Rider(this);
+            for (int i = 0; i < ret.ModelAnchors.Length; i++)
+            {
+                ret.ModelAnchors[i].Position = Vector2d.Lerp(ret.ModelAnchors[i].Position, rider2.ModelAnchors[i].Position, percent);
+                ret.ModelAnchors[i].Prev = Vector2d.Lerp(ret.ModelAnchors[i].Prev, rider2.ModelAnchors[i].Prev, percent);
+            }
+            for (int i = 0; i < ret.ScarfAnchors.Length; i++)
+            {
+                ret.ScarfAnchors[i].Position = Vector2d.Lerp(ret.ScarfAnchors[i].Position, rider2.ScarfAnchors[i].Position, percent);
+                ret.ScarfAnchors[i].Prev = Vector2d.Lerp(ret.ScarfAnchors[i].Prev, rider2.ScarfAnchors[i].Prev, percent);
+            }
+            return ret;
+        }
+
         public System.Drawing.Point GetAnchorOffset(int anchorID)
         {
             return new System.Drawing.Point(Endpoints[anchorID] >> 8, Endpoints[anchorID] & 0xFF);
         }
+
         public void SetAnchorOffset(int anchorID, System.Drawing.Point p)
         {
             Endpoints[anchorID] = (short)(((byte)p.X << 8) | (byte)p.Y);
         }
+
         public void Reset(Vector2d offset, Track trk)
         {
             Crashed = false;

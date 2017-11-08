@@ -166,6 +166,7 @@ namespace linerider
 		public int Frame => _track.Frame;
 		public int CurrentFrame => Animating ? _track.Frame + _startFrame : 0;
 		public int LineCount => _track.Lines.Count;
+        public bool SmoothPlayback = true;
 
 		public bool RequiresUpdate
 		{
@@ -443,7 +444,16 @@ namespace linerider
 
 		public void Render()
 		{
-			var rect = Camera.GetRenderRect(Zoom, game.RenderSize.Width, game.RenderSize.Height);
+            Rider drawrider = RiderState.Clone();
+            if (SmoothPlayback && Playing && _track.Frame != 0)
+            {
+                var percent = game.Scheduler.ElapsedPercent;
+                if (percent < 1)
+                {
+                    drawrider = _track.RiderStates[_track.Frame - 1].Lerp(RiderState, percent);
+                }
+            }
+            var rect = Camera.GetRenderRect(Zoom, game.RenderSize.Width, game.RenderSize.Height);
 			var st = OpenTK.Input.Keyboard.GetState();
 			var needsredraw = (!_trackrect.Contains(rect.Left, rect.Top) ||
 							   !_trackrect.Contains(rect.Left + rect.Width, rect.Top + rect.Height));
@@ -490,7 +500,7 @@ namespace linerider
 			}
 			else
 			{
-				commands.Add(new RiderDrawCommand(RiderState.Clone(), game.SettingDrawContactPoints ? 0.4f : 1, true,
+				commands.Add(new RiderDrawCommand(drawrider, game.SettingDrawContactPoints ? 0.4f : 1, true,
 					game.SettingDrawContactPoints, game.SettingMomentumVectors));
 			}
 			if (game.SettingOnionSkinning && _track.RiderStates.Count != 0 && Animating)

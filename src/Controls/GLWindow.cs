@@ -257,7 +257,6 @@ namespace linerider
 				GL.End();
 				GL.PopMatrix();
 #endif
-
 				Track.Render();
                 Canvas.RenderCanvas();
 
@@ -270,8 +269,9 @@ namespace linerider
                 }
                 if (!TrackRecorder.Recording)
                     SwapBuffers();
+
+                LimitFPS();
             }
-            LimitFPS();
         }
 
         public void GameUpdate()
@@ -302,7 +302,7 @@ namespace linerider
                     }
                 }
             }
-            if (Track.Animating && Track.Paused)
+            if (Track.Animating && (Track.Paused || Track.SmoothPlayback))
                 AllowTrackRender = true;
         }
 
