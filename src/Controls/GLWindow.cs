@@ -128,7 +128,7 @@ namespace linerider
             }
         }
         public Vector2d ScreenPosition
-            => (Vector2d)Track.Camera.GetRenderRect(Track.Zoom, RenderSize.Width, RenderSize.Height).Vector;
+            => (Vector2d)Track.Camera.GetCamera().Vector;
 
         public Vector2d ScreenTranslation => -ScreenPosition;
         public GLTrack Track { get; }
@@ -619,8 +619,7 @@ namespace linerider
                             Track.NextFrame();
                             Invalidate();
                             SetIteration(0, true);
-                            Track.Camera.AimPosition = Track.CameraAroundRider(Track.RiderState);
-                            Track.Camera.UpdateCamera();
+                            Track.Camera.SetFrame(Track.RiderState.CalculateCenter(), false);
                         }
                         return;
                     }
@@ -636,8 +635,7 @@ namespace linerider
                             Track.PreviousFrame();
                             Invalidate();
                             SetIteration(6, true);
-                            Track.Camera.AimPosition = Track.CameraAroundRider(Track.RiderState);
-                            Track.Camera.UpdateCamera();
+                            Track.Camera.SetFrame(Track.RiderState.CalculateCenter(), false);
                         }
                         return;
                     }
@@ -729,7 +727,7 @@ namespace linerider
             {
                 if (!Track.Animating)
                 {
-                    Track.Camera.SetPosition(Track.RiderState.ModelAnchors[4].Position);
+                    Track.Camera.SetFrame(Track.RiderState.ModelAnchors[4].Position,false);
                     Invalidate();
                 }
             }
@@ -740,7 +738,7 @@ namespace linerider
                     var flag = Track.GetFlag();
                     if (flag != null)
                     {
-                        Track.Camera.SetPosition(flag.State.ModelAnchors[4].Position);
+                        Track.Camera.SetFrame(flag.State.ModelAnchors[4].Position,false);
                         Invalidate();
                     }
                 }
@@ -794,8 +792,7 @@ namespace linerider
                     Track.TogglePause();
                 Track.NextFrame();
                 Invalidate();
-                Track.Camera.AimPosition = Track.CameraAroundRider(Track.RiderState);
-                Track.Camera.UpdateCamera();
+                Track.Camera.SetFrame(Track.RiderState.CalculateCenter(), false);
             }
             else if (e.Key == Key.Left)
             {
@@ -803,15 +800,14 @@ namespace linerider
                     Track.TogglePause();
                 Track.PreviousFrame();
                 Invalidate();
-                Track.Camera.AimPosition = Track.CameraAroundRider(Track.RiderState);
-                Track.Camera.UpdateCamera();
+                Track.Camera.SetFrame(Track.RiderState.CalculateCenter(), false);
             }
             else if (e.Key == Key.Home)
             {
                 var l = Track.GetFirstLine();
                 if (l != null)
                 {
-                    Track.Camera.SetPosition(l.Position);
+                    Track.Camera.SetFrame(l.Position, false);
                     Invalidate();
                 }
             }
@@ -820,7 +816,7 @@ namespace linerider
                 var l = Track.GetLastLine();
                 if (l != null)
                 {
-                    Track.Camera.SetPosition(l.Position);
+                    Track.Camera.SetFrame(l.Position, false);
                     Invalidate();
                 }
             }

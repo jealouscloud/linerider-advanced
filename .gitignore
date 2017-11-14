@@ -15,3 +15,4 @@ lib/Gwen.Renderer.OpenTK/.vs/Gwen.Renderer.OpenTK/v15/.suo
 lib/QuickFont/.vs/QuickFont/v15/.suo
 lib/QuickFont/packages/OpenTK.2.0.0/lib/net20/OpenTK.xml
 lib/QuickFont/packages/OpenTK.2.0.0/OpenTK.2.0.0.nupkg
+*.trk

@@ -74,6 +74,29 @@ namespace linerider
             return ret;
         }
 
+        public Vector2d VectorTo(Rider rider2)
+        {
+            Vector2d ret = new Vector2d(0,0);
+            for (int i = 0; i < ModelAnchors.Length; i++)
+            {
+                ret += rider2.ModelAnchors[i].Position - ModelAnchors[i].Position;
+            }
+            ret /= ModelAnchors.Length;
+            return ret;
+        }
+
+        public Vector2d CalculateCenter()
+        {
+            if (Crashed)
+                return ModelAnchors[4].Position;
+            var anchorsaverage = new Vector2d();
+            foreach (var anchor in ModelAnchors)
+            {
+                anchorsaverage += anchor.Position;
+            }
+            return anchorsaverage / ModelAnchors.Length;
+        }
+
         public System.Drawing.Point GetAnchorOffset(int anchorID)
         {
             return new System.Drawing.Point(Endpoints[anchorID] >> 8, Endpoints[anchorID] & 0xFF);

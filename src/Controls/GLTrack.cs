@@ -157,7 +157,6 @@ namespace linerider
 		public Camera Camera;
 		public List<LineTrigger> ActiveTriggers = new List<LineTrigger>();
 		private float _oldZoom = 1.0f;
-		private Vector2d _oldPos;
 		private Tracklocation _flag;
 		private Track _track;
 		private int _readCount;
@@ -166,7 +165,7 @@ namespace linerider
 		public int Frame => _track.Frame;
 		public int CurrentFrame => Animating ? _track.Frame + _startFrame : 0;
 		public int LineCount => _track.Lines.Count;
-        public bool SmoothPlayback = true;
+        public bool SmoothPlayback = false;
 
 		public bool RequiresUpdate
 		{
@@ -206,7 +205,7 @@ namespace linerider
 		public GLTrack()
 		{
 			Camera = new Camera();
-			_renderer = new TrackRenderer();
+            _renderer = new TrackRenderer();
 			_sceneryrenderer = new SceneryRenderer();
 			_track = new Track();
 			_track.RiderState.Reset(new Vector2d(0, 0), _track);
@@ -453,8 +452,16 @@ namespace linerider
                     drawrider = _track.RiderStates[_track.Frame - 1].Lerp(RiderState, percent);
                 }
             }
-            var rect = Camera.GetRenderRect(Zoom, game.RenderSize.Width, game.RenderSize.Height);
-			var st = OpenTK.Input.Keyboard.GetState();
+            if (Settings.Default.SmoothCamera)
+            {
+                //todo
+            }
+            var rect = Camera.GetCamera();
+            GameDrawingMatrix.Enter();
+         //   var clamp = Camera.getclamp(Zoom, game.RenderSize.Width, game.RenderSize.Height);
+           // StaticRenderer.DrawTexture(StaticRenderer.CircleTex, new System.Drawing.RectangleF(clamp.Left, clamp.Top, clamp.Width, clamp.Height));
+            GameDrawingMatrix.Exit();
+            var st = OpenTK.Input.Keyboard.GetState();
 			var needsredraw = (!_trackrect.Contains(rect.Left, rect.Top) ||
 							   !_trackrect.Contains(rect.Left + rect.Width, rect.Top + rect.Height));
 			if (!needsredraw)
@@ -706,10 +713,8 @@ namespace linerider
 				Paused = false;
 
 				Zoom = _oldZoom;
-				Camera.SetPosition(_oldPos);
+                Camera.Pop();
 				_track.RiderState.Reset(_track.Start, _track);
-				Camera.ViewPosition = _oldPos;
-				Camera.AimPosition = Camera.ViewPosition;
 				game.Scheduler.UpdatesPerSecond = 40;
 				foreach (var v in ActiveTriggers)
 				{
@@ -773,24 +778,13 @@ namespace linerider
 			}
 		}
 
-		public Vector2d CameraAroundRider(Rider state)
-		{
-			if (state.Crashed)
-				return state.ModelAnchors[4].Position;
-			var anchorsaverage = new Vector2d();
-			foreach (var anchor in state.ModelAnchors)
-			{
-				anchorsaverage += anchor.Position;
-			}
-			return anchorsaverage / state.ModelAnchors.Length;
-		}
 
 		public void Start(bool ignoreflag = false, bool clearcollidedlines = true, bool startmusic = true, bool ghoststart = false)
 		{
 			if (!Animating)
 			{
 				_oldZoom = Zoom;
-				_oldPos = Camera.ViewPosition;
+                Camera.Push();
 			}
 			EnterPlayback();
 			{
@@ -820,7 +814,7 @@ namespace linerider
 					}
 					_track.AllCollidedLines.Clear();
 				}
-				Camera.SetPosition(CameraAroundRider(_track.RiderState));
+				Camera.SetFrame(_track.RiderState.CalculateCenter(),false);
 				game.UpdateCursor();
 				game.Scheduler.UpdatesPerSecond =
 					(int)(Math.Round(game.SettingDefaultPlayback * 40));
@@ -989,16 +983,33 @@ namespace linerider
 			var slider = (HorizontalIntSlider)game.Canvas.FindChildByName("timeslider");
 			if (slider.Held)
 			{
-				Camera.AimPosition = CameraAroundRider(RiderState);
-				Camera.UpdateCamera();
-				return;
+                if (Settings.Default.SmoothCamera)
+                {
+                    var clone = RiderState.Clone();
+                    Tick(clone);
+                    Camera.SetSmoothFrame(RiderState.CalculateCenter(), clone.CalculateCenter());
+                }
+                else
+                {
+                    Camera.SetFrame(RiderState.CalculateCenter(), true);
+                }
+                
+                return;
 			}
 			for (var i = 0; i < times; i++)
-			{
-				NextFrame();
-				Camera.AimPosition = CameraAroundRider(RiderState);
-				Camera.UpdateCamera();
-				for (var ix = ActiveTriggers.Count - 1; ix >= 0; --ix)
+            {
+                NextFrame();
+                if (Settings.Default.SmoothCamera)
+                {
+                    var clone = RiderState.Clone();
+                    Tick(clone);
+                    Camera.SetSmoothFrame(RiderState.CalculateCenter(), clone.CalculateCenter());
+                }
+                else
+                {
+                    Camera.SetFrame(RiderState.CalculateCenter(), true);
+                }
+                for (var ix = ActiveTriggers.Count - 1; ix >= 0; --ix)
 					if (ActiveTriggers[ix].Activate())
 						ActiveTriggers.RemoveAt(ix);
 				game.AllowTrackRender = true;
@@ -1087,7 +1098,7 @@ namespace linerider
 			_track = trk;
 			RefreshTrack();
 			trk.RiderState.Reset(trk.Start, trk);
-			Camera.SetPosition(trk.Start);
+			Camera.SetFrame(trk.Start,false);
 		}
 
 		/// <summary>

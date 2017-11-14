@@ -39,10 +39,6 @@ namespace linerider.Drawing
         #endregion Fields
 
         #region Methods
-        public static void BeginDrawingGameCoords()
-        {
-
-        }
 
         public static void DrawIteration(float opacity, Rider fullrider, int iteration, bool momentumvectors = false, bool drawcontactpoints = false)
         {

@@ -171,7 +171,7 @@ namespace linerider
                 game.Track.ExitPlayback();
                 if (!game.Track.Playing)
                 {
-                    game.Track.Camera.SetPosition(game.Track.CameraAroundRider(game.Track.RiderState));
+                    game.Track.Camera.SetFrame(game.Track.RiderState.CalculateCenter(),false);
                 }
             }
             if (slider.Held)
@@ -875,7 +875,7 @@ namespace linerider
             var labelflagtime = (Label)FindChildByName("flagtime");
             if (flag != null)
             {
-                var cam = game.Track.CameraAroundRider(flag.State);
+                var cam = flag.State.CalculateCenter();
                 cam.X -= 15;
                 cam.Y -= 15;
                 var ts = TimeSpan.FromSeconds((flag.Frame) / 40f);
