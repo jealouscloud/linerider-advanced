@@ -452,15 +452,7 @@ namespace linerider
                     drawrider = _track.RiderStates[_track.Frame - 1].Lerp(RiderState, percent);
                 }
             }
-            if (Settings.Default.SmoothCamera)
-            {
-                //todo
-            }
             var rect = Camera.GetCamera();
-            GameDrawingMatrix.Enter();
-         //   var clamp = Camera.getclamp(Zoom, game.RenderSize.Width, game.RenderSize.Height);
-           // StaticRenderer.DrawTexture(StaticRenderer.CircleTex, new System.Drawing.RectangleF(clamp.Left, clamp.Top, clamp.Width, clamp.Height));
-            GameDrawingMatrix.Exit();
             var st = OpenTK.Input.Keyboard.GetState();
 			var needsredraw = (!_trackrect.Contains(rect.Left, rect.Top) ||
 							   !_trackrect.Contains(rect.Left + rect.Width, rect.Top + rect.Height));

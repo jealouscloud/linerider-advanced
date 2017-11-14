@@ -74,17 +74,6 @@ namespace linerider
             return ret;
         }
 
-        public Vector2d VectorTo(Rider rider2)
-        {
-            Vector2d ret = new Vector2d(0,0);
-            for (int i = 0; i < ModelAnchors.Length; i++)
-            {
-                ret += rider2.ModelAnchors[i].Position - ModelAnchors[i].Position;
-            }
-            ret /= ModelAnchors.Length;
-            return ret;
-        }
-
         public Vector2d CalculateCenter()
         {
             if (Crashed)
