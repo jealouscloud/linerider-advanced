@@ -57,7 +57,16 @@ namespace linerider
             Rider ret = new Rider(this);
             return ret;
         }
-
+        public Vector2d CalculateMomentum()
+        {
+            var mo = Vector2d.Zero;
+            for (int i = 0; i < ModelAnchors.Length; i++)
+            {
+                mo += ModelAnchors[i].Momentum;
+            }
+            mo /= ModelAnchors.Length;
+            return mo;
+        }
         public Rider Lerp(Rider rider2, float percent)
         {
             Rider ret = new Rider(this);

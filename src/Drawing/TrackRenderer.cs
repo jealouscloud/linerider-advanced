@@ -51,7 +51,7 @@ namespace linerider.Drawing
 
 		private HashSet<int> collisions = new HashSet<int>();
 
-		private List<StandardLine> lines;
+		private List<StandardLine> lines = new List<StandardLine>();
 
 		ConcurrentQueue<int> availablevertices = new ConcurrentQueue<int>();
 		ConcurrentQueue<int> linechangedvertices = new ConcurrentQueue<int>();
@@ -114,7 +114,7 @@ namespace linerider.Drawing
 		{
 			using (new GLEnableCap(EnableCap.Texture2D))
 			{
-				GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+				GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.OneMinusSrcAlpha);
 				GameDrawingMatrix.Enter();
 				try
 				{

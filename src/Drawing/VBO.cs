@@ -261,11 +261,6 @@ namespace linerider.Drawing
                     GL.EnableClientState(ArrayCap.TextureCoordArray);
                     GLEnableCap blend = null;
                     GL.BindTexture(TextureTarget.Texture2D, Texture);
-                    if (Texture != 0)
-                    {
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
-                    }
                     if (ChangedVerticies.Count != 0 && !_reloadVertices)
                     {
                         unsafe

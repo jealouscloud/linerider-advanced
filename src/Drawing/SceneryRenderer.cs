@@ -63,7 +63,7 @@ namespace linerider.Drawing
 		{
 			using (new GLEnableCap(EnableCap.Texture2D))
 			{
-				GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+				GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.OneMinusSrcAlpha);
 				GameDrawingMatrix.Enter();
 				try
 				{

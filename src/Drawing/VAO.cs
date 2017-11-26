@@ -223,8 +223,6 @@ namespace linerider.Drawing
                     if (Texture != 0)
                     {
                         GL.BindTexture(TextureTarget.Texture2D, Texture);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
                     }
                     if (vCount != 0 && (!Indexed || iCount != 0))
                     {

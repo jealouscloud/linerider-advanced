@@ -838,13 +838,7 @@ namespace linerider
                 {
                     fpsorlinecount = game.SettingRecordingMode ? "40 FPS" : fpslabel.Text;
                 }
-                var mo = Vector2d.Zero;
-                for (int i = 0; i < game.Track.RiderState.ModelAnchors.Length; i++)
-                {
-                    mo += game.Track.RiderState.ModelAnchors[i].Momentum;
-                }
-                mo /= game.Track.RiderState.ModelAnchors.Length;
-                var ppf = Math.Sqrt(mo.X * mo.X) + Math.Sqrt(mo.Y * mo.Y);
+                var ppf = game.Track.RiderState.CalculateMomentum().Length;
                 var pixels = Math.Round(ppf, 2);
                 sppf = string.Format("{0:N2}", pixels) + " ppf";
                 if (!game.SettingShowPpf && game.SettingRecordingMode)

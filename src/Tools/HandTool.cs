@@ -41,7 +41,7 @@ namespace linerider
         {
             started = true;
             startposition = pos / game.Track.Zoom;
-            Start = game.Track.Camera.GetCenter(); 
+            Start = game.Track.Camera.GetOrigin(); 
             game.Invalidate();
             base.OnMouseDown(pos);
         }

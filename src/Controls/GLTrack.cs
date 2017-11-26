@@ -153,7 +153,7 @@ namespace linerider
 		private SceneryRenderer _sceneryrenderer;
 		public bool Animating;
 		public bool Paused;
-		public float Zoom = 1.0f;
+		public float Zoom = 4.0f;
 		public Camera Camera;
 		public List<LineTrigger> ActiveTriggers = new List<LineTrigger>();
 		private float _oldZoom = 1.0f;
@@ -452,7 +452,27 @@ namespace linerider
                     drawrider = _track.RiderStates[_track.Frame - 1].Lerp(RiderState, percent);
                 }
             }
-            var rect = Camera.GetCamera();
+            var rect = Camera.GetRenderArea().ToFloatRect();
+            var clamp = Camera.getclamp(Zoom, game.RenderSize.Width, game.RenderSize.Height);
+            GameDrawingMatrix.Enter();
+            if (Settings.Default.SmoothCamera)
+            {
+                // StaticRenderer.DrawTexture(StaticRenderer.CircleTex, clamp);
+                var origin = rect.Vector + rect.Size / 2;
+                var circle = StaticRenderer.GenerateCircle((float)origin.X, (float)origin.Y, (float)clamp.Width, 360);
+                for (int i = 0; i < circle.Length; i++)
+                {
+                    var vec = (Vector2d)circle[i];
+                    var oval = clamp.EllipseClamp(vec);
+                    var square = clamp.Clamp(vec);
+                    circle[i] =(Vector2) Vector2d.Lerp(square, oval, LiveTestFile.GetValue(3));
+                }
+                StaticRenderer.DrawConnectedLines(circle, System.Drawing.Color.Black, 0.1f);
+                StaticRenderer.DrawTexture(StaticRenderer.CircleTex, new DoubleRect(Camera.NextLocation.Center, new Vector2d(2, 2)));
+            }
+            else
+                StaticRenderer.RenderRect(clamp.ToFloatRect(), System.Drawing.Color.White);
+            GameDrawingMatrix.Exit();
             var st = OpenTK.Input.Keyboard.GetState();
 			var needsredraw = (!_trackrect.Contains(rect.Left, rect.Top) ||
 							   !_trackrect.Contains(rect.Left + rect.Width, rect.Top + rect.Height));
@@ -806,8 +826,11 @@ namespace linerider
 					}
 					_track.AllCollidedLines.Clear();
 				}
-				Camera.SetFrame(_track.RiderState.CalculateCenter(),false);
-				game.UpdateCursor();
+                var cameracenter = _track.RiderState.CalculateCenter();
+
+                Camera.SetFrame(RiderState.CalculateCenter(), false);
+                UpdateCamera();
+                game.UpdateCursor();
 				game.Scheduler.UpdatesPerSecond =
 					(int)(Math.Round(game.SettingDefaultPlayback * 40));
 				var canvas = game.Canvas;
@@ -974,33 +997,14 @@ namespace linerider
 		{
 			var slider = (HorizontalIntSlider)game.Canvas.FindChildByName("timeslider");
 			if (slider.Held)
-			{
-                if (Settings.Default.SmoothCamera)
-                {
-                    var clone = RiderState.Clone();
-                    Tick(clone);
-                    Camera.SetSmoothFrame(RiderState.CalculateCenter(), clone.CalculateCenter());
-                }
-                else
-                {
-                    Camera.SetFrame(RiderState.CalculateCenter(), true);
-                }
-                
+            {
+                UpdateCamera();
                 return;
 			}
 			for (var i = 0; i < times; i++)
             {
                 NextFrame();
-                if (Settings.Default.SmoothCamera)
-                {
-                    var clone = RiderState.Clone();
-                    Tick(clone);
-                    Camera.SetSmoothFrame(RiderState.CalculateCenter(), clone.CalculateCenter());
-                }
-                else
-                {
-                    Camera.SetFrame(RiderState.CalculateCenter(), true);
-                }
+                UpdateCamera();
                 for (var ix = ActiveTriggers.Count - 1; ix >= 0; --ix)
 					if (ActiveTriggers[ix].Activate())
 						ActiveTriggers.RemoveAt(ix);
@@ -1008,6 +1012,17 @@ namespace linerider
 			}
 		}
 
+        public void UpdateCamera()
+        {
+            Camera.SetFrame(RiderState.CalculateCenter(), true);
+            if (Settings.Default.SmoothCamera)
+            {
+                var clone = RiderState.Clone();
+                Tick(clone);
+                Camera.SetPrediction(clone.CalculateCenter());
+            }
+            game.AllowTrackRender = true;
+        }
 		public void ExportAsSol()
 		{
 			if (_track.Lines.Count != 0)

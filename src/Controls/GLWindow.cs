@@ -128,7 +128,7 @@ namespace linerider
             }
         }
         public Vector2d ScreenPosition
-            => (Vector2d)Track.Camera.GetCamera().Vector;
+            => (Vector2d)Track.Camera.GetRenderArea().Vector;
 
         public Vector2d ScreenTranslation => -ScreenPosition;
         public GLTrack Track { get; }
