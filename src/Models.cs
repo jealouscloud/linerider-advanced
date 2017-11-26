@@ -18,55 +18,36 @@
 //
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+using OpenTK;
 namespace linerider
 {
     public static class Models
     {
         #region Fields
-
-        public static Drawing.VBO Arm;
-        public static Drawing.VBO Bosh;
-        public static Drawing.VBO BoshDead;
-        public static Drawing.VBO BrokenSled;
-        public static Drawing.VBO Leg;
-        public static Drawing.VBO Sled;
+        public static int SledTexture;
+        public static int BrokenSledTexture;
+        public static int BodyTexture;
+        public static int BodyDeadTexture;
+        public static int ArmTexture;
+        public static int LegTexture;
+        public static readonly DoubleRect SledRect = new DoubleRect(-1.375, -4.625, 717.0/20,298.0/20);
+        public static readonly DoubleRect BrokenSledRect = new DoubleRect(-1.375 +0.646, -4.625, 36.20009, 15.25078);
+        public static readonly DoubleRect BodyRect = new DoubleRect(-0.052, -6.452, 27.888, 13.330);
+        public static readonly DoubleRect ArmRect = new DoubleRect(-1.314, -2.461, 15.590, 3.858);
+        public static readonly DoubleRect LegRect = new DoubleRect(-1.307, -4.026, 15.990, 5.450);
         #endregion Fields
 
         #region Methods
 
         public static void LoadModels()
         {
-            Bosh = LoadGraphic(GameResources.bosh);
-            BoshDead = LoadGraphic(GameResources.boshdead);
-            Arm = LoadGraphic(GameResources.arm);
-            Leg = LoadGraphic(GameResources.leg);
-            Sled = LoadGraphic(GameResources.sled);
-            BrokenSled = LoadGraphic(GameResources.brokensled);
-        }
-        private static Drawing.VBO LoadGraphic(byte[] graphics)
-        {
-            using (var s = new System.IO.MemoryStream(graphics))
-            using (var sr = new System.IO.StreamReader(s, System.Text.Encoding.ASCII))
-            {
-                var svg = NGraphics.Graphic.LoadSvg(sr);
-                var vbo = new Drawing.VBO(false,true);
-                vbo.Texture = linerider.Drawing.StaticRenderer.CircleTex;
-                foreach (var c in svg.Children)
-                {
-                    if (c is NGraphics.Path)
-                    {
-                        linerider.Drawing.GameRenderer.canvas.DrawPath((NGraphics.Path)c,vbo);
-                    }
-                    else
-                    {
-                        throw new System.Exception("Unsupported SVG");
-                    }
-                }
-                svg.Size.Height /= 2;
-                svg.Size.Width /=2;
-                return vbo;
-            }
+            SledTexture = Drawing.StaticRenderer.LoadTexture(GameResources.sled_img);
+            BrokenSledTexture = Drawing.StaticRenderer.LoadTexture(GameResources.brokensled_img);
+            BodyTexture = Drawing.StaticRenderer.LoadTexture(GameResources.bosh_img);
+            BodyDeadTexture = Drawing.StaticRenderer.LoadTexture(GameResources.boshdead_img);
+            ArmTexture = Drawing.StaticRenderer.LoadTexture(GameResources.arm_img);
+            LegTexture = Drawing.StaticRenderer.LoadTexture(GameResources.leg_img);
+
         }
 
         #endregion Methods

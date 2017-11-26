@@ -1,0 +1,8 @@
+5
+30
+1
+0.8
+camera area floor ppf
+camera area ceil ppf
+predictive camera multiplier
+cam roundness
