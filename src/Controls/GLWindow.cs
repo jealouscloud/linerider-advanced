@@ -18,7 +18,6 @@
 //
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#define debuggrid
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -127,7 +126,7 @@ namespace linerider
             }
         }
         public Vector2d ScreenPosition
-            => (Vector2d)Track.Camera.GetViewport().Vector;
+            => Track.Camera.GetViewport().Vector;
 
         public Vector2d ScreenTranslation => -ScreenPosition;
         public GLTrack Track { get; }

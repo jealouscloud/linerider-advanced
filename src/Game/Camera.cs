@@ -40,7 +40,7 @@ namespace linerider.Game
 
         public void SetFrame(Vector2d newcenter, bool relative)
         {
-            lastcenter = Location.GetPosition();
+            lastcenter = GetCameraCenter();
             framebox.RiderPosition = newcenter;
             if (!relative)
             {
