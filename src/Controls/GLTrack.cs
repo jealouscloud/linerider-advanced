@@ -165,7 +165,7 @@ namespace linerider
 		public int Frame => _track.Frame;
 		public int CurrentFrame => Animating ? _track.Frame + _startFrame : 0;
 		public int LineCount => _track.Lines.Count;
-        public bool SmoothPlayback = false;
+        public bool SmoothPlayback = true;
         public bool SimulationNeedsDraw = false;
 
 		public bool RequiresUpdate

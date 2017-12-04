@@ -32,7 +32,7 @@ namespace linerider.Game
     {
         public static bool ScaleCamera = true;
         public CameraBoundingBox framebox = new CameraBoundingBox();
-        public CameraLocation Location = new CameraLocation(Vector2d.Zero,Vector2d.Zero);
+        public CameraLocation Location = new CameraLocation(Vector2d.Zero, Vector2d.Zero);
         private Vector2d nextrider;
         private Vector2d lastcenter;
         private Stack<CameraLocation> camerastack = new Stack<CameraLocation>();
@@ -40,18 +40,18 @@ namespace linerider.Game
 
         public void SetFrame(Vector2d newcenter, bool relative)
         {
+            lastcenter = Location.GetPosition();
             framebox.RiderPosition = newcenter;
             if (!relative)
             {
-                Location = new CameraLocation(newcenter,Vector2d.Zero);
+                Location = new CameraLocation(newcenter, Vector2d.Zero);
                 lastcenter = Vector2d.Zero;
             }
             else
             {
-                lastcenter = Location.GetPosition();
                 if (Settings.Default.SmoothCamera)
                 {
-                    Location = framebox.SmoothClamp(lastcenter,0);
+                    Location = framebox.SmoothClamp(lastcenter, 0);
                 }
                 else
                 {
@@ -61,7 +61,7 @@ namespace linerider.Game
         }
         public void SetPrediction(Vector2d nextframe)
         {
-            this.nextrider = nextframe;
+            nextrider = nextframe;
         }
 
         public DoubleRect GetViewport()
@@ -73,26 +73,7 @@ namespace linerider.Game
         {
             var rendersize = game.RenderSize;
             var sz = new Vector2d(rendersize.Width / game.Track.Zoom, rendersize.Height / game.Track.Zoom);
-            var camcenter = Location.GetPosition();
-            if (Settings.Default.SmoothCamera && game.Track.Animating)
-            {
-                CameraBoundingBox nextbox = new CameraBoundingBox() { RiderPosition = nextrider };
-                if (!nextbox.SmoothIntersects(camcenter, 0))//next frame ideal exceeds bounds of current camera, so we should tend towards it for predictive camera.
-                {
-                    var ppf = (float)game.Track.RiderState.CalculateMomentum().Length;
-                    var d = nextrider - framebox.RiderPosition;
-                    var nextcam = nextbox.SmoothClamp(Location.GetPosition(), 0).GetPosition();
-                    if (ScaleCamera)
-                    {
-                        nextcam = framebox.SmoothClamp(nextcam, !framebox.SmoothIntersects(nextrider, 10000) ? 10000 : ppf).GetPosition();//basically, don't allow it to rubber band
-                    }
-                    else
-                    {
-                        nextcam = framebox.SmoothClamp(nextcam, 0).GetPosition();
-                    }
-                    camcenter = nextcam;
-                }
-            }
+            var camcenter = GetCameraCenter();
             if (blend != 1 && lastcenter != Vector2d.Zero)
             {
                 camcenter = Vector2d.Lerp(lastcenter, camcenter, blend);
@@ -108,7 +89,7 @@ namespace linerider.Game
 
         public void Pop()
         {
-            Location = camerastack.Pop();
+            SetFrame(camerastack.Pop().GetPosition(),false);
         }
         public DoubleRect getclamp(float zoom, float width, float height)
         {
@@ -116,6 +97,36 @@ namespace linerider.Game
             var pos = ret.Vector + (ret.Size / 2);
             var b = new CameraBoundingBox() { RiderPosition = pos };
             return b.GetBox(framebox.GetSmoothCamRatio((float)game.Track.RiderState.CalculateMomentum().Length));
+        }
+        private Vector2d GetCameraCenter()
+        {
+            var camcenter = Location.GetPosition();
+            if (game.Track.Animating)
+            {
+                if (Settings.Default.SmoothCamera)
+                {
+                    CameraBoundingBox nextbox = new CameraBoundingBox() { RiderPosition = nextrider };
+                    if (!nextbox.SmoothIntersects(camcenter, 0))//next frame ideal exceeds bounds of current camera, so we should tend towards it for predictive camera.
+                    {
+                        camcenter = nextbox.SmoothClamp(Location.GetPosition(), 0).GetPosition();
+                    }
+                    if (ScaleCamera)
+                    {
+                        var ppf = (float)game.Track.RiderState.CalculateMomentum().Length;
+                        var d = nextrider - framebox.RiderPosition;
+                        camcenter = framebox.SmoothClamp(camcenter, !framebox.SmoothIntersects(nextrider, 10000) ? 10000 : ppf).GetPosition();//basically, don't allow it to rubber band
+                    }
+                    else
+                    {
+                        camcenter = framebox.SmoothClamp(camcenter, 0).GetPosition();
+                    }
+                }
+                else
+                {
+                    camcenter = framebox.Clamp(camcenter).GetPosition();
+                }
+            }
+            return camcenter;
         }
     }
 }
