@@ -18,7 +18,7 @@
 //
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+#define debuggrid
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -74,7 +74,6 @@ namespace linerider
         private readonly Tool _handtool;
         private readonly Tool _lineadjusttool;
         private readonly Stopwatch _autosavewatch = Stopwatch.StartNew();
-		private readonly Stopwatch _fpsLimiterWatch = Stopwatch.StartNew();
 		public MsaaFbo MSAABuffer;
         public Dictionary<string, MouseCursor> Cursors = new Dictionary<string, MouseCursor>();
         public Song CurrentSong = new Song("", 0);
@@ -128,7 +127,7 @@ namespace linerider
             }
         }
         public Vector2d ScreenPosition
-            => (Vector2d)Track.Camera.GetRenderArea().Vector;
+            => (Vector2d)Track.Camera.GetViewport().Vector;
 
         public Vector2d ScreenTranslation => -ScreenPosition;
         public GLTrack Track { get; }
@@ -197,81 +196,44 @@ namespace linerider
         }
         public void Render()
         {
-            if (Canvas.NeedsRedraw || (Track.Animating && AllowTrackRender) || Loading || Track.RequiresUpdate)
-			{
-				BeginOrtho();
-				GL.ClearColor(Settings.Default.NightMode
+            if (Canvas.NeedsRedraw || (Track.Animating && (Track.SimulationNeedsDraw || Track.SmoothPlayback)) || Loading || Track.RequiresUpdate)
+            {
+                Track.SimulationNeedsDraw = false;
+
+                BeginOrtho();
+
+                float blend = Track.SmoothPlayback? Math.Min(1, Scheduler.ElapsedPercent) : 1;
+                Track.Camera.BeginFrame(blend);
+                GL.ClearColor(Settings.Default.NightMode
 					? ColorNightMode
 					: (Settings.Default.WhiteBG ? ColorWhite : ColorOffwhite));
 				GL.Clear(ClearBufferMask.ColorBufferBit);
                 MSAABuffer.Use(RenderSize.Width,RenderSize.Height);
-                AllowTrackRender = false;
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
                 GL.Clear(ClearBufferMask.ColorBufferBit);
                 GL.Enable(EnableCap.Blend);
-                var seconds = Track.Fpswatch.Elapsed.TotalSeconds;
-                Track.FpsCounter.AddFrame(seconds);
-                Track.Fpswatch.Restart();
 #if debuggrid
-                int sqsize = 128;
-				GL.PushMatrix();
-				GL.Scale(Track.Zoom, Track.Zoom, 0);
-				GL.Translate(new Vector3d(ScreenTranslation));
-				GL.Begin(PrimitiveType.Quads);
-				for (var x = -sqsize; x < (RenderSize.Width / Track.Zoom); x += sqsize)
-				{
-					for (var y = -sqsize; y < (RenderSize.Height / Track.Zoom); y += sqsize)
-					{
-						var yv = new Vector2d(x + (ScreenPosition.X - (ScreenPosition.X % sqsize)), y + (ScreenPosition.Y - (ScreenPosition.Y % sqsize)));
-						if (Track.FastGridCheck(yv.X, yv.Y))
-						{
-							GL.Color3(Color.Yellow);
-							GL.Vertex2(yv);
-							yv.Y += sqsize;
-							GL.Vertex2(yv);
-							yv.X += sqsize;
-							GL.Vertex2(yv);
-							yv.Y -= sqsize;
-							GL.Vertex2(yv);
-						}
-					}
-				}
-
-				GL.End();
-				GL.Begin(PrimitiveType.Lines);
-				GL.Color3(Color.Red);
-				for (var x = -sqsize; x < (RenderSize.Width / Track.Zoom); x += sqsize)
-				{
-					var yv = new Vector2d(x + (ScreenPosition.X - (ScreenPosition.X % sqsize)), ScreenPosition.Y);
-					GL.Vertex2(yv);
-					yv.Y += RenderSize.Height / Track.Zoom;
-					GL.Vertex2(yv);
-				}
-				for (var y = -sqsize; y < (RenderSize.Height / Track.Zoom); y += sqsize)
-				{
-					var yv = new Vector2d(ScreenPosition.X, y + (ScreenPosition.Y - (ScreenPosition.Y % sqsize)));
-					GL.Vertex2(yv);
-					yv.X += RenderSize.Width / Track.Zoom;
-					GL.Vertex2(yv);
-				}
-				GL.End();
-				GL.PopMatrix();
+                GameRenderer.DbgDrawGrid();
 #endif
-				Track.Render();
+
+                Track.Render(blend);
                 Canvas.RenderCanvas();
 
                 SelectedTool.Render();
 				MSAABuffer.End();
 
-                if (Settings.Default.NightMode)
+                if (Settings.Default.NightMode)//todo this is a gross hack, use shader?
                 {
                     StaticRenderer.RenderRect(new FloatRect(0, 0, RenderSize.Width, RenderSize.Height), Color.FromArgb(40, 0, 0, 0));
                 }
                 if (!TrackRecorder.Recording)
                     SwapBuffers();
-
-                LimitFPS();
+                var seconds = Track.Fpswatch.Elapsed.TotalSeconds;
+                Track.FpsCounter.AddFrame(seconds);
+                Track.Fpswatch.Restart();
             }
+            if (!Track.Playing && !Canvas.NeedsRedraw && !Track.RequiresUpdate)//if nothing is waiting on us we can let the os breathe
+                Thread.Sleep(1);
         }
 
         public void GameUpdate()
@@ -984,22 +946,6 @@ namespace linerider
 
             __controlsInitialized = true;
             Canvas.ButtonsToggleNightmode();
-        }
-
-        private void LimitFPS()
-        {
-            var elapsed = _fpsLimiterWatch.Elapsed;
-            var targetms = new TimeSpan(166666);
-            var tdiff = (targetms - elapsed);
-            if (tdiff.TotalMilliseconds >= 1)
-            {
-                FrameSleep.Sleep(Math.Min(5, (int)(tdiff.TotalMilliseconds)));
-                _fpsLimiterWatch.Restart();
-            }
-            else if (tdiff.Milliseconds < 0)
-            {
-                _fpsLimiterWatch.Restart();
-            }
         }
 
         public void PlaybackUp()

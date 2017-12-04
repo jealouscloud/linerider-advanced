@@ -36,6 +36,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>6</LangVersion>
     <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>none</ErrorReport>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -51,9 +52,9 @@
   <ItemGroup>
     <Compile Include="ErrorLog.cs" />
     <Compile Include="GameService.cs" />
-    <Compile Include="LiveTestFile.cs" />
+    <Compile Include="Game\CameraBoundingBox.cs" />
+    <Compile Include="Game\CameraLocation.cs" />
     <Compile Include="Models.cs" />
-    <Compile Include="FrameSleep.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Settings.Designer.cs" />

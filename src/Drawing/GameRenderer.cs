@@ -403,7 +403,52 @@ namespace linerider.Drawing
             }
             return vertices;
         }
+        public static void DbgDrawGrid()
+        {
+            int sqsize = 14;
+            GL.PushMatrix();
+            GL.Scale(Game.Track.Zoom, Game.Track.Zoom, 0);
+            GL.Translate(new Vector3d(Game.ScreenTranslation));
+            GL.Begin(PrimitiveType.Quads);
+            for (var x = -sqsize; x < (Game.RenderSize.Width / Game.Track.Zoom); x += sqsize)
+            {
+                for (var y = -sqsize; y < (Game.RenderSize.Height / Game.Track.Zoom); y += sqsize)
+                {
+                    var yv = new Vector2d(x + (Game.ScreenPosition.X - (Game.ScreenPosition.X % sqsize)), y + (Game.ScreenPosition.Y - (Game.ScreenPosition.Y % sqsize)));
+                    if (Game.Track.GridCheck(yv.X, yv.Y))
+                    {
+                        GL.Color3(Color.Yellow);
+                        GL.Vertex2(yv);
+                        yv.Y += sqsize;
+                        GL.Vertex2(yv);
+                        yv.X += sqsize;
+                        GL.Vertex2(yv);
+                        yv.Y -= sqsize;
+                        GL.Vertex2(yv);
+                    }
+                }
+            }
 
+            GL.End();
+            GL.Begin(PrimitiveType.Lines);
+            GL.Color3(Color.Red);
+            for (var x = -sqsize; x < (Game.RenderSize.Width / Game.Track.Zoom); x += sqsize)
+            {
+                var yv = new Vector2d(x + (Game.ScreenPosition.X - (Game.ScreenPosition.X % sqsize)), Game.ScreenPosition.Y);
+                GL.Vertex2(yv);
+                yv.Y += Game.RenderSize.Height / Game.Track.Zoom;
+                GL.Vertex2(yv);
+            }
+            for (var y = -sqsize; y < (Game.RenderSize.Height / Game.Track.Zoom); y += sqsize)
+            {
+                var yv = new Vector2d(Game.ScreenPosition.X, y + (Game.ScreenPosition.Y - (Game.ScreenPosition.Y % sqsize)));
+                GL.Vertex2(yv);
+                yv.X += Game.RenderSize.Width / Game.Track.Zoom;
+                GL.Vertex2(yv);
+            }
+            GL.End();
+            GL.PopMatrix();
+        }
         private static void DrawGraphic(VBO graphic, Vector2d p1, Vector2d rotationAnchor, float opacity)
         {
             var angle = Angle.FromLine(p1, rotationAnchor);

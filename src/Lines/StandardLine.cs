@@ -178,20 +178,19 @@ namespace linerider
         }
         public override bool Interact(DynamicObject obj)
         {
-            if (!((obj.Momentum.X * Perpendicular.X) + (obj.Momentum.Y * Perpendicular.Y) > 0)) return false;
+            if (!((Vector2d.Dot(obj.Momentum,Perpendicular) > 0))) return false;
 
             var fp = Position;
-            var diffx = obj.Position.X - fp.X;
-            var diffy = obj.Position.Y - fp.Y;
-            var cmpy = Perpendicular.X * diffx + Perpendicular.Y * diffy;
+            var d1 = obj.Position - fp;
+            var cmpy = Vector2d.Dot(Perpendicular,d1); //Perpendicular.X * d1.X + Perpendicular.Y * d1.Y;
             if (!(cmpy > 0) || !(cmpy < Zone)) return false;
 
-            var cmpx = (diffx * diff.X + diffy * diff.Y) * invSqrDis;
+            var cmpx = Vector2d.Dot(d1,diff) * invSqrDis;
 
             if (!(cmpx >= Limleft) || !(cmpx <= Limright)) return false;
-
-            obj.Position = new Vector2d(obj.Position.X - (cmpy * Perpendicular.X),
-                obj.Position.Y - (cmpy * Perpendicular.Y));
+            
+            obj.Position -= cmpy * Perpendicular;
+            var resistance = Perpendicular.PerpendicularRight * obj.Friction * cmpy;
 
             obj.Prev.X = obj.Prev.X +
                          Perpendicular.Y * obj.Friction * cmpy * (obj.Prev.X < obj.Position.X ? 1 : -1);

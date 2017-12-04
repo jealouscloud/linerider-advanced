@@ -166,6 +166,7 @@ namespace linerider
 		public int CurrentFrame => Animating ? _track.Frame + _startFrame : 0;
 		public int LineCount => _track.Lines.Count;
         public bool SmoothPlayback = false;
+        public bool SimulationNeedsDraw = false;
 
 		public bool RequiresUpdate
 		{
@@ -441,38 +442,36 @@ namespace linerider
 			}
 		}
 
-		public void Render()
+		public void Render(float blend)
 		{
             Rider drawrider = RiderState.Clone();
+            FloatRect rect = Camera.GetViewport().ToFloatRect();
             if (SmoothPlayback && Playing && _track.Frame != 0)
             {
-                var percent = game.Scheduler.ElapsedPercent;
-                if (percent < 1)
+                if (blend < 1)
                 {
-                    drawrider = _track.RiderStates[_track.Frame - 1].Lerp(RiderState, percent);
+                    drawrider = _track.RiderStates[_track.Frame - 1].Lerp(RiderState, blend);
                 }
             }
-            var rect = Camera.GetRenderArea().ToFloatRect();
-            var clamp = Camera.getclamp(Zoom, game.RenderSize.Width, game.RenderSize.Height);
+           /* var clamp = Camera.getclamp(Zoom,game.RenderSize.Width,game.RenderSize.Height);
             GameDrawingMatrix.Enter();
             if (Settings.Default.SmoothCamera)
             {
                 // StaticRenderer.DrawTexture(StaticRenderer.CircleTex, clamp);
                 var origin = rect.Vector + rect.Size / 2;
-                var circle = StaticRenderer.GenerateCircle((float)origin.X, (float)origin.Y, (float)clamp.Width, 360);
+                var circle = StaticRenderer.GenerateCircle(origin.X, origin.Y, (float)clamp.Width, 360);
                 for (int i = 0; i < circle.Length; i++)
                 {
                     var vec = (Vector2d)circle[i];
                     var oval = clamp.EllipseClamp(vec);
                     var square = clamp.Clamp(vec);
-                    circle[i] =(Vector2) Vector2d.Lerp(square, oval, LiveTestFile.GetValue(3));
+                    circle[i] =(Vector2) Vector2d.Lerp(square, oval, CameraBoundingBox.roundness);
                 }
                 StaticRenderer.DrawConnectedLines(circle, System.Drawing.Color.Black, 0.1f);
-                StaticRenderer.DrawTexture(StaticRenderer.CircleTex, new DoubleRect(Camera.NextLocation.Center, new Vector2d(2, 2)));
             }
             else
                 StaticRenderer.RenderRect(clamp.ToFloatRect(), System.Drawing.Color.White);
-            GameDrawingMatrix.Exit();
+            GameDrawingMatrix.Exit();*/
             var st = OpenTK.Input.Keyboard.GetState();
 			var needsredraw = (!_trackrect.Contains(rect.Left, rect.Top) ||
 							   !_trackrect.Contains(rect.Left + rect.Width, rect.Top + rect.Height));
@@ -681,7 +680,7 @@ namespace linerider
 			var diff1 = l2.CompliantPosition2 - l2.CompliantPosition;
 			var diff2 = l1.CompliantPosition2 - l1.CompliantPosition;
 
-			var angle1 = Angle.FromVector(diff1).Degrees;// (Math.Atan2(diff1.Y, diff1.X) * (180.0 / Math.PI));
+			var angle1 = Angle.FromVector(diff1).Degrees;
 			var angle2 = Angle.FromVector(diff2).Degrees;
 
 			var anglediff1 = new Angle(angle1 - angle2).Degrees;
@@ -1004,12 +1003,11 @@ namespace linerider
 			for (var i = 0; i < times; i++)
             {
                 NextFrame();
-                UpdateCamera();
                 for (var ix = ActiveTriggers.Count - 1; ix >= 0; --ix)
 					if (ActiveTriggers[ix].Activate())
 						ActiveTriggers.RemoveAt(ix);
-				game.AllowTrackRender = true;
-			}
+                UpdateCamera();//todo test active triggers
+            }
 		}
 
         public void UpdateCamera()
@@ -1021,7 +1019,7 @@ namespace linerider
                 Tick(clone);
                 Camera.SetPrediction(clone.CalculateCenter());
             }
-            game.AllowTrackRender = true;
+            SimulationNeedsDraw = true;
         }
 		public void ExportAsSol()
 		{

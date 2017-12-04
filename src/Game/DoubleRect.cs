@@ -125,6 +125,19 @@ namespace linerider
             rect.Height += 2 * height;
             return rect;
         }
+        public DoubleRect Scale(double scale)
+        {
+            var rect = this;
+
+            var width = (Right - Left) * scale;
+            rect.Left -= (width / 2)  - (Width / 2);
+            rect.Width = width;
+
+            var height = (Bottom - Top) * scale;
+            rect.Top -= (height / 2) - (Height / 2);
+            rect.Height = height;
+            return rect;
+        }
 
         public bool Contains(double x, double y)
         {
