@@ -201,7 +201,11 @@ namespace linerider
 
                 BeginOrtho();
 
-                float blend = Track.SmoothPlayback? Math.Min(1, Scheduler.ElapsedPercent) : 1;
+                float blend = 1;
+                if (Track.SmoothPlayback && Track.Playing)
+                {
+                    blend = Math.Min(1, Scheduler.ElapsedPercent);
+                }
                 Track.Camera.BeginFrame(blend);
                 GL.ClearColor(Settings.Default.NightMode
 					? ColorNightMode
