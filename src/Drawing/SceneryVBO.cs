@@ -37,8 +37,8 @@ namespace linerider.Drawing
 		{
 			_vbo.Texture = StaticRenderer.CircleTex;
 			const int onemegabyte = 1024 * 1024;
-			_vbo.EnsureVertexSize((onemegabyte * 20) / Vertex.Size);
-			_vbo.EnsureVertexSize((onemegabyte * 5) / sizeof(int));
+			_vbo.EnsureVertexSize((onemegabyte * 4) / Vertex.Size);
+			_vbo.EnsureIndexSize((onemegabyte * 2) / sizeof(int));
 		}
 		public void Clear()
 		{
