@@ -49,6 +49,9 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="ErrorLog.cs" />
     <Compile Include="GameService.cs" />
@@ -216,6 +219,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\brokensled.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.manifest" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
