@@ -96,8 +96,8 @@ namespace linerider.Windows
                 {
                     var svolume =
                         (HorizontalSlider)this.FindChildByName("volume", true);
-                    Settings.Default.Volume = svolume.Value;
-                    Settings.Default.Save();
+                    Settings.Volume = svolume.Value;
+                    Settings.Save();
                 }
                 catch
                 {
@@ -127,11 +127,11 @@ namespace linerider.Windows
             var volume = new HorizontalSlider(container2);
             volume.Min = 0;
             volume.Max = 100;
-            if (Settings.Default.Volume > 100)
-                Settings.Default.Volume = 100;
-            if (Settings.Default.Volume < 0)
-                Settings.Default.Volume = 0;
-            volume.Value = Settings.Default.Volume;
+            if (Settings.Volume > 100)
+                Settings.Volume = 100;
+            if (Settings.Volume < 0)
+                Settings.Volume = 0;
+            volume.Value = Settings.Volume;
             volume.Name = "volume";
             volume.SnapToNotches = false;
             volume.KeyboardInputEnabled = false;

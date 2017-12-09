@@ -122,7 +122,7 @@ namespace linerider.Audio
 				Stop();
 				_reader.DecodedTime = TimeSpan.FromSeconds(seconds);
 				_streaming = true;
-				AL.Source(_source, ALSourcef.Gain, Settings.Default.Volume / 100f);
+				AL.Source(_source, ALSourcef.Gain, Settings.Volume / 100f);
 				AL.Source(_source, ALSourcei.Buffer, 0);
 				_pitch = rate;
 				AL.Source(_source, ALSourcef.Pitch, rate);

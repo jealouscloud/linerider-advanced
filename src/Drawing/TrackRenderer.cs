@@ -231,12 +231,12 @@ namespace linerider.Drawing
 
 					LineChangedFreeVertices(lv.blacktrackline);
 					DrawBasicTrackLine((Vector2)line.Position, (Vector2)line.Position2,
-						Settings.Default.NightMode ? Color.White : Color.Black);
+						Settings.NightMode ? Color.White : Color.Black);
 
 					LineChangedFreeVertices(lv.knobs);
-					RenderCircle((Vector2)line.Position, Settings.Default.NightMode ? Color.Black : Color.White, 0.75f,
+					RenderCircle((Vector2)line.Position, Settings.NightMode ? Color.Black : Color.White, 0.75f,
 						100);
-					RenderCircle((Vector2)line.Position2, Settings.Default.NightMode ? Color.Black : Color.White,
+					RenderCircle((Vector2)line.Position2, Settings.NightMode ? Color.Black : Color.White,
 						0.75f, 100);
 
 
@@ -277,11 +277,11 @@ namespace linerider.Drawing
 		{
 			linevertices lv = new linevertices();
 			lv.coloredtrackline = DrawTrackLine(l, true);
-			lv.blacktrackline = DrawBasicTrackLine((Vector2)l.Position, (Vector2)l.Position2, Settings.Default.NightMode ? Color.White : Color.Black);
+			lv.blacktrackline = DrawBasicTrackLine((Vector2)l.Position, (Vector2)l.Position2, Settings.NightMode ? Color.White : Color.Black);
 			lv.knobs = new List<int>(6 * 2);
 
-			lv.knobs.AddRange(RenderCircle((Vector2)l.Position, Settings.Default.NightMode ? Color.Black : Color.White, 0.75f, 100));
-			lv.knobs.AddRange(RenderCircle((Vector2)l.Position2, Settings.Default.NightMode ? Color.Black : Color.White, 0.75f, 100));
+			lv.knobs.AddRange(RenderCircle((Vector2)l.Position, Settings.NightMode ? Color.Black : Color.White, 0.75f, 100));
+			lv.knobs.AddRange(RenderCircle((Vector2)l.Position2, Settings.NightMode ? Color.Black : Color.White, 0.75f, 100));
 			lv.redknobs = new List<int>(6 * 2);
 			lv.redknobs.AddRange(RenderCircle((Vector2)l.Position, Color.Red, 0.75f, 100));
 			lv.redknobs.AddRange(RenderCircle((Vector2)l.Position2, Color.Red, 0.75f, 100));
@@ -374,7 +374,7 @@ namespace linerider.Drawing
 		{
 			List<int> ret = new List<int>((6 * 6) + 3);
 			var type = line.GetLineType();
-			Color c = Settings.Default.NightMode ? Color.White : Color.Black;
+			Color c = Settings.NightMode ? Color.White : Color.Black;
 			if (colors)
 			{
 				switch (type)
@@ -419,7 +419,7 @@ namespace linerider.Drawing
 						break;
 				}
 			}
-			Color linecolor = Settings.Default.NightMode ? Color.White : Color.Black;
+			Color linecolor = Settings.NightMode ? Color.White : Color.Black;
 			var linep1 = line.Position;
 			var linep2 = line.Position2;
 			if (line.Trigger != null && line.Trigger.Enabled && colors)

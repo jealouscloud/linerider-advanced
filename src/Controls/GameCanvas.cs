@@ -222,7 +222,7 @@ namespace linerider
         }
         public void ButtonsToggleNightmode()
         {
-            var nightmode = Settings.Default.NightMode;
+            var nightmode = Settings.NightMode;
             var buttons = FindChildByName("buttons");
             foreach (var v in buttons.Children)
             {

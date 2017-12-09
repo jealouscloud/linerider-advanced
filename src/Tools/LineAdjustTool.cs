@@ -217,7 +217,7 @@ namespace linerider
                         game.Track.AddLineToGrid(_snappedline);
                     }
                     game.Track.AddLineToGrid(_line);
-                    if ((Settings.Default.LiveAdjustment || LifeLock) && game.Track.Animating)
+                    if ((Settings.LiveAdjustment || LifeLock) && game.Track.Animating)
                     {
                         if (_snappedline != null && _snappedline is StandardLine)
                         {
@@ -338,7 +338,7 @@ namespace linerider
                 MoveLine(pos);
                 if (_started)//moveline can call stop
                 {
-                    if (!Settings.Default.LiveAdjustment)//if moveline didn't call trackupdated we should
+                    if (!Settings.LiveAdjustment)//if moveline didn't call trackupdated we should
                     {
                         game.Track.ChangeMade(_line.Position, _line.Position2);
                         Stop();

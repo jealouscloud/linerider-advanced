@@ -55,12 +55,11 @@
   <ItemGroup>
     <Compile Include="ErrorLog.cs" />
     <Compile Include="GameService.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="Game\CameraBoundingBox.cs" />
     <Compile Include="Game\CameraLocation.cs" />
     <Compile Include="Models.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="Settings.cs" />
-    <Compile Include="Settings.Designer.cs" />
     <Compile Include="Track.cs" />
     <Compile Include="UndoManager.cs" />
     <Compile Include="Audio\AudioDevice.cs" />

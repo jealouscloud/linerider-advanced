@@ -90,7 +90,7 @@ namespace linerider
         public static void Run()
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-            Settings.Default.Save();
+            Settings.Load();
             Random = new Random();
             GameResources.Init();
 

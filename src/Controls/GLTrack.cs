@@ -455,7 +455,7 @@ namespace linerider
             }
            /* var clamp = Camera.getclamp(Zoom,game.RenderSize.Width,game.RenderSize.Height);
             GameDrawingMatrix.Enter();
-            if (Settings.Default.SmoothCamera)
+            if (Settings.SmoothCamera)
             {
                 // StaticRenderer.DrawTexture(StaticRenderer.CircleTex, clamp);
                 var origin = rect.Vector + rect.Size / 2;
@@ -858,7 +858,7 @@ namespace linerider
 				}
 				game.Canvas.FindChildByName("labeliterations").IsHidden = true;
 				game.Canvas.FindChildByName("vslider", true).IsHidden = true;
-				switch (Settings.Default.PlaybackZoom)
+				switch (Settings.PlaybackZoomType)
 				{
 					case 0: //current
 						break;
@@ -868,7 +868,7 @@ namespace linerider
 						break;
 
 					case 2: //specific
-						game.Track.Zoom = Settings.Default.PlaybackZoomSpecific;
+						game.Track.Zoom = Settings.PlaybackZoomValue;
 						break;
 				}
 				game.Scheduler.Reset();
@@ -934,7 +934,7 @@ namespace linerider
 			if (!IsCurrentFrameCrashed(out fail) && !fail)
 			{
 				var pinklock = false;
-				if (Settings.Default.PinkLifelock)
+				if (Settings.PinkLifelock)
 				{
 					if (game.IterationsOffset == 6)
 					{
@@ -1013,7 +1013,7 @@ namespace linerider
         public void UpdateCamera()
         {
             Camera.SetFrame(RiderState.CalculateCenter(), true);
-            if (Settings.Default.SmoothCamera)
+            if (Settings.SmoothCamera)
             {
                 var clone = RiderState.Clone();
                 Tick(clone);

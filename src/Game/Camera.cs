@@ -49,7 +49,7 @@ namespace linerider.Game
             }
             else
             {
-                if (Settings.Default.SmoothCamera)
+                if (Settings.SmoothCamera)
                 {
                     Location = framebox.SmoothClamp(lastcenter, 0);
                 }
@@ -103,7 +103,7 @@ namespace linerider.Game
             var camcenter = Location.GetPosition();
             if (game.Track.Animating)
             {
-                if (Settings.Default.SmoothCamera)
+                if (Settings.SmoothCamera)
                 {
                     CameraBoundingBox nextbox = new CameraBoundingBox() { RiderPosition = nextrider };
                     if (!nextbox.SmoothIntersects(camcenter, 0))//next frame ideal exceeds bounds of current camera, so we should tend towards it for predictive camera.

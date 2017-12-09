@@ -111,7 +111,7 @@ namespace linerider.Drawing
 
 					_editorindices[l.ID] = new indexfragment() { start = start, indices = data };
 
-					data = _playbackbvo.DrawBasicTrackLine((Vector2)l.Position, (Vector2)l.Position2, Settings.Default.NightMode ? Color.White : Color.Black);
+					data = _playbackbvo.DrawBasicTrackLine((Vector2)l.Position, (Vector2)l.Position2, Settings.NightMode ? Color.White : Color.Black);
 					start = ppos;
 					ppos += data.Count;
 					pindices.AddRange(data);
@@ -144,7 +144,7 @@ namespace linerider.Drawing
 					_editorindices[l.ID] = new indexfragment() { start = start, indices = data };
 				}
 
-				data = _playbackbvo.DrawBasicTrackLine((Vector2)l.Position, (Vector2)l.Position2, Settings.Default.NightMode ? Color.White : Color.Black);
+				data = _playbackbvo.DrawBasicTrackLine((Vector2)l.Position, (Vector2)l.Position2, Settings.NightMode ? Color.White : Color.Black);
 
 				if (_playbackindices.TryGetValue(l.ID, out lookup))
 				{
@@ -198,7 +198,7 @@ namespace linerider.Drawing
 				_editorvbo.DrawBasicTrackLine((Vector2)line.Position, (Vector2)line.Position2, Color.FromArgb(0x00, 0xCC, 0x00));
 
 				_playbackbvo.LineChangedFreeVertices(_playbackindices[line.ID].indices);
-				_playbackbvo.DrawBasicTrackLine((Vector2)line.Position, (Vector2)line.Position2, Settings.Default.NightMode ? Color.White : Color.Black);
+				_playbackbvo.DrawBasicTrackLine((Vector2)line.Position, (Vector2)line.Position2, Settings.NightMode ? Color.White : Color.Black);
 			}
 		}
 

@@ -187,11 +187,11 @@ shoe the lines as black instead");
 
 			lcb = new LabeledCheckBox(gb);
 			lcb.Text = "Smooth Camera";
-			lcb.IsChecked = Settings.Default.SmoothCamera;
+			lcb.IsChecked = Settings.SmoothCamera;
 			lcb.CheckChanged += (o, e) =>
 			{
-				Settings.Default.SmoothCamera = ((LabeledCheckBox)o).IsChecked;
-				Settings.Default.Save();
+				Settings.SmoothCamera = ((LabeledCheckBox)o).IsChecked;
+				Settings.Save();
 			};
 			lcb.Dock = Pos.Top;
 			lcb = new LabeledCheckBox(gb);
@@ -249,24 +249,24 @@ shoe the lines as black instead");
 			rbg.AddOption("Current Zoom");
 			rbg.AddOption("Default Zoom");
 			rbg.AddOption("Specific Zoom");
-			rbg.SetSelection(Settings.Default.PlaybackZoom);
+			rbg.SetSelection(Settings.PlaybackZoomType);
 			rbg.SelectionChanged += (o, e) =>
 			{
-				Settings.Default.PlaybackZoom = ((RadioButtonGroup)o).SelectedIndex;
-				Settings.Default.Save();
+				Settings.PlaybackZoomType = ((RadioButtonGroup)o).SelectedIndex;
+				Settings.Save();
 			};
 			rbg.Dock = Pos.Top;
 			rbg.AutoSizeToContents = false;
 			rbg.Height = 90;
 			var nud = new NumericUpDown(rbg);
-			nud.Value = Settings.Default.PlaybackZoomSpecific;
+			nud.Value = Settings.PlaybackZoomValue;
 			nud.Max = 24;
 			nud.Min = 1;
 			nud.Dock = Pos.Bottom;
 			nud.ValueChanged += (o, e) =>
 			{
-				Settings.Default.PlaybackZoomSpecific = ((NumericUpDown)o).Value;
-				Settings.Default.Save();
+				Settings.PlaybackZoomValue = ((NumericUpDown)o).Value;
+				Settings.Save();
 			};
 			var cbplayback = new ComboBox(gb);
 			cbplayback.Dock = Pos.Top;
@@ -310,8 +310,8 @@ shoe the lines as black instead");
 			marg.Top += 5;
 			lcb.Margin = marg;
 			lcb.Text = "All Pink Lifelock";
-			lcb.IsChecked = Settings.Default.PinkLifelock;
-			lcb.CheckChanged += (o, e) => { Settings.Default.PinkLifelock = ((LabeledCheckBox)o).IsChecked; Settings.Default.Save(); };
+			lcb.IsChecked = Settings.PinkLifelock;
+			lcb.CheckChanged += (o, e) => { Settings.PinkLifelock = ((LabeledCheckBox)o).IsChecked; Settings.Save(); };
 			lcb.Dock = Pos.Top;
 			lcb = new LabeledCheckBox(gb);
 			lcb.Text = "Disable Line Snap";
@@ -325,24 +325,24 @@ shoe the lines as black instead");
 			lcb.Dock = Pos.Top;
 			lcb = new LabeledCheckBox(gb);
 			lcb.Text = "Superzoom";
-			lcb.IsChecked = Settings.Default.SuperZoom;
-			lcb.CheckChanged += (o, e) => { Settings.Default.SuperZoom = ((LabeledCheckBox)o).IsChecked; Settings.Default.Save(); };
+			lcb.IsChecked = Settings.SuperZoom;
+			lcb.CheckChanged += (o, e) => { Settings.SuperZoom = ((LabeledCheckBox)o).IsChecked; Settings.Save(); };
 			lcb.Dock = Pos.Top;
 			lcb = new LabeledCheckBox(gb);
 			lcb.Text = "White BG";
 			lcb.SetToolTipText(@"For if you're a bad person");
-			lcb.IsChecked = Settings.Default.WhiteBG;
+			lcb.IsChecked = Settings.WhiteBG;
 			lcb.CheckChanged += (o, e) =>
 			{
-				Settings.Default.WhiteBG = ((LabeledCheckBox)o).IsChecked;
-				Settings.Default.Save();
-				if (!Settings.Default.NightMode)
-					GL.ClearColor(Settings.Default.WhiteBG ? GLWindow.ColorWhite : GLWindow.ColorOffwhite);
+				Settings.WhiteBG = ((LabeledCheckBox)o).IsChecked;
+				Settings.Save();
+				if (!Settings.NightMode)
+					GL.ClearColor(Settings.WhiteBG ? GLWindow.ColorWhite : GLWindow.ColorOffwhite);
 			};
 			lcb.Dock = Pos.Top;
 			lcb = new LabeledCheckBox(gb);
 			lcb.Text = "Night Mode";
-			lcb.IsChecked = Settings.Default.NightMode;
+			lcb.IsChecked = Settings.NightMode;
 			lcb.CheckChanged += (o, e) =>
 			{
 				if (((LabeledCheckBox)o).IsChecked)
@@ -351,10 +351,10 @@ shoe the lines as black instead");
 				}
 				else
 				{
-					GL.ClearColor(Settings.Default.WhiteBG ? GLWindow.ColorWhite : GLWindow.ColorOffwhite);
+					GL.ClearColor(Settings.WhiteBG ? GLWindow.ColorWhite : GLWindow.ColorOffwhite);
 				}
-				Settings.Default.NightMode = ((LabeledCheckBox)o).IsChecked;
-				Settings.Default.Save();
+				Settings.NightMode = ((LabeledCheckBox)o).IsChecked;
+				Settings.Save();
 				game.Canvas.ButtonsToggleNightmode();
 				game.Track.RefreshTrack();
 			};
@@ -362,8 +362,8 @@ shoe the lines as black instead");
 			lcb = new LabeledCheckBox(gb);
 			lcb.Text = "Live Line Editing";
 			lcb.SetToolTipText("For the line adjust tool during playback\r\nEnable this if you have a slow PC");
-			lcb.IsChecked = Settings.Default.LiveAdjustment;
-			lcb.CheckChanged += (o, e) => { Settings.Default.LiveAdjustment = ((LabeledCheckBox)o).IsChecked; Settings.Default.Save(); };
+			lcb.IsChecked = Settings.LiveAdjustment;
+			lcb.CheckChanged += (o, e) => { Settings.LiveAdjustment = ((LabeledCheckBox)o).IsChecked; Settings.Save(); };
 			lcb.Dock = Pos.Top;
 		}
 

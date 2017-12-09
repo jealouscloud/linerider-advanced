@@ -175,7 +175,7 @@ namespace linerider
 
         public void Zoom(float f, bool changezoomslider = true)
         {
-            float maxzoom = Settings.Default.SuperZoom ? 200 : 24;
+            float maxzoom = Settings.SuperZoom ? 200 : 24;
             if ((Track.Zoom >= maxzoom && f > 0) || (Track.Zoom <= 0.1f && f < 0) || Math.Abs(f) < 0.001)
                 return;
             Track.Zoom += f;
@@ -207,9 +207,9 @@ namespace linerider
                     blend = Math.Min(1, Scheduler.ElapsedPercent);
                 }
                 Track.Camera.BeginFrame(blend);
-                GL.ClearColor(Settings.Default.NightMode
+                GL.ClearColor(Settings.NightMode
 					? ColorNightMode
-					: (Settings.Default.WhiteBG ? ColorWhite : ColorOffwhite));
+					: (Settings.WhiteBG ? ColorWhite : ColorOffwhite));
 				GL.Clear(ClearBufferMask.ColorBufferBit);
                 MSAABuffer.Use(RenderSize.Width,RenderSize.Height);
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
@@ -225,7 +225,7 @@ namespace linerider
                 SelectedTool.Render();
 				MSAABuffer.End();
 
-                if (Settings.Default.NightMode)//todo this is a gross hack, use shader?
+                if (Settings.NightMode)//todo this is a gross hack, use shader?
                 {
                     StaticRenderer.RenderRect(new FloatRect(0, 0, RenderSize.Width, RenderSize.Height), Color.FromArgb(40, 0, 0, 0));
                 }
