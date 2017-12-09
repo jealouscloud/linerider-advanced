@@ -1049,7 +1049,7 @@ namespace linerider
 					{
 						window.Close();
 						TrackLoader.SaveTrackSol(_track);
-						game.Canvas.UpdateSaveNodes();
+						game.Canvas.UpdateSOLFiles();
 					};
 					window.FindChildByName("Cancel", true).Clicked += (o, e) =>
 					{

@@ -308,7 +308,14 @@ namespace linerider
         protected override void OnLoad(EventArgs e)
         {
             MSAABuffer = new MsaaFbo();
-            Canvas = GameCanvas.CreateCanvas(this);
+
+            var renderer = new Gwen.Renderer.OpenTK();
+
+            var tx = new Texture(renderer);
+            Gwen.Renderer.OpenTK.LoadTextureInternal(tx, GameResources.DefaultSkin);
+            var bmpfont = new Gwen.Renderer.OpenTK.BitmapFont(renderer, "SourceSansPro", 10, 10, GameResources.SourceSansProq, new List<Bitmap> { GameResources.SourceSansPro_img });
+            var skin = new Gwen.Skin.TexturedBase(renderer, tx, GameResources.DefaultColors) { DefaultFont = bmpfont };
+            Canvas = new GameCanvas(skin, this, renderer);
             _input = new Gwen.Input.OpenTK(this);
             _input.Initialize(Canvas);
             Canvas.ShouldDrawBackground = false;
@@ -321,7 +328,8 @@ namespace linerider
             AddCursor("hand", GameResources.move_icon, 16, 16);
             AddCursor("closed_hand", GameResources.closed_move_icon, 16, 16);
             AddCursor("adjustline", GameResources.cursor_adjustline, 0, 0);
-            Canvas.UpdateSaveNodes();
+            new Thread(Canvas.UpdateSOLFiles)
+            { IsBackground = true }.Start();
         }
 
         protected override void OnResize(EventArgs e)
@@ -710,7 +718,7 @@ namespace linerider
             }
             else if (e.Key == Key.F5)
             {
-                Canvas.UpdateSaveNodes();
+                Canvas.UpdateSOLFiles();
             }
             else if (e.Key == Key.Number1)
             {

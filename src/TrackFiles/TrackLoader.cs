@@ -289,21 +289,13 @@ namespace linerider
             }
         }
 
-        public static Track LoadTrackTRK(string track, string savename)
+        public static Track LoadTrackTRK(string trackfile, string trackname)
         {
             var ret = new Track();
-            ret.Name = track;
+            ret.Name = trackname;
             var addedlines = new Dictionary<int, StandardLine>();
             var extensions = new List<Extensionentry>();
-            var location = Program.CurrentDirectory + "Tracks" + Path.DirectorySeparatorChar + track;
-            if (savename != null)
-            {
-                location += Path.DirectorySeparatorChar + savename + ".trk";
-            }
-            else
-            {
-                location += ".trk";
-            }
+            var location = trackfile;
             using (var file =
                     File.Open(location, FileMode.Open))
             {

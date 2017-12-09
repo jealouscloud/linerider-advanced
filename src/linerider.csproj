@@ -123,10 +123,12 @@
     <Compile Include="TrackFiles\TrackLoader.cs" />
     <Compile Include="TrackFiles\TrackRecorder.cs" />
     <Compile Include="Windows\ExportVideoWindow.cs" />
+    <Compile Include="Windows\LoadWindow.cs" />
     <Compile Include="Windows\NumberProperty.cs" />
     <Compile Include="Windows\PopupWindow.cs" />
     <Compile Include="Windows\PreferencesWindow.cs" />
     <Compile Include="Windows\SaveWindow.cs" />
+    <Compile Include="Windows\SongWindow.cs" />
     <Compile Include="Windows\Window.cs" />
     <Compile Include="Drawing\MsaaFbo.cs" />
     <Compile Include="GameResources.cs" />
