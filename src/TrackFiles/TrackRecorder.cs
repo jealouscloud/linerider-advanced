@@ -40,12 +40,12 @@ namespace linerider.TrackFiles
 {
     internal static class TrackRecorder
     {
+        private static byte[] _screenshotbuffer;
         public static byte[] GrabScreenshot(GLWindow game, int frontbuffer)
         {
             if (GraphicsContext.CurrentContext == null)
                 throw new GraphicsContextMissingException();
             var backbuffer = game.MSAABuffer.Framebuffer;
-            byte[] screenshot = new byte[game.RenderSize.Width * game.RenderSize.Height * 3];// 3 bytes per pixel
             SafeFrameBuffer.BindFramebuffer(FramebufferTarget.ReadFramebuffer, backbuffer);
             SafeFrameBuffer.BindFramebuffer(FramebufferTarget.DrawFramebuffer, frontbuffer);
             SafeFrameBuffer.BlitFramebuffer(0, 0, game.RenderSize.Width, game.RenderSize.Height,
@@ -54,9 +54,9 @@ namespace linerider.TrackFiles
             SafeFrameBuffer.BindFramebuffer(FramebufferTarget.ReadFramebuffer, frontbuffer);
 
             GL.ReadPixels(0, 0, game.RenderSize.Width, game.RenderSize.Height,
-                OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, screenshot);
+                OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, _screenshotbuffer);
             SafeFrameBuffer.BindFramebuffer(FramebufferTarget.Framebuffer, backbuffer);
-            return screenshot;
+            return _screenshotbuffer;
         }
         public static void SaveScreenshot(int width, int height, byte[] arr, string name)
         {
@@ -121,6 +121,7 @@ namespace linerider.TrackFiles
             SafeFrameBuffer.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
             if (!invalid)
             {
+                _screenshotbuffer = new byte[game.RenderSize.Width * game.RenderSize.Height * 3];// 3 bytes per pixel
                 string errormessage = "An unknown error occured during recording.";
                 game.Title = Program.WindowTitle + " [Recording | Hold ESC to cancel]";
                 game.ProcessEvents();
@@ -324,6 +325,7 @@ namespace linerider.TrackFiles
 
             game.Canvas.SetSize(game.RenderSize.Width, game.RenderSize.Height);
             game.Canvas.FindChildByName("buttons").Position(Pos.CenterH);
+            _screenshotbuffer = null;
         }
     }
 }
