@@ -65,11 +65,10 @@ namespace linerider
             get
             {
                 if (_currdir == null)
-                    _currdir = AppDomain.CurrentDomain.BaseDirectory;
+                    _currdir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + Path.DirectorySeparatorChar + "LRA" + Path.DirectorySeparatorChar;
                 return _currdir;
             }
         }
-
         #endregion Properties
 
         #region Methods
