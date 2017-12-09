@@ -15,7 +15,7 @@ namespace linerider.Windows
         {
             sols.Clear();
             var newlist = new List<Tuple<string, List<sol_track>>>();
-            var files = Program.CurrentDirectory + "Tracks";
+            var files = Program.UserDirectory + "Tracks";
             if (Directory.Exists(files))
             {
                 var solfiles =
@@ -46,7 +46,7 @@ namespace linerider.Windows
             MakeModal(true);
             var tv = new TreeControl(this);
             tv.Name = "loadtree";
-            var files = Program.CurrentDirectory + "Tracks";
+            var files = Program.UserDirectory + "Tracks";
             foreach (var sol in sols)
             {
                 AddSolTracks(tv, sol.Item1, sol.Item2);
@@ -159,12 +159,12 @@ namespace linerider.Windows
                             {
                                 if (isfile)
                                 {
-                                    File.Delete(Program.CurrentDirectory + "Tracks" + Path.DirectorySeparatorChar + data[0]);
+                                    File.Delete(Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar + data[0]);
                                 }
                                 else
                                 {
                                     Directory.Delete(
-                                        Program.CurrentDirectory + "Tracks" + Path.DirectorySeparatorChar + data[0] + Path.DirectorySeparatorChar, true);
+                                        Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar + data[0] + Path.DirectorySeparatorChar, true);
                                 }
                             }
                             catch
@@ -176,7 +176,7 @@ namespace linerider.Windows
                         {
                             try
                             {
-                                File.Delete(Program.CurrentDirectory + "Tracks" +
+                                File.Delete(Program.UserDirectory + "Tracks" +
                                             Path.DirectorySeparatorChar + data[0] +
                                             Path.DirectorySeparatorChar + data[1] + ".trk");
                             }

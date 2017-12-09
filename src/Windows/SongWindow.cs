@@ -35,7 +35,7 @@ namespace linerider.Windows
             Songs.Dock = Pos.Fill;
             Songs.Name = "songtv";
 
-            var filedir = Program.CurrentDirectory + "Songs";
+            var filedir = Program.UserDirectory + "Songs";
             if (Directory.Exists(filedir))
             {
                 var songfiles = Directory.GetFiles(filedir, "*.*");
@@ -82,7 +82,7 @@ namespace linerider.Windows
                 if (!this.IsHidden) return;
                 if (game.EnableSong)
                 {
-                    var fn = Program.CurrentDirectory + "Songs" +
+                    var fn = Program.UserDirectory + "Songs" +
                              Path.DirectorySeparatorChar +
                              game.CurrentSong.Location;
                     if (File.Exists(fn))

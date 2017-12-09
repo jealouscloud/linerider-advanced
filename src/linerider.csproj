@@ -53,6 +53,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Audio\OggStreamer.cs" />
     <Compile Include="ErrorLog.cs" />
     <Compile Include="GameService.cs" />
     <Compile Include="Settings.cs" />

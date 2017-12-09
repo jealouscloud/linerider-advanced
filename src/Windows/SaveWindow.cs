@@ -56,10 +56,10 @@ namespace linerider.Windows
             cb.Margin = new Margin(0, 0, 0, 0);
             this.Width = 200;
             this.Height = 100;
-            var dir = Program.CurrentDirectory + "Tracks";
+            var dir = Program.UserDirectory + "Tracks";
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
-            var folders = Directory.GetDirectories(Program.CurrentDirectory + "Tracks");
+            var folders = Directory.GetDirectories(Program.UserDirectory + "Tracks");
             cb.AddItem("<create new track>"); //< used as it cant be used as a file character
             cb.SelectByText("<create new track>");
             foreach (var folder in folders)
@@ -93,11 +93,11 @@ namespace linerider.Windows
                         return;
                 }
                 if (
-                    Directory.Exists(Program.CurrentDirectory + "Tracks" + Path.DirectorySeparatorChar + txt +
+                    Directory.Exists(Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar + txt +
                                      Path.DirectorySeparatorChar))
                 {
                     var trackfiles =
-                        TrackLoader.EnumerateTRKFiles(Program.CurrentDirectory + "Tracks" + Path.DirectorySeparatorChar +
+                        TrackLoader.EnumerateTRKFiles(Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar +
                                                       txt);
                     for (var i = 0; i < trackfiles.Length; i++)
                     {

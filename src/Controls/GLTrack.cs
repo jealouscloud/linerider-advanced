@@ -1006,7 +1006,7 @@ namespace linerider
                 for (var ix = ActiveTriggers.Count - 1; ix >= 0; --ix)
 					if (ActiveTriggers[ix].Activate())
 						ActiveTriggers.RemoveAt(ix);
-                UpdateCamera();//todo test active triggers
+                UpdateCamera();
             }
 		}
 
@@ -1067,7 +1067,7 @@ namespace linerider
 					return;
 				var saveindex = 0;
 				var trackfiles =
-					TrackLoader.EnumerateTRKFiles(Program.CurrentDirectory + "Tracks" + Path.DirectorySeparatorChar +
+					TrackLoader.EnumerateTRKFiles(Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar +
 												  _track.Name);
 				for (var i = 0; i < trackfiles.Length; i++)
 				{

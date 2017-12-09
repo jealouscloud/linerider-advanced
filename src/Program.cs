@@ -53,6 +53,7 @@ namespace linerider
         private static bool _crashed;
         private static GLWindow glGame;
         private static string _currdir;
+        private static string _userdir;
 
         #endregion Fields
 
@@ -60,12 +61,21 @@ namespace linerider
         /// <summary>
         /// Gets the current directory. Ends in Path.DirectorySeperator
         /// </summary>
+        public static string UserDirectory
+        {
+            get
+            {
+                if (_userdir == null)
+                    _userdir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + Path.DirectorySeparatorChar + "LRA" + Path.DirectorySeparatorChar;
+                return _userdir;
+            }
+        }
         public static string CurrentDirectory
         {
             get
             {
                 if (_currdir == null)
-                    _currdir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + Path.DirectorySeparatorChar + "LRA" + Path.DirectorySeparatorChar;
+                    _currdir = AppDomain.CurrentDomain.BaseDirectory;
                 return _currdir;
             }
         }
@@ -115,12 +125,12 @@ namespace linerider
             Crash((Exception)e.ExceptionObject);
             if (System.Windows.Forms.MessageBox.Show("Unhandled Exception: " + e.ExceptionObject + "\r\n\r\nWould you like to export the crash data to a log.txt?", "Error!", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
             {
-                if (!File.Exists(CurrentDirectory + "log.txt"))
-                    File.Create(CurrentDirectory + "log.txt").Dispose();
+                if (!File.Exists(UserDirectory + "log.txt"))
+                    File.Create(UserDirectory + "log.txt").Dispose();
 
                 string append = WindowTitle + "\r\n" + e.ExceptionObject.ToString() + "\r\n";
-                string begin = File.ReadAllText(CurrentDirectory + "log.txt", System.Text.Encoding.ASCII);
-                File.WriteAllText(CurrentDirectory + "log.txt", begin + append, System.Text.Encoding.ASCII);
+                string begin = File.ReadAllText(UserDirectory + "log.txt", System.Text.Encoding.ASCII);
+                File.WriteAllText(UserDirectory + "log.txt", begin + append, System.Text.Encoding.ASCII);
             }
 
             throw (Exception)e.ExceptionObject;

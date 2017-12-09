@@ -90,7 +90,7 @@ namespace linerider
         }
         public static void SaveTrackSol(Track trk)
         {
-            new SOL(Program.CurrentDirectory + "Tracks" + Path.DirectorySeparatorChar + "savedLines.sol", trk);
+            new SOL(Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar + "savedLines.sol", trk);
         }
         public static Dictionary<string, bool> TrackFeatures(Track trk)
         {
@@ -133,7 +133,7 @@ namespace linerider
         }
         public static void SaveTrackTrk(Track trk, string savename, string songdata = null)
         {
-            var dir = Program.CurrentDirectory + "Tracks" + Path.DirectorySeparatorChar + trk.Name;
+            var dir = Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar + trk.Name;
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
             using (var file = File.Create(dir + Path.DirectorySeparatorChar + savename + ".trk"))
@@ -357,7 +357,7 @@ namespace linerider
                         try
                         {
                             var strings = song.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries); 
-                            var fn = Program.CurrentDirectory + "Songs" +
+                            var fn = Program.UserDirectory + "Songs" +
 									 Path.DirectorySeparatorChar +
 									 strings[0];
 							if (File.Exists(fn))

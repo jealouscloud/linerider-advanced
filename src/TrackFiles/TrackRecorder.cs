@@ -125,7 +125,7 @@ namespace linerider.TrackFiles
                 string errormessage = "An unknown error occured during recording.";
                 game.Title = Program.WindowTitle + " [Recording | Hold ESC to cancel]";
                 game.ProcessEvents();
-                var filename = Program.CurrentDirectory + game.Track.Name + ".mp4";
+                var filename = Program.UserDirectory + game.Track.Name + ".mp4";
                 var flagbackup = flag;
                 var hardexit = false;
                 game.Track.Flag();
@@ -133,7 +133,7 @@ namespace linerider.TrackFiles
                 game.SettingRecordingMode = true;
                 game.Track.Start(true, true, false, false);
                 game.Render();
-                var dir = Program.CurrentDirectory + game.Track.Name + "_rec";
+                var dir = Program.UserDirectory + game.Track.Name + "_rec";
                 if (!Directory.Exists(dir))
                 {
                     Directory.CreateDirectory(dir);

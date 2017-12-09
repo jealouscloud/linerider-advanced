@@ -22,11 +22,11 @@ namespace linerider
             string[] lines = null;
             try
             {
-                if (!File.Exists(Program.CurrentDirectory + "linerider.conf"))
+                if (!File.Exists(Program.UserDirectory + "linerider.conf"))
                 {
                     Save();
                 }
-                lines = File.ReadAllLines(Program.CurrentDirectory + "linerider.conf");
+                lines = File.ReadAllLines(Program.UserDirectory + "linerider.conf");
             }
             catch
             {
@@ -54,7 +54,7 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(SmoothCamera), SmoothCamera.ToString(Program.Culture));
             try
             {
-                File.WriteAllText(Program.CurrentDirectory + "linerider.conf", config);
+                File.WriteAllText(Program.UserDirectory + "linerider.conf", config);
             }
             catch { }
         }
