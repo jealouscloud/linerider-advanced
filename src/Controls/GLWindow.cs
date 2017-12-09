@@ -73,7 +73,7 @@ namespace linerider
         private readonly Tool _handtool;
         private readonly Tool _lineadjusttool;
         private readonly Stopwatch _autosavewatch = Stopwatch.StartNew();
-		public MsaaFbo MSAABuffer;
+        public MsaaFbo MSAABuffer;
         public Dictionary<string, MouseCursor> Cursors = new Dictionary<string, MouseCursor>();
         public Song CurrentSong = new Song("", 0);
         public bool EnableSong = false;
@@ -99,11 +99,15 @@ namespace linerider
         public int IterationsOffset = 6;
         public Tool SelectedTool;
         public bool AllowTrackRender;
+
+        public bool ReversePlayback = false;
+        public bool TemporaryPlayback = false;
+
         private bool _handToolOverride;
         private float _zoomPerTick;
         private Gwen.Input.OpenTK _input;
         private bool _dragRider;
-		private bool __controlsInitialized;
+        private bool __controlsInitialized;
 
         public bool EnableSnap
         {
@@ -136,7 +140,7 @@ namespace linerider
         {
             if (_instance != null)
                 throw new InvalidOperationException();
-            
+
             SafeFrameBuffer.Initialize();
             _instance = this;
             StaticRenderer.InitializeCircles();
@@ -208,10 +212,10 @@ namespace linerider
                 }
                 Track.Camera.BeginFrame(blend);
                 GL.ClearColor(Settings.NightMode
-					? ColorNightMode
-					: (Settings.WhiteBG ? ColorWhite : ColorOffwhite));
-				GL.Clear(ClearBufferMask.ColorBufferBit);
-                MSAABuffer.Use(RenderSize.Width,RenderSize.Height);
+                    ? ColorNightMode
+                    : (Settings.WhiteBG ? ColorWhite : ColorOffwhite));
+                GL.Clear(ClearBufferMask.ColorBufferBit);
+                MSAABuffer.Use(RenderSize.Width, RenderSize.Height);
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
                 GL.Clear(ClearBufferMask.ColorBufferBit);
                 GL.Enable(EnableCap.Blend);
@@ -221,9 +225,8 @@ namespace linerider
 
                 Track.Render(blend);
                 Canvas.RenderCanvas();
-
                 SelectedTool.Render();
-				MSAABuffer.End();
+                MSAABuffer.End();
 
                 if (Settings.NightMode)//todo this is a gross hack, use shader?
                 {
@@ -255,15 +258,28 @@ namespace linerider
             {
                 Invalidate();
             }
-            if (Track.Playing)
+            if (Track.Playing || TemporaryPlayback)
             {
-                Track.Update(updates);
-                if (Track.Frame % 40 == 0)
+                if (TemporaryPlayback && ReversePlayback)
                 {
-                    var sp = AudioPlayback.SongPosition;
-                    if (Math.Abs(((Track.CurrentFrame / 40f) + CurrentSong.Offset) - sp) > 0.1)
+                    if (updates >= 1)
                     {
-                        UpdateSongPosition(Track.CurrentFrame / 40f);
+                        Track.ActiveTriggers.Clear();//we don't want wonky unpredictable behavior
+                        AudioPlayback.Pause();
+                        Track.PreviousFrame();
+                        Track.UpdateCamera();
+                    }
+                }
+                else
+                {
+                    Track.Update(updates);
+                    if (Track.Frame % Scheduler.UpdatesPerSecond == 0)
+                    {
+                        var sp = AudioPlayback.SongPosition;
+                        if (Math.Abs(((Track.CurrentFrame / 40f) + CurrentSong.Offset) - sp) > 0.1)
+                        {
+                            UpdateSongPosition(Track.CurrentFrame / 40f);
+                        }
                     }
                 }
             }
@@ -282,9 +298,9 @@ namespace linerider
             Track.RequiresUpdate = true;
         }
 
-        public void UpdateSongPosition(float seconds)
+        public void UpdateSongPosition(float seconds, bool reverse = false)
         {
-            if (EnableSong && !Track.Paused && Track.Animating &&
+            if (EnableSong && (!Track.Paused || TemporaryPlayback) && Track.Animating &&
                 !((HorizontalIntSlider)Canvas.FindChildByName("timeslider")).Held)
             {
                 AudioPlayback.Resume(CurrentSong.Offset + seconds, (Scheduler.UpdatesPerSecond / 40f));
@@ -700,7 +716,7 @@ namespace linerider
             {
                 if (!Track.Animating)
                 {
-                    Track.Camera.SetFrame(Track.RiderState.ModelAnchors[4].Position,false);
+                    Track.Camera.SetFrame(Track.RiderState.ModelAnchors[4].Position, false);
                     Invalidate();
                 }
             }
@@ -711,7 +727,7 @@ namespace linerider
                     var flag = Track.GetFlag();
                     if (flag != null)
                     {
-                        Track.Camera.SetFrame(flag.State.ModelAnchors[4].Position,false);
+                        Track.Camera.SetFrame(flag.State.ModelAnchors[4].Position, false);
                         Invalidate();
                     }
                 }
@@ -757,23 +773,29 @@ namespace linerider
             }
             else if (e.Key == Key.Right)
             {
-                if (!Track.Animating)
+                if (!TemporaryPlayback && !Track.Playing)
                 {
-                    Track.Start();
+                    ReversePlayback = false;
+                    TemporaryPlayback = true;
+                    if (!Track.Animating)
+                    {
+                        Track.Start();
+                    }
+                    Scheduler.Reset();
+                    UpdateSongPosition(Track.CurrentFrame / 40f);
                 }
-                if (!Track.Paused)
-                    Track.TogglePause();
-                Track.NextFrame();
-                Invalidate();
-                Track.Camera.SetFrame(Track.RiderState.CalculateCenter(), false);
             }
             else if (e.Key == Key.Left)
             {
-                if (!Track.Paused)
-                    Track.TogglePause();
-                Track.PreviousFrame();
-                Invalidate();
-                Track.Camera.SetFrame(Track.RiderState.CalculateCenter(), false);
+                if (!TemporaryPlayback)
+                {
+                    if (Track.Animating)
+                    {
+                        ReversePlayback = true;
+                        TemporaryPlayback = true;
+                    }
+                    Scheduler.Reset();
+                }
             }
             else if (e.Key == Key.Home)
             {
@@ -828,7 +850,14 @@ namespace linerider
                     Invalidate();
                 }
             }
-
+            else if (e.Key == Key.Right)
+            {
+                TemporaryPlayback = false;
+            }
+            else if (e.Key == Key.Left)
+            {
+                TemporaryPlayback = false;
+            }
             if (e.Key == Key.Z)
             {
                 if (_zoomPerTick > 0)
