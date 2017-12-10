@@ -289,28 +289,7 @@ namespace linerider.TrackFiles
                 }
                 if (File.Exists(filename))
                 {
-                    try
-                    {
-                        AudioPlayback.Init();
-                        MemoryStream ms = new MemoryStream(GameResources.beep);
-
-                        SoundStream str = new SoundStream(ms);
-                        str.Play(0, 1);
-                        int count = 0;
-                        while (str.Playing)
-                        {
-                            Thread.Sleep(1);
-                            count += 1;
-                            if (count >= 3000)//in case something weird happens
-                                break;
-                        }
-                        str.Dispose();
-                        ms.Dispose();
-                    }
-                    catch
-                    {
-                        //ignored
-                    }
+                    AudioService.Beep();
                 }
                 else
                 {

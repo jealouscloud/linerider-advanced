@@ -53,7 +53,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Audio\OggStreamer.cs" />
+    <Compile Include="Audio\AudioStreamer.cs" />
+    <Compile Include="Audio\AudioSource.cs" />
     <Compile Include="ErrorLog.cs" />
     <Compile Include="GameService.cs" />
     <Compile Include="Settings.cs" />
@@ -64,9 +65,8 @@
     <Compile Include="Track.cs" />
     <Compile Include="UndoManager.cs" />
     <Compile Include="Audio\AudioDevice.cs" />
-    <Compile Include="Audio\AudioPlayback.cs" />
+    <Compile Include="Audio\AudioService.cs" />
     <Compile Include="Audio\Song.cs" />
-    <Compile Include="Audio\SoundStream.cs" />
     <Compile Include="Controls\GameCanvas.cs" />
     <Compile Include="Controls\GLTrack.cs" />
     <Compile Include="Controls\GLWindow.cs" />

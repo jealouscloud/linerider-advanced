@@ -734,7 +734,7 @@ namespace linerider
 				ActiveTriggers.Clear();
 				if (game.EnableSong)
 				{
-					AudioPlayback.Stop();
+					AudioService.Stop();
 				}
 				var canvas = game.Canvas;
 				var buttons = canvas.FindChildByName("buttons");
@@ -779,7 +779,7 @@ namespace linerider
 				{
 					if (Paused)
 					{
-						AudioPlayback.Pause();
+						AudioService.Pause();
 					}
 					else
 					{

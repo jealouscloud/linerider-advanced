@@ -362,7 +362,7 @@ namespace linerider
 									 strings[0];
 							if (File.Exists(fn))
 							{
-								if (AudioPlayback.LoadFile(ref fn))
+								if (AudioService.LoadFile(ref fn))
 								{
 									game.CurrentSong = new Song(Path.GetFileName(fn),float.Parse(strings[1]));
 									game.EnableSong = true;

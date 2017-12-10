@@ -117,7 +117,7 @@ namespace linerider
                     glGame.Title = WindowTitle;
                     glGame.Run(60, 0);
                 }
-                Audio.AudioPlayback.CloseDevice();
+                Audio.AudioService.CloseDevice();
             }
         }
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

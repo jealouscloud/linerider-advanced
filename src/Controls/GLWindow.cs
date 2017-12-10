@@ -151,7 +151,7 @@ namespace linerider
             _lineadjusttool = new LineAdjustTool();
             SelectedTool = _penciltool;
             Track = new GLTrack();
-            VSync = VSyncMode.Off;
+            VSync = VSyncMode.On;
             Context.ErrorChecking = true;
             WindowBorder = WindowBorder.Resizable;
             RenderFrame += (o, e) => { Render(); };
@@ -262,10 +262,9 @@ namespace linerider
             {
                 if (TemporaryPlayback && ReversePlayback)
                 {
-                    if (updates >= 1)
+                    Track.ActiveTriggers.Clear();//we don't want wonky unpredictable behavior
+                    for (int i = 0; i < updates; i++)
                     {
-                        Track.ActiveTriggers.Clear();//we don't want wonky unpredictable behavior
-                        AudioPlayback.Pause();
                         Track.PreviousFrame();
                         Track.UpdateCamera();
                     }
@@ -273,13 +272,13 @@ namespace linerider
                 else
                 {
                     Track.Update(updates);
-                    if (Track.Frame % Scheduler.UpdatesPerSecond == 0)
+                }
+                if (Track.Frame % (Scheduler.UpdatesPerSecond / 2) == 0)
+                {
+                    var sp = AudioService.SongPosition;
+                    if (Math.Abs(((Track.CurrentFrame / 40f) + CurrentSong.Offset) - sp) > 0.1)
                     {
-                        var sp = AudioPlayback.SongPosition;
-                        if (Math.Abs(((Track.CurrentFrame / 40f) + CurrentSong.Offset) - sp) > 0.1)
-                        {
-                            UpdateSongPosition(Track.CurrentFrame / 40f);
-                        }
+                        UpdateSongPosition(Track.CurrentFrame / 40f);
                     }
                 }
             }
@@ -303,11 +302,14 @@ namespace linerider
             if (EnableSong && (!Track.Paused || TemporaryPlayback) && Track.Animating &&
                 !((HorizontalIntSlider)Canvas.FindChildByName("timeslider")).Held)
             {
-                AudioPlayback.Resume(CurrentSong.Offset + seconds, (Scheduler.UpdatesPerSecond / 40f));
+                if (TemporaryPlayback && ReversePlayback)
+                    AudioService.Resume(CurrentSong.Offset + seconds, -(Scheduler.UpdatesPerSecond / 40f));
+                else
+                    AudioService.Resume(CurrentSong.Offset + seconds, (Scheduler.UpdatesPerSecond / 40f));
             }
             else
             {
-                AudioPlayback.Pause();
+                AudioService.Pause();
             }
         }
 
@@ -795,6 +797,7 @@ namespace linerider
                         TemporaryPlayback = true;
                     }
                     Scheduler.Reset();
+                    UpdateSongPosition(Track.CurrentFrame / 40f);
                 }
             }
             else if (e.Key == Key.Home)
@@ -850,13 +853,13 @@ namespace linerider
                     Invalidate();
                 }
             }
-            else if (e.Key == Key.Right)
+            else if (e.Key == Key.Right || e.Key == Key.Left)
             {
-                TemporaryPlayback = false;
-            }
-            else if (e.Key == Key.Left)
-            {
-                TemporaryPlayback = false;
+                if (TemporaryPlayback)
+                {
+                    TemporaryPlayback = false;
+                    AudioService.Pause();
+                }
             }
             if (e.Key == Key.Z)
             {

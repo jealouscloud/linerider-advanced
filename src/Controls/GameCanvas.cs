@@ -404,7 +404,7 @@ namespace linerider
                 _draggingSlider = true;
                 if (game.EnableSong)
                 {
-                    AudioPlayback.Pause();
+                    AudioService.Pause();
                 }
             }
             else if (_draggingSlider)
