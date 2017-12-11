@@ -38,7 +38,7 @@ namespace linerider.Windows
 		{
 			game = pgame;
 			Width = 400;
-			Height = 400;
+			Height = 420;//blaze it---*shot*
 			MakeModal(true);
 			DisableResizing();
 			///controls
@@ -377,7 +377,13 @@ shoe the lines as black instead");
 			lcb.IsChecked = Settings.LiveAdjustment;
 			lcb.CheckChanged += (o, e) => { Settings.LiveAdjustment = ((LabeledCheckBox)o).IsChecked; Settings.Save(); };
 			lcb.Dock = Pos.Top;
-		}
+
+            lcb = new LabeledCheckBox(container);
+            lcb.Text = "Check for Updates";
+            lcb.IsChecked = Settings.CheckForUpdates;
+            lcb.CheckChanged += (o, e) => { Settings.CheckForUpdates = ((LabeledCheckBox)o).IsChecked; Settings.Save(); };
+            lcb.Dock = Pos.Bottom;
+        }
 
 		private void CreateAboutTab(TabControl tcontainer)
 		{

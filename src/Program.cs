@@ -166,7 +166,6 @@ namespace linerider
         }
         public static void UpdateCheck()
         {
-            return;
             if (Settings.CheckForUpdates)
             {
                 new System.Threading.Thread(() =>
