@@ -197,16 +197,14 @@ namespace linerider
             }
             vslider.SetToolTipText(Math.Round(Track.Zoom, 2) + "x");
         }
-        public void Render()
+        public void Render(float blend = 1)
         {
-            if (Canvas.NeedsRedraw || (Track.Animating && (Track.SimulationNeedsDraw || Track.SmoothPlayback)) || Loading || Track.RequiresUpdate)
+            if (Canvas.NeedsRedraw || (Track.Animating && (Track.SimulationNeedsDraw || Settings.SmoothPlayback)) || Loading || Track.RequiresUpdate)
             {
                 Track.SimulationNeedsDraw = false;
 
                 BeginOrtho();
-
-                float blend = 1;
-                if (Track.SmoothPlayback && Track.Playing)
+                if (blend == 1 && Settings.SmoothPlayback && Track.Playing)
                 {
                     blend = Math.Min(1, Scheduler.ElapsedPercent);
                 }
@@ -282,7 +280,7 @@ namespace linerider
                     }
                 }
             }
-            if (Track.Animating && (Track.Paused || Track.SmoothPlayback))
+            if (Track.Animating && (Track.Paused || Settings.SmoothPlayback))
                 AllowTrackRender = true;
         }
 
@@ -322,11 +320,10 @@ namespace linerider
             else if (SelectedTool != null)
                 Cursor = SelectedTool.Cursor;
         }
-
+        
         protected override void OnLoad(EventArgs e)
         {
             MSAABuffer = new MsaaFbo();
-
             var renderer = new Gwen.Renderer.OpenTK();
 
             var tx = new Texture(renderer);
@@ -348,6 +345,7 @@ namespace linerider
             AddCursor("adjustline", GameResources.cursor_adjustline, 0, 0);
             new Thread(Canvas.UpdateSOLFiles)
             { IsBackground = true }.Start();
+            Program.UpdateCheck();
         }
 
         protected override void OnResize(EventArgs e)

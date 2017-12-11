@@ -132,7 +132,7 @@ namespace linerider.Windows
 			var modesgb = gb;
 			gb.Text = "Modes";
 			gb.Width = 180;
-			gb.Height = 160;
+			gb.Height = 180;
 			var marg = tcontainer.Margin;
 			marg.Bottom = 5;
 			tcontainer.Margin = marg;
@@ -185,15 +185,27 @@ shoe the lines as black instead");
 			lcb.Dock = Pos.Top;
 			lcb.SetToolTipText(@"Starts the track with 0 momentum");
 
-			lcb = new LabeledCheckBox(gb);
-			lcb.Text = "Smooth Camera";
-			lcb.IsChecked = Settings.SmoothCamera;
-			lcb.CheckChanged += (o, e) =>
-			{
-				Settings.SmoothCamera = ((LabeledCheckBox)o).IsChecked;
-				Settings.Save();
-			};
-			lcb.Dock = Pos.Top;
+            lcb = new LabeledCheckBox(gb);
+            lcb.Text = "New Camera";
+            lcb.IsChecked = Settings.SmoothCamera;
+            lcb.CheckChanged += (o, e) =>
+            {
+                Settings.SmoothCamera = ((LabeledCheckBox)o).IsChecked;
+                Settings.Save();
+            };
+            lcb.Dock = Pos.Top;
+            lcb.SetToolTipText("Enabled a smooth predictive camera.\r\nExperimental.");
+
+            lcb = new LabeledCheckBox(gb);
+            lcb.Text = "Smooth Playback";
+            lcb.IsChecked = Settings.SmoothPlayback;
+            lcb.CheckChanged += (o, e) =>
+            {
+                Settings.SmoothPlayback = ((LabeledCheckBox)o).IsChecked;
+                Settings.Save();
+            };
+            lcb.SetToolTipText("Interpolates frames for a smooth 60+ fps.");
+            lcb.Dock = Pos.Top;
 			lcb = new LabeledCheckBox(gb);
 			lcb.Text = "Onion Skinning";
 			lcb.IsChecked = game.SettingOnionSkinning;

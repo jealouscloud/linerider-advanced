@@ -38,6 +38,8 @@ namespace linerider
         public static bool PinkLifelock = false;
         public static bool NightMode = false;
         public static bool SmoothCamera = true;
+        public static bool SmoothPlayback = true;
+        public static bool CheckForUpdates = true;
         public static void Load()
         {
             string[] lines = null;
@@ -61,6 +63,8 @@ namespace linerider
             LoadBool(GetSetting(lines, nameof(PinkLifelock)), ref PinkLifelock);
             LoadBool(GetSetting(lines, nameof(NightMode)), ref NightMode);
             LoadBool(GetSetting(lines, nameof(SmoothCamera)), ref SmoothCamera);
+            LoadBool(GetSetting(lines, nameof(CheckForUpdates)), ref CheckForUpdates);
+            LoadBool(GetSetting(lines, nameof(SmoothPlayback)), ref SmoothPlayback);
         }
         public static void Save()
         {
@@ -73,6 +77,8 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(PinkLifelock), PinkLifelock.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(NightMode), NightMode.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SmoothCamera), SmoothCamera.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(CheckForUpdates), CheckForUpdates.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(SmoothPlayback), SmoothPlayback.ToString(Program.Culture));
             try
             {
                 File.WriteAllText(Program.UserDirectory + "linerider.conf", config);

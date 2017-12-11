@@ -73,7 +73,7 @@ namespace linerider.TrackFiles
 
         public static bool Recording;
         public static bool Recording1080p;
-        public static void RecordTrack(GLWindow game, bool is1080P)
+        public static void RecordTrack(GLWindow game, bool is1080P, bool smooth)
         {
             var flag = game.Track.GetFlag();
             if (flag == null) return;
@@ -141,12 +141,29 @@ namespace linerider.TrackFiles
                 var firstframe = GrabScreenshot(game, frontbuffer);
                 SaveScreenshot(game.RenderSize.Width, game.RenderSize.Height, firstframe, dir + Path.DirectorySeparatorChar + "tmp" + 0 + ".png");
                 int[] savethreads = { 0 };
-                for (var i = 0; i < frame; i++)
+                int framecount = smooth ? (frame * 60) / 40 : frame;
+                
+                double frametime = 0;
+                for (var i = 0; i < framecount; i++)
                 {
                     if (hardexit)
                         break;
-                    game.Track.Update(1);
-                    game.Render();
+                    if (smooth)
+                    {
+                        var oldspot = frametime;
+                        frametime += 40f / 60f;
+                        if ((int)frametime != (int)oldspot)
+                        {
+                            game.Track.Update(1);
+                        }
+                        var blend = frametime - Math.Truncate(frametime);
+                        game.Render((float)blend);
+                    }
+                    else
+                    {
+                        game.Track.Update(1);
+                        game.Render();
+                    }
                     var screenshot = GrabScreenshot(game, frontbuffer);
                     var objtopass = new Tuple<byte[], int>(screenshot, i + 1);
                     savethreads[0] += 1;
@@ -184,7 +201,7 @@ namespace linerider.TrackFiles
                 if (!hardexit)
                 {
                     var parameters = new FFMPEGParameters();
-                    parameters.AddOption("framerate", "40");
+                    parameters.AddOption("framerate", smooth ? "60" : "40");
                     parameters.AddOption("i", "\"" + dir + Path.DirectorySeparatorChar + "tmp%d.png" + "\"");
                     parameters.AddOption("vf", "vflip");//we save images upside down expecting ffmpeg to flip more efficiently.
                     parameters.AddOption("c:v", "libx264");

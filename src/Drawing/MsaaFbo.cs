@@ -69,7 +69,6 @@ namespace linerider.Drawing
             {
                 Width = width;
                 Height = height;
-                System.Diagnostics.Debug.WriteLine("width: " + width + " height: " + height);
 
                 SafeFrameBuffer.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _renderbuffer);
                 SafeFrameBuffer.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer,MSAA, RenderbufferStorage.Rgba8, width, height);

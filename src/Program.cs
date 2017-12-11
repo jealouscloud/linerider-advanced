@@ -27,7 +27,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-
+using System.Runtime.InteropServices;
 namespace linerider
 {
     public static class EntryPoint
@@ -48,7 +48,8 @@ namespace linerider
         #region Fields
         public static string BinariesFolder = "bin";
         public readonly static CultureInfo Culture = new CultureInfo("en-US");
-        public static readonly string WindowTitle = "Line Rider: Advanced 1.01";
+        public static string Version = "1.02";
+        public static readonly string WindowTitle = "Line Rider: Advanced " + Version;
         public static Random Random;
         private static bool _crashed;
         private static GLWindow glGame;
@@ -99,7 +100,7 @@ namespace linerider
 
         public static void Run()
         {
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            //     AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             Settings.Load();
             Random = new Random();
             GameResources.Init();
@@ -134,6 +135,78 @@ namespace linerider
             }
 
             throw (Exception)e.ExceptionObject;
+        }
+        private static void OpenUrl(string url)
+        {
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                // hack because of this: https://github.com/dotnet/corefx/issues/10361
+                if (Configuration.RunningOnWindows)
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                }
+                else if (Configuration.RunningOnMacOS)
+                {
+                    Process.Start("open", url);
+                }
+                else if (Configuration.RunningOnLinux)
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+        public static void UpdateCheck()
+        {
+            return;
+            if (Settings.CheckForUpdates)
+            {
+                new System.Threading.Thread(() =>
+                {
+                    try
+                    {
+                        using (WebClient wc = new WebClient())
+                        {
+                            string currentversion = "1.03";// wc.DownloadString("https://raw.githubusercontent.com/jealouscloud/linerider-advanced/master/src/version");
+                            if (currentversion != WindowTitle)
+                            {
+                                var window = PopupWindow.Create(glGame.Canvas, glGame, "Would you like to download the latest version?", "Update Available! v" + currentversion, true, true);
+                                window.FindChildByName("Okay", true).Clicked += (o, e) =>
+                                {
+                                    try
+                                    {
+                                        OpenUrl(@"https://github.com/jealouscloud/linerider-advanced/releases/latest");
+                                    }
+                                    catch
+                                    {
+                                        var w2 = PopupWindow.Create(glGame.Canvas, glGame, "Unable to open the browser.", "Error!", true, false);
+                                        w2.FindChildByName("Okay", true).Clicked += (o2, e2) =>
+                                         {
+                                             w2.Close();
+                                         };
+                                    }
+                                    window.Close();
+                                };
+                                window.FindChildByName("Cancel", true).Clicked += (o, e) => { window.Close(); };
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    }
+                })
+                {
+                    IsBackground = true
+                }.Start();
+            }
         }
 
         #endregion Methods

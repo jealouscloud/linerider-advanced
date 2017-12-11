@@ -76,7 +76,7 @@ namespace linerider.Windows
                 {
                     var radiogrp = (RadioButtonGroup)this.FindChildByName("qualityselector",true);
                     bool is1080p = radiogrp.Selected.Text == "1080p";
-                    TrackFiles.TrackRecorder.RecordTrack(game,is1080p);
+                    TrackFiles.TrackRecorder.RecordTrack(game,is1080p,((LabeledCheckBox)FindChildByName("smooth",true)).IsChecked);
                 }
             };
             Align.AlignLeft(buttonok);
@@ -111,6 +111,12 @@ namespace linerider.Windows
 			{
 				radio.IsHidden = true;
 			}
+            LabeledCheckBox smooth = new LabeledCheckBox(bottom);
+            smooth.Name = "smooth";
+            smooth.IsChecked = true;
+            smooth.Text = "Use Smooth Playback";
+            Align.AlignLeft(smooth);
+            smooth.Y += 5;
             DisableResizing();
         }
     }

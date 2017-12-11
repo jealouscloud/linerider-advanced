@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="Audio\AudioStreamer.cs" />
     <Compile Include="Audio\AudioSource.cs" />
+    <Compile Include="Drawing\Shader.cs" />
     <Compile Include="ErrorLog.cs" />
     <Compile Include="GameService.cs" />
     <Compile Include="Settings.cs" />
@@ -143,6 +144,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="Gwen">
       <HintPath>..\build\Gwen.dll</HintPath>

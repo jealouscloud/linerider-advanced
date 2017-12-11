@@ -417,6 +417,7 @@ namespace linerider
                 }
             }
         }
+
         public override void Dispose()
         {
             var iterations = FindChildByName("labeliterations") as Label;
