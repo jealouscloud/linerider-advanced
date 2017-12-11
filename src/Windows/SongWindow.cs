@@ -39,7 +39,7 @@ namespace linerider.Windows
 
             this.MinimumSize = new System.Drawing.Point(220, 240);
 
-            this.Width = 220;
+            this.Width = 260;
             this.Height = 240;
             //wc.DisableResizing();
             var enablesongcb = new LabeledCheckBox(this);
@@ -158,6 +158,10 @@ namespace linerider.Windows
             volume.KeyboardInputEnabled = false;
             volume.Width = 150;
             volume.Dock = Pos.Right;
+            Label l = new Label(this);
+            l.Dock = Pos.Bottom;
+            l.Margin = new Margin(0, 10, 0, 0);
+            l.Text = "Files in Documents/LRA/Songs";
             game.Cursor = OpenTK.MouseCursor.Default;
         }
     }

@@ -39,7 +39,9 @@ namespace linerider.Windows
             game = glgame;
             game.Track.Stop();
             MakeModal(true);
-
+            Label l = new Label(this);
+            l.Text = "Tracks are saved to\r\nDocuments/LRA/Tracks";
+            
             var bottom = new PropertyBase(this) { Name = "bottom", Margin = new Margin(0, 10, 0, 5), Height = 30 };
             var cb = new ComboBox(this);
 
@@ -55,7 +57,7 @@ namespace linerider.Windows
             cb.Dock = Pos.Bottom;
             cb.Margin = new Margin(0, 0, 0, 0);
             this.Width = 200;
-            this.Height = 100;
+            this.Height = 130;
             var dir = Program.UserDirectory + "Tracks";
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
