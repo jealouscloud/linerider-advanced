@@ -68,9 +68,16 @@ namespace linerider.Windows
             var tv = new TreeControl(this);
             tv.Name = "loadtree";
             var files = Program.UserDirectory + "Tracks";
-            foreach (var sol in sols)
+            if (Directory.Exists(files))
             {
-                AddSolTracks(tv, sol.Item1, sol.Item2);
+                var solfiles =
+                    Directory.GetFiles(files, "*.*")
+                        .Where(s => s != null && s.EndsWith(".sol", StringComparison.OrdinalIgnoreCase));
+                foreach (var sol in solfiles)
+                {
+                    var node = tv.AddNode(Path.GetFileName(sol));
+                    node.UserData = sol;
+                }
             }
             if (Directory.Exists(files))
             {
@@ -266,14 +273,39 @@ namespace linerider.Windows
                     var data = (string)selected.UserData;
                     try
                     {
-                        bool trackfolder = selected.Children.Count > 0;
-                        string trackname = selected.IsRoot ? Path.GetFileNameWithoutExtension(data) : (string)selected.Parent.UserData;
-                        if (trackfolder)
+                        if (data.EndsWith(".sol", StringComparison.OrdinalIgnoreCase))//unopened sol file
                         {
-                            data = (string)selected.Children[0].UserData;
+                            List<sol_track> tracks = null;
+                            try
+                            {
+                                tracks = TrackLoader.LoadSol(data);
+                                foreach (var track in tracks)
+                                {
+                                    selected.AddNode(track.name).UserData = track;
+                                }
+                                if (tracks.Count != 0)
+                                {
+                                    selected.UserData = tracks[0];
+                                    selected.ExpandAll();
+                                }
+                                return;
+                            }
+                            catch
+                            {
+                                PopupWindow.Error(game.Canvas, game, "An error occured", "Error!");
+                            }
                         }
-                        game.EnableSong = false;
-                        game.Track.ChangeTrack(TrackLoader.LoadTrackTRK(data, trackname));
+                        else
+                        {
+                            bool trackfolder = selected.Children.Count > 0;
+                            string trackname = selected.IsRoot ? Path.GetFileNameWithoutExtension(data) : (string)selected.Parent.UserData;
+                            if (trackfolder)
+                            {
+                                data = (string)selected.Children[0].UserData;
+                            }
+                            game.EnableSong = false;
+                            game.Track.ChangeTrack(TrackLoader.LoadTrackTRK(data, trackname));
+                        }
                     }
                     catch
                     {
@@ -282,6 +314,10 @@ namespace linerider.Windows
                         wc.FindChildByName("Okay", true).Clicked += (o, e) => { wc.Close(); };
                         return;
                     }
+                }
+                else
+                {
+
                 }
                 game.Track.TrackUpdated();
                 window.Close();
