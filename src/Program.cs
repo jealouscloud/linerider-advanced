@@ -48,7 +48,7 @@ namespace linerider
         #region Fields
         public static string BinariesFolder = "bin";
         public readonly static CultureInfo Culture = new CultureInfo("en-US");
-        public static string Version = "1.02 test a";
+        public static string Version = "1.02 test b";
         public static readonly string WindowTitle = "Line Rider: Advanced " + Version;
         public static Random Random;
         private static bool _crashed;
@@ -67,7 +67,18 @@ namespace linerider
             get
             {
                 if (_userdir == null)
+                {
                     _userdir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + Path.DirectorySeparatorChar + "LRA" + Path.DirectorySeparatorChar;
+                    //special case for mac osx...
+                    if (Configuration.RunningOnMacOS)
+                    {
+                        string documents = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Documents");
+                        if (Directory.Exists(documents))
+                        {
+                            _userdir = documents + Path.DirectorySeparatorChar + "LRA" + Path.DirectorySeparatorChar;
+                        }
+                    }
+                }
                 return _userdir;
             }
         }
