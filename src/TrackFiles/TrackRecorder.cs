@@ -140,7 +140,6 @@ namespace linerider.TrackFiles
                 }
                 var firstframe = GrabScreenshot(game, frontbuffer);
                 SaveScreenshot(game.RenderSize.Width, game.RenderSize.Height, firstframe, dir + Path.DirectorySeparatorChar + "tmp" + 0 + ".png");
-                int[] savethreads = { 0 };
                 int framecount = smooth ? (frame * 60) / 40 : frame;
                 
                 double frametime = 0;
@@ -164,28 +163,17 @@ namespace linerider.TrackFiles
                         game.Track.Update(1);
                         game.Render();
                     }
-                    var screenshot = GrabScreenshot(game, frontbuffer);
-                    var objtopass = new Tuple<byte[], int>(screenshot, i + 1);
-                    savethreads[0] += 1;
-                    var save = new Task(t =>
-                    {
-                        var passed = (Tuple<byte[], int>)t;
                         try
-                        {
-                            SaveScreenshot(game.RenderSize.Width, game.RenderSize.Height, passed.Item1, dir + Path.DirectorySeparatorChar + "tmp" + passed.Item2 + ".png");
+                    {
+                        var screenshot = GrabScreenshot(game, frontbuffer);
+                        SaveScreenshot(game.RenderSize.Width, game.RenderSize.Height, screenshot, dir + Path.DirectorySeparatorChar + "tmp" + (i + 1) + ".png");
                         }
                         catch
                         {
                             hardexit = true;
                             errormessage = "An error occured when saving the frame.";
                         }
-                        finally
-                        {
-                            Interlocked.Decrement(ref savethreads[0]);
-                        }
-                    }, objtopass);
-
-                    save.Start();
+                    
                     if (Keyboard.GetState()[Key.Escape])
                     {
                         hardexit = true;
@@ -211,10 +199,6 @@ namespace linerider.TrackFiles
                     //    parameters.AddOption("scale",is1080p?"1920:1080":"1280:720");
                     parameters.OutputFilePath = filename;
                     var failed = false;
-                    while (savethreads[0] != 0)
-                    {
-                        Thread.Sleep(1);
-                    }
                     if (File.Exists(filename))
                     {
                         try
