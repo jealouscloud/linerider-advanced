@@ -100,16 +100,19 @@ namespace linerider.Audio
             {
                 var test = SongPosition;
                 Empty();
-                _stream.Position = time;
-                ShouldQueueMusic = true;
-                Speed = rate;
-                AL.Source(_source, ALSourcef.Gain, Settings.Volume / 100);
-                AL.Source(_source, ALSourcef.Pitch, 1);
-                for (int i = 0; i < _buffers.Length; i++)
+                if (_stream.Duration > time)
                 {
-                    QueueBuffer(_buffers[i]);
+                    _stream.Position = time;
+                    ShouldQueueMusic = true;
+                    Speed = rate;
+                    AL.Source(_source, ALSourcef.Gain, Settings.Volume / 100);
+                    AL.Source(_source, ALSourcef.Pitch, rate);
+                    for (int i = 0; i < _buffers.Length; i++)
+                    {
+                        QueueBuffer(_buffers[i]);
+                    }
+                    AL.SourcePlay(_source);
                 }
-                AL.SourcePlay(_source);
             }
         }
         private void Empty()

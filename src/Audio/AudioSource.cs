@@ -47,6 +47,14 @@ namespace linerider.Audio
             }
         }
 
+        public float Duration
+        {
+            get
+            {
+                return (float)_stream.TotalTime.TotalSeconds;
+            }
+        }
+
         public AudioSource(VorbisReader stream)
         {
             _stream = stream;

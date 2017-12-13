@@ -204,7 +204,7 @@ namespace linerider
                 Track.SimulationNeedsDraw = false;
 
                 BeginOrtho();
-                if (blend == 1 && Settings.SmoothPlayback && Track.Playing)
+                if (blend == 1 && Settings.SmoothPlayback && Track.Playing && !TemporaryPlayback)
                 {
                     blend = Math.Min(1, Scheduler.ElapsedPercent);
                 }
@@ -271,7 +271,7 @@ namespace linerider
                 {
                     Track.Update(updates);
                 }
-                if (Track.Frame % (Scheduler.UpdatesPerSecond / 2) == 0)
+                if (Track.Frame % Math.Max(1,Scheduler.UpdatesPerSecond / 2) == 0)
                 {
                     var sp = AudioService.SongPosition;
                     if (Math.Abs(((Track.CurrentFrame / 40f) + CurrentSong.Offset) - sp) > 0.1)
@@ -856,6 +856,7 @@ namespace linerider
                 if (TemporaryPlayback)
                 {
                     TemporaryPlayback = false;
+                    Scheduler.Reset();
                     AudioService.Pause();
                 }
             }
