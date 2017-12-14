@@ -181,7 +181,7 @@ namespace linerider.TrackFiles
                     }
                     if (i % 40 == 0)
                     {
-                        game.Title = string.Format("{0} [Recording {1:P}% | Hold ESC to cancel]", Program.WindowTitle, i / (double)frame);
+                        game.Title = string.Format("{0} [Recording {1:P}% | Hold ESC to cancel]", Program.WindowTitle, i / (double)framecount);
                         game.ProcessEvents();
                     }
                 }
