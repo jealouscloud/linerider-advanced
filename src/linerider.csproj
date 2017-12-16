@@ -28,7 +28,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>embedded</DebugType>
+    <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\build</OutputPath>
     <DefineConstants>DEBUG;</DefineConstants>
@@ -58,6 +58,7 @@
     <Compile Include="Drawing\Shader.cs" />
     <Compile Include="ErrorLog.cs" />
     <Compile Include="GameService.cs" />
+    <Compile Include="Lines\Scarf.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Game\CameraBoundingBox.cs" />
     <Compile Include="Game\CameraLocation.cs" />

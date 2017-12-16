@@ -24,39 +24,55 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 namespace linerider
 {
-	
-	public class DynamicObject : GameObject
-	{
-		public Vector2d Momentum;
-		public Vector2d Prev;
-		public double Friction;
-		public Vector2d Gravity = new Vector2d(0,0.35 * 0.5);
-		public DynamicObject(Vector2d pos, double friction)
-		{
-			Position = pos;
-			Prev = new Vector2d(0,0);
-			Friction = friction;
-		}
-		public override void Tick ()
-		{
+
+    public class DynamicObject : GameObject
+    {
+        public Vector2d Momentum;
+        public Vector2d Prev;
+        public double Friction;
+        public Vector2d Gravity = new Vector2d(0, 0.35 * 0.5);
+        public DynamicObject(Vector2d pos, double friction)
+        {
+            Position = pos;
+            Prev = new Vector2d(0, 0);
+            Friction = friction;
+        }
+        public override void Tick()
+        {
             Momentum = Position - Prev + Gravity;
-			Prev = Position;
-			Position += Momentum;
-			base.Tick ();
-		}
+            Prev = Position;
+            Position += Momentum;
+            base.Tick();
+        }
         public virtual DynamicObject Clone()
         {
             return new DynamicObject(Position, Friction) { Prev = Prev, Gravity = Gravity, Momentum = Momentum };
         }
-	}
+    }
     public class ScarfObject : DynamicObject
     {
-        public ScarfObject(Vector2d pos, double friction) : base(pos,friction)
+        public ScarfObject(Vector2d pos, double friction) : base(pos, friction)
         {
         }
         public override void Tick()
         {
             Momentum = (Position - Prev) * Friction + Gravity;
+            Prev = Position;
+            Position += Momentum;
+        }
+        public override DynamicObject Clone()
+        {
+            return new ScarfObject(Position, Friction) { Prev = Prev, Gravity = Gravity, Momentum = Momentum };
+        }
+    }
+    public class NewScarfObject : DynamicObject
+    {
+        public NewScarfObject(Vector2d pos, double friction) : base(pos, friction)
+        {
+        }
+        public override void Tick()
+        {
+            Momentum = (Position - Prev) * Friction + (Gravity * 2);
             Prev = Position;
             Position += Momentum;
         }

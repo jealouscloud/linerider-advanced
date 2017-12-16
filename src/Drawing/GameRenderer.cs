@@ -32,7 +32,7 @@ namespace linerider.Drawing
     public static class GameRenderer
     {
         #region Fields
-        
+
         public static GLWindow Game;
         private static readonly VAO _roundlinevao = new VAO(false, true);
 
@@ -43,10 +43,10 @@ namespace linerider.Drawing
         public static void DrawIteration(float opacity, Rider fullrider, int iteration, bool momentumvectors = false, bool drawcontactpoints = false)
         {
             var rider = fullrider.iterations[iteration];
-            DrawScarf(rider.ScarfLines, opacity);
+            DrawScarf(rider.GetScarf(), opacity);
             var points = rider.ModelAnchors;
 
-            DrawTexture(Models.LegTexture,Models.LegRect, points[4].Position, points[9].Position, opacity);
+            DrawTexture(Models.LegTexture, Models.LegRect, points[4].Position, points[9].Position, opacity);
 
 
             DrawTexture(Models.ArmTexture, Models.ArmRect, points[5].Position, points[7].Position, opacity);
@@ -133,12 +133,16 @@ namespace linerider.Drawing
         public static void DrawRider(float opacity, Rider rider, bool scarf = false, bool drawcontactpoints = false, bool momentumvectors = false)
         {
             if (scarf)
-                DrawScarf(rider.ScarfLines, opacity);
+            {
+                //  DrawScarf(rider.ScarfLines, opacity);
+                DrawScarf(rider.GetScarf(), opacity);
+            }
+            opacity = 0.5f;
             var points = rider.ModelAnchors;
-            
+
             DrawTexture(Models.LegTexture, Models.LegRect, points[4].Position, points[9].Position, opacity);
-            
-            DrawTexture(Models.ArmTexture,Models.ArmRect, points[5].Position, points[7].Position, opacity);
+
+            DrawTexture(Models.ArmTexture, Models.ArmRect, points[5].Position, points[7].Position, opacity);
             if (!rider.Crashed)
                 RenderRoundedLine(points[7].Position, points[3].Position, Color.Black, 0.1f);
 
@@ -150,7 +154,7 @@ namespace linerider.Drawing
             {
                 DrawTexture(Models.SledTexture, Models.SledRect, points[0].Position, points[3].Position, opacity);
             }
-            
+
             DrawTexture(Models.LegTexture, Models.LegRect, points[4].Position, points[8].Position, opacity);
             if (!rider.Crashed)
             {
@@ -162,7 +166,7 @@ namespace linerider.Drawing
             }
             if (!rider.Crashed)
                 RenderRoundedLine(points[6].Position, points[3].Position, Color.Black, 0.1f);
-            
+
             DrawTexture(Models.ArmTexture, Models.ArmRect, points[5].Position, points[6].Position, opacity);
             List<Vertex> vertices = new List<Vertex>(300);
             if (momentumvectors)
@@ -223,8 +227,7 @@ namespace linerider.Drawing
                 vao.Draw(PrimitiveType.Triangles);
             }
         }
-
-        public static void DrawScarf(DynamicLine[] lines, float opacity)
+        public static void DrawScarf(Line[] lines, float opacity)
         {
             GLEnableCap blend = null;
             if (opacity < 1)
@@ -232,57 +235,29 @@ namespace linerider.Drawing
                 blend = new GLEnableCap(EnableCap.Blend);
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             }
-
             GameDrawingMatrix.Enter();
             VAO scarf = new VAO(false, true);//VAO does not need disposing, it does not allocate a buffer
             bool t = false;
-            for (int i = 0; i < lines.Length; i++)
+            List<Vertex> verts = new List<Vertex>();
+            for (int i = 0; i < lines.Length; i += 2)
             {
                 Color c = Color.FromArgb((byte)(255 * opacity), 209, 1, 1);
                 var alt = Color.FromArgb((byte)(255 * opacity), 255, 100, 100);
-                var diff = lines[i].Position2 - lines[i].Position;
-                var dangle = MathHelper.RadiansToDegrees(Math.Atan2(diff.Y, diff.X)) + 90;
-                Vector2d q1;
-                Vector2d q2;
-                Vector2d q3;
-                Vector2d q4;
-                float size = 2;
-                if (i == 0)
+                var thickline = StaticRenderer.GenerateThickLine((Vector2)lines[i].Position, (Vector2)lines[i].Position2, 2);
+                if (i != 0)//finish previous quad
                 {
-                    var diff2 = lines[i + 1].Position2 - lines[i + 1].Position;
-                    var dangle2 = MathHelper.RadiansToDegrees(Math.Atan2(diff2.Y, diff2.X)) + 90;
-                    Turtle turtle = new Turtle(lines[i].Position);
-                    turtle.Move(dangle2, -(size / 2));
-                    q1 = turtle.Point;
-                    turtle.Move(0, size);
-                    q2 = turtle.Point;
-                    turtle.Point = lines[i].Position2;
-                    turtle.Move(dangle, size / 2);
-                    q3 = turtle.Point;
-                    turtle.Move(0, -size);
-                    q4 = turtle.Point;
+                    verts.Add(new Vertex(thickline[0], alt));
+                    verts.Add(new Vertex(thickline[3], alt));
                 }
-                else
-                {
-                    var diff2 = lines[i - 1].Position2 - lines[i - 1].Position;
-                    var dangle2 = MathHelper.RadiansToDegrees(Math.Atan2(diff2.Y, diff2.X)) + 90;
-                    Turtle turtle = new Turtle(lines[i].Position);
-                    turtle.Move(dangle2, -(size / 2));
-                    q1 = turtle.Point;
-                    turtle.Move(0, size);
-                    q2 = turtle.Point;
-                    turtle.Point = lines[i].Position2;
-                    turtle.Move(dangle, size / 2);
-                    q3 = turtle.Point;
-                    turtle.Move(0, -size);
-                    q4 = turtle.Point;
-                }
-                scarf.AddVertex(new Vertex((Vector2)q1, t ? c : alt));
-                scarf.AddVertex(new Vertex((Vector2)q2, t ? c : alt));
-                scarf.AddVertex(new Vertex((Vector2)q3, t ? c : alt));
-                scarf.AddVertex(new Vertex((Vector2)q4, t ? c : alt));
-                t = !t;
+                verts.Add(new Vertex(thickline[0], c));
+                verts.Add(new Vertex(thickline[1], c));
+                verts.Add(new Vertex(thickline[2], c));
+                verts.Add(new Vertex(thickline[3], c));
+
+                verts.Add(new Vertex(thickline[2], alt));
+                verts.Add(new Vertex(thickline[1], alt));
             }
+            scarf.AddVerticies(verts);
             scarf.Draw(PrimitiveType.Quads);
             GameDrawingMatrix.Exit();
 
