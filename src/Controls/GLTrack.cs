@@ -762,6 +762,7 @@ namespace linerider
                         game.UpdateSongPosition(CurrentFrame / 40f);
                     }
                 }
+                SimulationNeedsDraw = true;
             }
         }
 

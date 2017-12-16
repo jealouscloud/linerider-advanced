@@ -1028,6 +1028,8 @@ namespace linerider
                 l.SetText("Physics Iteration: " + it + " (momentum tick)");
             else
                 l.SetText("Physics Iteration: " + it);
+
+            Track.SimulationNeedsDraw = true;//just in case
         }
 
         private void BeginOrtho()
