@@ -385,6 +385,11 @@ namespace linerider
                         else
                             SelectedTool.OnMouseRightDown(new Vector2d(e.X, e.Y));
                     }
+                    else if (e.Button == MouseButton.Middle)
+                    {
+                        _handToolOverride = true;
+                        _handtool.OnMouseDown(new Vector2d(e.X, e.Y));
+                    }
                 }
                 if (e.Button != MouseButton.Right)
                 {
@@ -407,6 +412,7 @@ namespace linerider
             var r = _input.ProcessMouseMessage(e);
             if (Canvas.GetOpenWindows().Count != 0)
                 return;
+
             if (e.Button == MouseButton.Left)
             {
                 if (_handToolOverride)
@@ -418,7 +424,12 @@ namespace linerider
             {
                 SelectedTool.OnMouseRightUp(new Vector2d(e.X, e.Y));
             }
-            if (r)
+            else if (e.Button == MouseButton.Middle)
+            {
+                _handToolOverride = false;
+                _handtool.OnMouseUp(new Vector2d(e.X, e.Y));
+            }
+                if (r)
                 Cursor = MouseCursor.Default;
             else
                 UpdateCursor();
@@ -574,24 +585,7 @@ namespace linerider
                     }
                     return;
                 }
-            }
 
-            #endregion
-
-            if (input.IsKeyDown(Key.ShiftLeft) || input.IsKeyDown(Key.ShiftRight))
-            {
-                if (input.IsKeyDown(Key.Y))
-                {
-                    Track.Start(false, true, false);
-                    Scheduler.UpdatesPerSecond = SettingSlowmoSpeed;
-                    UpdateSongPosition(Track.CurrentFrame / 40f);
-                    return;
-                }
-                if (input.IsKeyDown(Key.I))
-                {
-                    Track.Start(true, true, true, true);
-                    return;
-                }
 
                 if (Track.Animating && Track.Paused && Track.Frame != 0)
                 {
@@ -627,6 +621,54 @@ namespace linerider
                         }
                         return;
                     }
+                }
+            }
+
+            #endregion
+
+            if (input.IsKeyDown(Key.ShiftLeft) || input.IsKeyDown(Key.ShiftRight))
+            {
+                if (input.IsKeyDown(Key.Y))
+                {
+                    Track.Start(false, true, false);
+                    Scheduler.UpdatesPerSecond = SettingSlowmoSpeed;
+                    UpdateSongPosition(Track.CurrentFrame / 40f);
+                    return;
+                }
+                if (input.IsKeyDown(Key.I))
+                {
+                    Track.Start(true, true, true, true);
+                    return;
+                }
+
+                if (input.IsKeyDown(Key.Right))
+                {
+                    if (!TemporaryPlayback && !Track.Playing)
+                    {
+                        ReversePlayback = false;
+                        TemporaryPlayback = true;
+                        if (!Track.Animating)
+                        {
+                            Track.Start();
+                        }
+                        Scheduler.Reset();
+                        UpdateSongPosition(Track.CurrentFrame / 40f);
+                    }
+                    return;
+                }
+                if (input.IsKeyDown(Key.Left))
+                {
+                    if (!TemporaryPlayback)
+                    {
+                        if (Track.Animating)
+                        {
+                            ReversePlayback = true;
+                            TemporaryPlayback = true;
+                        }
+                        Scheduler.Reset();
+                        UpdateSongPosition(Track.CurrentFrame / 40f);
+                    }
+                    return;
                 }
             }
             if (e.Key == Key.Q)
@@ -772,29 +814,32 @@ namespace linerider
             }
             else if (e.Key == Key.Right)
             {
-                if (!TemporaryPlayback && !Track.Playing)
+                if (!TemporaryPlayback)
                 {
-                    ReversePlayback = false;
-                    TemporaryPlayback = true;
                     if (!Track.Animating)
                     {
                         Track.Start();
                     }
-                    Scheduler.Reset();
-                    UpdateSongPosition(Track.CurrentFrame / 40f);
+                    if (!Track.Paused)
+                        Track.TogglePause();
+                    Track.NextFrame();
+                    Invalidate();
+                    Track.Camera.SetFrame(Track.RiderState.CalculateCenter(), false);
                 }
             }
             else if (e.Key == Key.Left)
             {
                 if (!TemporaryPlayback)
                 {
-                    if (Track.Animating)
+                    if (!Track.Animating)
                     {
-                        ReversePlayback = true;
-                        TemporaryPlayback = true;
+                        Track.Start();
                     }
-                    Scheduler.Reset();
-                    UpdateSongPosition(Track.CurrentFrame / 40f);
+                    if (!Track.Paused)
+                        Track.TogglePause();
+                    Track.PreviousFrame();
+                    Invalidate();
+                    Track.Camera.SetFrame(Track.RiderState.CalculateCenter(), false);
                 }
             }
             else if (e.Key == Key.Home)

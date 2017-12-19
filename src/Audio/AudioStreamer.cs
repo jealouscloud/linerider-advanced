@@ -106,7 +106,7 @@ namespace linerider.Audio
                     ShouldQueueMusic = true;
                     Speed = rate;
                     AL.Source(_source, ALSourcef.Gain, Settings.Volume / 100);
-                    AL.Source(_source, ALSourcef.Pitch, rate);
+                    AL.Source(_source, ALSourcef.Pitch, Math.Abs(rate));
                     for (int i = 0; i < _buffers.Length; i++)
                     {
                         QueueBuffer(_buffers[i]);

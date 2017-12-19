@@ -16,3 +16,5 @@ Playback skipping with left/right arrows now plays music to aid with syncing (la
 Rewrote audio backend.
 
 Multiline tool cap raised to 9999 from 50. It was there just because I thought nobody would need more than 50 (lol) and i didnt want people crashing their games.
+
+middle mosue button pan

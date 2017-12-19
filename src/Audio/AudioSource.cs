@@ -74,7 +74,7 @@ namespace linerider.Audio
                 else if (temp < short.MinValue) temp = short.MinValue;
                 Buffer[(ReadSamples - 1) - i] = (short)temp;
             }
-            _stream.DecodedPosition -= len; ;
+            _stream.DecodedPosition -= len;
             return ReadSamples;
         }
 
