@@ -30,11 +30,11 @@ namespace linerider
         public static int BodyDeadTexture;
         public static int ArmTexture;
         public static int LegTexture;
-        public static readonly DoubleRect SledRect = new DoubleRect(-1.375, -4.625, 717.0/20,298.0/20);
-        public static readonly DoubleRect BrokenSledRect = new DoubleRect(-1.375 +0.646, -4.625, 36.20009, 15.25078);
+        public static readonly DoubleRect SledRect = new DoubleRect(-1.375, -4.625, 35.839,14.912);
+        public static readonly DoubleRect BrokenSledRect = new DoubleRect(-1.375 + 0.646, -4.625, 34.954, 12.935);
         public static readonly DoubleRect BodyRect = new DoubleRect(-0.052, -6.452, 27.888, 13.330);
-        public static readonly DoubleRect ArmRect = new DoubleRect(-1.314, -2.461, 15.590, 3.858);
-        public static readonly DoubleRect LegRect = new DoubleRect(-1.307, -4.026, 15.990, 5.450);
+        public static readonly DoubleRect ArmRect = new DoubleRect(-1.314, -2.461, 15.640, 3.958);
+        public static readonly DoubleRect LegRect = new DoubleRect(-1.307, -4.026, 16.040, 5.550);
         #endregion Fields
 
         #region Methods
