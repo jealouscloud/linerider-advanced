@@ -45,12 +45,12 @@ namespace linerider.Drawing
 
         #region Constructors
 
-        public VAO(bool indexed, bool useopacity)
+        public VAO(bool indexed, bool useopacity, int capacity = 500)
         {
             Opacity = useopacity;
             Indexed = indexed;
-            vertices = new Vertex[500];
-            indices = new int[500];
+            vertices = new Vertex[capacity];
+            indices = new int[capacity];
         }
 
         #endregion Constructors

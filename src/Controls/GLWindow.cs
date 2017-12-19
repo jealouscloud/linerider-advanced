@@ -212,7 +212,6 @@ namespace linerider
                 GL.ClearColor(Settings.NightMode
                     ? ColorNightMode
                     : (Settings.WhiteBG ? ColorWhite : ColorOffwhite));
-                GL.Clear(ClearBufferMask.ColorBufferBit);
                 MSAABuffer.Use(RenderSize.Width, RenderSize.Height);
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
                 GL.Clear(ClearBufferMask.ColorBufferBit);

@@ -134,10 +134,8 @@ namespace linerider.Drawing
         {
             if (scarf)
             {
-                //  DrawScarf(rider.ScarfLines, opacity);
                 DrawScarf(rider.GetScarf(), opacity);
             }
-            opacity = 0.5f;
             var points = rider.ModelAnchors;
 
             DrawTexture(Models.LegTexture, Models.LegRect, points[4].Position, points[9].Position, opacity);
@@ -237,28 +235,45 @@ namespace linerider.Drawing
             }
             GameDrawingMatrix.Enter();
             VAO scarf = new VAO(false, true);//VAO does not need disposing, it does not allocate a buffer
-            bool t = false;
-            List<Vertex> verts = new List<Vertex>();
+            List<Vector2> altvectors = new List<Vector2>();
+            Color c = Color.FromArgb((byte)(255 * opacity), 209, 1, 1);
+            var alt = Color.FromArgb((byte)(255 * opacity), 255, 100, 100);
             for (int i = 0; i < lines.Length; i += 2)
             {
-                Color c = Color.FromArgb((byte)(255 * opacity), 209, 1, 1);
-                var alt = Color.FromArgb((byte)(255 * opacity), 255, 100, 100);
                 var thickline = StaticRenderer.GenerateThickLine((Vector2)lines[i].Position, (Vector2)lines[i].Position2, 2);
-                if (i != 0)//finish previous quad
-                {
-                    verts.Add(new Vertex(thickline[0], alt));
-                    verts.Add(new Vertex(thickline[3], alt));
-                }
-                verts.Add(new Vertex(thickline[0], c));
-                verts.Add(new Vertex(thickline[1], c));
-                verts.Add(new Vertex(thickline[2], c));
-                verts.Add(new Vertex(thickline[3], c));
 
-                verts.Add(new Vertex(thickline[2], alt));
-                verts.Add(new Vertex(thickline[1], alt));
+                Vertex tl = (new Vertex(thickline[0], c));
+                Vertex tr = (new Vertex(thickline[1], c));
+                Vertex br = (new Vertex(thickline[2], c));
+                Vertex bl = (new Vertex(thickline[3], c));
+
+                scarf.AddVertex(tl);
+                scarf.AddVertex(bl);
+                scarf.AddVertex(tr);
+
+                scarf.AddVertex(bl);
+                scarf.AddVertex(tr);
+                scarf.AddVertex(br);
+                if (i != 0)
+                {
+                    altvectors.Add(tl.Position);
+                    altvectors.Add(bl.Position);
+                }
+                altvectors.Add(br.Position);
+                altvectors.Add(tr.Position); ;
             }
-            scarf.AddVerticies(verts);
-            scarf.Draw(PrimitiveType.Quads);
+            for (int i = 0; i < altvectors.Count - 4; i+=4)
+            {
+                scarf.AddVertex(new Vertex(altvectors[i], alt));
+                scarf.AddVertex(new Vertex(altvectors[i+1], alt));
+                scarf.AddVertex(new Vertex(altvectors[i+2], alt));
+
+
+                scarf.AddVertex(new Vertex(altvectors[i], alt));
+                scarf.AddVertex(new Vertex(altvectors[i+2], alt));
+                scarf.AddVertex(new Vertex(altvectors[i+3], alt));
+            }
+            scarf.Draw(PrimitiveType.Triangles);
             GameDrawingMatrix.Exit();
 
             if (blend != null)

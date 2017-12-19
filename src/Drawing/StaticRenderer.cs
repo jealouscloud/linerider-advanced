@@ -150,28 +150,20 @@ namespace linerider.Drawing
 			}
 			GL.End();
 		}
-
-        public static void DrawTexture(int tex, DoubleRect rect, float alpha=1, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
+        public static void DrawTexture(int tex, DoubleRect rect,float alpha=1, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
         {
-            using (new GLEnableCap(EnableCap.Blend))
-            {
-                using (new GLEnableCap(EnableCap.Texture2D))
-                {
-                    GL.Color4(1.0, 1.0, 1.0, alpha);
-                    GL.BindTexture(TextureTarget.Texture2D, tex);
-                    double x = rect.Left;
-                    double y = rect.Top;
-                    double xx = x + rect.Width;
-                    double yy = y + rect.Height;
-                    GL.Begin(PrimitiveType.Quads);
-                    GL.TexCoord2(u1, v1); GL.Vertex2(x, y);
-                    GL.TexCoord2(u2, v1); GL.Vertex2(xx, y);
-                    GL.TexCoord2(u2, v2); GL.Vertex2(xx, yy);
-                    GL.TexCoord2(u1, v2); GL.Vertex2(x, yy);
-                    GL.End();
-                    GL.BindTexture(TextureTarget.Texture2D, 0);
-                }
-            }
+            VAO buf = new VAO(false, false, 6);
+            buf.Texture = tex;
+            var tr = new Vector2d(rect.Right, rect.Top);
+            var tl = new Vector2d(rect.Left, rect.Top);
+            var bl = new Vector2d(rect.Left, rect.Bottom);
+            var br = new Vector2d(rect.Right, rect.Bottom);
+            var c = Color.FromArgb(255, 255, 255, 255);
+            buf.AddVertex(new Vertex((Vector2)tl, c,u1,v1));
+            buf.AddVertex(new Vertex((Vector2)tr, c,u2,v1));
+            buf.AddVertex(new Vertex((Vector2)br, c,u2,v2));
+            buf.AddVertex(new Vertex((Vector2)bl, c, u1, v2));
+            buf.Draw(PrimitiveType.Quads);
         }
         public static void DrawTexture(int tex, RectangleF rect, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
         {
@@ -244,7 +236,7 @@ namespace linerider.Drawing
 			GL.GenTextures(1, out glTex);
 
 			GL.BindTexture(TextureTarget.Texture2D, glTex);
-
+            
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.ClampToBorder);

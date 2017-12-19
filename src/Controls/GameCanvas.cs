@@ -79,9 +79,9 @@ namespace linerider
             var btnfastfoward = new ImageButton(this)
             {
                 X = timeslider.Right,
-                Y = Height - 25,
-                Width = 24,
-                Height = 24,
+                Y = Height - 36,
+                Width = 32,
+                Height = 32,
                 IsTabable = false,
                 IsHidden = true,
                 KeyboardInputEnabled = false,
@@ -91,9 +91,9 @@ namespace linerider
             var btnslowmo = new ImageButton(this)
             {
                 X = timeslider.X - 24,
-                Y = Height - 25,
-                Width = 24,
-                Height = 24,
+                Y = Height - 36,
+                Width = 32,
+                Height = 32,
                 IsTabable = false,
                 IsHidden = true,
                 KeyboardInputEnabled = false,
@@ -225,6 +225,14 @@ namespace linerider
             var nightmode = Settings.NightMode;
             var buttons = FindChildByName("buttons");
             foreach (var v in buttons.Children)
+            {
+                if (v is ImageButton)
+                {
+                    var tool = (ImageButton)v;
+                    tool.Nightmode(nightmode);
+                }
+            }
+            foreach (var v in Children)
             {
                 if (v is ImageButton)
                 {
@@ -378,12 +386,12 @@ namespace linerider
             var slider = (HorizontalIntSlider)FindChildByName("timeslider");
             slider.X = 120;
             slider.Width = Width - 120 * 2;
-            slider.Y = Height - 25;
+            slider.Y = Height - 32;
             var vslider = FindChildByName("vslider", true);
             vslider.X = Width - vslider.Width;
             vslider.Y = Height - vslider.Height - 25;
-            FindChildByName("btnslowmo").SetPosition(slider.X - 24, slider.Y);
-            FindChildByName("btnfastforward").SetPosition(slider.Right, slider.Y);
+            FindChildByName("btnslowmo").SetPosition(slider.X - 32, slider.Y - 4);
+            FindChildByName("btnfastforward").SetPosition(slider.Right, slider.Y - 4);
         }
 
         private void timeslider_ValueChanged(ControlBase sender, EventArgs arguments)
