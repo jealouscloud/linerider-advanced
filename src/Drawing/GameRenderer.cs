@@ -439,21 +439,7 @@ namespace linerider.Drawing
             GL.End();
             GL.PopMatrix();
         }
-        private static void DrawGraphic(VBO graphic, Vector2d p1, Vector2d rotationAnchor, float opacity)
-        {
-            var angle = Angle.FromLine(p1, rotationAnchor);
-            var offset = -(Game.ScreenPosition - p1);
-            GL.PushMatrix();
-            GL.Scale(Game.Track.Zoom, Game.Track.Zoom, 0);
-            GL.Translate(offset.X, offset.Y, 0);
-            GL.Rotate(angle.Degrees, 0, 0, 1);
-            GL.Scale(0.5, 0.5, 0);
-            graphic.SetOpacity(opacity);
 
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            graphic.Draw(PrimitiveType.Triangles);
-            GL.PopMatrix();
-        }
         private static void DrawTexture(int tex, DoubleRect rect, Vector2d p1, Vector2d rotationAnchor, float opacity)
         {
             var angle = Angle.FromLine(p1, rotationAnchor);
