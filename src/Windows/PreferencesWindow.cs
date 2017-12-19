@@ -438,10 +438,12 @@ shoe the lines as black instead");
 			pt.Add("(playback) Zoom Out", CreateUneditable(pt), "X");
 			pt.Add("(playback) Slow Playback", CreateUneditable(pt), "-");
 			pt.Add("(playback) Speed Playback", CreateUneditable(pt), "+");
-			pt.Add("(playback) Frame Left", CreateUneditable(pt), "Left");
-			pt.Add("(playback) Frame Right", CreateUneditable(pt), "Right");
-			pt.Add("(playback) Iterations Left", CreateUneditable(pt), "Shift+Left");
-			pt.Add("(playback) Iterations Right", CreateUneditable(pt), "Shift+Right");
+            pt.Add("(playback) Frame Left", CreateUneditable(pt), "Left");
+            pt.Add("(playback) Frame Right", CreateUneditable(pt), "Right");
+            pt.Add("(playback) (hold) Rewind", CreateUneditable(pt), "Shift+Left");
+            pt.Add("(playback) (hold) Playback", CreateUneditable(pt), "Shift+Right");
+            pt.Add("(playback) Iterations Left", CreateUneditable(pt), "Alt+Left");
+			pt.Add("(playback) Iterations Right", CreateUneditable(pt), "Alt+Right");
 
 			tree.Dock = Pos.Fill;
 			pt.SplitWidth = 200;
