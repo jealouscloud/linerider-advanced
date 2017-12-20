@@ -158,7 +158,7 @@ namespace linerider.Drawing
             var tl = new Vector2d(rect.Left, rect.Top);
             var bl = new Vector2d(rect.Left, rect.Bottom);
             var br = new Vector2d(rect.Right, rect.Bottom);
-            var c = Color.FromArgb(255, 255, 255, 255);
+            var c = Color.FromArgb((int)Math.Min(255,(alpha*255)), 255, 255, 255);
             buf.AddVertex(new Vertex((Vector2)tl, c,u1,v1));
             buf.AddVertex(new Vertex((Vector2)tr, c,u2,v1));
             buf.AddVertex(new Vertex((Vector2)br, c,u2,v2));

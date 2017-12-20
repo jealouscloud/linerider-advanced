@@ -19,4 +19,4 @@ Multiline tool cap raised to 9999 from 50. It was there just because I thought n
 
 middle mosue button pan
 
-Shift + arrow keys for iteration stepping has been moved to alt + arrow keys
+Shift + arrow keys for iteration stepping has been moved to alt + arrow keys, shift + arrow keys now forward/rewind including music playback.

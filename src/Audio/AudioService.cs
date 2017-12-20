@@ -190,6 +190,7 @@ namespace linerider.Audio
                 }
                 return true;
             });
+            game.Title = Program.WindowTitle;
             if (hardexit)
                 return null;
             return file;
