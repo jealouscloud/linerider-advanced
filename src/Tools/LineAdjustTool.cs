@@ -128,7 +128,7 @@ namespace linerider
                                     _nonphysicalline.Position2);
                             if (ispaired)
                             {
-                                _snappedline.Position2 = _nonphysicalline.Position;
+                                SetSnapLinePosition(_nonphysicalline.Position);
                             }
                         }
                         if (_joint.HasFlag(Joint.Right))
@@ -143,7 +143,7 @@ namespace linerider
 
                             if (ispaired)
                             {
-                                _snappedline.Position = _nonphysicalline.Position2;
+                                SetSnapLinePosition(_nonphysicalline.Position2);
                             }
                         }
                         if (_snappedline != null)
@@ -565,6 +565,19 @@ namespace linerider
                     _snappedline = Snap(_startPos, ssnap);
                     if (_snappedline is StandardLine)
                         _snappedline = null;
+                    if (_snappedline != null)
+                    {
+                        if ((_snappedline.Position - _startPos).Length < (_snappedline.Position2 - _startPos).Length)
+                        {
+                            _snapjoint = Joint.Left;
+                        }
+                        else
+                        {
+                            _snapjoint = Joint.Right;
+                        }
+                        _snaporiginalpos1 = _snappedline.Position;
+                        _snaporiginalpos2 = _snappedline.Position2;
+                    }
                     _nonphysicalline = ssnap;
                     _originalPos1 = _nonphysicalline.Position;
                     _originalPos2 = _nonphysicalline.Position2;
