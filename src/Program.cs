@@ -48,7 +48,7 @@ namespace linerider
         #region Fields
         public static string BinariesFolder = "bin";
         public readonly static CultureInfo Culture = new CultureInfo("en-US");
-        public static string Version = "1.02 test d";
+        public static string Version = "1.02";
         public static readonly string WindowTitle = "Line Rider: Advanced " + Version;
         public static Random Random;
         private static bool _crashed;
@@ -191,7 +191,6 @@ namespace linerider
         }
         public static void UpdateCheck()
         {
-            return;
             if (Settings.CheckForUpdates)
             {
                 new System.Threading.Thread(() =>
@@ -201,7 +200,7 @@ namespace linerider
                         using (WebClient wc = new WebClient())
                         {
                             string currentversion = wc.DownloadString("https://raw.githubusercontent.com/jealouscloud/linerider-advanced/master/src/version");
-                            if (currentversion != Version)
+                            if (currentversion != Version && currentversion.Length > 0)
                             {
                                 var window = PopupWindow.Create(glGame.Canvas, glGame, "Would you like to download the latest version?", "Update Available! v" + currentversion, true, true);
                                 window.FindChildByName("Okay", true).Clicked += (o, e) =>
