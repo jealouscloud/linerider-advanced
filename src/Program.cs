@@ -68,16 +68,19 @@ namespace linerider
             {
                 if (_userdir == null)
                 {
-                    _userdir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + Path.DirectorySeparatorChar + "LRA" + Path.DirectorySeparatorChar;
-                    //special case for mac osx...
-                    if (Configuration.RunningOnMacOS)
+                    _userdir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    //mono doesnt do well with non windows ~/Documents.
+                    if (_userdir == Environment.GetFolderPath(Environment.SpecialFolder.Personal)) 
                     {
                         string documents = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Documents");
+                        //so, if we can find a Documents folder, we use that.
+                        //otherwise we're just gonna use ~/LRA, unfortunately.
                         if (Directory.Exists(documents))
                         {
-                            _userdir = documents + Path.DirectorySeparatorChar + "LRA" + Path.DirectorySeparatorChar;
+                            _userdir = documents;
                         }
                     }
+                    _userdir += Path.DirectorySeparatorChar + "LRA" + Path.DirectorySeparatorChar;
                 }
                 return _userdir;
             }
