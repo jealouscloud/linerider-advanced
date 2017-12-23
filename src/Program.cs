@@ -199,7 +199,7 @@ namespace linerider
                     {
                         using (WebClient wc = new WebClient())
                         {
-                            string currentversion = wc.DownloadString("https://raw.githubusercontent.com/jealouscloud/linerider-advanced/master/src/version");
+                            string currentversion = wc.DownloadString("https://raw.githubusercontent.com/jealouscloud/linerider-advanced/master/version");
                             if (currentversion != Version && currentversion.Length > 0)
                             {
                                 var window = PopupWindow.Create(glGame.Canvas, glGame, "Would you like to download the latest version?", "Update Available! v" + currentversion, true, true);
