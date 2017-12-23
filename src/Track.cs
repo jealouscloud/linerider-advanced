@@ -592,7 +592,7 @@ namespace linerider
 				state.Crashed = true;
 				state.SledBroken = true;
 			}
-			state.SatisfyScarf();
+			state.StepScarf();
 			return collisions;
 		}
 
@@ -605,8 +605,9 @@ namespace linerider
 			state.iterations.Clear();
 			for (var iteration = 0; iteration < 6; iteration++)
 			{
-				state.SatisfyScarf();
-				state.iterations.Add(state.Clone());
+                var it = state.Clone();
+                it.StepScarf();
+                state.iterations.Add(it);
 				state.SatisfyDistance();
 				state.SatisfyBoundaries(this, collisions);
 			}
@@ -624,7 +625,7 @@ namespace linerider
 				state.Crashed = true;
 				state.SledBroken = true;
 			}
-			state.SatisfyScarf();
+			state.StepScarf();
 		}
 
 		public void TrackChanged()

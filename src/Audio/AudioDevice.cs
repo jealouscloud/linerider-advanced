@@ -87,7 +87,7 @@ namespace linerider.Audio
             {
                 var error = AL.GetError();
                 if (error != ALError.NoError)
-                    throw new Exception("OpenAL error " + AL.GetErrorString(error));
+                    throw new OpenTK.Audio.AudioException("OpenAL error " + AL.GetErrorString(error));
             }
             else
             {

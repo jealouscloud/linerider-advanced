@@ -1,31 +1,22 @@
-﻿0.2->0.3
-Recording introduced
-frame cap to prevent memory overflow
-Major code rework.
-Fixed font issues on unix based systems.
-Flag timer position changed.
-Removed fast foward/slow mo buttons, to test.
+﻿1.01 -> 1.02
+Added new predictive camera. Try it out, tell me what you think. It's beyond experimental and subject to change.
 
-0.3rc1->0.3rc2
-Backspace didnt live update
-iterations on left/right need to stop
-Issues with erasing on certain grid points.
-red lines didnt look right while drawing sometimes
-sol export was broken
-space bar
-Fixed a line visual bug
-Fixed backspace problem on textboxes
-T selects hand tool now
-Scenery rendering should be faster but take slightly longer to load than in 0.2. This should also reduce ingame lag.
-Fixed recording for some PCs
-Recording now reports % of encoding
-Tracks now save with converted oggs now.
-Ogg conversion also now tells you in the window title %
+Smooth playback! Same LR you know and love at a silky smooth 60+ fps. As mhenr mentioned this doesn't play well with animation.
 
-//STILL HAVENT FIXED ZOOM ISSUE ON LINUX
-plans next:
-more feedback from icons cursors etc
-select tool replace line adjust tool
-small console box?
-change line type quickly
-Need to make ogg usage load less, and remove console and just parse text from it
+Rider border changed to be thicker. It seemed... hard to follow high movement tracks. This seems to help.
+
+Recording crash (potentially) fixed
+
+Files now saved to ~/Documents/LRA instead of the executable directory
+
+Auto-check for updates that can be disabled
+
+Playback skipping with left/right arrows now plays music to aid with syncing (late to the party)
+
+Rewrote audio backend.
+
+Multiline tool cap raised to 9999 from 50. It was there just because I thought nobody would need more than 50 (lol) and i didnt want people crashing their games.
+
+middle mosue button pan
+
+Shift + arrow keys for iteration stepping has been moved to alt + arrow keys, shift + arrow keys now forward/rewind including music playback.

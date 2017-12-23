@@ -43,7 +43,7 @@ namespace linerider.Windows
             }
             MakeModal(true);
             Width = 400;
-            Height = 280;
+            Height = 300;
             ControlBase bottom = new ControlBase(this);
             bottom.Height = 150;
             bottom.Width = 400 - 13;
@@ -76,7 +76,7 @@ namespace linerider.Windows
                 {
                     var radiogrp = (RadioButtonGroup)this.FindChildByName("qualityselector",true);
                     bool is1080p = radiogrp.Selected.Text == "1080p";
-                    TrackFiles.TrackRecorder.RecordTrack(game,is1080p);
+                    TrackFiles.TrackRecorder.RecordTrack(game,is1080p,((LabeledCheckBox)FindChildByName("smooth",true)).IsChecked);
                 }
             };
             Align.AlignLeft(buttonok);
@@ -94,7 +94,7 @@ namespace linerider.Windows
             label.Width = this.Width;
 			if (Drawing.SafeFrameBuffer.CanRecord)
 			{
-				label.AddText("You are about to export your track as a video file. Make sure the end of the track is marked by a flag. It will be located in the same folder as linerider.exe. Please allow some minutes depending on your computer speed. The window will become unresponsive during this time." + Environment.NewLine + Environment.NewLine + "After recording, a console window will open to encode the video. Closing it will cancel the process and all progress will be lost.", parent.Skin.Colors.Label.Default, parent.Skin.DefaultFont);
+				label.AddText("You are about to export your track as a video file. Make sure the end of the track is marked by a flag. It will be located in your line rider user directory (Documents/LRA).\r\nPlease allow some minutes depending on your computer speed. The window will become unresponsive during this time." + Environment.NewLine + Environment.NewLine + "After recording, a console window will open to encode the video. Closing it will cancel the process and all progress will be lost.", parent.Skin.Colors.Label.Default, parent.Skin.DefaultFont);
 			}
 			else
 			{
@@ -111,6 +111,12 @@ namespace linerider.Windows
 			{
 				radio.IsHidden = true;
 			}
+            LabeledCheckBox smooth = new LabeledCheckBox(bottom);
+            smooth.Name = "smooth";
+            smooth.IsChecked = true;
+            smooth.Text = "Use Smooth Playback";
+            Align.AlignLeft(smooth);
+            smooth.Y += 5;
             DisableResizing();
         }
     }

@@ -89,43 +89,11 @@ namespace linerider
             }
         }
 
-        internal static byte[] arm
-        {
-            get
-            {
-                return GetBytes("arm.svg");
-            }
-        }
-
         internal static byte[] beep
         {
             get
             {
                 return GetBytes("beep.wav");
-            }
-        }
-
-        internal static byte[] bosh
-        {
-            get
-            {
-                return GetBytes("bosh.svg");
-            }
-        }
-
-        internal static byte[] boshdead
-        {
-            get
-            {
-                return GetBytes("boshdead.svg");
-            }
-        }
-
-        internal static byte[] brokensled
-        {
-            get
-            {
-                return GetBytes("brokensled.svg");
             }
         }
 
@@ -222,14 +190,6 @@ namespace linerider
             get
             {
                 return GetBitmap("White.flag_icon_white.png");
-            }
-        }
-
-        internal static byte[] leg
-        {
-            get
-            {
-                return GetBytes("leg.svg");
             }
         }
 
@@ -377,11 +337,46 @@ namespace linerider
             }
         }
 
-        internal static byte[] sled
+        internal static Bitmap sled_img
         {
             get
             {
-                return GetBytes("sled.svg");
+                return GetBitmap("sled.png");
+            }
+        }
+        internal static Bitmap bosh_img
+        {
+            get
+            {
+                return GetBitmap("bosh.png");
+            }
+        }
+        internal static Bitmap boshdead_img
+        {
+            get
+            {
+                return GetBitmap("boshdead.png");
+            }
+        }
+        internal static Bitmap brokensled_img
+        {
+            get
+            {
+                return GetBitmap("brokensled.png");
+            }
+        }
+        internal static Bitmap arm_img
+        {
+            get
+            {
+                return GetBitmap("arm.png");
+            }
+        }
+        internal static Bitmap leg_img
+        {
+            get
+            {
+                return GetBitmap("leg.png");
             }
         }
 

@@ -37,22 +37,11 @@ namespace linerider
                 return 1.0 / avg;
             }
         }
-        private double _target = 20;
-        public double Target
-        {
-            get
-            {
-                return _target;
-            }
-            set
-            {
-                _target = value;
-            }
-        }
+        private double _framehistory = 20;
         public void AddFrame(double f)
         {
             _queue.Enqueue(f);
-            if (_queue.Count > _target)
+            if (_queue.Count > _framehistory)
             {
                 _queue.Dequeue();
             }
@@ -63,7 +52,7 @@ namespace linerider
         }
         public void Reset(int fps)
         {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < _framehistory; i++)
             {
                 AddFrame(1.0 / fps);
             }

@@ -70,6 +70,31 @@ namespace linerider
             this = new FloatRect(position.X, position.Y, size.X, size.Y);
         }
 
+        public Vector2 EllipseClamp(Vector2 position)
+        {
+            var center = Vector + (Size / 2);
+            var a = Width / 2;
+            var b = Height / 2;
+            var p = position - center;
+            var d = p.X * p.X / (a * a) + p.Y * p.Y / (b * b);
+
+            if (d > 1)
+            {
+                Tools.Angle angle = Tools.Angle.FromLine(center, position);
+                double t = Math.Atan((Width / 2) * Math.Tan(angle.Radians) / (Height / 2));
+                if (angle.Degrees < 270 && angle.Degrees >= 90)
+                {
+                    t += Math.PI;
+                }
+                Vector2 ptfPoint =
+                   new Vector2((float)(center.X + (Width / 2) * Math.Cos(t)),
+                               (float)(center.Y + (Height / 2) * Math.Sin(t)));
+
+                position = ptfPoint;
+            }
+            return position;
+        }
+
         public Vector2 Clamp(Vector2 v)
         {
             if (!Contains(v.X, v.Y))

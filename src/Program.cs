@@ -27,7 +27,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-
+using System.Runtime.InteropServices;
 namespace linerider
 {
     public static class EntryPoint
@@ -48,11 +48,13 @@ namespace linerider
         #region Fields
         public static string BinariesFolder = "bin";
         public readonly static CultureInfo Culture = new CultureInfo("en-US");
-        public static readonly string WindowTitle = "Line Rider: Advanced 1.01";
+        public static string Version = "1.02";
+        public static readonly string WindowTitle = "Line Rider: Advanced " + Version;
         public static Random Random;
         private static bool _crashed;
         private static GLWindow glGame;
         private static string _currdir;
+        private static string _userdir;
 
         #endregion Fields
 
@@ -60,6 +62,29 @@ namespace linerider
         /// <summary>
         /// Gets the current directory. Ends in Path.DirectorySeperator
         /// </summary>
+        public static string UserDirectory
+        {
+            get
+            {
+                if (_userdir == null)
+                {
+                    _userdir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    //mono doesnt do well with non windows ~/Documents.
+                    if (_userdir == Environment.GetFolderPath(Environment.SpecialFolder.Personal)) 
+                    {
+                        string documents = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Documents");
+                        //so, if we can find a Documents folder, we use that.
+                        //otherwise we're just gonna use ~/LRA, unfortunately.
+                        if (Directory.Exists(documents))
+                        {
+                            _userdir = documents;
+                        }
+                    }
+                    _userdir += Path.DirectorySeparatorChar + "LRA" + Path.DirectorySeparatorChar;
+                }
+                return _userdir;
+            }
+        }
         public static string CurrentDirectory
         {
             get
@@ -69,7 +94,6 @@ namespace linerider
                 return _currdir;
             }
         }
-
         #endregion Properties
 
         #region Methods
@@ -91,7 +115,18 @@ namespace linerider
         public static void Run()
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-            Settings.Default.Save();
+            if (!Directory.Exists(UserDirectory))
+            {
+                Directory.CreateDirectory(UserDirectory);
+                System.Windows.Forms.MessageBox.Show("LRA User directory created at:\r\n" + UserDirectory);
+            }
+            Settings.Load();
+
+            if (!Directory.Exists(UserDirectory + "Songs"))
+                Directory.CreateDirectory(UserDirectory + "Songs");
+            if (!Directory.Exists(UserDirectory + "Tracks"))
+                Directory.CreateDirectory(UserDirectory + "Tracks");
+
             Random = new Random();
             GameResources.Init();
 
@@ -101,7 +136,6 @@ namespace linerider
                 {
                     glGame.RenderSize = new System.Drawing.Size(1280, 720);
                     Drawing.GameRenderer.Game = glGame;
-                    Drawing.GameRenderer.canvas = new Drawing.OpenGLCanvas();
                     var ms = new MemoryStream(GameResources.icon);
                     glGame.Icon = new System.Drawing.Icon(ms);
 
@@ -109,7 +143,7 @@ namespace linerider
                     glGame.Title = WindowTitle;
                     glGame.Run(60, 0);
                 }
-                Audio.AudioPlayback.CloseDevice();
+                Audio.AudioService.CloseDevice();
             }
         }
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -117,15 +151,86 @@ namespace linerider
             Crash((Exception)e.ExceptionObject);
             if (System.Windows.Forms.MessageBox.Show("Unhandled Exception: " + e.ExceptionObject + "\r\n\r\nWould you like to export the crash data to a log.txt?", "Error!", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
             {
-                if (!File.Exists(CurrentDirectory + "log.txt"))
-                    File.Create(CurrentDirectory + "log.txt").Dispose();
+                if (!File.Exists(UserDirectory + "log.txt"))
+                    File.Create(UserDirectory + "log.txt").Dispose();
 
                 string append = WindowTitle + "\r\n" + e.ExceptionObject.ToString() + "\r\n";
-                string begin = File.ReadAllText(CurrentDirectory + "log.txt", System.Text.Encoding.ASCII);
-                File.WriteAllText(CurrentDirectory + "log.txt", begin + append, System.Text.Encoding.ASCII);
+                string begin = File.ReadAllText(UserDirectory + "log.txt", System.Text.Encoding.ASCII);
+                File.WriteAllText(UserDirectory + "log.txt", begin + append, System.Text.Encoding.ASCII);
             }
 
             throw (Exception)e.ExceptionObject;
+        }
+        private static void OpenUrl(string url)
+        {
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                // hack because of this: https://github.com/dotnet/corefx/issues/10361
+                if (Configuration.RunningOnWindows)
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                }
+                else if (Configuration.RunningOnMacOS)
+                {
+                    Process.Start("open", url);
+                }
+                else if (Configuration.RunningOnLinux)
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+        public static void UpdateCheck()
+        {
+            if (Settings.CheckForUpdates)
+            {
+                new System.Threading.Thread(() =>
+                {
+                    try
+                    {
+                        using (WebClient wc = new WebClient())
+                        {
+                            string currentversion = wc.DownloadString("https://raw.githubusercontent.com/jealouscloud/linerider-advanced/master/src/version");
+                            if (currentversion != Version && currentversion.Length > 0)
+                            {
+                                var window = PopupWindow.Create(glGame.Canvas, glGame, "Would you like to download the latest version?", "Update Available! v" + currentversion, true, true);
+                                window.FindChildByName("Okay", true).Clicked += (o, e) =>
+                                {
+                                    try
+                                    {
+                                        OpenUrl(@"https://github.com/jealouscloud/linerider-advanced/releases/latest");
+                                    }
+                                    catch
+                                    {
+                                        var w2 = PopupWindow.Create(glGame.Canvas, glGame, "Unable to open the browser.", "Error!", true, false);
+                                        w2.FindChildByName("Okay", true).Clicked += (o2, e2) =>
+                                         {
+                                             w2.Close();
+                                         };
+                                    }
+                                    window.Close();
+                                };
+                                window.FindChildByName("Cancel", true).Clicked += (o, e) => { window.Close(); };
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    }
+                })
+                {
+                    IsBackground = true
+                }.Start();
+            }
         }
 
         #endregion Methods

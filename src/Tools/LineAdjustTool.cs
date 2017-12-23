@@ -128,7 +128,7 @@ namespace linerider
                                     _nonphysicalline.Position2);
                             if (ispaired)
                             {
-                                _snappedline.Position2 = _nonphysicalline.Position;
+                                SetSnapLinePosition(_nonphysicalline.Position);
                             }
                         }
                         if (_joint.HasFlag(Joint.Right))
@@ -143,7 +143,7 @@ namespace linerider
 
                             if (ispaired)
                             {
-                                _snappedline.Position = _nonphysicalline.Position2;
+                                SetSnapLinePosition(_nonphysicalline.Position2);
                             }
                         }
                         if (_snappedline != null)
@@ -217,7 +217,7 @@ namespace linerider
                         game.Track.AddLineToGrid(_snappedline);
                     }
                     game.Track.AddLineToGrid(_line);
-                    if ((Settings.Default.LiveAdjustment || LifeLock) && game.Track.Animating)
+                    if ((Settings.LiveAdjustment || LifeLock) && game.Track.Animating)
                     {
                         if (_snappedline != null && _snappedline is StandardLine)
                         {
@@ -338,7 +338,7 @@ namespace linerider
                 MoveLine(pos);
                 if (_started)//moveline can call stop
                 {
-                    if (!Settings.Default.LiveAdjustment)//if moveline didn't call trackupdated we should
+                    if (!Settings.LiveAdjustment)//if moveline didn't call trackupdated we should
                     {
                         game.Track.ChangeMade(_line.Position, _line.Position2);
                         Stop();
@@ -498,7 +498,7 @@ namespace linerider
                         }
                     }
                     nud.Min = 1;
-                    nud.Max = 50;
+                    nud.Max = 9999;
                     redlines.Sort(new Track.Linecomparer());
                     nud.Value = redlines.Count;
                     nud.ValueChanged += (o, e) =>
@@ -565,6 +565,19 @@ namespace linerider
                     _snappedline = Snap(_startPos, ssnap);
                     if (_snappedline is StandardLine)
                         _snappedline = null;
+                    if (_snappedline != null)
+                    {
+                        if ((_snappedline.Position - _startPos).Length < (_snappedline.Position2 - _startPos).Length)
+                        {
+                            _snapjoint = Joint.Left;
+                        }
+                        else
+                        {
+                            _snapjoint = Joint.Right;
+                        }
+                        _snaporiginalpos1 = _snappedline.Position;
+                        _snaporiginalpos2 = _snappedline.Position2;
+                    }
                     _nonphysicalline = ssnap;
                     _originalPos1 = _nonphysicalline.Position;
                     _originalPos2 = _nonphysicalline.Position2;

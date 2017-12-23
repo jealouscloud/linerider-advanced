@@ -33,51 +33,48 @@ namespace linerider.Drawing
     {
         #region Fields
 
-        internal static OpenGLCanvas canvas;
         public static GLWindow Game;
+        private static readonly VAO _roundlinevao = new VAO(false, true);
 
         #endregion Fields
 
         #region Methods
-        public static void BeginDrawingGameCoords()
-        {
-
-        }
 
         public static void DrawIteration(float opacity, Rider fullrider, int iteration, bool momentumvectors = false, bool drawcontactpoints = false)
         {
             var rider = fullrider.iterations[iteration];
-            DrawScarf(rider.ScarfLines, opacity);
+            DrawScarf(rider.GetScarf(), opacity);
             var points = rider.ModelAnchors;
 
-            DrawGraphic(Models.Leg, points[4].Position, points[9].Position, opacity);
+            DrawTexture(Models.LegTexture, Models.LegRect, points[4].Position, points[9].Position, opacity);
 
-            DrawGraphic(Models.Arm, points[5].Position, points[7].Position, opacity);
+
+            DrawTexture(Models.ArmTexture, Models.ArmRect, points[5].Position, points[7].Position, opacity);
             if (!rider.Crashed)
                 RenderRoundedLine(points[7].Position, points[3].Position, Color.Black, 0.1f);
 
             if (rider.SledBroken)
             {
-                DrawGraphic(Models.BrokenSled, points[0].Position, points[3].Position, opacity);
+                DrawTexture(Models.BrokenSledTexture, Models.BrokenSledRect, points[0].Position, points[3].Position, opacity);
             }
             else
             {
-                DrawGraphic(Models.Sled, points[0].Position, points[3].Position, opacity);
+                DrawTexture(Models.SledTexture, Models.SledRect, points[0].Position, points[3].Position, opacity);
             }
 
-            DrawGraphic(Models.Leg, points[4].Position, points[8].Position, opacity);
+            DrawTexture(Models.LegTexture, Models.LegRect, points[4].Position, points[8].Position, opacity);
             if (!rider.Crashed)
             {
-                DrawGraphic(Models.Bosh, points[4].Position, points[5].Position, opacity);
+                DrawTexture(Models.BodyTexture, Models.BodyRect, points[4].Position, points[5].Position, opacity);
             }
             else
             {
-                DrawGraphic(Models.BoshDead, points[4].Position, points[5].Position, opacity);
+                DrawTexture(Models.BodyDeadTexture, Models.BodyRect, points[4].Position, points[5].Position, opacity);
             }
             if (!rider.Crashed)
                 RenderRoundedLine(points[6].Position, points[3].Position, Color.Black, 0.1f);
 
-            DrawGraphic(Models.Arm, points[5].Position, points[6].Position, opacity);
+            DrawTexture(Models.ArmTexture, Models.ArmRect, points[5].Position, points[6].Position, opacity);
             if (momentumvectors)
             {
                 foreach (var anchor in rider.ModelAnchors)
@@ -136,37 +133,39 @@ namespace linerider.Drawing
         public static void DrawRider(float opacity, Rider rider, bool scarf = false, bool drawcontactpoints = false, bool momentumvectors = false)
         {
             if (scarf)
-                DrawScarf(rider.ScarfLines, opacity);
+            {
+                DrawScarf(rider.GetScarf(), opacity);
+            }
             var points = rider.ModelAnchors;
 
-            DrawGraphic(Models.Leg, points[4].Position, points[9].Position, opacity);
+            DrawTexture(Models.LegTexture, Models.LegRect, points[4].Position, points[9].Position, opacity);
 
-            DrawGraphic(Models.Arm, points[5].Position, points[7].Position, opacity);
+            DrawTexture(Models.ArmTexture, Models.ArmRect, points[5].Position, points[7].Position, opacity);
             if (!rider.Crashed)
                 RenderRoundedLine(points[7].Position, points[3].Position, Color.Black, 0.1f);
 
             if (rider.SledBroken)
             {
-                DrawGraphic(Models.BrokenSled, points[0].Position, points[3].Position, opacity);
+                DrawTexture(Models.BrokenSledTexture, Models.SledRect, points[0].Position, points[3].Position, opacity);
             }
             else
             {
-                DrawGraphic(Models.Sled, points[0].Position, points[3].Position, opacity);
+                DrawTexture(Models.SledTexture, Models.SledRect, points[0].Position, points[3].Position, opacity);
             }
 
-            DrawGraphic(Models.Leg, points[4].Position, points[8].Position, opacity);
+            DrawTexture(Models.LegTexture, Models.LegRect, points[4].Position, points[8].Position, opacity);
             if (!rider.Crashed)
             {
-                DrawGraphic(Models.Bosh, points[4].Position, points[5].Position, opacity);
+                DrawTexture(Models.BodyTexture, Models.BodyRect, points[4].Position, points[5].Position, opacity);
             }
             else
             {
-                DrawGraphic(Models.BoshDead, points[4].Position, points[5].Position, opacity);
+                DrawTexture(Models.BodyDeadTexture, Models.BodyRect, points[4].Position, points[5].Position, opacity);
             }
             if (!rider.Crashed)
                 RenderRoundedLine(points[6].Position, points[3].Position, Color.Black, 0.1f);
 
-            DrawGraphic(Models.Arm, points[5].Position, points[6].Position, opacity);
+            DrawTexture(Models.ArmTexture, Models.ArmRect, points[5].Position, points[6].Position, opacity);
             List<Vertex> vertices = new List<Vertex>(300);
             if (momentumvectors)
             {
@@ -226,8 +225,7 @@ namespace linerider.Drawing
                 vao.Draw(PrimitiveType.Triangles);
             }
         }
-
-        public static void DrawScarf(DynamicLine[] lines, float opacity)
+        public static void DrawScarf(Line[] lines, float opacity)
         {
             GLEnableCap blend = null;
             if (opacity < 1)
@@ -235,58 +233,47 @@ namespace linerider.Drawing
                 blend = new GLEnableCap(EnableCap.Blend);
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             }
-
             GameDrawingMatrix.Enter();
             VAO scarf = new VAO(false, true);//VAO does not need disposing, it does not allocate a buffer
-            bool t = false;
-            for (int i = 0; i < lines.Length; i++)
+            List<Vector2> altvectors = new List<Vector2>();
+            Color c = Color.FromArgb((byte)(255 * opacity), 209, 1, 1);
+            var alt = Color.FromArgb((byte)(255 * opacity), 255, 100, 100);
+            for (int i = 0; i < lines.Length; i += 2)
             {
-                Color c = Color.FromArgb((byte)(255 * opacity), 209, 1, 1);
-                var alt = Color.FromArgb((byte)(255 * opacity), 255, 100, 100);
-                var diff = lines[i].Position2 - lines[i].Position;
-                var dangle = MathHelper.RadiansToDegrees(Math.Atan2(diff.Y, diff.X)) + 90;
-                Vector2d q1;
-                Vector2d q2;
-                Vector2d q3;
-                Vector2d q4;
-                float size = 2;
-                if (i == 0)
+                var thickline = StaticRenderer.GenerateThickLine((Vector2)lines[i].Position, (Vector2)lines[i].Position2, 2);
+
+                Vertex tl = (new Vertex(thickline[0], c));
+                Vertex tr = (new Vertex(thickline[1], c));
+                Vertex br = (new Vertex(thickline[2], c));
+                Vertex bl = (new Vertex(thickline[3], c));
+
+                scarf.AddVertex(tl);
+                scarf.AddVertex(bl);
+                scarf.AddVertex(tr);
+
+                scarf.AddVertex(bl);
+                scarf.AddVertex(tr);
+                scarf.AddVertex(br);
+                if (i != 0)
                 {
-                    var diff2 = lines[i + 1].Position2 - lines[i + 1].Position;
-                    var dangle2 = MathHelper.RadiansToDegrees(Math.Atan2(diff2.Y, diff2.X)) + 90;
-                    Turtle turtle = new Turtle(lines[i].Position);
-                    turtle.Move(dangle2, -(size / 2));
-                    q1 = turtle.Point;
-                    turtle.Move(0, size);
-                    q2 = turtle.Point;
-                    turtle.Point = lines[i].Position2;
-                    turtle.Move(dangle, size / 2);
-                    q3 = turtle.Point;
-                    turtle.Move(0, -size);
-                    q4 = turtle.Point;
+                    altvectors.Add(tl.Position);
+                    altvectors.Add(bl.Position);
                 }
-                else
-                {
-                    var diff2 = lines[i - 1].Position2 - lines[i - 1].Position;
-                    var dangle2 = MathHelper.RadiansToDegrees(Math.Atan2(diff2.Y, diff2.X)) + 90;
-                    Turtle turtle = new Turtle(lines[i].Position);
-                    turtle.Move(dangle2, -(size / 2));
-                    q1 = turtle.Point;
-                    turtle.Move(0, size);
-                    q2 = turtle.Point;
-                    turtle.Point = lines[i].Position2;
-                    turtle.Move(dangle, size / 2);
-                    q3 = turtle.Point;
-                    turtle.Move(0, -size);
-                    q4 = turtle.Point;
-                }
-                scarf.AddVertex(new Vertex((Vector2)q1, t ? c : alt));
-                scarf.AddVertex(new Vertex((Vector2)q2, t ? c : alt));
-                scarf.AddVertex(new Vertex((Vector2)q3, t ? c : alt));
-                scarf.AddVertex(new Vertex((Vector2)q4, t ? c : alt));
-                t = !t;
+                altvectors.Add(br.Position);
+                altvectors.Add(tr.Position); ;
             }
-            scarf.Draw(PrimitiveType.Quads);
+            for (int i = 0; i < altvectors.Count - 4; i+=4)
+            {
+                scarf.AddVertex(new Vertex(altvectors[i], alt));
+                scarf.AddVertex(new Vertex(altvectors[i+1], alt));
+                scarf.AddVertex(new Vertex(altvectors[i+2], alt));
+
+
+                scarf.AddVertex(new Vertex(altvectors[i], alt));
+                scarf.AddVertex(new Vertex(altvectors[i+2], alt));
+                scarf.AddVertex(new Vertex(altvectors[i+3], alt));
+            }
+            scarf.Draw(PrimitiveType.Triangles);
             GameDrawingMatrix.Exit();
 
             if (blend != null)
@@ -362,7 +349,6 @@ namespace linerider.Drawing
                 }
             }
         }
-        private static readonly VAO _roundlinevao = new VAO(false, true);
 
         public static void RenderRoundedLine(Vector2d position, Vector2d position2, Color color, float thickness, bool knobs = false, bool redknobs = false)
         {
@@ -378,7 +364,7 @@ namespace linerider.Drawing
                         foreach (var v in vertices)
                             _roundlinevao.AddVertex(v);
                         _roundlinevao.SetOpacity(color.A / 255f);
-                        GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+                        GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.OneMinusSrcAlpha);
                         _roundlinevao.Draw(PrimitiveType.Triangles);
                         _roundlinevao.Texture = 0;
                     }
@@ -407,8 +393,54 @@ namespace linerider.Drawing
             }
             return vertices;
         }
+        public static void DbgDrawGrid()
+        {
+            int sqsize = 14;
+            GL.PushMatrix();
+            GL.Scale(Game.Track.Zoom, Game.Track.Zoom, 0);
+            GL.Translate(new Vector3d(Game.ScreenTranslation));
+            GL.Begin(PrimitiveType.Quads);
+            for (var x = -sqsize; x < (Game.RenderSize.Width / Game.Track.Zoom); x += sqsize)
+            {
+                for (var y = -sqsize; y < (Game.RenderSize.Height / Game.Track.Zoom); y += sqsize)
+                {
+                    var yv = new Vector2d(x + (Game.ScreenPosition.X - (Game.ScreenPosition.X % sqsize)), y + (Game.ScreenPosition.Y - (Game.ScreenPosition.Y % sqsize)));
+                    if (Game.Track.GridCheck(yv.X, yv.Y))
+                    {
+                        GL.Color3(Color.Yellow);
+                        GL.Vertex2(yv);
+                        yv.Y += sqsize;
+                        GL.Vertex2(yv);
+                        yv.X += sqsize;
+                        GL.Vertex2(yv);
+                        yv.Y -= sqsize;
+                        GL.Vertex2(yv);
+                    }
+                }
+            }
 
-        private static void DrawGraphic(VBO graphic, Vector2d p1, Vector2d rotationAnchor, float opacity)
+            GL.End();
+            GL.Begin(PrimitiveType.Lines);
+            GL.Color3(Color.Red);
+            for (var x = -sqsize; x < (Game.RenderSize.Width / Game.Track.Zoom); x += sqsize)
+            {
+                var yv = new Vector2d(x + (Game.ScreenPosition.X - (Game.ScreenPosition.X % sqsize)), Game.ScreenPosition.Y);
+                GL.Vertex2(yv);
+                yv.Y += Game.RenderSize.Height / Game.Track.Zoom;
+                GL.Vertex2(yv);
+            }
+            for (var y = -sqsize; y < (Game.RenderSize.Height / Game.Track.Zoom); y += sqsize)
+            {
+                var yv = new Vector2d(Game.ScreenPosition.X, y + (Game.ScreenPosition.Y - (Game.ScreenPosition.Y % sqsize)));
+                GL.Vertex2(yv);
+                yv.X += Game.RenderSize.Width / Game.Track.Zoom;
+                GL.Vertex2(yv);
+            }
+            GL.End();
+            GL.PopMatrix();
+        }
+
+        private static void DrawTexture(int tex, DoubleRect rect, Vector2d p1, Vector2d rotationAnchor, float opacity)
         {
             var angle = Angle.FromLine(p1, rotationAnchor);
             var offset = -(Game.ScreenPosition - p1);
@@ -417,13 +449,10 @@ namespace linerider.Drawing
             GL.Translate(offset.X, offset.Y, 0);
             GL.Rotate(angle.Degrees, 0, 0, 1);
             GL.Scale(0.5, 0.5, 0);
-            graphic.SetOpacity(opacity);
-
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            graphic.Draw(PrimitiveType.Triangles);
+            StaticRenderer.DrawTexture(tex, rect, opacity);
             GL.PopMatrix();
         }
-
         #endregion Methods
     }
 }

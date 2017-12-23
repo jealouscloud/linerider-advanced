@@ -118,10 +118,8 @@ namespace linerider.Drawing
 			rect.X -= radius;
 			rect.Y -= radius;
 
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapNearest);
 			GL.BindTexture(TextureTarget.Texture2D, CircleTex);
-			GL.Color4(c);
+            GL.Color4(c);
 			float x = rect.Location.X;
 			float y = rect.Location.Y;
 			float xx = x + rect.Size.Width;
@@ -137,7 +135,6 @@ namespace linerider.Drawing
 
 		public static void DrawConnectedLines(Vector2[] lines, Color color, float thickness)
 		{
-			//  GL.AlphaFunc(AlphaFunction.Never, 0);
 			GL.Color4(color);
 			GL.Begin(PrimitiveType.Triangles);
 			for (int i = 0; i < lines.Length - 1; i++)
@@ -153,25 +150,25 @@ namespace linerider.Drawing
 			}
 			GL.End();
 		}
-
-		public static void DrawTexture(int tex, RectangleF rect, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
-		{
-			//   GL.Enable(EnableCap.Texture2D);
-			GL.BindTexture(TextureTarget.Texture2D, tex);
-			GL.Color3(1.0, 1.0, 1.0);
-			float x = rect.Location.X;
-			float y = rect.Location.Y;
-			float xx = x + rect.Size.Width;
-			float yy = y + rect.Size.Height;
-			GL.Begin(PrimitiveType.Quads);
-			GL.TexCoord2(u1, v1); GL.Vertex2(x, y);
-			GL.TexCoord2(u2, v1); GL.Vertex2(xx, y);
-			GL.TexCoord2(u2, v2); GL.Vertex2(xx, yy);
-			GL.TexCoord2(u1, v2); GL.Vertex2(x, yy);
-			GL.End();
-			GL.BindTexture(TextureTarget.Texture2D, 0);
-		}
-
+        public static void DrawTexture(int tex, DoubleRect rect,float alpha=1, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
+        {
+            VAO buf = new VAO(false, false, 6);
+            buf.Texture = tex;
+            var tr = new Vector2d(rect.Right, rect.Top);
+            var tl = new Vector2d(rect.Left, rect.Top);
+            var bl = new Vector2d(rect.Left, rect.Bottom);
+            var br = new Vector2d(rect.Right, rect.Bottom);
+            var c = Color.FromArgb((int)Math.Min(255,(alpha*255)), 255, 255, 255);
+            buf.AddVertex(new Vertex((Vector2)tl, c,u1,v1));
+            buf.AddVertex(new Vertex((Vector2)tr, c,u2,v1));
+            buf.AddVertex(new Vertex((Vector2)br, c,u2,v2));
+            buf.AddVertex(new Vertex((Vector2)bl, c, u1, v2));
+            buf.Draw(PrimitiveType.Quads);
+        }
+        public static void DrawTexture(int tex, RectangleF rect, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
+        {
+            DrawTexture(tex, new DoubleRect(rect.Left, rect.Top, rect.Width, rect.Height),1, u1, v1, u2, v2);
+        }
 		public static List<Vertex> FastCircle(Vector2d p, float radius, Color co)
 		{
 			return FastCircle((Vector2)p, radius, co);
@@ -192,7 +189,7 @@ namespace linerider.Drawing
 
 		public static Vector2[] GenerateCircle(float cx, float cy, float r, int num_segments)
 		{
-			Vector2[] ret = new Vector2[num_segments];
+			Vector2[] ret = new Vector2[num_segments + 1];
 			var theta = 2 * 3.1415926 / num_segments;
 			var tangetialFactor = Math.Tan(theta); //calculate the tangential factor
 			var radialFactor = Math.Cos(theta); //calculate the radial factor
@@ -213,6 +210,7 @@ namespace linerider.Drawing
 				x *= radialFactor;
 				y *= radialFactor;
 			}
+            ret[ret.Length - 1] = ret[0];
 			return ret;
 		}
 		public static int LoadTexture(Bitmap bmp)
@@ -238,30 +236,31 @@ namespace linerider.Drawing
 			GL.GenTextures(1, out glTex);
 
 			GL.BindTexture(TextureTarget.Texture2D, glTex);
+            
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.ClampToBorder);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)All.ClampToBorder);
+            var data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, lock_format);
 
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            switch (lock_format)
+            {
+                case System.Drawing.Imaging.PixelFormat.Format32bppArgb:
+                    GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bmp.Width, bmp.Height, 0, global::OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+                    break;
 
-			var data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, lock_format);
+                default:
+                    // invalid
+                    break;
+            }
 
-			switch (lock_format)
-			{
-				case System.Drawing.Imaging.PixelFormat.Format32bppArgb:
-					GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bmp.Width, bmp.Height, 0, global::OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-					break;
-
-				default:
-					// invalid
-					break;
-			}
-
-			bmp.UnlockBits(data);
-			return glTex;
+            bmp.UnlockBits(data);
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+            return glTex;
 		}
 		public static void InitializeCircles()
 		{
 			CircleTex = LoadTexture(GameResources.circletex);
-			GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 			GL.BindTexture(TextureTarget.Texture2D, 0);
 		}
 

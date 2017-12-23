@@ -90,7 +90,7 @@ namespace linerider
         }
         public static void SaveTrackSol(Track trk)
         {
-            new SOL(Program.CurrentDirectory + "Tracks" + Path.DirectorySeparatorChar + "savedLines.sol", trk);
+            new SOL(Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar + "savedLines.sol", trk);
         }
         public static Dictionary<string, bool> TrackFeatures(Track trk)
         {
@@ -133,7 +133,7 @@ namespace linerider
         }
         public static void SaveTrackTrk(Track trk, string savename, string songdata = null)
         {
-            var dir = Program.CurrentDirectory + "Tracks" + Path.DirectorySeparatorChar + trk.Name;
+            var dir = Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar + trk.Name;
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
             using (var file = File.Create(dir + Path.DirectorySeparatorChar + savename + ".trk"))
@@ -289,21 +289,13 @@ namespace linerider
             }
         }
 
-        public static Track LoadTrackTRK(string track, string savename)
+        public static Track LoadTrackTRK(string trackfile, string trackname)
         {
             var ret = new Track();
-            ret.Name = track;
+            ret.Name = trackname;
             var addedlines = new Dictionary<int, StandardLine>();
             var extensions = new List<Extensionentry>();
-            var location = Program.CurrentDirectory + "Tracks" + Path.DirectorySeparatorChar + track;
-            if (savename != null)
-            {
-                location += Path.DirectorySeparatorChar + savename + ".trk";
-            }
-            else
-            {
-                location += ".trk";
-            }
+            var location = trackfile;
             using (var file =
                     File.Open(location, FileMode.Open))
             {
@@ -365,12 +357,12 @@ namespace linerider
                         try
                         {
                             var strings = song.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries); 
-                            var fn = Program.CurrentDirectory + "Songs" +
+                            var fn = Program.UserDirectory + "Songs" +
 									 Path.DirectorySeparatorChar +
 									 strings[0];
 							if (File.Exists(fn))
 							{
-								if (AudioPlayback.LoadFile(ref fn))
+								if (AudioService.LoadFile(ref fn))
 								{
 									game.CurrentSong = new Song(Path.GetFileName(fn),float.Parse(strings[1]));
 									game.EnableSong = true;

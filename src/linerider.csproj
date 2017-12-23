@@ -28,13 +28,15 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>portable</DebugType>
+    <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\build</OutputPath>
     <DefineConstants>DEBUG;</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>6</LangVersion>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>none</ErrorReport>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -47,28 +49,32 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Audio\AudioStreamer.cs" />
+    <Compile Include="Audio\AudioSource.cs" />
+    <Compile Include="Drawing\Shader.cs" />
     <Compile Include="ErrorLog.cs" />
     <Compile Include="GameService.cs" />
-    <Compile Include="Models.cs" />
-    <Compile Include="FrameSleep.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Lines\Scarf.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="Settings.Designer.cs" />
+    <Compile Include="Game\CameraBoundingBox.cs" />
+    <Compile Include="Game\CameraLocation.cs" />
+    <Compile Include="Models.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Track.cs" />
     <Compile Include="UndoManager.cs" />
     <Compile Include="Audio\AudioDevice.cs" />
-    <Compile Include="Audio\AudioPlayback.cs" />
+    <Compile Include="Audio\AudioService.cs" />
     <Compile Include="Audio\Song.cs" />
-    <Compile Include="Audio\SoundStream.cs" />
     <Compile Include="Controls\GameCanvas.cs" />
     <Compile Include="Controls\GLTrack.cs" />
     <Compile Include="Controls\GLWindow.cs" />
     <Compile Include="Drawing\GameDrawingMatrix.cs" />
     <Compile Include="Drawing\GameRenderer.cs" />
     <Compile Include="Drawing\GLEnableCap.cs" />
-    <Compile Include="Drawing\nsvg.cs" />
-    <Compile Include="Drawing\OpenGLPlatform.cs" />
     <Compile Include="Drawing\SafeFrameBuffer.cs" />
     <Compile Include="Drawing\SceneryRenderer.cs" />
     <Compile Include="Drawing\SceneryVBO.cs" />
@@ -100,34 +106,6 @@
     <Compile Include="Lines\ScarfLine.cs" />
     <Compile Include="Lines\SceneryLine.cs" />
     <Compile Include="Lines\StandardLine.cs" />
-    <Compile Include="NGraphics\Brush.cs" />
-    <Compile Include="NGraphics\Color.cs" />
-    <Compile Include="NGraphics\DrawImageCache.cs" />
-    <Compile Include="NGraphics\Drawing.cs" />
-    <Compile Include="NGraphics\Element.cs" />
-    <Compile Include="NGraphics\Ellipse.cs" />
-    <Compile Include="NGraphics\FilterCanvas.cs" />
-    <Compile Include="NGraphics\Font.cs" />
-    <Compile Include="NGraphics\ForeignObject.cs" />
-    <Compile Include="NGraphics\Graphic.cs" />
-    <Compile Include="NGraphics\GraphicCanvas.cs" />
-    <Compile Include="NGraphics\Group.cs" />
-    <Compile Include="NGraphics\ICanvas.cs" />
-    <Compile Include="NGraphics\IDrawable.cs" />
-    <Compile Include="NGraphics\IImage.cs" />
-    <Compile Include="NGraphics\IPlatform.cs" />
-    <Compile Include="NGraphics\Line.cs" />
-    <Compile Include="NGraphics\Log.cs" />
-    <Compile Include="NGraphics\NullPlatform.cs" />
-    <Compile Include="NGraphics\Path.cs" />
-    <Compile Include="NGraphics\Pen.cs" />
-    <Compile Include="NGraphics\Point.cs" />
-    <Compile Include="NGraphics\Rect.cs" />
-    <Compile Include="NGraphics\Rectangle.cs" />
-    <Compile Include="NGraphics\Size.cs" />
-    <Compile Include="NGraphics\SvgReader.cs" />
-    <Compile Include="NGraphics\Text.cs" />
-    <Compile Include="NGraphics\Transform.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tools\Angle.cs" />
     <Compile Include="Tools\ColorControls.cs" />
@@ -147,10 +125,12 @@
     <Compile Include="TrackFiles\TrackLoader.cs" />
     <Compile Include="TrackFiles\TrackRecorder.cs" />
     <Compile Include="Windows\ExportVideoWindow.cs" />
+    <Compile Include="Windows\LoadWindow.cs" />
     <Compile Include="Windows\NumberProperty.cs" />
     <Compile Include="Windows\PopupWindow.cs" />
     <Compile Include="Windows\PreferencesWindow.cs" />
     <Compile Include="Windows\SaveWindow.cs" />
+    <Compile Include="Windows\SongWindow.cs" />
     <Compile Include="Windows\Window.cs" />
     <Compile Include="Drawing\MsaaFbo.cs" />
     <Compile Include="GameResources.cs" />
@@ -165,20 +145,13 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Xml" />
-    <Reference Include="AGG">
-      <HintPath>..\build\AGG.dll</HintPath>
-    </Reference>
     <Reference Include="Gwen">
       <HintPath>..\build\Gwen.dll</HintPath>
     </Reference>
     <Reference Include="Gwen.Renderer.OpenTK">
       <HintPath>..\build\Gwen.Renderer.OpenTK.dll</HintPath>
-    </Reference>
-    <Reference Include="LibTessDotNet">
-      <HintPath>..\build\LibTessDotNet.dll</HintPath>
     </Reference>
     <Reference Include="NVorbis">
       <HintPath>..\build\NVorbis.dll</HintPath>
@@ -191,7 +164,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\arm.svg" />
     <EmbeddedResource Include="Resources\beep.wav" />
     <EmbeddedResource Include="Resources\bosh.svg" />
     <EmbeddedResource Include="Resources\boshdead.svg" />
@@ -208,7 +180,6 @@
     <EmbeddedResource Include="Resources\flag_icon.png" />
     <EmbeddedResource Include="Resources\gwell_tool.png" />
     <EmbeddedResource Include="Resources\icon.ico" />
-    <EmbeddedResource Include="Resources\leg.svg" />
     <EmbeddedResource Include="Resources\line_adjust_icon.png" />
     <EmbeddedResource Include="Resources\line_cursor.png" />
     <EmbeddedResource Include="Resources\line_icon.png" />
@@ -219,7 +190,6 @@
     <EmbeddedResource Include="Resources\pencil_icon.png" />
     <EmbeddedResource Include="Resources\play_icon.png" />
     <EmbeddedResource Include="Resources\rewind.png" />
-    <EmbeddedResource Include="Resources\sled.svg" />
     <EmbeddedResource Include="Resources\SourceSansPro_img.png" />
     <EmbeddedResource Include="Resources\SourceSansProq.qfont" />
     <EmbeddedResource Include="Resources\SourceSansPro-Regular.otf" />
@@ -236,6 +206,27 @@
     <EmbeddedResource Include="Resources\White\play_icon_white.png" />
     <EmbeddedResource Include="Resources\White\rewind_white.png" />
     <EmbeddedResource Include="Resources\White\stop_icon_white.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\sled.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\bosh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\arm.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\boshdead.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\leg.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\brokensled.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.manifest" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

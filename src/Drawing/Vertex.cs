@@ -46,11 +46,11 @@ namespace linerider.Drawing
             v = _v;
         }
 
-        public Vertex(Vector2 pos, Color color)
+        public Vertex(Vector2 pos, Color color, float _u = 0.5f, float _v = 0.5f)
         {
             Position = pos;
-            u = 0.5f;
-            v = 0.5f;
+            u = _u;
+            v = _v;
             r = color.R;
             g = color.G;
             b = color.B;

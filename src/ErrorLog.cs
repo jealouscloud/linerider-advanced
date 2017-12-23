@@ -28,7 +28,7 @@ namespace linerider
         {
             try
             {
-                var fs = File.AppendText(Program.CurrentDirectory + "errors.txt");
+                var fs = File.AppendText(Program.UserDirectory + "errors.txt");
                 fs.WriteLine(log);
                 fs.Dispose();
             }

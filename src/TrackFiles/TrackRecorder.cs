@@ -40,12 +40,12 @@ namespace linerider.TrackFiles
 {
     internal static class TrackRecorder
     {
+        private static byte[] _screenshotbuffer;
         public static byte[] GrabScreenshot(GLWindow game, int frontbuffer)
         {
             if (GraphicsContext.CurrentContext == null)
                 throw new GraphicsContextMissingException();
             var backbuffer = game.MSAABuffer.Framebuffer;
-            byte[] screenshot = new byte[game.RenderSize.Width * game.RenderSize.Height * 3];// 3 bytes per pixel
             SafeFrameBuffer.BindFramebuffer(FramebufferTarget.ReadFramebuffer, backbuffer);
             SafeFrameBuffer.BindFramebuffer(FramebufferTarget.DrawFramebuffer, frontbuffer);
             SafeFrameBuffer.BlitFramebuffer(0, 0, game.RenderSize.Width, game.RenderSize.Height,
@@ -54,9 +54,9 @@ namespace linerider.TrackFiles
             SafeFrameBuffer.BindFramebuffer(FramebufferTarget.ReadFramebuffer, frontbuffer);
 
             GL.ReadPixels(0, 0, game.RenderSize.Width, game.RenderSize.Height,
-                OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, screenshot);
+                OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, _screenshotbuffer);
             SafeFrameBuffer.BindFramebuffer(FramebufferTarget.Framebuffer, backbuffer);
-            return screenshot;
+            return _screenshotbuffer;
         }
         public static void SaveScreenshot(int width, int height, byte[] arr, string name)
         {
@@ -73,7 +73,7 @@ namespace linerider.TrackFiles
 
         public static bool Recording;
         public static bool Recording1080p;
-        public static void RecordTrack(GLWindow game, bool is1080P)
+        public static void RecordTrack(GLWindow game, bool is1080P, bool smooth)
         {
             var flag = game.Track.GetFlag();
             if (flag == null) return;
@@ -121,10 +121,11 @@ namespace linerider.TrackFiles
             SafeFrameBuffer.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
             if (!invalid)
             {
+                _screenshotbuffer = new byte[game.RenderSize.Width * game.RenderSize.Height * 3];// 3 bytes per pixel
                 string errormessage = "An unknown error occured during recording.";
                 game.Title = Program.WindowTitle + " [Recording | Hold ESC to cancel]";
                 game.ProcessEvents();
-                var filename = Program.CurrentDirectory + game.Track.Name + ".mp4";
+                var filename = Program.UserDirectory + game.Track.Name + ".mp4";
                 var flagbackup = flag;
                 var hardexit = false;
                 game.Track.Flag();
@@ -132,42 +133,47 @@ namespace linerider.TrackFiles
                 game.SettingRecordingMode = true;
                 game.Track.Start(true, true, false, false);
                 game.Render();
-                var dir = Program.CurrentDirectory + game.Track.Name + "_rec";
+                var dir = Program.UserDirectory + game.Track.Name + "_rec";
                 if (!Directory.Exists(dir))
                 {
                     Directory.CreateDirectory(dir);
                 }
                 var firstframe = GrabScreenshot(game, frontbuffer);
                 SaveScreenshot(game.RenderSize.Width, game.RenderSize.Height, firstframe, dir + Path.DirectorySeparatorChar + "tmp" + 0 + ".png");
-                int[] savethreads = { 0 };
-                for (var i = 0; i < frame; i++)
+                int framecount = smooth ? (frame * 60) / 40 : frame;
+                
+                double frametime = 0;
+                for (var i = 0; i < framecount; i++)
                 {
                     if (hardexit)
                         break;
-                    game.Track.Update(1);
-                    game.Render();
-                    var screenshot = GrabScreenshot(game, frontbuffer);
-                    var objtopass = new Tuple<byte[], int>(screenshot, i + 1);
-                    savethreads[0] += 1;
-                    var save = new Task(t =>
+                    if (smooth)
                     {
-                        var passed = (Tuple<byte[], int>)t;
-                        try
+                        var oldspot = frametime;
+                        frametime += 40f / 60f;
+                        if ((int)frametime != (int)oldspot)
                         {
-                            SaveScreenshot(game.RenderSize.Width, game.RenderSize.Height, passed.Item1, dir + Path.DirectorySeparatorChar + "tmp" + passed.Item2 + ".png");
+                            game.Track.Update(1);
+                        }
+                        var blend = frametime - Math.Truncate(frametime);
+                        game.Render((float)blend);
+                    }
+                    else
+                    {
+                        game.Track.Update(1);
+                        game.Render();
+                    }
+                        try
+                    {
+                        var screenshot = GrabScreenshot(game, frontbuffer);
+                        SaveScreenshot(game.RenderSize.Width, game.RenderSize.Height, screenshot, dir + Path.DirectorySeparatorChar + "tmp" + (i + 1) + ".png");
                         }
                         catch
                         {
                             hardexit = true;
                             errormessage = "An error occured when saving the frame.";
                         }
-                        finally
-                        {
-                            Interlocked.Decrement(ref savethreads[0]);
-                        }
-                    }, objtopass);
-
-                    save.Start();
+                    
                     if (Keyboard.GetState()[Key.Escape])
                     {
                         hardexit = true;
@@ -175,7 +181,7 @@ namespace linerider.TrackFiles
                     }
                     if (i % 40 == 0)
                     {
-                        game.Title = string.Format("{0} [Recording {1:P}% | Hold ESC to cancel]", Program.WindowTitle, i / (double)frame);
+                        game.Title = string.Format("{0} [Recording {1:P}% | Hold ESC to cancel]", Program.WindowTitle, i / (double)framecount);
                         game.ProcessEvents();
                     }
                 }
@@ -183,7 +189,7 @@ namespace linerider.TrackFiles
                 if (!hardexit)
                 {
                     var parameters = new FFMPEGParameters();
-                    parameters.AddOption("framerate", "40");
+                    parameters.AddOption("framerate", smooth ? "60" : "40");
                     parameters.AddOption("i", "\"" + dir + Path.DirectorySeparatorChar + "tmp%d.png" + "\"");
                     parameters.AddOption("vf", "vflip");//we save images upside down expecting ffmpeg to flip more efficiently.
                     parameters.AddOption("c:v", "libx264");
@@ -193,10 +199,6 @@ namespace linerider.TrackFiles
                     //    parameters.AddOption("scale",is1080p?"1920:1080":"1280:720");
                     parameters.OutputFilePath = filename;
                     var failed = false;
-                    while (savethreads[0] != 0)
-                    {
-                        Thread.Sleep(1);
-                    }
                     if (File.Exists(filename))
                     {
                         try
@@ -288,28 +290,7 @@ namespace linerider.TrackFiles
                 }
                 if (File.Exists(filename))
                 {
-                    try
-                    {
-                        AudioPlayback.Init();
-                        MemoryStream ms = new MemoryStream(GameResources.beep);
-
-                        SoundStream str = new SoundStream(ms);
-                        str.Play(0, 1);
-                        int count = 0;
-                        while (str.Playing)
-                        {
-                            Thread.Sleep(1);
-                            count += 1;
-                            if (count >= 3000)//in case something weird happens
-                                break;
-                        }
-                        str.Dispose();
-                        ms.Dispose();
-                    }
-                    catch
-                    {
-                        //ignored
-                    }
+                    AudioService.Beep();
                 }
                 else
                 {
@@ -324,6 +305,7 @@ namespace linerider.TrackFiles
 
             game.Canvas.SetSize(game.RenderSize.Width, game.RenderSize.Height);
             game.Canvas.FindChildByName("buttons").Position(Pos.CenterH);
+            _screenshotbuffer = null;
         }
     }
 }

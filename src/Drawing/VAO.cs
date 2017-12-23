@@ -45,12 +45,12 @@ namespace linerider.Drawing
 
         #region Constructors
 
-        public VAO(bool indexed, bool useopacity)
+        public VAO(bool indexed, bool useopacity, int capacity = 500)
         {
             Opacity = useopacity;
             Indexed = indexed;
-            vertices = new Vertex[500];
-            indices = new int[500];
+            vertices = new Vertex[capacity];
+            indices = new int[capacity];
         }
 
         #endregion Constructors
@@ -223,8 +223,6 @@ namespace linerider.Drawing
                     if (Texture != 0)
                     {
                         GL.BindTexture(TextureTarget.Texture2D, Texture);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
                     }
                     if (vCount != 0 && (!Indexed || iCount != 0))
                     {

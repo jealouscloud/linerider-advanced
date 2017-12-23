@@ -23,7 +23,7 @@ using OpenTK;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-
+using linerider.Lines;
 namespace linerider
 {
     public class Rider
@@ -34,8 +34,7 @@ namespace linerider
         public List<Rider> iterations = null;
         public DynamicObject[] ModelAnchors;
         public DynamicLine[] ModelLines;
-        public DynamicObject[] ScarfAnchors;
-        public DynamicLine[] ScarfLines;
+        public Scarf scarf;
         public short[] Endpoints;
         public bool SledBroken;
 
@@ -48,6 +47,37 @@ namespace linerider
             Reset(new Vector2d(0, 0), null);
         }
 
+        protected Rider(Rider r)
+        {
+            scarf = r.scarf.Clone();
+            Crashed = r.Crashed;
+            SledBroken = r.SledBroken;
+            ModelAnchors = new DynamicObject[r.ModelAnchors.Length];
+            Endpoints = new short[ModelAnchors.Length];
+            for (int i = 0; i < ModelAnchors.Length; i++)
+            {
+                ModelAnchors[i] = r.ModelAnchors[i].Clone();
+            }
+            CreateLines();
+
+            for (int i = 0; i < ModelLines.Length; i++)
+            {
+                ModelLines[i].restLength = r.ModelLines[i].restLength;
+                if (ModelLines[i] is BindLine)
+                {
+                    (ModelLines[i] as BindLine).UpdateEndurance();
+                }
+            }
+            if (iterations == null)
+                iterations = new List<Rider>();
+            if (r.iterations != null)
+            {
+                for (int i = 0; i < r.iterations.Count; i++)
+                {
+                    iterations.Add(r.iterations[i].Clone());
+                }
+            }
+        }
         #endregion Constructors
 
         #region Methods
@@ -57,14 +87,54 @@ namespace linerider
             Rider ret = new Rider(this);
             return ret;
         }
+        public Vector2d CalculateMomentum()
+        {
+            var mo = Vector2d.Zero;
+            for (int i = 0; i < ModelAnchors.Length; i++)
+            {
+                mo += ModelAnchors[i].Momentum;
+            }
+            mo /= ModelAnchors.Length;
+            return mo;
+        }
+        public Rider Lerp(Rider rider2, float percent)
+        {
+            Rider ret = new Rider(this);
+            for (int i = 0; i < ret.ModelAnchors.Length; i++)
+            {
+                ret.ModelAnchors[i].Position = Vector2d.Lerp(ret.ModelAnchors[i].Position, rider2.ModelAnchors[i].Position, percent);
+                ret.ModelAnchors[i].Prev = Vector2d.Lerp(ret.ModelAnchors[i].Prev, rider2.ModelAnchors[i].Prev, percent);
+            }
+            for (int i = 0; i < ret.scarf._anchors.Length; i++)
+            {
+                ret.scarf._anchors[i].Position = Vector2d.Lerp(ret.scarf._anchors[i].Position, rider2.scarf._anchors[i].Position, percent);
+                ret.scarf._anchors[i].Prev = Vector2d.Lerp(ret.scarf._anchors[i].Prev, rider2.scarf._anchors[i].Prev, percent);
+            }
+            return ret;
+        }
+
+        public Vector2d CalculateCenter()
+        {
+            if (Crashed)
+                return ModelAnchors[4].Position;
+            var anchorsaverage = new Vector2d();
+            foreach (var anchor in ModelAnchors)
+            {
+                anchorsaverage += anchor.Position;
+            }
+            return anchorsaverage / ModelAnchors.Length;
+        }
+
         public System.Drawing.Point GetAnchorOffset(int anchorID)
         {
             return new System.Drawing.Point(Endpoints[anchorID] >> 8, Endpoints[anchorID] & 0xFF);
         }
+
         public void SetAnchorOffset(int anchorID, System.Drawing.Point p)
         {
             Endpoints[anchorID] = (short)(((byte)p.X << 8) | (byte)p.Y);
         }
+
         public void Reset(Vector2d offset, Track trk)
         {
             Crashed = false;
@@ -83,26 +153,10 @@ namespace linerider
                 new DynamicObject(new Vector2d(20, 10), 0)
             };
             Endpoints = new short[ModelAnchors.Length];
-            var scarf1 = new List<ScarfObject>(new[]
-            {
-                new ScarfObject(new Vector2d(7, -10.0), 0.9),
-                new ScarfObject(new Vector2d(3, -10.0), 0.9),
-                new ScarfObject(new Vector2d(0, -10), 0.9),
-                new ScarfObject(new Vector2d(-4.0, -10), 0.9),
-                new ScarfObject(new Vector2d(-7, -10), 0.9),
-                new ScarfObject(new Vector2d(-11, -10), 0.9),
-            });
-            var scarfs = new List<ScarfObject>(scarf1.ToArray());
-            ScarfAnchors = scarfs.ToArray();
 
             for (var i = 0; i < ModelAnchors.Length; i++)
             {
                 ModelAnchors[i].Position *= 0.5;
-            }
-
-            for (var i = 0; i < ScarfAnchors.Length; i++)
-            {
-                ScarfAnchors[i].Position *= 0.5;
             }
             double momentum = (trk == null || !trk.ZeroStart) ? 0.8 * 0.5 : 0;
             for (var i = 0; i < ModelAnchors.Length; i++)
@@ -110,13 +164,8 @@ namespace linerider
                 ModelAnchors[i].Position += offset;
                 ModelAnchors[i].Prev = ModelAnchors[i].Position - new Vector2d(momentum, 0);
             }
-            for (var i = 0; i < ScarfAnchors.Length; i++)
-            {
-                ScarfAnchors[i].Position += offset;
-                ScarfAnchors[i].Prev = ScarfAnchors[i].Position;
-                ScarfAnchors[i].Prev = ScarfAnchors[i].Position - new Vector2d(momentum, 0);
-            }
             CreateLines();
+            scarf = new Lines.Scarf(ModelAnchors[5].Position );
         }
 
         public void SatisfyBoundaries(Track track, ConcurrentDictionary<int, StandardLine> collisions)
@@ -212,12 +261,9 @@ namespace linerider
             }
         }
 
-        public void SatisfyScarf()
+        public void StepScarf()
         {
-            foreach (var l in ScarfLines)
-            {
-                l.satisfyDistance(this);
-            }
+            scarf.Step(ModelAnchors[5].Position);
         }
 
         public void TickMomentum()
@@ -226,67 +272,19 @@ namespace linerider
             {
                 ModelAnchors[i].Tick();
             }
-            var ppfvector = ModelAnchors[5].Momentum + ModelAnchors[6].Momentum;
-            var pixels = Math.Round(Math.Abs(((ppfvector.X + ppfvector.Y) / 4)), 2);
-            var val = Math.Min(pixels * 0.1, 4);
-            Random r = new Random((int)(pixels * 100));
-            if (r.Next((int)val, 5) == 4)
+        }
+        public Line[] GetScarf()
+        {
+            var vecs = scarf.GetAnchors(ModelAnchors[5].Position);
+            Line[] ret = new Line[vecs.Length - 1];
+            for (int i = 0; i < ret.Length; i++)
             {
-                bool left = r.Next(0, 2) == 1;//flutter left or right
-                val = Math.Min(val / 40, 0.015);
-                for (int i = 0; i < ScarfAnchors.Length; i++)
-                {
-                    var add = (ScarfAnchors[i].Prev - ScarfAnchors[i].Position).PerpendicularLeft * val *
-                              r.NextDouble();
-                    if (!left)
-                        ScarfAnchors[i].Position += add;
-                    else
-                        ScarfAnchors[i].Position -= add;
-                }
+                ret[i] = new Line(vecs[i], vecs[i + 1]);
             }
-            for (var i = 0; i < ScarfAnchors.Length; i++)
-            {
-                ScarfAnchors[i].Tick();
-            }
+            return ret;
         }
 
         #endregion Methods
-
-        protected Rider(Rider r)
-        {
-            Crashed = r.Crashed;
-            SledBroken = r.SledBroken;
-            ModelAnchors = new DynamicObject[r.ModelAnchors.Length];
-            Endpoints = new short[ModelAnchors.Length];
-            for (int i = 0; i < ModelAnchors.Length; i++)
-            {
-                ModelAnchors[i] = r.ModelAnchors[i].Clone();
-            }
-            ScarfAnchors = new DynamicObject[r.ScarfAnchors.Length];
-            for (int i = 0; i < ScarfAnchors.Length; i++)
-            {
-                ScarfAnchors[i] = r.ScarfAnchors[i].Clone();
-            }
-            CreateLines();
-
-            for (int i = 0; i < ModelLines.Length; i++)
-            {
-                ModelLines[i].restLength = r.ModelLines[i].restLength;
-                if (ModelLines[i] is BindLine)
-                {
-                    (ModelLines[i] as BindLine).UpdateEndurance();
-                }
-            }
-            if (iterations == null)
-                iterations = new List<Rider>();
-            if (r.iterations != null)
-            {
-                for (int i = 0; i < r.iterations.Count; i++)
-                {
-                    iterations.Add(r.iterations[i].Clone());
-                }
-            }
-        }
 
         private void CreateLines()
         {
@@ -314,15 +312,6 @@ namespace linerider
                 new BindLine(ModelAnchors[9], ModelAnchors[2]),
                 new RepelLine(ModelAnchors[5], ModelAnchors[8]),
                 new RepelLine(ModelAnchors[5], ModelAnchors[9])
-            };
-            ScarfLines = new DynamicLine[]
-            {
-                    new ScarfLine(ModelAnchors[5], ScarfAnchors[0]),
-                    new ScarfLine(ScarfAnchors[0], ScarfAnchors[1]),
-                    new ScarfLine(ScarfAnchors[1], ScarfAnchors[2]),
-                    new ScarfLine(ScarfAnchors[2], ScarfAnchors[3]),
-                    new ScarfLine(ScarfAnchors[3], ScarfAnchors[4]),
-                    new ScarfLine(ScarfAnchors[4], ScarfAnchors[5])
             };
         }
     }

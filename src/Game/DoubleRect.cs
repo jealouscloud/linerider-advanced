@@ -70,6 +70,37 @@ namespace linerider
             this = new DoubleRect(position.X, position.Y, size.X, size.Y);
         }
 
+        public FloatRect ToFloatRect()
+        {
+            return new FloatRect((float)Left, (float)Top, (float)Width, (float)Height);
+        }
+
+        public Vector2d EllipseClamp(Vector2d position)
+        {
+            var center = Vector + (Size / 2);
+            var a = Width / 2;
+            var b = Height / 2;
+            var p = position - center;
+            var d = p.X * p.X / (a * a) + p.Y * p.Y / (b * b);
+
+            if (d > 1)
+            {
+
+                Tools.Angle angle = Tools.Angle.FromLine(center, position);
+                double t = Math.Atan((Width / 2) * Math.Tan(angle.Radians) / (Height / 2));
+                if (angle.Degrees < 270 && angle.Degrees >= 90)
+                {
+                    t += Math.PI;
+                }
+                Vector2d ptfPoint =
+                   new Vector2d(center.X + (Width / 2) * Math.Cos(t),
+                               center.Y + (Height / 2) * Math.Sin(t));
+
+                position = ptfPoint;
+            }
+            return position;
+        }
+
         public Vector2d Clamp(Vector2d v)
         {
             if (!Contains(v.X, v.Y))
@@ -92,6 +123,19 @@ namespace linerider
             rect.Top -= height;
             rect.Width += 2 * width;
             rect.Height += 2 * height;
+            return rect;
+        }
+        public DoubleRect Scale(double scale)
+        {
+            var rect = this;
+
+            var width = (Right - Left) * scale;
+            rect.Left -= (width / 2)  - (Width / 2);
+            rect.Width = width;
+
+            var height = (Bottom - Top) * scale;
+            rect.Top -= (height / 2) - (Height / 2);
+            rect.Height = height;
             return rect;
         }
 

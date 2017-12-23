@@ -28,87 +28,105 @@ using linerider.Drawing;
 using OpenTK;
 namespace linerider.Game
 {
-	public class Camera : GameService
-	{
-		public Vector2d ViewPosition { get; set; }
+    public class Camera : GameService
+    {
+        public static bool ScaleCamera = true;
+        public CameraBoundingBox framebox = new CameraBoundingBox();
+        public CameraLocation Location = new CameraLocation(Vector2d.Zero, Vector2d.Zero);
+        private Vector2d nextrider;
+        private Vector2d lastcenter;
+        private Stack<CameraLocation> camerastack = new Stack<CameraLocation>();
+        private DoubleRect viewport;
 
-		public Vector2d AimPosition;
-		public void UpdateCamera()
-		{
-			if (Math.Abs((ViewPosition - AimPosition).Length) < 1 || !Settings.Default.SmoothCamera)
-				return;
-			ViewPosition = Vector2d.Lerp(ViewPosition, AimPosition, 0.33333333f / 2);
-			if (Math.Abs((AimPosition - ViewPosition).Length) < 0.1)
-			{
-				ViewPosition = AimPosition;
-			}
-		}
-		public static Vector2 EllipseClamp(FloatRect rect, Vector2 position)
-		{
-				var center = rect.Vector + (rect.Size / 2);
-				var a = rect.Width / 2;
-				var b = rect.Height / 2;
-			var p = position - center;
-				var d = p.X * p.X / (a * a) + p.Y * p.Y / (b * b);
+        public void SetFrame(Vector2d newcenter, bool relative)
+        {
+            lastcenter = GetCameraCenter();
+            framebox.RiderPosition = newcenter;
+            if (!relative)
+            {
+                Location = new CameraLocation(newcenter, Vector2d.Zero);
+                lastcenter = Vector2d.Zero;
+            }
+            else
+            {
+                if (Settings.SmoothCamera)
+                {
+                    Location = framebox.SmoothClamp(lastcenter, 0);
+                }
+                else
+                {
+                    Location = framebox.Clamp(lastcenter);
+                }
+            }
+        }
+        public void SetPrediction(Vector2d nextframe)
+        {
+            nextrider = nextframe;
+        }
 
-			if (d > 1)
-			{
-				Tools.Angle angle = Tools.Angle.FromLine(center, position);
-				double t = Math.Atan((rect.Width / 2) * Math.Tan(angle.Radians)
-									 / (rect.Height / 2));
-				if (angle.Degrees <= 270 && angle.Degrees >= 90)
-				{
-					t += Math.PI;
-				}
-				Vector2 ptfPoint = (Vector2)
-				   new Vector2d(center.X + (rect.Width / 2) * Math.Cos(t),
-							   center.Y + (rect.Height / 2) * Math.Sin(t));
+        public DoubleRect GetViewport()
+        {
+            return viewport;
+        }
 
-				position = (Vector2)ptfPoint;
-			}
-			return position;
-		}
-		public FloatRect GetRenderRect(float zoom, float width, float height)
-		{
-			if (!Settings.Default.SmoothCamera)
-			{
-				return GetRenderRectOriginal(zoom, width, height);
-			}
-			Vector2 viewpos = (Vector2)ViewPosition;
-			var sz = new Vector2(width / zoom, height / zoom);
-			float Box = 0.2f;
-			var rect = new FloatRect(((Vector2)AimPosition - (sz * Box)), sz * Box * 2);
+        public void BeginFrame(float blend)
+        {
+            var rendersize = game.RenderSize;
+            var sz = new Vector2d(rendersize.Width / game.Track.Zoom, rendersize.Height / game.Track.Zoom);
+            var camcenter = GetCameraCenter();
+            if (blend != 1 && lastcenter != Vector2d.Zero)
+            {
+                camcenter = Vector2d.Lerp(lastcenter, camcenter, blend);
+            }
+            camcenter -= sz / 2;
+            viewport = new DoubleRect(camcenter, sz);
+        }
 
+        public void Push()
+        {
+            camerastack.Push(Location);
+        }
 
-			if (game.Track.Animating)
-			{
-				viewpos = EllipseClamp(rect, viewpos);
-			}
-			var pos = viewpos;
-			pos -= sz / 2;
-			return new FloatRect(pos, sz);
-		}
-		private FloatRect GetRenderRectOriginal(float zoom, float width, float height)
-		{
-			Vector2 viewpos = (Vector2)ViewPosition;
-
-			var sz = new Vector2(width / zoom, height / zoom);
-			const float Box = 0.125f;
-			var rect = new FloatRect(((Vector2)AimPosition - (sz * Box)), sz * Box * 2);
-			if (game.Track.Animating)
-			{
-				viewpos = rect.Clamp(viewpos);
-			}
-			ViewPosition = (Vector2d)viewpos;
-			var pos = viewpos;
-			pos -= sz / 2;
-			return new FloatRect(pos, sz);
-		}
-
-		public void SetPosition(Vector2d v)
-		{
-			ViewPosition = v;
-			AimPosition = v;
-		}
-	}
+        public void Pop()
+        {
+            SetFrame(camerastack.Pop().GetPosition(),false);
+        }
+        public DoubleRect getclamp(float zoom, float width, float height)
+        {
+            var ret = GetViewport();
+            var pos = ret.Vector + (ret.Size / 2);
+            var b = new CameraBoundingBox() { RiderPosition = pos };
+            return b.GetBox(framebox.GetSmoothCamRatio((float)game.Track.RiderState.CalculateMomentum().Length));
+        }
+        private Vector2d GetCameraCenter()
+        {
+            var camcenter = Location.GetPosition();
+            if (game.Track.Animating)
+            {
+                if (Settings.SmoothCamera)
+                {
+                    CameraBoundingBox nextbox = new CameraBoundingBox() { RiderPosition = nextrider };
+                    if (!nextbox.SmoothIntersects(camcenter, 0))//next frame ideal exceeds bounds of current camera, so we should tend towards it for predictive camera.
+                    {
+                        camcenter = nextbox.SmoothClamp(Location.GetPosition(), 0).GetPosition();
+                    }
+                    if (ScaleCamera)
+                    {
+                        var ppf = (float)game.Track.RiderState.CalculateMomentum().Length;
+                        var d = nextrider - framebox.RiderPosition;
+                        camcenter = framebox.SmoothClamp(camcenter, !framebox.SmoothIntersects(nextrider, 10000) ? 10000 : ppf).GetPosition();//basically, don't allow it to rubber band
+                    }
+                    else
+                    {
+                        camcenter = framebox.SmoothClamp(camcenter, 0).GetPosition();
+                    }
+                }
+                else
+                {
+                    camcenter = framebox.Clamp(camcenter).GetPosition();
+                }
+            }
+            return camcenter;
+        }
+    }
 }
