@@ -49,6 +49,7 @@ namespace linerider
         public static string BinariesFolder = "bin";
         public readonly static CultureInfo Culture = new CultureInfo("en-US");
         public static string Version = "1.02";
+        public static string NewVersion = null;
         public static readonly string WindowTitle = "Line Rider: Advanced " + Version;
         public static Random Random;
         private static bool _crashed;
@@ -161,34 +162,6 @@ namespace linerider
 
             throw (Exception)e.ExceptionObject;
         }
-        private static void OpenUrl(string url)
-        {
-            try
-            {
-                Process.Start(url);
-            }
-            catch
-            {
-                // hack because of this: https://github.com/dotnet/corefx/issues/10361
-                if (Configuration.RunningOnWindows)
-                {
-                    url = url.Replace("&", "^&");
-                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
-                }
-                else if (Configuration.RunningOnMacOS)
-                {
-                    Process.Start("open", url);
-                }
-                else if (Configuration.RunningOnLinux)
-                {
-                    Process.Start("xdg-open", url);
-                }
-                else
-                {
-                    throw;
-                }
-            }
-        }
         public static void UpdateCheck()
         {
             if (Settings.CheckForUpdates)
@@ -200,26 +173,14 @@ namespace linerider
                         using (WebClient wc = new WebClient())
                         {
                             string currentversion = wc.DownloadString("https://raw.githubusercontent.com/jealouscloud/linerider-advanced/master/version");
+                            var idx = currentversion.IndexOfAny(new char[] { '\r', '\n' });
+                            if (idx != -1)
+                            {
+                                currentversion = currentversion.Remove(idx);
+                            }
                             if (currentversion != Version && currentversion.Length > 0)
                             {
-                                var window = PopupWindow.Create(glGame.Canvas, glGame, "Would you like to download the latest version?", "Update Available! v" + currentversion, true, true);
-                                window.FindChildByName("Okay", true).Clicked += (o, e) =>
-                                {
-                                    try
-                                    {
-                                        OpenUrl(@"https://github.com/jealouscloud/linerider-advanced/releases/latest");
-                                    }
-                                    catch
-                                    {
-                                        var w2 = PopupWindow.Create(glGame.Canvas, glGame, "Unable to open the browser.", "Error!", true, false);
-                                        w2.FindChildByName("Okay", true).Clicked += (o2, e2) =>
-                                         {
-                                             w2.Close();
-                                         };
-                                    }
-                                    window.Close();
-                                };
-                                window.FindChildByName("Cancel", true).Clicked += (o, e) => { window.Close(); };
+                                NewVersion = currentversion;
                             }
                         }
                     }

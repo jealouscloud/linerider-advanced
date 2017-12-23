@@ -204,7 +204,8 @@ namespace linerider
                 Track.SimulationNeedsDraw = false;
 
                 BeginOrtho();
-                if (blend == 1 && Settings.SmoothPlayback && Track.Playing && !TemporaryPlayback)
+                var slider = (HorizontalIntSlider)Canvas.FindChildByName("timeslider");
+                if (blend == 1 && Settings.SmoothPlayback && Track.Playing && !TemporaryPlayback && !slider.Held)
                 {
                     blend = Math.Min(1, Scheduler.ElapsedPercent);
                 }
@@ -281,6 +282,10 @@ namespace linerider
             }
             if (Track.Animating && (Track.Paused || Settings.SmoothPlayback))
                 AllowTrackRender = true;
+            if (Program.NewVersion != null)
+            {
+                Canvas.ShowOutOfDate();
+            }
         }
 
         public void Invalidate()

@@ -236,7 +236,7 @@ namespace linerider.TrackFiles
                                         var parsedint = -1;
                                         if (int.TryParse(sub, out parsedint))
                                         {
-                                            game.Title = Program.WindowTitle + string.Format(" [Encoding Video | {0:P}% | Hold ESC to cancel]", parsedint / (double)frame);
+                                            game.Title = Program.WindowTitle + string.Format(" [Encoding Video | {0:P}% | Hold ESC to cancel]", parsedint / (double)framecount);
                                             game.ProcessEvents();
                                             if (Keyboard.GetState()[Key.Escape])
                                             {

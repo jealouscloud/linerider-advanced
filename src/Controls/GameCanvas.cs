@@ -26,6 +26,7 @@ using Gwen;
 using Gwen.Controls;
 using Gwen.Skin;
 using linerider.Tools;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using linerider.Audio;
@@ -219,6 +220,58 @@ namespace linerider
                 labelflagtime.IsHidden = true;
             }
             base.Render(skin);
+        }
+        private static void OpenUrl(string url)
+        {
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                // hack because of this: https://github.com/dotnet/corefx/issues/10361
+                if (Configuration.RunningOnWindows)
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                }
+                else if (Configuration.RunningOnMacOS)
+                {
+                    Process.Start("open", url);
+                }
+                else if (Configuration.RunningOnLinux)
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+        public void ShowOutOfDate()
+        {
+            if (Program.NewVersion == null)
+                return;
+            var window = PopupWindow.Create(this, this.game, "Would you like to download the latest version?", "Update Available! v" + Program.NewVersion, true, true);
+            window.FindChildByName("Okay", true).Clicked += (o, e) =>
+            {
+                try
+                {
+                    OpenUrl(@"https://github.com/jealouscloud/linerider-advanced/releases/latest");
+                }
+                catch
+                {
+                    var w2 = PopupWindow.Create(this, this.game, "Unable to open the browser.", "Error!", true, false);
+                    w2.FindChildByName("Okay", true).Clicked += (o2, e2) =>
+                    {
+                        w2.Close();
+                    };
+                }
+                window.Close();
+            };
+            window.FindChildByName("Cancel", true).Clicked += (o, e) => { window.Close(); };
+            Program.NewVersion = null;
         }
         public void ButtonsToggleNightmode()
         {
