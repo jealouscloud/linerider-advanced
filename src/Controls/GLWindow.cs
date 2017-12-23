@@ -342,8 +342,6 @@ namespace linerider
             AddCursor("hand", GameResources.move_icon, 16, 16);
             AddCursor("closed_hand", GameResources.closed_move_icon, 16, 16);
             AddCursor("adjustline", GameResources.cursor_adjustline, 0, 0);
-            new Thread(Canvas.UpdateSOLFiles)
-            { IsBackground = true }.Start();
             Program.UpdateCheck();
         }
 
@@ -775,10 +773,6 @@ namespace linerider
                             Invalidate();
                         }
                     }
-                }
-                else if (e.Key == Key.F5)
-                {
-                    Canvas.UpdateSOLFiles();
                 }
                 else if (e.Key == Key.Number1)
                 {

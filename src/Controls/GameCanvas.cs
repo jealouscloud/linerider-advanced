@@ -248,12 +248,6 @@ namespace linerider
             var loadwindow = new Windows.LoadWindow(this, game);
             ShowCenteredWindow(loadwindow);
         }
-        public void UpdateSOLFiles()
-        {
-            game.Loading = true;
-            linerider.Windows.LoadWindow.UpdateSOLs();
-            game.Loading = false;
-        }
         public void ShowSaveWindow()
         {
             if (GetOpenWindows().Count != 0)

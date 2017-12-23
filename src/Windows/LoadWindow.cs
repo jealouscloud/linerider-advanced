@@ -31,34 +31,6 @@ namespace linerider.Windows
 {
     class LoadWindow : Window
     {
-        public static List<Tuple<string, List<sol_track>>> sols = new List<Tuple<string, List<sol_track>>>();
-        public static void UpdateSOLs()
-        {
-            sols.Clear();
-            var newlist = new List<Tuple<string, List<sol_track>>>();
-            var files = Program.UserDirectory + "Tracks";
-            if (Directory.Exists(files))
-            {
-                var solfiles =
-                    Directory.GetFiles(files, "*.*")
-                        .Where(s => s != null && s.EndsWith(".sol", StringComparison.OrdinalIgnoreCase));
-
-                foreach (var file in solfiles)
-                {
-                    List<sol_track> tracks = null;
-                    try
-                    {
-                        tracks = TrackLoader.LoadSol(file);
-                        newlist.Add(new Tuple<string, List<sol_track>>(Path.GetFileName(file), tracks));
-                    }
-                    catch
-                    {
-                        //ignored
-                    }
-                }
-            }
-            sols = newlist;
-        }
         private GLWindow game;
         public LoadWindow(Gwen.Controls.ControlBase parent, GLWindow glgame) : base(parent, "Load Track")
         {
@@ -279,16 +251,23 @@ namespace linerider.Windows
                             try
                             {
                                 tracks = TrackLoader.LoadSol(data);
+                                if (tracks.Count == 0)
+                                    return;
                                 foreach (var track in tracks)
                                 {
                                     selected.AddNode(track.name).UserData = track;
                                 }
-                                if (tracks.Count != 0)
+                                if (tracks.Count == 1)
+                                {
+                                    game.EnableSong = false;
+                                    game.Track.ChangeTrack(TrackLoader.LoadTrack(tracks[0]));
+                                }
+                                else 
                                 {
                                     selected.UserData = tracks[0];
                                     selected.ExpandAll();
+                                    return;
                                 }
-                                return;
                             }
                             catch
                             {
