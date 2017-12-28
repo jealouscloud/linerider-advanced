@@ -18,3 +18,5 @@ lib/QuickFont/packages/OpenTK.2.0.0/OpenTK.2.0.0.nupkg
 *.trk
 *.sol
 *.exe
+.vscode
+build/linerider.exe.mdb
