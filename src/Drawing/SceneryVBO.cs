@@ -111,9 +111,9 @@ namespace linerider.Drawing
 		public List<int> DrawBasicTrackLine(Vector2 p1, Vector2 p2, Color linecolor, float width)
 		{
 			List<int> ret = new List<int>(6 + 6 + 6);
-			ret.AddRange(RenderCircle(p1, linecolor, 1, 20));
-			ret.AddRange(RenderCircle(p2, linecolor, 1, 20));
-			ret.AddRange(DrawThickLine(p1, p2, 2, linecolor));
+			ret.AddRange(RenderCircle(p1, linecolor, 1*width, 20));
+			ret.AddRange(RenderCircle(p2, linecolor, 1*width, 20));
+			ret.AddRange(DrawThickLine(p1, p2, 2*width, linecolor));
 			return ret;
 		}
 		public void SetIndices(List<int> indices)
