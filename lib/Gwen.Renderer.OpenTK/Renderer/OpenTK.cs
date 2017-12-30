@@ -26,11 +26,6 @@ namespace Gwen.Renderer
             }
         }
 
-        /// <summary>
-        /// Returns number of cached strings in the text cache.
-        /// </summary>
-        public int TextCacheSize { get { return m_StringCache.Count; } }
-
         public int VertexCount { get { return m_VertNum; } }
 
         #endregion Properties
@@ -42,8 +37,6 @@ namespace Gwen.Renderer
         {
             m_Vertices = new Vertex[MaxVerts];
             m_VertexSize = Marshal.SizeOf(m_Vertices[0]);
-            m_StringCache = new Dictionary<Tuple<String, Font>, TextRenderer>();
-            m_Graphics = Graphics.FromImage(new Bitmap(1024, 1024, PixelFormat.Format32bppArgb));
             m_StringFormat = new StringFormat(StringFormat.GenericTypographic);
             m_StringFormat.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces;
             m_RestoreRenderState = restoreRenderState;
@@ -93,9 +86,9 @@ namespace Gwen.Renderer
             switch (lock_format)
             {
                 case PixelFormat.Format32bppArgb:
-					byte[] etc = new byte[100 * 4];
-					Marshal.Copy(data.Scan0, etc, 0, 400);
-					GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, t.Width, t.Height, 0, global::OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+                    byte[] etc = new byte[100 * 4];
+                    Marshal.Copy(data.Scan0, etc, 0, 400);
+                    GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, t.Width, t.Height, 0, global::OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
                     break;
 
                 default:
@@ -141,7 +134,6 @@ namespace Gwen.Renderer
 
         public override void Dispose()
         {
-            FlushTextCache();
             base.Dispose();
         }
 
@@ -270,18 +262,6 @@ namespace Gwen.Renderer
             m_VertNum = 0;
         }
 
-        /// <summary>
-        /// Clears the text rendering cache. Make sure to call this if cached strings size becomes too big (check TextCacheSize).
-        /// </summary>
-        public void FlushTextCache()
-        {
-            // todo: some auto-expiring cache? based on number of elements or age
-            foreach (var textRenderer in m_StringCache.Values)
-            {
-                textRenderer.Dispose();
-            }
-            m_StringCache.Clear();
-        }
 
         public override void FreeFont(Font font)
         {
@@ -426,30 +406,10 @@ namespace Gwen.Renderer
                 ret.Height += 1;
                 return new Point((int)ret.Width, (int)ret.Height);
             }
-            System.Drawing.Font sysFont = font.RendererData as System.Drawing.Font;
-
-            if (sysFont == null || Math.Abs((font.RealSize - font.Size) * Scale) > 2)
+            else
             {
-                FreeFont(font);
-                LoadFont(font);
-                sysFont = font.RendererData as System.Drawing.Font;
+                throw new Exception("Unsupported font");
             }
-
-            var key = new Tuple<String, Font>(text, font);
-
-            if (m_StringCache.ContainsKey(key))
-            {
-                var tex = m_StringCache[key].Texture;
-                return new Point(tex.Width, tex.Height);
-            }
-
-            SizeF TabSize = m_Graphics.MeasureString("....", sysFont);
-            //Spaces are not being picked up, let's just use .'s.
-            m_StringFormat.SetTabStops(0f, new float[] { TabSize.Width });
-
-            SizeF size = m_Graphics.MeasureString(text, sysFont, Point.Empty, m_StringFormat);
-
-            return new Point((int)Math.Round(size.Width), (int)Math.Round(size.Height));
         }
 
         public override unsafe Color PixelColor(Texture texture, uint x, uint y, Color defaultColor)
@@ -525,11 +485,11 @@ namespace Gwen.Renderer
                         GL.StencilFunc(StencilFunction.Equal, 1, 0xFF);
                     }
 
-					data.ResetVBOs();
-					data.PrintToVBO(text, new Vector3(position.X, position.Y,0),DrawColor,QFontAlignment.Left);
-					data.LoadVBOs();
-					data.DrawVBOs();
-					data.UnloadVBOs();
+                    data.ResetVBOs();
+                    data.PrintToVBO(text, new Vector3(position.X, position.Y, 0), DrawColor, QFontAlignment.Left);
+                    data.LoadVBOs();
+                    data.DrawVBOs();
+                    data.UnloadVBOs();
                     if (m_ClipEnabled)
                     {
                         GL.Clear(ClearBufferMask.StencilBufferBit);
@@ -541,35 +501,9 @@ namespace Gwen.Renderer
                 GL.PopAttrib();
                 return;
             }
-
-            System.Drawing.Font sysFont = font.RendererData as System.Drawing.Font;
-
-            if (sysFont == null || Math.Abs(font.RealSize - font.Size * Scale) > 2)
-            {
-                FreeFont(font);
-                LoadFont(font);
-                sysFont = font.RendererData as System.Drawing.Font;
-            }
-
-            var key = new Tuple<String, Font>(text, font);
-
-            if (!m_StringCache.ContainsKey(key))
-            {
-                // not cached - create text renderer
-                Debug.Print(String.Format("RenderText: caching \"{0}\", {1}", text, font.FaceName));
-
-                Point size = MeasureText(font, text);
-                TextRenderer tr = new TextRenderer(size.X, size.Y, this);
-                tr.DrawString(text, sysFont, Brushes.White, Point.Empty, m_StringFormat); // renders string on the texture
-
-                DrawTexturedRect(tr.Texture, new Rectangle(position.X, position.Y, tr.Texture.Width, tr.Texture.Height));
-
-                m_StringCache[key] = tr;
-            }
             else
             {
-                TextRenderer tr = m_StringCache[key];
-                DrawTexturedRect(tr.Texture, new Rectangle(position.X, position.Y, tr.Texture.Width, tr.Texture.Height));
+                throw new Exception("Drawing unsupported font");
             }
         }
 
@@ -603,8 +537,8 @@ namespace Gwen.Renderer
             {
                 RealSize = realsize;
                 Size = basesize;
-				var config = new QFontLoaderConfiguration();
-				var data = QFont.FromQFontAndBitmap(png, qfontdata,(float)realsize / (float)basesize,config);
+                var config = new QFontLoaderConfiguration();
+                var data = QFont.FromQFontAndBitmap(png, qfontdata, (float)realsize / (float)basesize, config);
                 data.Options.UseDefaultBlendFunction = false;
                 data.Options.WordSpacing = 0.45f;
                 RendererData = data;
@@ -619,8 +553,6 @@ namespace Gwen.Renderer
 
         private const int MaxVerts = 1024;
         static private int m_LastTextureID;
-        private readonly Graphics m_Graphics;
-        private readonly Dictionary<Tuple<String, Font>, TextRenderer> m_StringCache;
         private readonly int m_VertexSize;
         private readonly Vertex[] m_Vertices;
         private bool m_ClipEnabled;
