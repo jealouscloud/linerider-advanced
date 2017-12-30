@@ -60,16 +60,4 @@ Global
 		{41650C82-D630-4E5C-845A-F1513C8FDC99} = {F8168EE7-D966-486D-81AA-EAE456DC0036}
 		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF} = {F8168EE7-D966-486D-81AA-EAE456DC0036}
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {3F319031-F283-4377-B94D-202113DCE1FC}
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		Policies = $0
-		$0.DotNetNamingPolicy = $1
-		$1.DirectoryNamespaceAssociation = PrefixedHierarchical
-		$0.StandardHeader = $2
-		$0.VersionControlPolicy = $3
-		version = 1.0
-		outputpath = ../build
-	EndGlobalSection
 EndGlobal
