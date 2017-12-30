@@ -35,8 +35,14 @@ namespace linerider
         #region Methods
 
         [STAThread]
-        public static void Main()
+        public static void Main(string[] args)
         {
+#if DEBUG
+            if (args.Length >= 1 && args[0] == "debug")
+            {
+                Program.IsDebugged = true;
+            }
+#endif
             Program.Run();
         }
 
@@ -46,6 +52,9 @@ namespace linerider
     public static class Program
     {
         #region Fields
+#if DEBUG
+        public static bool IsDebugged = false;
+#endif
         public static string BinariesFolder = "bin";
         public readonly static CultureInfo Culture = new CultureInfo("en-US");
         public static string Version = "1.02";
@@ -71,7 +80,7 @@ namespace linerider
                 {
                     _userdir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                     //mono doesnt do well with non windows ~/Documents.
-                    if (_userdir == Environment.GetFolderPath(Environment.SpecialFolder.Personal)) 
+                    if (_userdir == Environment.GetFolderPath(Environment.SpecialFolder.Personal))
                     {
                         string documents = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Documents");
                         //so, if we can find a Documents folder, we use that.
@@ -115,7 +124,17 @@ namespace linerider
 
         public static void Run()
         {
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            #if DEBUG
+            if (IsDebugged)
+            {
+                Debug.Listeners.Add(new TextWriterTraceListener(System.Console.Out));
+            }
+            else
+            {
+                AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            }
+            #endif
+            
             if (!Directory.Exists(UserDirectory))
             {
                 Directory.CreateDirectory(UserDirectory);
