@@ -18,7 +18,7 @@ namespace Gwen.Controls
         public RichLabel(ControlBase parent)
             : base(parent)
         {
-            newline = new string[] { Environment.NewLine };
+            newline = new string[] {"\r\n","\n" };
             m_TextBlocks = new List<TextBlock>();
         }
 
