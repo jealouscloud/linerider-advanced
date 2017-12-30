@@ -104,14 +104,14 @@ namespace linerider.Drawing
 				{
 					if (!(l is SceneryLine))
 						continue;
-					var data = _editorvbo.DrawBasicTrackLine((Vector2)l.Position, (Vector2)l.Position2, Color.FromArgb(255,0x00, 0xCC, 0x00));
+					var data = _editorvbo.DrawBasicTrackLine((Vector2)l.Position, (Vector2)l.Position2, Color.FromArgb(255,0x00, 0xCC, 0x00),((SceneryLine)l).Width);
 					var start = ipos;
 					ipos += data.Count;
 					eindices.AddRange(data);
 
 					_editorindices[l.ID] = new indexfragment() { start = start, indices = data };
 
-					data = _playbackbvo.DrawBasicTrackLine((Vector2)l.Position, (Vector2)l.Position2, Settings.NightMode ? Color.White : Color.Black);
+					data = _playbackbvo.DrawBasicTrackLine((Vector2)l.Position, (Vector2)l.Position2, Settings.NightMode ? Color.White : Color.Black,((SceneryLine)l).Width);
 					start = ppos;
 					ppos += data.Count;
 					pindices.AddRange(data);
@@ -131,7 +131,7 @@ namespace linerider.Drawing
 			{
 				Invalidate();
 				indexfragment lookup;
-				var data = _editorvbo.DrawBasicTrackLine((Vector2)l.Position, (Vector2)l.Position2, Color.FromArgb(0x00, 0xCC, 0x00));
+				var data = _editorvbo.DrawBasicTrackLine((Vector2)l.Position, (Vector2)l.Position2, Color.FromArgb(0x00, 0xCC, 0x00),((SceneryLine)l).Width);
 
 				if (_editorindices.TryGetValue(l.ID, out lookup))
 				{
@@ -144,7 +144,7 @@ namespace linerider.Drawing
 					_editorindices[l.ID] = new indexfragment() { start = start, indices = data };
 				}
 
-				data = _playbackbvo.DrawBasicTrackLine((Vector2)l.Position, (Vector2)l.Position2, Settings.NightMode ? Color.White : Color.Black);
+				data = _playbackbvo.DrawBasicTrackLine((Vector2)l.Position, (Vector2)l.Position2, Settings.NightMode ? Color.White : Color.Black,((SceneryLine)l).Width);
 
 				if (_playbackindices.TryGetValue(l.ID, out lookup))
 				{
@@ -195,10 +195,10 @@ namespace linerider.Drawing
 				Invalidate();
 
 				_editorvbo.LineChangedFreeVertices(_editorindices[line.ID].indices);
-				_editorvbo.DrawBasicTrackLine((Vector2)line.Position, (Vector2)line.Position2, Color.FromArgb(0x00, 0xCC, 0x00));
+				_editorvbo.DrawBasicTrackLine((Vector2)line.Position, (Vector2)line.Position2, Color.FromArgb(0x00, 0xCC, 0x00),((SceneryLine)line).Width);
 
 				_playbackbvo.LineChangedFreeVertices(_playbackindices[line.ID].indices);
-				_playbackbvo.DrawBasicTrackLine((Vector2)line.Position, (Vector2)line.Position2, Settings.NightMode ? Color.White : Color.Black);
+				_playbackbvo.DrawBasicTrackLine((Vector2)line.Position, (Vector2)line.Position2, Settings.NightMode ? Color.White : Color.Black,((SceneryLine)line).Width);
 			}
 		}
 
