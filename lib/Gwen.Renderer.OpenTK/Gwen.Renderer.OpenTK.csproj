@@ -42,7 +42,6 @@
     <Compile Include="Input\OpenTK.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Renderer\OpenTK.cs" />
-    <Compile Include="Renderer\TextRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
