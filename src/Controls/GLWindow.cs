@@ -135,7 +135,7 @@ namespace linerider
         public Vector2d ScreenTranslation => -ScreenPosition;
         public GLTrack Track { get; }
         public GLWindow()
-            : base(1280, 720, new GraphicsMode(new ColorFormat(32), 0, 8, 0, ColorFormat.Empty),
+            : base(1280, 720, new GraphicsMode(new ColorFormat(32), 0, 0, 0, ColorFormat.Empty),
                    "Line Rider: Advanced", GameWindowFlags.Default, DisplayDevice.Default)
         {
             if (_instance != null)
