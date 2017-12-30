@@ -108,7 +108,7 @@ namespace linerider.Drawing
 			_vbo.UpdateVertices();
 			_vbo.UpdateIndices();
 		}
-		public List<int> DrawBasicTrackLine(Vector2 p1, Vector2 p2, Color linecolor)
+		public List<int> DrawBasicTrackLine(Vector2 p1, Vector2 p2, Color linecolor, float width)
 		{
 			List<int> ret = new List<int>(6 + 6 + 6);
 			ret.AddRange(RenderCircle(p1, linecolor, 1, 20));
