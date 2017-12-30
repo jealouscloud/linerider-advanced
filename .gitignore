@@ -9,3 +9,4 @@ build/*.xml
 build/*.config
 build/*.pdb
 build/*.dll
+deploy
