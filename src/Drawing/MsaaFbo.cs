@@ -30,6 +30,7 @@ namespace linerider.Drawing
         private static int MSAA = 0;
         public readonly int Framebuffer;
         private int _renderbuffer;
+        private int _stencilbuffer;
         public int Width;
         public int Height;
         public MsaaFbo()
@@ -37,6 +38,7 @@ namespace linerider.Drawing
             Framebuffer = SafeFrameBuffer.GenFramebuffer();
             SafeFrameBuffer.BindFramebuffer(FramebufferTarget.Framebuffer, Framebuffer);
             _renderbuffer = SafeFrameBuffer.GenRenderbuffer();
+            _stencilbuffer = SafeFrameBuffer.GenRenderbuffer();
 
             MSAA = Math.Min(8, GL.GetInteger(GetPName.MaxSamples));
             SafeFrameBuffer.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
@@ -72,12 +74,18 @@ namespace linerider.Drawing
 
                 SafeFrameBuffer.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _renderbuffer);
                 SafeFrameBuffer.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer,MSAA, RenderbufferStorage.Rgba8, width, height);
+                
+                SafeFrameBuffer.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _stencilbuffer);
+                SafeFrameBuffer.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, MSAA,RenderbufferStorage.Depth24Stencil8,width,height);
+
+                SafeFrameBuffer.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.StencilAttachment, RenderbufferTarget.Renderbuffer, _stencilbuffer);
+                
                 SafeFrameBuffer.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, RenderbufferTarget.Renderbuffer, _renderbuffer);
                 SafeFrameBuffer.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
                 ErrorCheck();
             }
             ErrorCheck();
-            GL.Clear(ClearBufferMask.ColorBufferBit);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.StencilBufferBit);
 #endif
         }
         public void End()
