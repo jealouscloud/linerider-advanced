@@ -7,6 +7,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>linerider</RootNamespace>
     <AssemblyName>linerider</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
   </PropertyGroup>
@@ -129,12 +130,6 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="Gwen">
-      <HintPath>..\lib\Gwen\obj\Debug\Gwen.dll</HintPath>
-    </Reference>
-    <Reference Include="QuickFont">
-      <HintPath>..\lib\QuickFont\obj\Debug\QuickFont.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\beep.wav" />
@@ -204,9 +199,17 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\lib\Gwen\Gwen.csproj">
+      <Project>{ADDA2F43-96C0-497F-8216-29C67ABC9806}</Project>
+      <Name>Gwen</Name>
+    </ProjectReference>
     <ProjectReference Include="..\lib\Gwen.Renderer.OpenTK\Gwen.Renderer.OpenTK.csproj">
       <Project>{41650c82-d630-4e5c-845a-f1513c8fdc99}</Project>
       <Name>Gwen.Renderer.OpenTK</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\lib\QuickFont\QuickFont.csproj">
+      <Project>{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}</Project>
+      <Name>QuickFont</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

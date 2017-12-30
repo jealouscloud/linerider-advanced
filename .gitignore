@@ -1,7 +1,7 @@
 lib/**/obj
 lib/**/.vs
 lib/.vs
-lib/packages
+lib/**/packages
 lib/**/OpenTK.dll.config
 lib/tools
 .vscode
@@ -17,3 +17,4 @@ build/OpenTK.dll.config
 *.mdb
 src/obj
 src/.vs
+src/packages
