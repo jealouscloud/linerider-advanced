@@ -141,7 +141,7 @@ namespace linerider.TrackFiles
                 var firstframe = GrabScreenshot(game, frontbuffer);
                 SaveScreenshot(game.RenderSize.Width, game.RenderSize.Height, firstframe, dir + Path.DirectorySeparatorChar + "tmp" + 0 + ".png");
                 int framecount = smooth ? (frame * 60) / 40 : frame;
-                
+
                 double frametime = 0;
                 for (var i = 0; i < framecount; i++)
                 {
@@ -151,7 +151,15 @@ namespace linerider.TrackFiles
                     {
                         var oldspot = frametime;
                         frametime += 40f / 60f;
-                        if ((int)frametime != (int)oldspot)
+                        if (i == 0)
+                        {
+                            //bugfix:
+                            //frame blending uses the previous frame.
+                            //so the first frame would be recorded twice,
+                            //instead of blended
+                            game.Track.Update(1);
+                        }
+                        else if ((int)frametime != (int)oldspot)
                         {
                             game.Track.Update(1);
                         }
@@ -163,17 +171,17 @@ namespace linerider.TrackFiles
                         game.Track.Update(1);
                         game.Render();
                     }
-                        try
+                    try
                     {
                         var screenshot = GrabScreenshot(game, frontbuffer);
                         SaveScreenshot(game.RenderSize.Width, game.RenderSize.Height, screenshot, dir + Path.DirectorySeparatorChar + "tmp" + (i + 1) + ".png");
-                        }
-                        catch
-                        {
-                            hardexit = true;
-                            errormessage = "An error occured when saving the frame.";
-                        }
-                    
+                    }
+                    catch
+                    {
+                        hardexit = true;
+                        errormessage = "An error occured when saving the frame.";
+                    }
+
                     if (Keyboard.GetState()[Key.Escape])
                     {
                         hardexit = true;
