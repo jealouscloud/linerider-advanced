@@ -201,6 +201,7 @@ namespace linerider
         {
             if (Canvas.NeedsRedraw || (Track.Animating && (Track.SimulationNeedsDraw || Settings.SmoothPlayback)) || Loading || Track.RequiresUpdate)
             {
+                Console.WriteLine(Track.Playing);
                 Track.SimulationNeedsDraw = false;
 
                 BeginOrtho();
@@ -232,6 +233,8 @@ namespace linerider
                 }
                 if (!TrackRecorder.Recording)
                     SwapBuffers();
+                //there are machines and cases where a refresh may not hit the screen without calling glfinish...
+                GL.Finish();
                 var seconds = Track.Fpswatch.Elapsed.TotalSeconds;
                 Track.FpsCounter.AddFrame(seconds);
                 Track.Fpswatch.Restart();
@@ -271,7 +274,7 @@ namespace linerider
                 {
                     Track.Update(updates);
                 }
-                if (Track.Frame % Math.Max(1,Scheduler.UpdatesPerSecond / 2) == 0)
+                if (Track.Frame % Math.Max(1, Scheduler.UpdatesPerSecond / 2) == 0)
                 {
                     var sp = AudioService.SongPosition;
                     if (Math.Abs(((Track.CurrentFrame / 40f) + CurrentSong.Offset) - sp) > 0.1)
@@ -324,7 +327,7 @@ namespace linerider
             else if (SelectedTool != null)
                 Cursor = SelectedTool.Cursor;
         }
-        
+
         protected override void OnLoad(EventArgs e)
         {
             MSAABuffer = new MsaaFbo();
@@ -432,7 +435,7 @@ namespace linerider
                 _handToolOverride = false;
                 _handtool.OnMouseUp(new Vector2d(e.X, e.Y));
             }
-                if (r)
+            if (r)
                 Cursor = MouseCursor.Default;
             else
                 UpdateCursor();
