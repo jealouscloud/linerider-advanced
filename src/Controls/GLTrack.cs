@@ -734,6 +734,7 @@ namespace linerider
                     game.Canvas.FindChildByName("trackname", true).IsHidden = false;
                 }
                 game.Invalidate();
+                game.Track.SimulationNeedsDraw = true;
             }
         }
 
