@@ -828,7 +828,7 @@ namespace linerider
                             Track.TogglePause();
                         Track.NextFrame();
                         Invalidate();
-                        Track.Camera.SetFrame(Track.RiderState.CalculateCenter(), false);
+                        Track.UpdateCamera();
                     }
                 }
                 else if (e.Key == Key.Left)
@@ -843,7 +843,7 @@ namespace linerider
                             Track.TogglePause();
                         Track.PreviousFrame();
                         Invalidate();
-                        Track.Camera.SetFrame(Track.RiderState.CalculateCenter(), false);
+                        Track.UpdateCamera();
                     }
                 }
                 else if (e.Key == Key.Home)
