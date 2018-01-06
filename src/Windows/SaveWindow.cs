@@ -41,11 +41,12 @@ namespace linerider.Windows
             MakeModal(true);
             Label l = new Label(this);
             l.Text = "Tracks are saved to\r\nDocuments/LRA/Tracks";
-            
+
             var bottom = new PropertyBase(this) { Name = "bottom", Margin = new Margin(0, 10, 0, 5), Height = 30 };
             var cb = new ComboBox(this);
 
-            cb.ItemSelected += (o, e) => {
+            cb.ItemSelected += (o, e) =>
+            {
                 var snd = ((ComboBox)o);
                 var txt = snd.SelectedItem.Text;
                 this.UserData = txt;
@@ -86,7 +87,6 @@ namespace linerider.Windows
             if (window.UserData != null)
             {
                 var tb = (TextBox)window.FindChildByName("tb", true);
-                var saveindex = 0;
                 var txt = (string)window.UserData;
                 if (txt == "<create new track>")
                 {
@@ -94,42 +94,15 @@ namespace linerider.Windows
                     if (txt.Length == 0)
                         return;
                 }
-                if (
-                    Directory.Exists(Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar + txt +
-                                     Path.DirectorySeparatorChar))
+                if (!TrackLoader.CheckValidFilename(txt + tb.Text))
                 {
-                    var trackfiles =
-                        TrackLoader.EnumerateTRKFiles(Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar +
-                                                      txt);
-                    for (var i = 0; i < trackfiles.Length; i++)
-                    {
-                        var s = Path.GetFileNameWithoutExtension(trackfiles[i]);
-                        var index = s.IndexOf(" ", StringComparison.Ordinal);
-                        if (index != -1)
-                        {
-                            s = s.Remove(index);
-                        }
-                        if (int.TryParse(s, out saveindex))
-                        {
-                            break;
-                        }
-                    }
-                }
-                var invalidchars = Path.GetInvalidFileNameChars();
-                for (var i = 0; i < txt.Length; i++)
-                {
-                    if (invalidchars.Contains(txt[i]))
-                    {
-                        sender.SetToolTipText("Attempted to save with an invalid name");
-                        return;
-                    }
+                    sender.SetToolTipText("Attempted to save with an invalid name");
+                    return;
                 }
                 game.Track.Name = txt;
-                saveindex++;
-                var save = saveindex + " " + tb.Text;
                 try
                 {
-                    game.Track.Save(save, game.CurrentSong);
+                    game.Track.Save(tb.Text, game.CurrentSong);
                 }
                 catch
                 {
