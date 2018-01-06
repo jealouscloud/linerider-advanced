@@ -201,7 +201,6 @@ namespace linerider
         {
             if (Canvas.NeedsRedraw || (Track.Animating && (Track.SimulationNeedsDraw || Settings.SmoothPlayback)) || Loading || Track.RequiresUpdate)
             {
-                Console.WriteLine(Track.Playing);
                 Track.SimulationNeedsDraw = false;
 
                 BeginOrtho();
@@ -334,7 +333,7 @@ namespace linerider
             var renderer = new Gwen.Renderer.OpenTK();
 
             var tx = new Texture(renderer);
-            Gwen.Renderer.OpenTK.LoadTextureInternal(tx, GameResources.DefaultSkin);
+            Gwen.Renderer.OpenTK.LoadTextureInternal(tx, GameResources.DefaultSkin); 
             var bmpfont = new Gwen.Renderer.OpenTK.BitmapFont(renderer, "SourceSansPro", 10, 10, GameResources.SourceSansProq, new List<Bitmap> { GameResources.SourceSansPro_img });
             var skin = new Gwen.Skin.TexturedBase(renderer, tx, GameResources.DefaultColors) { DefaultFont = bmpfont };
             Canvas = new GameCanvas(skin, this, renderer);
