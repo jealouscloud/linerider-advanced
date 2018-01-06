@@ -108,9 +108,8 @@ namespace linerider
                 bool ispaired = _snappedline != null && !joint.HasFlag(Joint.Both);
                 var oldspos = _snappedline?.Position;
                 var oldspos2 = _snappedline?.Position2;
-                game.Track.EnterTrackReadWrite();
                 bool updatetrack = false;
-                try
+                using (game.Track.EnterTrackReadWrite())
                 {
                     if (_nonphysicalline != null)
                     {
@@ -235,10 +234,6 @@ namespace linerider
                         game.Track.LineChanged(_snappedline);
                     }
                     game.Invalidate();
-                }
-                finally
-                {
-                    game.Track.ExitTrackReadWrite();
                 }
                 if (updatetrack)
                 {
@@ -508,7 +503,7 @@ namespace linerider
                         {
                             for (int i = 0; i > diff; i--)
                             {
-                                game.Track.RemoveLine(redlines[(int) ((redlines.Count - 1))]);
+                                game.Track.RemoveLine(redlines[(int)((redlines.Count - 1))]);
                                 redlines.RemoveAt(redlines.Count - 1);
                             }
                         }
@@ -595,17 +590,15 @@ namespace linerider
             {
                 if (game.Track.Animating)
                 {
-                    game.Track.EnterPlayback();
+                    using (game.Track.EnterPlayback())
                     {
                         if (!DoLifelock())
                             LifeLock = true;
                         else
                         {
                             _started = false;
-                            game.Track.ExitPlayback();
                             return;
                         }
-                        game.Track.ExitPlayback();
                     }
                 }
             }
