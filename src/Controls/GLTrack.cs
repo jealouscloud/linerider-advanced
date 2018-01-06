@@ -1038,39 +1038,33 @@ namespace linerider
 
         public void BackupTrack(bool Crash = true)
         {
+            bool trackread = false;
             try
             {
                 if (_track.Lines.Count == 0)
                     return;
-                var saveindex = 0;
-                var trackfiles =
-                    TrackLoader.EnumerateTRKFiles(Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar +
-                                                  _track.Name);
-                for (var i = 0; i < trackfiles.Length; i++)
-                {
-                    var s = Path.GetFileNameWithoutExtension(trackfiles[i]);
-                    s = s.Remove(s.IndexOf(' '));
-                    if (int.TryParse(s, out saveindex))
-                    {
-                        break;
-                    }
-                }
-                saveindex++;
-                if (saveindex < 2 && !Crash)
-                    return;
-                var save = Crash ? (saveindex + " " + "Crash Backup") : " Autosave";
                 game.Loading = true;
                 EnterTrackRead();
+                trackread = true;
+                if (Crash)
                 {
-                    TrackLoader.SaveTrackTrk(_track, save, game.CurrentSong?.ToString());
+                    TrackLoader.CreateTrackFile(_track, "Crash Backup",game.CurrentSong?.ToString());
                 }
-                ExitTrackRead();
-                game.Loading = false;
-                game.Invalidate();
+                else
+                {
+                    TrackLoader.CreateAutosave(_track, game.CurrentSong?.ToString());
+                }
             }
             catch
             {
                 //ignored
+            }
+            finally
+            {
+                if (trackread)
+                    ExitTrackRead();
+                game.Loading = false;
+                game.Invalidate();
             }
         }
 
@@ -1108,7 +1102,7 @@ namespace linerider
 
         internal void Save(string savename, Audio.Song song)
         {
-            TrackLoader.SaveTrackTrk(_track, savename, song.ToString());
+            TrackLoader.CreateTrackFile(_track, savename, song.ToString());
         }
     }
 }

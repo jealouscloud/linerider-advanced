@@ -57,7 +57,7 @@ namespace linerider
         public static List<sol_track> LoadSol(string sol_location)
         {
             var sol = new SOL(sol_location);
-			var tracks = (List<Amf0Object>)sol.RootObject.get_property("trackList");
+            var tracks = (List<Amf0Object>)sol.RootObject.get_property("trackList");
             var ret = new List<sol_track>();
             for (var i = 0; i < tracks.Count; i++)
             {
@@ -90,7 +90,7 @@ namespace linerider
         }
         public static void SaveTrackSol(Track trk)
         {
-            new SOL(Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar + "savedLines.sol", trk);
+            new SOL(Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar + trk.Name + "savedLines.sol", trk);
         }
         public static Dictionary<string, bool> TrackFeatures(Track trk)
         {
@@ -131,12 +131,87 @@ namespace linerider
                 ret["SIX_ONE"] = true;
             return ret;
         }
-        public static void SaveTrackTrk(Track trk, string savename, string songdata = null)
+        /// Checks a relative filename for validity
+        public static bool CheckValidFilename(string relativefilename)
         {
-            var dir = Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar + trk.Name;
+            if (Path.IsPathRooted(relativefilename))
+                return false;
+            var invalidchars = Path.GetInvalidFileNameChars();
+            for (var i = 0; i < relativefilename.Length; i++)
+            {
+                if (invalidchars.Contains(relativefilename[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        private static string GetTrackDirectory(Track track)
+        {
+            return Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar
+             + track.Name + Path.DirectorySeparatorChar;
+        }
+        public static void CreateTrackFile(Track track, string savename, string songdata = null)
+        {
+            var dir = GetTrackDirectory(track);
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
-            using (var file = File.Create(dir + Path.DirectorySeparatorChar + savename + ".trk"))
+
+            var trackfiles =
+                TrackLoader.EnumerateTRKFiles(dir);
+            int saveindex = 0;
+            for (var i = 0; i < trackfiles.Length; i++)
+            {
+                var s = Path.GetFileNameWithoutExtension(trackfiles[i]);
+                var index = s.IndexOf(" ", StringComparison.Ordinal);
+                if (index != -1)
+                {
+                    s = s.Remove(index);
+                }
+                if (int.TryParse(s, out saveindex))
+                {
+                    break;
+                }
+            }
+            saveindex++;
+            SaveTrackTrk(track, saveindex + " " + savename, songdata);
+        }
+        private static bool TryMoveAndReplaceFile(string fname, string fname2)
+        {
+            if (File.Exists(fname))
+            {
+                try
+                {
+                    if (File.Exists(fname2))
+                    {
+                        File.Delete(fname2);
+                    }
+                    File.Move(fname, fname2);
+                    return true;
+                }
+                catch
+                {
+                    //failed
+                }
+            }
+            return false;
+        }
+        public static void CreateAutosave(Track track, string songdata = null)
+        {
+            var dir = GetTrackDirectory(track);
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            var sn1 = "autosave00";
+            var sn2 = "autosave01";
+            TryMoveAndReplaceFile(dir + sn1 + ".trk", dir + sn2 + ".trk");
+            SaveTrackTrk(track, sn1, songdata);
+        }
+        public static void SaveTrackTrk(Track trk, string savename, string songdata = null)
+        {
+            var dir = GetTrackDirectory(trk);
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            using (var file = File.Create(dir + savename + ".trk"))
             {
                 var bw = new BinaryWriter(file);
                 bw.Write(new byte[] { (byte)'T', (byte)'R', (byte)'K', 0xF2 });
@@ -356,22 +431,22 @@ namespace linerider
                         var song = br.ReadString();
                         try
                         {
-                            var strings = song.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries); 
+                            var strings = song.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                             var fn = Program.UserDirectory + "Songs" +
-									 Path.DirectorySeparatorChar +
-									 strings[0];
-							if (File.Exists(fn))
-							{
-								if (AudioService.LoadFile(ref fn))
-								{
-									game.CurrentSong = new Song(Path.GetFileName(fn),float.Parse(strings[1]));
-									game.EnableSong = true;
-								}
-								else
-								{
-									Program.NonFatalError("An unknown error occured trying to load the song file");
-								}
-							}
+                                     Path.DirectorySeparatorChar +
+                                     strings[0];
+                            if (File.Exists(fn))
+                            {
+                                if (AudioService.LoadFile(ref fn))
+                                {
+                                    game.CurrentSong = new Song(Path.GetFileName(fn), float.Parse(strings[1]));
+                                    game.EnableSong = true;
+                                }
+                                else
+                                {
+                                    Program.NonFatalError("An unknown error occured trying to load the song file");
+                                }
+                            }
 
                         }
                         catch
@@ -435,8 +510,8 @@ namespace linerider
                             }
                         }
                         var x1 = br.ReadDouble();
-						var y1 = br.ReadDouble();
-						var x2 = br.ReadDouble();
+                        var y1 = br.ReadDouble();
+                        var x2 = br.ReadDouble();
                         var y2 = br.ReadDouble();
                         switch (lt)
                         {
@@ -553,12 +628,12 @@ namespace linerider
             }
             try
             {
-                var options = (List<Amf0Object>) trackdata.get_property("trackData");
+                var options = (List<Amf0Object>)trackdata.get_property("trackData");
                 if (options.Count >= 2)
                 {
                     try
                     {
-                        ret.ZeroStart = (bool) options.Find(x => x.name == "2").get_property("5");
+                        ret.ZeroStart = (bool)options.Find(x => x.name == "2").get_property("5");
                     }
                     catch
                     {
@@ -578,65 +653,65 @@ namespace linerider
                 switch (type)
                 {
                     case 0:
-                    {
-                        var l =
-                            new StandardLine(
-                                new Vector2d(Convert.ToDouble(line[0].data, CultureInfo.InvariantCulture),
-                                    Convert.ToDouble(line[1].data, CultureInfo.InvariantCulture)),
-                                new Vector2d(Convert.ToDouble(line[2].data, CultureInfo.InvariantCulture),
-                                    Convert.ToDouble(line[3].data, CultureInfo.InvariantCulture)),
-                                Convert.ToBoolean(line[5].data, CultureInfo.InvariantCulture))
+                        {
+                            var l =
+                                new StandardLine(
+                                    new Vector2d(Convert.ToDouble(line[0].data, CultureInfo.InvariantCulture),
+                                        Convert.ToDouble(line[1].data, CultureInfo.InvariantCulture)),
+                                    new Vector2d(Convert.ToDouble(line[2].data, CultureInfo.InvariantCulture),
+                                        Convert.ToDouble(line[3].data, CultureInfo.InvariantCulture)),
+                                    Convert.ToBoolean(line[5].data, CultureInfo.InvariantCulture))
+                                {
+                                    ID = Convert.ToInt32(line[8].data, CultureInfo.InvariantCulture)
+                                };
+                            l.SetExtension(Convert.ToInt32(line[4].data, CultureInfo.InvariantCulture));
+                            if (line[6].data != null)
                             {
-                                ID = Convert.ToInt32(line[8].data, CultureInfo.InvariantCulture)
-                            };
-                        l.SetExtension(Convert.ToInt32(line[4].data, CultureInfo.InvariantCulture));
-                        if (line[6].data != null)
-                        {
-                            var prev = Convert.ToInt32(line[6].data, CultureInfo.InvariantCulture);
-                            extensions.Add(new Extensionentry {Line = l, Linkid = prev, Next = false});
+                                var prev = Convert.ToInt32(line[6].data, CultureInfo.InvariantCulture);
+                                extensions.Add(new Extensionentry { Line = l, Linkid = prev, Next = false });
+                            }
+                            if (line[7].data != null)
+                            {
+                                var next = Convert.ToInt32(line[7].data, CultureInfo.InvariantCulture);
+                                extensions.Add(new Extensionentry { Line = l, Linkid = next, Next = true });
+                            }
+                            if (!addedlines.ContainsKey(l.ID))
+                            {
+                                ret.AddLines(l);
+                                addedlines[l.ID] = l;
+                            }
                         }
-                        if (line[7].data != null)
-                        {
-                            var next = Convert.ToInt32(line[7].data, CultureInfo.InvariantCulture);
-                            extensions.Add(new Extensionentry {Line = l, Linkid = next, Next = true});
-                        }
-                        if (!addedlines.ContainsKey(l.ID))
-                        {
-                            ret.AddLines(l);
-                            addedlines[l.ID] = l;
-                        }
-                    }
                         break;
 
                     case 1:
-                    {
-                        var l =
-                            new RedLine(
-                                new Vector2d(Convert.ToDouble(line[0].data, CultureInfo.InvariantCulture),
-                                    Convert.ToDouble(line[1].data, CultureInfo.InvariantCulture)),
-                                new Vector2d(Convert.ToDouble(line[2].data, CultureInfo.InvariantCulture),
-                                    Convert.ToDouble(line[3].data, CultureInfo.InvariantCulture)),
-                                Convert.ToBoolean(line[5].data, CultureInfo.InvariantCulture))
+                        {
+                            var l =
+                                new RedLine(
+                                    new Vector2d(Convert.ToDouble(line[0].data, CultureInfo.InvariantCulture),
+                                        Convert.ToDouble(line[1].data, CultureInfo.InvariantCulture)),
+                                    new Vector2d(Convert.ToDouble(line[2].data, CultureInfo.InvariantCulture),
+                                        Convert.ToDouble(line[3].data, CultureInfo.InvariantCulture)),
+                                    Convert.ToBoolean(line[5].data, CultureInfo.InvariantCulture))
+                                {
+                                    ID = Convert.ToInt32(line[8].data, CultureInfo.InvariantCulture)
+                                };
+                            l.SetExtension(Convert.ToInt32(line[4].data, CultureInfo.InvariantCulture));
+                            if (line[6].data != null)
                             {
-                                ID = Convert.ToInt32(line[8].data, CultureInfo.InvariantCulture)
-                            };
-                        l.SetExtension(Convert.ToInt32(line[4].data, CultureInfo.InvariantCulture));
-                        if (line[6].data != null)
-                        {
-                            var prev = Convert.ToInt32(line[6].data, CultureInfo.InvariantCulture);
-                            extensions.Add(new Extensionentry {Line = l, Linkid = prev, Next = false});
+                                var prev = Convert.ToInt32(line[6].data, CultureInfo.InvariantCulture);
+                                extensions.Add(new Extensionentry { Line = l, Linkid = prev, Next = false });
+                            }
+                            if (line[7].data != null)
+                            {
+                                var next = Convert.ToInt32(line[7].data, CultureInfo.InvariantCulture);
+                                extensions.Add(new Extensionentry { Line = l, Linkid = next, Next = true });
+                            }
+                            if (!addedlines.ContainsKey(l.ID))
+                            {
+                                ret.AddLines(l);
+                                addedlines[l.ID] = l;
+                            }
                         }
-                        if (line[7].data != null)
-                        {
-                            var next = Convert.ToInt32(line[7].data, CultureInfo.InvariantCulture);
-                            extensions.Add(new Extensionentry {Line = l, Linkid = next, Next = true});
-                        }
-                        if (!addedlines.ContainsKey(l.ID))
-                        {
-                            ret.AddLines(l);
-                            addedlines[l.ID] = l;
-                        }
-                    }
                         break;
 
                     case 2:

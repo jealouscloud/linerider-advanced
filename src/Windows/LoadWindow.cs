@@ -31,6 +31,12 @@ namespace linerider.Windows
 {
     class LoadWindow : Window
     {
+        class BadException : Exception
+        {
+            public BadException(string s) : base(s)
+            {
+            }
+        }
         private GLWindow game;
         public LoadWindow(Gwen.Controls.ControlBase parent, GLWindow glgame) : base(parent, "Load Track")
         {
@@ -42,31 +48,28 @@ namespace linerider.Windows
             var files = Program.UserDirectory + "Tracks";
             if (Directory.Exists(files))
             {
-                var solfiles =
-                    Directory.GetFiles(files, "*.*")
+                var solfiles = Directory.GetFiles(files, "*.*")
                         .Where(s => s != null && s.EndsWith(".sol", StringComparison.OrdinalIgnoreCase));
                 foreach (var sol in solfiles)
                 {
-                    var node = tv.AddNode(Path.GetFileName(sol));
-                    node.UserData = sol;
+                    AddTrack(tv, sol, null);
                 }
             }
             if (Directory.Exists(files))
             {
-                var trkfiles =
-       Directory.GetFiles(files, "*.*")
-           .Where(s => s != null && s.EndsWith(".trk", StringComparison.OrdinalIgnoreCase));
+                var trkfiles = Directory.GetFiles(files, "*.*")
+                        .Where(s => s != null && s.EndsWith(".trk", StringComparison.OrdinalIgnoreCase));
                 foreach (var trk in trkfiles)
                 {
                     AddTrack(tv, trk, null);
                 }
+
                 var folders = Directory.GetDirectories(files);
                 foreach (var folder in folders)
                 {
-                    var trackname = Path.GetFileName(folder);
                     var trackfiles = TrackLoader.EnumerateTRKFiles(folder);
 
-                    AddTrack(tv, trackname, trackfiles);
+                    AddTrack(tv, folder, trackfiles);
                 }
             }
             var container = new ControlBase(this);
@@ -96,32 +99,23 @@ namespace linerider.Windows
 
             game.Cursor = OpenTK.MouseCursor.Default;
         }
-        private void AddSolTracks(TreeControl tv, string name, List<sol_track> tracks)
+        private void AddTrack(TreeControl tv, string fileroot, string[] childpaths)
         {
-            var rootnode = tv.AddNode(name);
-            if (tracks.Count != 0)
-                rootnode.UserData = tracks[0];
-            foreach (var child in tracks)
+            // all filenames are expected to be passed as absolute
+            // fileroot, childpaths.
+            if (childpaths == null)
             {
-                rootnode.AddNode(child.name).UserData = child;
+                var rootnode = tv.AddNode(Path.GetFileName(fileroot));
+                rootnode.UserData = fileroot;
             }
-        }
-        private void AddTrack(TreeControl tv, string root, string[] children)
-        {
-            if (children == null)
+            else if (childpaths.Length != 0)
             {
-                tv.AddNode(Path.GetFileName(root)).UserData = root;
-            }
-            else
-            {
-                if (children.Length != 0)
+                //a folder of tracks.
+                var rootnode = tv.AddNode(Path.GetFileName(fileroot));
+                rootnode.UserData = fileroot;
+                foreach (var child in childpaths)
                 {
-                    var rootnode = tv.AddNode(root);
-                    rootnode.UserData = root;
-                    foreach (var child in children)
-                    {
-                        rootnode.AddNode(Path.GetFileName(child)).UserData = child;
-                    }
+                    rootnode.AddNode(Path.GetFileName(child)).UserData = child;
                 }
             }
         }
@@ -133,86 +127,90 @@ namespace linerider.Windows
             if (en.Count > 0)
             {
                 var selected = en[0];
-                var wc = new WindowControl(this, "Delete Track", false);
-                wc.MakeModal(true);
-                wc.DeleteOnClose = true;
+                var delwindow = new WindowControl(this, "Delete Track", false);
+                delwindow.MakeModal(true);
+                delwindow.DeleteOnClose = true;
                 var mg = new Margin(0, 30, 0, 5);
-                var btnok = new Button(wc);
+                var btnok = new Button(delwindow);
                 btnok.Clicked += (o, e) =>
                 {
-                    if (selected.UserData is sol_track)
+                    try
                     {
-                        if (!selected.IsRoot)
-                            return;
-                        wc.Close();
-                        var data = selected.UserData as sol_track;
-                        File.Delete(data.filename);
-                    }
-                    else
-                    {
-                        wc.Close();
-                        var data = (string)selected.UserData;
-                        var isfile = data.EndsWith(".trk", StringComparison.OrdinalIgnoreCase);
-                        if (selected.IsRoot)
+                        if (selected.UserData is sol_track)
                         {
-                            try
+                            if (!selected.IsRoot)
+                                return;
+                            var data = selected.UserData as sol_track;
+                            File.Delete(data.filename);
+                        }
+                        else if (selected.UserData is string)
+                        {
+                            var data = (string)selected.UserData;
+                            var dir = Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar;
+                            if (!data.StartsWith(dir, StringComparison.OrdinalIgnoreCase))
+                                throw new BadException("Please report this bug immediately. LRA just tried to delete a file outside of the tracks folder.");
+                            var subs = data.IndexOf(dir, StringComparison.OrdinalIgnoreCase) + dir.Length;
+                            if (subs + 1 >= data.Length || data[subs + 1] == Path.DirectorySeparatorChar)
                             {
-                                if (isfile)
+                                throw new BadException("Please report this bug immediately. LRA might have just tried to delete your whole tracks folder.");
+                            }
+                            if (data.EndsWith(".sol", StringComparison.OrdinalIgnoreCase))//unopened sol file
+                            {
+                                File.Delete(data);
+                            }
+                            else
+                            {
+                                bool trackfolder = selected.Children.Count > 0;
+                                if (trackfolder)
                                 {
-                                    File.Delete(Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar + data[0]);
+                                    Directory.Delete(data, true);
                                 }
                                 else
                                 {
-                                    Directory.Delete(
-                                        Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar + data[0] + Path.DirectorySeparatorChar, true);
+                                    File.Delete(data);
                                 }
-                            }
-                            catch
-                            {
-                                return;
                             }
                         }
                         else
                         {
-                            try
-                            {
-                                File.Delete(Program.UserDirectory + "Tracks" +
-                                            Path.DirectorySeparatorChar + data[0] +
-                                            Path.DirectorySeparatorChar + data[1] + ".trk");
-                            }
-                            catch
-                            {
-                                return;
-                            }
+                            return;
                         }
                     }
-
+                    catch (BadException ue)
+                    {
+                        throw ue;
+                    }
+                    catch
+                    {
+                        return;
+                    }
                     selected.Parent.RemoveChild(selected, true);
                     if (!selected.IsRoot && selected.Parent.Children.Count == 0)
                     {
                         selected.Parent.Parent.RemoveChild(selected.Parent, true);
                     }
+                    delwindow.Close();
                 };
                 btnok.Dock = Pos.Left;
                 btnok.Text = "Okay";
                 btnok.Margin = mg;
-                var btncancel = new Button(wc);
-                btncancel.Clicked += (o, e) => { wc.Close(); };
+                var btncancel = new Button(delwindow);
+                btncancel.Clicked += (o, e) => { delwindow.Close(); };
                 btncancel.Text = "Cancel";
                 btncancel.Dock = Pos.Right;
                 btncancel.Margin = mg;
-                var lbl = new Label(wc)
+                var lbl = new Label(delwindow)
                 {
                     Dock = Pos.Center,
-                    Text = "Are you sure you want to delete the track" + (selected.IsRoot ? " folder?" : "?")
+                    Text = "Are you sure you want to delete the track" + (selected.Children.Count > 0 ? " folder?" : "?")
                 };
                 lbl.SizeToContents();
-                wc.Width = lbl.Width + 12;
-                wc.Height = 55 + mg.Top;
-                wc.Show();
-                wc.SetPosition((int)(Width / 2) - (wc.Width / 2),
-                    (int)(Height / 2) - (wc.Height / 2));
-                wc.DisableResizing();
+                delwindow.Width = lbl.Width + 12;
+                delwindow.Height = 55 + mg.Top;
+                delwindow.Show();
+                delwindow.SetPosition((int)(Width / 2) - (delwindow.Width / 2),
+                    (int)(Height / 2) - (delwindow.Height / 2));
+                delwindow.DisableResizing();
             }
         }
         private void loadbtn_Clicked(ControlBase sender, ClickedEventArgs arguments)
@@ -262,7 +260,7 @@ namespace linerider.Windows
                                     game.EnableSong = false;
                                     game.Track.ChangeTrack(TrackLoader.LoadTrack(tracks[0]));
                                 }
-                                else 
+                                else
                                 {
                                     selected.UserData = tracks[0];
                                     selected.ExpandAll();
@@ -277,10 +275,17 @@ namespace linerider.Windows
                         else
                         {
                             bool trackfolder = selected.Children.Count > 0;
-                            string trackname = selected.IsRoot ? Path.GetFileNameWithoutExtension(data) : (string)selected.Parent.UserData;
+                            string trackname;
                             if (trackfolder)
                             {
+                                // getfilenamewithoutextension interacts weird
+                                // with periods in the directory name.
+                                trackname = Path.GetFileName(data);
                                 data = (string)selected.Children[0].UserData;
+                            }
+                            else
+                            {
+                                trackname = selected.IsRoot? Path.GetFileNameWithoutExtension(data) : (string)selected.Parent.UserData;
                             }
                             game.EnableSong = false;
                             game.Track.ChangeTrack(TrackLoader.LoadTrackTRK(data, trackname));
@@ -293,10 +298,6 @@ namespace linerider.Windows
                         wc.FindChildByName("Okay", true).Clicked += (o, e) => { wc.Close(); };
                         return;
                     }
-                }
-                else
-                {
-
                 }
                 game.Track.TrackUpdated();
                 window.Close();
