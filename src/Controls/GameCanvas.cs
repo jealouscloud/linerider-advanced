@@ -446,9 +446,10 @@ namespace linerider
             var slider = (HorizontalIntSlider)sender;
             if (slider.Held || _draggingSlider)
             {
-                game.Track.EnterPlayback();
-                game.Track.SetFrame(slider.Value, false);
-                game.Track.ExitPlayback();
+                using (game.Track.EnterPlayback())
+                {
+                    game.Track.SetFrame(slider.Value, false);
+                }
                 if (!game.Track.Playing)
                 {
                     game.Track.Camera.SetFrame(game.Track.RiderState.CalculateCenter(), false);

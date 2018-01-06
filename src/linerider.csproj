@@ -118,6 +118,7 @@
     <Compile Include="Windows\Window.cs" />
     <Compile Include="Drawing\MsaaFbo.cs" />
     <Compile Include="GameResources.cs" />
+    <Compile Include="Utils\ResourceSync.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="NVorbis, Version=0.8.5.0, Culture=neutral, processorArchitecture=MSIL">

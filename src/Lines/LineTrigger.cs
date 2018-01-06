@@ -40,7 +40,6 @@ namespace linerider
 
         public bool Activate()
         {
-            ;
             if (Zoomtrigger)
             {
                 if (zoomcounter == 0)
