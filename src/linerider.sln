@@ -10,8 +10,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gwen.Renderer.OpenTK", "..\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{F8168EE7-D966-486D-81AA-EAE456DC0036}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickFont", "..\lib\QuickFont\QuickFont.csproj", "{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,14 +41,6 @@ Global
 		{41650C82-D630-4E5C-845A-F1513C8FDC99}.Release|Any CPU.Build.0 = Debug|Any CPU
 		{41650C82-D630-4E5C-845A-F1513C8FDC99}.Release|x86.ActiveCfg = Debug|Any CPU
 		{41650C82-D630-4E5C-845A-F1513C8FDC99}.Release|x86.Build.0 = Debug|Any CPU
-		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Debug|x86.Build.0 = Debug|Any CPU
-		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Release|Any CPU.ActiveCfg = Debug|Any CPU
-		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Release|Any CPU.Build.0 = Debug|Any CPU
-		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Release|x86.ActiveCfg = Debug|Any CPU
-		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Release|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -58,6 +48,5 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{ADDA2F43-96C0-497F-8216-29C67ABC9806} = {F8168EE7-D966-486D-81AA-EAE456DC0036}
 		{41650C82-D630-4E5C-845A-F1513C8FDC99} = {F8168EE7-D966-486D-81AA-EAE456DC0036}
-		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF} = {F8168EE7-D966-486D-81AA-EAE456DC0036}
 	EndGlobalSection
 EndGlobal
