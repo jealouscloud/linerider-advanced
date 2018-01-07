@@ -80,6 +80,7 @@
     <Compile Include="Game\GameScheduler.cs" />
     <Compile Include="Game\GridPoint.cs" />
     <Compile Include="Game\Rider.cs" />
+    <Compile Include="Game\SimulationGrid.cs" />
     <Compile Include="Lines\BindLine.cs" />
     <Compile Include="Lines\DynamicLine.cs" />
     <Compile Include="Lines\Line.cs" />
