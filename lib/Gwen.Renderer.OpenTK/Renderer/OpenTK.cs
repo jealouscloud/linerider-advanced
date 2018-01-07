@@ -1,6 +1,5 @@
 ﻿using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using QuickFont;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,6 +12,14 @@ namespace Gwen.Renderer
 {
     public class OpenTK : RendererBase
     {
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public struct Vertex
+        {
+            public short x, y;
+            public float u, v;
+            public byte r, g, b, a;
+        }
+
         #region Properties
 
         public int DrawCallCount { get { return m_DrawCallCount; } }
@@ -29,7 +36,26 @@ namespace Gwen.Renderer
         public int VertexCount { get { return m_VertNum; } }
 
         #endregion Properties
+        #region Fields
+        private const int MaxVerts = 1024;
+        static private int m_LastTextureID;
+        private readonly int m_VertexSize;
+        private readonly Vertex[] m_Vertices;
+        private bool m_ClipEnabled;
+        private Color m_Color;
 
+        // only used for text measurement
+        private int m_DrawCallCount;
+
+        private float m_PrevAlphaRef;
+        private int m_PrevBlendSrc, m_PrevBlendDst, m_PrevAlphaFunc;
+        private bool m_RestoreRenderState;
+        private StringFormat m_StringFormat;
+        private bool m_TextureEnabled;
+        private int m_VertNum;
+        private bool m_WasBlendEnabled, m_WasTexture2DEnabled, m_WasDepthTestEnabled;
+
+        #endregion Fields
         #region Constructors
 
         public OpenTK(bool restoreRenderState = true)
@@ -270,11 +296,10 @@ namespace Gwen.Renderer
                 return;
             if (font is BitmapFont)
             {
-                var f = font.RendererData as QuickFont.QFont;
+                var f = font.RendererData as Texture;
                 if (f == null)
                     throw new InvalidOperationException("Freeing empty font");
-                f.Dispose();
-                font.RendererData = null;
+                FreeTexture(f);
                 return;
             }
             Debug.Print(String.Format("FreeFont {0} - actual free", font.FaceName));
@@ -304,16 +329,7 @@ namespace Gwen.Renderer
             {
                 return true;
             }
-            font.RealSize = font.Size * Scale;
-            System.Drawing.Font sysFont = font.RendererData as System.Drawing.Font;
-
-            if (sysFont != null)
-            {
-                sysFont.Dispose();
-            }
-            sysFont = new System.Drawing.Font(font.FaceName, font.Size);
-            font.RendererData = sysFont;
-            return true;
+            return false;
         }
 
         public override void LoadTexture(Texture t)
@@ -401,9 +417,8 @@ namespace Gwen.Renderer
             //Debug.Print(String.Format("MeasureText '{0}'", text));
             if (font is BitmapFont)
             {
-                var data = (QFont)font.RendererData;
-                var ret = data.Measure(text);
-                ret.Height += 1;
+                var data = (BitmapFont)font;
+                var ret = data.fontdata.MeasureText(text);
                 return new Point((int)ret.Width, (int)ret.Height);
             }
             else
@@ -450,55 +465,18 @@ namespace Gwen.Renderer
         {
             //Debug.Print(String.Format("RenderText {0}", font.FaceName));
 
-            // The DrawString(...) below will bind a new texture
-            // so make sure everything is rendered!
-            Flush();
             if (font is BitmapFont)
             {
-                var data = (QFont)font.RendererData;
-                GL.PushAttrib(AttribMask.TextureBit);
-                GL.PushAttrib(AttribMask.EnableBit);
-                GL.PushAttrib(AttribMask.ScissorBit);
+                var data = (BitmapFont)font;
                 {
-                    data.Options.Colour = DrawColor;
-                    position = Translate(position);
-                    if (m_ClipEnabled)
+                    var vertices = data.fontdata.GenerateText(position.X, position.Y, text);
+                    for (int i = 0; i < vertices.Count; i += 4)
                     {
-                        GL.Clear(ClearBufferMask.StencilBufferBit);
-                        GL.Enable(EnableCap.StencilTest);
-                        GL.ColorMask(false, false, false, false);
-                        GL.StencilFunc(StencilFunction.Always, 1, 0xFF);
-                        GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
-                        GL.StencilMask(0xFF);
-                        GL.Clear(ClearBufferMask.StencilBufferBit);
-                        GL.Begin(PrimitiveType.Quads);
-                        {
-                            GL.Vertex2(ClipRegion.Left, ClipRegion.Top);
-                            GL.Vertex2(ClipRegion.Right, ClipRegion.Top);
-                            GL.Vertex2(ClipRegion.Right, ClipRegion.Bottom);
-                            GL.Vertex2(ClipRegion.Left, ClipRegion.Bottom);
-                        }
-                        GL.End();
-                        GL.ColorMask(true, true, true, true);
-                        GL.StencilMask(0);
-
-                        GL.StencilFunc(StencilFunction.Equal, 1, 0xFF);
-                    }
-
-                    data.ResetVBOs();
-                    data.PrintToVBO(text, new Vector3(position.X, position.Y, 0), DrawColor, QFontAlignment.Left);
-                    data.LoadVBOs();
-                    data.DrawVBOs();
-                    data.UnloadVBOs();
-                    if (m_ClipEnabled)
-                    {
-                        GL.Clear(ClearBufferMask.StencilBufferBit);
-                        GL.Disable(EnableCap.StencilTest);
+                        var tl = vertices[i];
+                        var br = vertices[i + 2];
+                        DrawTexturedRect(data.texture, Rectangle.FromLTRB(tl.x, tl.y, br.x, br.y), tl.u, tl.v, br.u, br.v);
                     }
                 }
-                GL.PopAttrib();
-                GL.PopAttrib();
-                GL.PopAttrib();
                 return;
             }
             else
@@ -511,65 +489,6 @@ namespace Gwen.Renderer
         {
             m_ClipEnabled = true;
         }
-
-        #endregion Methods
-
-        #region Structs
-
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public struct Vertex
-        {
-            public short x, y;
-            public float u, v;
-            public byte r, g, b, a;
-        }
-
-        #endregion Structs
-
-        #region Classes
-
-        public class BitmapFont : Font
-        {
-            #region Constructors
-
-            public BitmapFont(RendererBase renderer, string facename, int basesize, int realsize, byte[] qfontdata, List<Bitmap> png)
-                : base(renderer, facename, basesize)
-            {
-                RealSize = realsize;
-                Size = basesize;
-                var config = new QFontLoaderConfiguration();
-                var data = QFont.FromQFontAndBitmap(png, qfontdata, (float)realsize / (float)basesize, config);
-                data.Options.UseDefaultBlendFunction = false;
-                data.Options.WordSpacing = 0.45f;
-                RendererData = data;
-            }
-
-            #endregion Constructors
-        }
-
-        #endregion Classes
-
-        #region Fields
-
-        private const int MaxVerts = 1024;
-        static private int m_LastTextureID;
-        private readonly int m_VertexSize;
-        private readonly Vertex[] m_Vertices;
-        private bool m_ClipEnabled;
-        private Color m_Color;
-
-        // only used for text measurement
-        private int m_DrawCallCount;
-
-        private float m_PrevAlphaRef;
-        private int m_PrevBlendSrc, m_PrevBlendDst, m_PrevAlphaFunc;
-        private bool m_RestoreRenderState;
-        private StringFormat m_StringFormat;
-        private bool m_TextureEnabled;
-        private int m_VertNum;
-        private bool m_WasBlendEnabled, m_WasTexture2DEnabled, m_WasDepthTestEnabled;
-
-        #endregion Fields
 
         private void DrawRect(Rectangle rect, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
         {
@@ -693,5 +612,6 @@ namespace Gwen.Renderer
 
             m_VertNum += 4;
         }
+        #endregion Methods
     }
 }

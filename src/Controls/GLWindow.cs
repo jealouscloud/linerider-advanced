@@ -332,10 +332,12 @@ namespace linerider
             MSAABuffer = new MsaaFbo();
             var renderer = new Gwen.Renderer.OpenTK();
 
-            var tx = new Texture(renderer);
-            Gwen.Renderer.OpenTK.LoadTextureInternal(tx, GameResources.DefaultSkin); 
-            var bmpfont = new Gwen.Renderer.OpenTK.BitmapFont(renderer, "SourceSansPro", 10, 10, GameResources.SourceSansProq, new List<Bitmap> { GameResources.SourceSansPro_img });
-            var skin = new Gwen.Skin.TexturedBase(renderer, tx, GameResources.DefaultColors) { DefaultFont = bmpfont };
+            var skinpng = new Texture(renderer);
+            Gwen.Renderer.OpenTK.LoadTextureInternal(skinpng, GameResources.DefaultSkin); 
+            var fontpng = new Texture(renderer);
+            Gwen.Renderer.OpenTK.LoadTextureInternal(fontpng, GameResources.gamefont_15_png);
+            var gamefont_15 = new Gwen.Renderer.BitmapFont(renderer, GameResources.gamefont_15_fnt, fontpng);
+            var skin = new Gwen.Skin.TexturedBase(renderer, skinpng, GameResources.DefaultColors) { DefaultFont = gamefont_15 };
             Canvas = new GameCanvas(skin, this, renderer);
             _input = new Gwen.Input.OpenTK(this);
             _input.Initialize(Canvas);

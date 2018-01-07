@@ -380,14 +380,6 @@ namespace linerider
             }
         }
 
-        internal static System.Drawing.Bitmap SourceSansPro_img
-        {
-            get
-            {
-                return GetBitmap("SourceSansPro_img.png");
-            }
-        }
-
         internal static System.Drawing.Bitmap stop_icon
         {
             get
@@ -412,19 +404,25 @@ namespace linerider
             }
         }
 
-        internal static byte[] SourceSansProq
-        {
-            get
-            {
-                return GetBytes("SourceSansProq.qfont");
-            }
-        }
-
         internal static string DefaultColors
         {
             get
             {
                 return GetString("DefaultColors.xml");
+            }
+        }
+        internal static string gamefont_15_fnt
+        {
+            get
+            {
+                return GetString("gamefont_15.fnt");
+            }
+        }
+        internal static System.Drawing.Bitmap gamefont_15_png
+        {
+            get
+            {
+                return GetBitmap("gamefont_15_0.png");
             }
         }
     }

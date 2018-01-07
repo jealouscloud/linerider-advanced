@@ -135,9 +135,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\beep.wav" />
-    <EmbeddedResource Include="Resources\bosh.svg" />
-    <EmbeddedResource Include="Resources\boshdead.svg" />
-    <EmbeddedResource Include="Resources\brokensled.svg" />
     <EmbeddedResource Include="Resources\circletex.png" />
     <EmbeddedResource Include="Resources\closed_move_icon.png" />
     <EmbeddedResource Include="Resources\cursor_adjustline.png" />
@@ -160,9 +157,6 @@
     <EmbeddedResource Include="Resources\pencil_icon.png" />
     <EmbeddedResource Include="Resources\play_icon.png" />
     <EmbeddedResource Include="Resources\rewind.png" />
-    <EmbeddedResource Include="Resources\SourceSansPro_img.png" />
-    <EmbeddedResource Include="Resources\SourceSansProq.qfont" />
-    <EmbeddedResource Include="Resources\SourceSansPro-Regular.otf" />
     <EmbeddedResource Include="Resources\stop_icon.png" />
     <EmbeddedResource Include="Resources\White\eraser_icon_white.png" />
     <EmbeddedResource Include="Resources\White\fast-forward_white.png" />
@@ -178,22 +172,16 @@
     <EmbeddedResource Include="Resources\White\stop_icon_white.png" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\leg.png" />
+    <EmbeddedResource Include="Resources\brokensled.png" />
+    <EmbeddedResource Include="Resources\boshdead.png" />
+    <EmbeddedResource Include="Resources\bosh.png" />
+    <EmbeddedResource Include="Resources\arm.png" />
     <EmbeddedResource Include="Resources\sled.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\bosh.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\arm.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\boshdead.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\leg.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\brokensled.png" />
+    <EmbeddedResource Include="Resources\gamefont_15_0.png" />
+    <EmbeddedResource Include="Resources\gamefont_15.fnt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.manifest" />
@@ -213,10 +201,6 @@
     <ProjectReference Include="..\lib\Gwen.Renderer.OpenTK\Gwen.Renderer.OpenTK.csproj">
       <Project>{41650c82-d630-4e5c-845a-f1513c8fdc99}</Project>
       <Name>Gwen.Renderer.OpenTK</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\lib\QuickFont\QuickFont.csproj">
-      <Project>{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}</Project>
-      <Name>QuickFont</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
