@@ -208,8 +208,7 @@ namespace linerider.Windows
                 delwindow.Width = lbl.Width + 12;
                 delwindow.Height = 55 + mg.Top;
                 delwindow.Show();
-                delwindow.SetPosition((int)(Width / 2) - (delwindow.Width / 2),
-                    (int)(Height / 2) - (delwindow.Height / 2));
+                delwindow.SetPosition((game.Canvas.Width / 2) - (delwindow.Width / 2), (game.Canvas.Height / 2) - (delwindow.Height / 2));
                 delwindow.DisableResizing();
             }
         }
@@ -285,7 +284,7 @@ namespace linerider.Windows
                             }
                             else
                             {
-                                trackname = selected.IsRoot? Path.GetFileNameWithoutExtension(data) : (string)selected.Parent.UserData;
+                                trackname = Path.GetFileNameWithoutExtension(data);
                             }
                             game.EnableSong = false;
                             game.Track.ChangeTrack(TrackLoader.LoadTrackTRK(data, trackname));
