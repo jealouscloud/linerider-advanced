@@ -494,7 +494,7 @@ namespace linerider
                     }
                     nud.Min = 1;
                     nud.Max = 9999;
-                    redlines.Sort(new Track.Linecomparer());
+                    redlines.Sort(new Linecomparer());
                     nud.Value = redlines.Count;
                     nud.ValueChanged += (o, e) =>
                     {

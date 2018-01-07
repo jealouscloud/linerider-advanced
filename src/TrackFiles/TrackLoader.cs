@@ -420,11 +420,11 @@ namespace linerider
                     }
                     if (supports61)
                     {
-                        ret.SetVersion(6.1m);
+                        ret.SetVersion(61);
                     }
                     else
                     {
-                        ret.SetVersion(6.2m);
+                        ret.SetVersion(62);
                     }
                     if (songinfo)
                     {
@@ -620,11 +620,11 @@ namespace linerider
 
             if (version == "6.1")
             {
-                ret.SetVersion(6.1m);
+                ret.SetVersion(61);
             }
             else
             {
-                ret.SetVersion(6.2m);
+                ret.SetVersion(62);
             }
             try
             {

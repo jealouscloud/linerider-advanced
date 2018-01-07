@@ -18,20 +18,6 @@ namespace QuickFont
 		}
 
 		/// <summary>
-		/// Ensures GL.End() is called
-		/// </summary>
-		/// <param name="mode"></param>
-		/// <param name="code"></param>
-		public static void SafeGLBegin(BeginMode mode, Action code)
-		{
-			GL.Begin(mode);
-
-			code();
-
-			GL.End();
-		}
-
-		/// <summary>
 		/// Ensures that state is disabled
 		/// </summary>
 		/// <param name="cap"></param>
