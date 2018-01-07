@@ -27,7 +27,7 @@ using Gwen;
 using Gwen.Controls;
 using linerider.Audio;
 
-namespace linerider.Windows
+namespace linerider.UI
 {
     class SongWindow : WindowControl
     {
@@ -162,7 +162,7 @@ namespace linerider.Windows
             l.Dock = Pos.Bottom;
             l.Margin = new Margin(0, 10, 0, 0);
             l.Text = "Files in Documents/LRA/Songs";
-            game.Cursor = OpenTK.MouseCursor.Default;
+            game.Cursor = game.Cursors["default"];
         }
     }
 }

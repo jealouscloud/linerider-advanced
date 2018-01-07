@@ -109,17 +109,18 @@
     <Compile Include="TrackFiles\SOL.cs" />
     <Compile Include="TrackFiles\TrackLoader.cs" />
     <Compile Include="TrackFiles\TrackRecorder.cs" />
-    <Compile Include="Windows\ExportVideoWindow.cs" />
-    <Compile Include="Windows\LoadWindow.cs" />
-    <Compile Include="Windows\NumberProperty.cs" />
-    <Compile Include="Windows\PopupWindow.cs" />
-    <Compile Include="Windows\PreferencesWindow.cs" />
-    <Compile Include="Windows\SaveWindow.cs" />
-    <Compile Include="Windows\SongWindow.cs" />
-    <Compile Include="Windows\Window.cs" />
+    <Compile Include="UI\ExportVideoWindow.cs" />
+    <Compile Include="UI\LoadWindow.cs" />
+    <Compile Include="UI\NumberProperty.cs" />
+    <Compile Include="UI\PopupWindow.cs" />
+    <Compile Include="UI\PreferencesWindow.cs" />
+    <Compile Include="UI\SaveWindow.cs" />
+    <Compile Include="UI\SongWindow.cs" />
+    <Compile Include="UI\Window.cs" />
     <Compile Include="Drawing\MsaaFbo.cs" />
     <Compile Include="GameResources.cs" />
     <Compile Include="Utils\ResourceSync.cs" />
+    <Compile Include="Utils\CursorImpl.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="NVorbis, Version=0.8.5.0, Culture=neutral, processorArchitecture=MSIL">
@@ -136,19 +137,14 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\beep.wav" />
     <EmbeddedResource Include="Resources\circletex.png" />
-    <EmbeddedResource Include="Resources\closed_move_icon.png" />
-    <EmbeddedResource Include="Resources\cursor_adjustline.png" />
-    <EmbeddedResource Include="Resources\cursor_default.png" />
     <EmbeddedResource Include="Resources\DefaultColors.xml" />
     <EmbeddedResource Include="Resources\DefaultSkin.png" />
-    <EmbeddedResource Include="Resources\eraser_cursor.png" />
     <EmbeddedResource Include="Resources\eraser_icon.png" />
     <EmbeddedResource Include="Resources\fast-forward.png" />
     <EmbeddedResource Include="Resources\flag_icon.png" />
     <EmbeddedResource Include="Resources\gwell_tool.png" />
     <EmbeddedResource Include="Resources\icon.ico" />
     <EmbeddedResource Include="Resources\line_adjust_icon.png" />
-    <EmbeddedResource Include="Resources\line_cursor.png" />
     <EmbeddedResource Include="Resources\line_icon.png" />
     <EmbeddedResource Include="Resources\loading.png" />
     <EmbeddedResource Include="Resources\menu_icon.png" />
@@ -170,6 +166,19 @@
     <EmbeddedResource Include="Resources\White\play_icon_white.png" />
     <EmbeddedResource Include="Resources\White\rewind_white.png" />
     <EmbeddedResource Include="Resources\White\stop_icon_white.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\cursors\closed_move.png" />
+    <EmbeddedResource Include="Resources\cursors\eraser.png" />
+    <EmbeddedResource Include="Resources\cursors\line.png" />
+    <EmbeddedResource Include="Resources\cursors\move.png" />
+    <EmbeddedResource Include="Resources\cursors\pencil.png" />
+    <EmbeddedResource Include="Resources\cursors\select.png" />
+    <EmbeddedResource Include="Resources\cursors\size_bdiag.png" />
+    <EmbeddedResource Include="Resources\cursors\size_fdiag.png" />
+    <EmbeddedResource Include="Resources\cursors\size_ver.png" />
+    <EmbeddedResource Include="Resources\cursors\size_hor.png" />
+    <EmbeddedResource Include="Resources\cursors\default.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\leg.png" />

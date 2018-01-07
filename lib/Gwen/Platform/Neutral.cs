@@ -9,15 +9,26 @@ namespace Gwen.Platform
     /// </summary>
     public static class Neutral
     {
+        public class CursorImplementation
+        {
+            public virtual void SetCursor(Cursor cursor)
+            {
+                Cursor.Current = cursor;
+            } 
+        }
         private static DateTime m_FirstTime = DateTime.Now;
-
+        public static CursorImplementation CursorSetter;
         /// <summary>
         /// Changes the mouse cursor.
         /// </summary>
         /// <param name="cursor">Cursor type.</param>
         public static void SetCursor(Cursor cursor)
         {
-            Cursor.Current = cursor;
+            if (CursorSetter == null)
+            {
+                CursorSetter = new CursorImplementation();
+            }
+            CursorSetter.SetCursor(cursor);
         }
 
         /// <summary>

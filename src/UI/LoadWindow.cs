@@ -27,7 +27,7 @@ using Gwen;
 using Gwen.Controls;
 using Gwen.Controls.Property;
 using System.IO;
-namespace linerider.Windows
+namespace linerider.UI
 {
     class LoadWindow : Window
     {
@@ -97,7 +97,7 @@ namespace linerider.Windows
             btndelete.Text = "Delete";
             btndelete.Clicked += btndelete_Clicked;
 
-            game.Cursor = OpenTK.MouseCursor.Default;
+            game.Cursor = game.Cursors["default"];
         }
         private void AddTrack(TreeControl tv, string fileroot, string[] childpaths)
         {

@@ -29,7 +29,7 @@ using System.Globalization;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
-namespace linerider.Windows
+namespace linerider.UI
 {
 	class PreferencesWindow : Window
 	{
@@ -194,7 +194,7 @@ shoe the lines as black instead");
                 Settings.Save();
             };
             lcb.Dock = Pos.Top;
-            lcb.SetToolTipText("Enabled a smooth predictive camera.\r\nExperimental.");
+            lcb.SetToolTipText("Enables a smooth predictive camera.\r\nExperimental.");
 
             lcb = new LabeledCheckBox(gb);
             lcb.Text = "Smooth Playback";

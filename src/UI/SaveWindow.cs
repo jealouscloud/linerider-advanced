@@ -29,7 +29,7 @@ using Gwen.Controls;
 using Gwen.Controls.Property;
 using OpenTK;
 
-namespace linerider.Windows
+namespace linerider.UI
 {
     class SaveWindow : Window
     {
@@ -77,7 +77,7 @@ namespace linerider.Windows
             btn.Dock = Pos.Right;
             btn.Clicked += savebtn_Clicked;
             DisableResizing();
-            game.Cursor = MouseCursor.Default;
+            game.Cursor = game.Cursors["default"];
         }
         private void savebtn_Clicked(ControlBase sender, ClickedEventArgs arguments)
         {
