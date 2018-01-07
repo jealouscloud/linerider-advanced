@@ -25,32 +25,32 @@ using System.Linq;
 using System.Text;
 using Gwen.Controls;
 using Gwen;
+using linerider.UI;
 namespace linerider
 {
     internal class PopupWindow
     {
+        class PopupControl : Window
+        {
+            public PopupControl(ControlBase parent, string title) : base(parent, title)
+            {
+            }
+        }
         public static WindowControl Error(ControlBase parent, GLWindow game, string text, string title)
         {
-            var wc = new WindowControl(parent, title, false);
+            var wc = new PopupControl(parent, title);
             wc.MakeModal(true);
             wc.Width = 200;
-            RichLabel l = new RichLabel(wc);
-            //  Align.StretchHorizontally(l);
-            l.Dock = Pos.Top;
-            l.Width = wc.Width;
-            l.AddText(text, parent.Skin.Colors.Label.Default, parent.Skin.DefaultFont);
+            wc.SetText(text);
             wc.Layout();
-            l.SizeToChildren(false, true);
-            wc.Height = 65 + l.Height;
-            Align.CenterHorizontally(l);
-                Button btn = new Button(wc);
-                btn.Name = "Okay";
-                btn.Text = "Okay";
-                btn.Height = 20;
-                btn.Y = l.Y + l.Height + 10;
-                btn.Width = 100;
-            btn.Clicked+= (o, e) => { ((WindowControl)o.Parent).Close();};
-                Align.AlignLeft(l);
+            wc.Height += 65; ;
+            Button btn = new Button(wc);
+            btn.Name = "Okay";
+            btn.Text = "Okay";
+            btn.Height = 20;
+            btn.Y = wc.Height - 10;// l.Y + l.Height + 10;
+            btn.Width = 100;
+            btn.Clicked += (o, e) => { ((WindowControl)o.Parent).Close(); };
             wc.Show();
             wc.SetPosition((game.RenderSize.Width / 2) - (wc.Width / 2), (game.RenderSize.Height / 2) - (wc.Height / 2));
             wc.DisableResizing();
@@ -62,8 +62,8 @@ namespace linerider
             wc.MakeModal(true);
             wc.Width = 200;
             RichLabel l = new RichLabel(wc);
-          //  Align.StretchHorizontally(l);
-          l.Dock = Pos.Top;
+            //  Align.StretchHorizontally(l);
+            l.Dock = Pos.Top;
             l.Width = wc.Width;
             l.AddText(text, parent.Skin.Colors.Label.Default, parent.Skin.DefaultFont);
             wc.Layout();
@@ -79,7 +79,7 @@ namespace linerider
                 btn.Y = l.Y + l.Height + 10;
                 btn.Width = 100;
                 Align.AlignLeft(l);
-                
+
             }
             if (cancel)
             {

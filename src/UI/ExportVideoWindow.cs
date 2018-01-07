@@ -25,9 +25,9 @@ using System.Linq;
 using System.Text;
 using Gwen;
 using Gwen.Controls;
-namespace linerider.Windows
+namespace linerider.UI
 {
-    class ExportVideoWindow : Gwen.Controls.WindowControl
+    class ExportVideoWindow : Window
     {
 
         public ExportVideoWindow(Gwen.Controls.ControlBase parent, GLWindow game) : base(parent, "Export Video")
@@ -89,18 +89,14 @@ namespace linerider.Windows
             buttoncancel.Width = 100;
             buttoncancel.Clicked += (o, e) => { this.Close(); };
             Align.AlignRight(buttoncancel);
-            var label = new RichLabel(this);
-            label.Dock = Pos.Top;
-            label.Width = this.Width;
 			if (Drawing.SafeFrameBuffer.CanRecord)
 			{
-				label.AddText("You are about to export your track as a video file. Make sure the end of the track is marked by a flag. It will be located in your line rider user directory (Documents/LRA).\r\nPlease allow some minutes depending on your computer speed. The window will become unresponsive during this time." + Environment.NewLine + Environment.NewLine + "After recording, a console window will open to encode the video. Closing it will cancel the process and all progress will be lost.", parent.Skin.Colors.Label.Default, parent.Skin.DefaultFont);
+				this.SetText("You are about to export your track as a video file. Make sure the end of the track is marked by a flag. It will be located in your line rider user directory (Documents/LRA).\r\nPlease allow some minutes depending on your computer speed. The window will become unresponsive during this time." + Environment.NewLine + Environment.NewLine + "After recording, a console window will open to encode the video. Closing it will cancel the process and all progress will be lost.");
 			}
 			else
 			{
-                label.AddText("Video export is not supported on this machine." + Environment.NewLine + "Sorry.", parent.Skin.Colors.Label.Default, parent.Skin.DefaultFont);
+                this.SetText("Video export is not supported on this machine." + Environment.NewLine + "Sorry.");
 			}
-			label.SizeToChildren(false, true);
             var radio = new RadioButtonGroup(bottom);
             radio.Name = "qualityselector";
             radio.AddOption("720p").Select();

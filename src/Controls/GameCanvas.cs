@@ -298,14 +298,14 @@ namespace linerider
         {
             if (GetOpenWindows().Count != 0)
                 return;
-            var loadwindow = new Windows.LoadWindow(this, game);
+            var loadwindow = new UI.LoadWindow(this, game);
             ShowCenteredWindow(loadwindow);
         }
         public void ShowSaveWindow()
         {
             if (GetOpenWindows().Count != 0)
                 return;
-            Windows.SaveWindow sw = new Windows.SaveWindow(this, game);
+            UI.SaveWindow sw = new UI.SaveWindow(this, game);
             ShowCenteredWindow(sw);
         }
         public void ShowSongWindow()
@@ -313,7 +313,7 @@ namespace linerider
             if (GetOpenWindows().Count != 0)
                 return;
             game.Track.Stop();
-            var songs = new Windows.SongWindow(this, game);
+            var songs = new UI.SongWindow(this, game);
             ShowCenteredWindow(songs);
         }
         public void ShowDelete()
@@ -337,14 +337,14 @@ namespace linerider
             }
             if (GetOpenWindows().Count != 0)
                 return;
-            ShowCenteredWindow(new Windows.PreferencesWindow(this, game));
+            ShowCenteredWindow(new UI.PreferencesWindow(this, game));
         }
         private void ShowCenteredWindow(WindowControl win)
         {
             win.Show();
             win.SetPosition((Width / 2) - (win.Width / 2), (Height / 2) - (win.Height / 2));
 
-            game.Cursor = MouseCursor.Default;
+            game.Cursor = game.Cursors["default"];
         }
         public List<ControlBase> GetOpenWindows()
         {

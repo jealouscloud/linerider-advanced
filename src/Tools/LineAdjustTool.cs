@@ -527,7 +527,7 @@ namespace linerider
                 selectionwindow.Show();
                 selectionwindow.X = (int)position.X;
                 selectionwindow.Y = (int)position.Y;
-                game.Cursor = MouseCursor.Default;
+                game.Cursor = game.Cursors["default"];
             }
         }
 

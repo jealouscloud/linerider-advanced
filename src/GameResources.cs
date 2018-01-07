@@ -105,27 +105,19 @@ namespace linerider
             }
         }
 
-        internal static System.Drawing.Bitmap closed_move_icon
+        internal static System.Drawing.Bitmap cursor_closed_move
         {
             get
             {
-                return GetBitmap("closed_move_icon.png");
+                return GetBitmap("cursors.closed_move.png");
             }
         }
 
-        internal static System.Drawing.Bitmap cursor_adjustline
+        internal static System.Drawing.Bitmap cursor_select
         {
             get
             {
-                return GetBitmap("cursor_adjustline.png");
-            }
-        }
-
-        internal static System.Drawing.Bitmap cursor_default
-        {
-            get
-            {
-                return GetBitmap("cursor_default.png");
+                return GetBitmap("cursors.select.png");
             }
         }
 
@@ -141,7 +133,7 @@ namespace linerider
         {
             get
             {
-                return GetBitmap("eraser_cursor.png");
+                return GetBitmap("cursors.eraser.png");
             }
         }
 
@@ -153,14 +145,6 @@ namespace linerider
             }
         }
 
-        internal static System.Drawing.Bitmap eraser_icon_white
-        {
-            get
-            {
-                return GetBitmap("White.eraser_icon_white.png");
-            }
-        }
-
         internal static System.Drawing.Bitmap fast_forward
         {
             get
@@ -169,11 +153,90 @@ namespace linerider
             }
         }
 
+        internal static System.Drawing.Bitmap eraser_icon_white
+        {
+            get
+            {
+                return GetBitmap("White.eraser_icon_white.png");
+            }
+        }
         internal static System.Drawing.Bitmap fast_forward_white
         {
             get
             {
                 return GetBitmap("White.fast-forward_white.png");
+            }
+        }
+
+
+        internal static System.Drawing.Bitmap flag_icon_white
+        {
+            get
+            {
+                return GetBitmap("White.flag_icon_white.png");
+            }
+        }
+        internal static System.Drawing.Bitmap line_adjust_icon_white
+        {
+            get
+            {
+                return GetBitmap("White.line_adjust_icon_white.png");
+            }
+        }
+        internal static System.Drawing.Bitmap line_icon_white
+        {
+            get
+            {
+                return GetBitmap("White.line_icon_white.png");
+            }
+        }
+        internal static System.Drawing.Bitmap menu_icon_white
+        {
+            get
+            {
+                return GetBitmap("White.menu_icon_white.png");
+            }
+        }
+        internal static System.Drawing.Bitmap move_icon_white
+        {
+            get
+            {
+                return GetBitmap("White.move_icon_white.png");
+            }
+        }
+        internal static System.Drawing.Bitmap pause_white
+        {
+            get
+            {
+                return GetBitmap("White.pause_white.png");
+            }
+        }
+        internal static System.Drawing.Bitmap pencil_icon_white
+        {
+            get
+            {
+                return GetBitmap("White.pencil_icon_white.png");
+            }
+        }
+        internal static System.Drawing.Bitmap play_icon_white
+        {
+            get
+            {
+                return GetBitmap("White.play_icon_white.png");
+            }
+        }
+        internal static System.Drawing.Bitmap rewind_white
+        {
+            get
+            {
+                return GetBitmap("White.rewind_white.png");
+            }
+        }
+        internal static System.Drawing.Bitmap stop_icon_white
+        {
+            get
+            {
+                return GetBitmap("White.stop_icon_white.png");
             }
         }
 
@@ -185,14 +248,6 @@ namespace linerider
             }
         }
 
-        internal static System.Drawing.Bitmap flag_icon_white
-        {
-            get
-            {
-                return GetBitmap("White.flag_icon_white.png");
-            }
-        }
-
         internal static System.Drawing.Bitmap line_adjust_icon
         {
             get
@@ -201,19 +256,19 @@ namespace linerider
             }
         }
 
-        internal static System.Drawing.Bitmap line_adjust_icon_white
-        {
-            get
-            {
-                return GetBitmap("White.line_adjust_icon_white.png");
-            }
-        }
-
         internal static System.Drawing.Bitmap line_cursor
         {
             get
             {
-                return GetBitmap("line_cursor.png");
+                return GetBitmap("cursors.line.png");
+            }
+        }
+
+        internal static System.Drawing.Bitmap pencil_icon
+        {
+            get
+            {
+                return GetBitmap("pencil_icon.png");
             }
         }
 
@@ -222,14 +277,6 @@ namespace linerider
             get
             {
                 return GetBitmap("line_icon.png");
-            }
-        }
-
-        internal static System.Drawing.Bitmap line_icon_white
-        {
-            get
-            {
-                return GetBitmap("White.line_icon_white.png");
             }
         }
 
@@ -249,11 +296,11 @@ namespace linerider
             }
         }
 
-        internal static System.Drawing.Bitmap menu_icon_white
+        internal static System.Drawing.Bitmap move_cursor
         {
             get
             {
-                return GetBitmap("White.menu_icon_white.png");
+                return GetBitmap("cursors.move.png");
             }
         }
 
@@ -265,13 +312,6 @@ namespace linerider
             }
         }
 
-        internal static System.Drawing.Bitmap move_icon_white
-        {
-            get
-            {
-                return GetBitmap("White.move_icon_white.png");
-            }
-        }
 
         internal static System.Drawing.Bitmap pause
         {
@@ -281,27 +321,46 @@ namespace linerider
             }
         }
 
-        internal static System.Drawing.Bitmap pause_white
+        internal static System.Drawing.Bitmap pencil_cursor
         {
             get
             {
-                return GetBitmap("White.pause_white.png");
+                return GetBitmap("cursors.pencil.png");
             }
         }
-
-        internal static System.Drawing.Bitmap pencil_icon
+        internal static System.Drawing.Bitmap size_nesw_cursor
         {
             get
             {
-                return GetBitmap("pencil_icon.png");
+                return GetBitmap("cursors.size_bdiag.png");
             }
         }
-
-        internal static System.Drawing.Bitmap pencil_icon_white
+        internal static System.Drawing.Bitmap size_nwse_cursor
         {
             get
             {
-                return GetBitmap("White.pencil_icon_white.png");
+                return GetBitmap("cursors.size_fdiag.png");
+            }
+        }
+        internal static System.Drawing.Bitmap size_hor_cursor
+        {
+            get
+            {
+                return GetBitmap("cursors.size_hor.png");
+            }
+        }
+        internal static System.Drawing.Bitmap size_ver_cursor
+        {
+            get
+            {
+                return GetBitmap("cursors.size_ver.png");
+            }
+        }
+        internal static System.Drawing.Bitmap default_cursor
+        {
+            get
+            {
+                return GetBitmap("cursors.default.png");
             }
         }
 
@@ -313,14 +372,6 @@ namespace linerider
             }
         }
 
-        internal static System.Drawing.Bitmap play_icon_white
-        {
-            get
-            {
-                return GetBitmap("White.play_icon_white.png");
-            }
-        }
-
         internal static System.Drawing.Bitmap rewind
         {
             get
@@ -329,13 +380,6 @@ namespace linerider
             }
         }
 
-        internal static System.Drawing.Bitmap rewind_white
-        {
-            get
-            {
-                return GetBitmap("White.rewind_white.png");
-            }
-        }
 
         internal static Bitmap sled_img
         {
@@ -385,14 +429,6 @@ namespace linerider
             get
             {
                 return GetBitmap("stop_icon.png");
-            }
-        }
-
-        internal static System.Drawing.Bitmap stop_icon_white
-        {
-            get
-            {
-                return GetBitmap("White.stop_icon_white.png");
             }
         }
 

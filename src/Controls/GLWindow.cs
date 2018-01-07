@@ -31,7 +31,7 @@ using linerider.Audio;
 using linerider.Drawing;
 using linerider.TrackFiles;
 using linerider.Tools;
-using linerider.Windows;
+using linerider.UI;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -320,7 +320,7 @@ namespace linerider
         public void UpdateCursor()
         {
             if ((Track.Animating && !Track.Paused) || _dragRider)
-                Cursor = MouseCursor.Default;
+                Cursor = Cursors["default"];
             else if (_handToolOverride)
                 Cursor = _handtool.Cursor;
             else if (SelectedTool != null)
@@ -345,12 +345,18 @@ namespace linerider
             InitControls();
             Models.LoadModels();
 
-            AddCursor("pencil", GameResources.pencil_icon, 3, 28);
+            AddCursor("pencil", GameResources.pencil_cursor, 3, 28);
             AddCursor("line", GameResources.line_cursor, 5, 5);
             AddCursor("eraser", GameResources.eraser_cursor, 5, 5);
-            AddCursor("hand", GameResources.move_icon, 16, 16);
-            AddCursor("closed_hand", GameResources.closed_move_icon, 16, 16);
-            AddCursor("adjustline", GameResources.cursor_adjustline, 0, 0);
+            AddCursor("hand", GameResources.move_cursor, 16, 16);
+            AddCursor("closed_hand", GameResources.cursor_closed_move, 16, 16);
+            AddCursor("adjustline", GameResources.cursor_select, 12, 12);
+            AddCursor("size_nesw", GameResources.size_nesw_cursor, 16,16);
+            AddCursor("size_nwse", GameResources.size_nwse_cursor, 16, 16);
+            AddCursor("size_hor", GameResources.size_hor_cursor, 16, 16);
+            AddCursor("size_ver", GameResources.size_ver_cursor, 16, 16);
+            AddCursor("default", GameResources.default_cursor,4, 4);
+            Gwen.Platform.Neutral.CursorSetter = new Utils.CursorImpl(this);
             Program.UpdateCheck();
         }
 
@@ -405,7 +411,7 @@ namespace linerider
             }
             else
             {
-                Cursor = MouseCursor.Default;
+                Cursor = Cursors["default"];
             }
             Invalidate();
         }
@@ -437,7 +443,7 @@ namespace linerider
                 _handtool.OnMouseUp(new Vector2d(e.X, e.Y));
             }
             if (r)
-                Cursor = MouseCursor.Default;
+                Cursor = Cursors["default"];
             else
                 UpdateCursor();
         }
@@ -466,7 +472,7 @@ namespace linerider
 
             if (r)
             {
-                Cursor = MouseCursor.Default;
+                Cursor = Cursors["default"];
                 Invalidate();
             }
             else
