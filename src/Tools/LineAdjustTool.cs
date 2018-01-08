@@ -179,34 +179,34 @@ namespace linerider
                     var snapstl = _snappedline as StandardLine;
                     if (joint.HasFlag(Joint.Left))
                     {
-                        _line.CompliantPosition = _originalPos1 + (gamepos - _startPos);
+                        _line.Start = _originalPos1 + (gamepos - _startPos);
                         if (_joint != Joint.Both && game.ShouldXySnap())
-                            _line.CompliantPosition = SnapXY(_line.CompliantPosition2, _line.CompliantPosition);
+                            _line.Start = SnapXY(_line.End, _line.Start);
                         if (keyboard[Key.Tab])
-                            _line.CompliantPosition = LengthLock(_line.CompliantPosition2, _line.CompliantPosition);
+                            _line.Start = LengthLock(_line.End, _line.Start);
                         else if (keyboard[Key.ShiftLeft] || keyboard[Key.ShiftRight])
-                            _line.CompliantPosition = AngleLock(_line.CompliantPosition, _line.CompliantPosition2);
+                            _line.Start = AngleLock(_line.Start, _line.End);
                         if (ispaired)
                         {
-                            SetSnapLinePosition(_line.CompliantPosition);
+                            SetSnapLinePosition(_line.Start);
                             snapstl.CalculateConstants();
                         }
                         _line.CalculateConstants();
                     }
                     if (joint.HasFlag(Joint.Right))
                     {
-                        _line.CompliantPosition2 = _originalPos2 + (gamepos - _startPos);
+                        _line.End = _originalPos2 + (gamepos - _startPos);
                         if (_joint != Joint.Both && game.ShouldXySnap())
-                            _line.CompliantPosition2 = SnapXY(_line.CompliantPosition, _line.CompliantPosition2);
+                            _line.End = SnapXY(_line.Start, _line.End);
 
                         if (keyboard[Key.Tab])
-                            _line.CompliantPosition2 = LengthLock(_line.CompliantPosition, _line.CompliantPosition2);
+                            _line.End = LengthLock(_line.Start, _line.End);
                         else if (keyboard[Key.ShiftLeft] || keyboard[Key.ShiftRight])
-                            _line.CompliantPosition2 = AngleLock(_line.CompliantPosition2, _line.CompliantPosition);
+                            _line.End = AngleLock(_line.End, _line.Start);
 
                         if (ispaired)
                         {
-                            SetSnapLinePosition(_line.CompliantPosition2);
+                            SetSnapLinePosition(_line.End);
                             snapstl.CalculateConstants();
                         }
                         _line.CalculateConstants();
@@ -637,8 +637,8 @@ namespace linerider
             }
             _line = snap;
             UpdateTooltip();
-            _originalPos1 = _line.CompliantPosition;
-            _originalPos2 = _line.CompliantPosition2;
+            _originalPos1 = _line.Start;
+            _originalPos2 = _line.End;
             if (_line.Prev != null)
             {
                 _prev = _line.Prev;
@@ -699,7 +699,7 @@ namespace linerider
                 var stl = undoline as StandardLine;
 
                 if (stl != null)
-                    game.Track.UndoManager.AddLineAdjustment(undoline, _snappedline, _originalPos1, _originalPos2, stl.CompliantPosition, stl.CompliantPosition2,
+                    game.Track.UndoManager.AddLineAdjustment(undoline, _snappedline, _originalPos1, _originalPos2, stl.Start, stl.End,
                         _snaporiginalpos1, _snaporiginalpos2, (_snappedline?.Position).GetValueOrDefault(), (_snappedline?.Position).GetValueOrDefault());
                 else
                     game.Track.UndoManager.AddLineAdjustment(undoline, _snappedline, _originalPos1, _originalPos2, undoline.Position, undoline.Position2,

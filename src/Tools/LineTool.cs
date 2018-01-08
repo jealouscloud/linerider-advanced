@@ -59,7 +59,7 @@ namespace linerider
                 var snap = ssnap as StandardLine;
                 if (snap != null)
                 {
-                    _start = (snap.CompliantPosition - gamepos).Length < (snap.CompliantPosition2 - gamepos).Length ? snap.CompliantPosition : snap.CompliantPosition2;
+                    _start = (snap.Start - gamepos).Length < (snap.End - gamepos).Length ? snap.Start : snap.End;
                     _last = snap;
                 }
                 else if (ssnap != null)
@@ -123,7 +123,7 @@ namespace linerider
                     {
                         var old = _end;
 
-                        _end = (snap.CompliantPosition - _end).Length < (snap.CompliantPosition2 - _end).Length ? snap.CompliantPosition : snap.CompliantPosition2;
+                        _end = (snap.Start - _end).Length < (snap.End - _end).Length ? snap.Start : snap.End;
                         if (_end == _start)
                             _end = old;
                         else
