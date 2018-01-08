@@ -113,7 +113,6 @@ namespace linerider.Game
                     if (ScaleCamera)
                     {
                         var ppf = (float)game.Track.RiderState.CalculateMomentum().Length;
-                        var d = nextrider - framebox.RiderPosition;
                         camcenter = framebox.SmoothClamp(camcenter, !framebox.SmoothIntersects(nextrider, 10000) ? 10000 : ppf).GetPosition();//basically, don't allow it to rubber band
                     }
                     else

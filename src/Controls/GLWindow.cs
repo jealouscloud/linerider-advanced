@@ -199,7 +199,13 @@ namespace linerider
         }
         public void Render(float blend = 1)
         {
-            if (Canvas.NeedsRedraw || (Track.Animating && (Track.SimulationNeedsDraw || Settings.SmoothPlayback)) || Loading || Track.RequiresUpdate)
+            bool shouldrender = Canvas.NeedsRedraw || 
+            (Track.Animating && (Track.SimulationNeedsDraw || Settings.SmoothPlayback)) || 
+            Loading || 
+            Track.RequiresUpdate ||
+            SelectedTool.NeedsRender;
+
+            if (shouldrender)
             {
                 Track.SimulationNeedsDraw = false;
 
@@ -345,17 +351,18 @@ namespace linerider
             InitControls();
             Models.LoadModels();
 
-            AddCursor("pencil", GameResources.pencil_cursor, 3, 28);
-            AddCursor("line", GameResources.line_cursor, 5, 5);
-            AddCursor("eraser", GameResources.eraser_cursor, 5, 5);
-            AddCursor("hand", GameResources.move_cursor, 16, 16);
-            AddCursor("closed_hand", GameResources.cursor_closed_move, 16, 16);
+            AddCursor("pencil", GameResources.cursor_pencil, 3, 28);
+            AddCursor("line", GameResources.cursor_line, 15, 15);
+            AddCursor("eraser", GameResources.cursor_eraser, 5, 5);
+            AddCursor("hand", GameResources.cursor_move, 16, 16);
+            AddCursor("closed_hand", GameResources.cursor_dragging, 16, 16);
             AddCursor("adjustline", GameResources.cursor_select, 12, 12);
-            AddCursor("size_nesw", GameResources.size_nesw_cursor, 16,16);
-            AddCursor("size_nwse", GameResources.size_nwse_cursor, 16, 16);
-            AddCursor("size_hor", GameResources.size_hor_cursor, 16, 16);
-            AddCursor("size_ver", GameResources.size_ver_cursor, 16, 16);
-            AddCursor("default", GameResources.default_cursor,4, 4);
+            AddCursor("size_nesw", GameResources.cursor_size_nesw, 16,16);
+            AddCursor("size_nwse", GameResources.cursor_size_nwse, 16, 16);
+            AddCursor("size_hor", GameResources.cursor_size_horz, 16, 16);
+            AddCursor("size_ver", GameResources.cursor_size_vert, 16, 16);
+            AddCursor("size_all", GameResources.cursor_size_all, 16, 16);
+            AddCursor("default", GameResources.cursor_default,7,4);
             Gwen.Platform.Neutral.CursorSetter = new Utils.CursorImpl(this);
             Program.UpdateCheck();
         }

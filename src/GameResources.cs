@@ -105,22 +105,6 @@ namespace linerider
             }
         }
 
-        internal static System.Drawing.Bitmap cursor_closed_move
-        {
-            get
-            {
-                return GetBitmap("cursors.closed_move.png");
-            }
-        }
-
-        internal static System.Drawing.Bitmap cursor_select
-        {
-            get
-            {
-                return GetBitmap("cursors.select.png");
-            }
-        }
-
         internal static System.Drawing.Bitmap DefaultSkin
         {
             get
@@ -128,15 +112,91 @@ namespace linerider
                 return GetBitmap("DefaultSkin.png");
             }
         }
+        internal static System.Drawing.Bitmap cursor_move
+        {
+            get
+            {
+                return GetBitmap("cursors.move.png");
+            }
+        }
+        internal static System.Drawing.Bitmap cursor_dragging
+        {
+            get
+            {
+                return GetBitmap("cursors.closed_move.png");
+            }
+        }
 
-        internal static System.Drawing.Bitmap eraser_cursor
+        internal static System.Drawing.Bitmap cursor_line
+        {
+            get
+            {
+                return GetBitmap("cursors.line.png");
+            }
+        }
+        internal static System.Drawing.Bitmap cursor_eraser
         {
             get
             {
                 return GetBitmap("cursors.eraser.png");
             }
         }
-
+        internal static System.Drawing.Bitmap cursor_select
+        {
+            get
+            {
+                return GetBitmap("cursors.select.png");
+            }
+        }
+        internal static System.Drawing.Bitmap cursor_pencil
+        {
+            get
+            {
+                return GetBitmap("cursors.pencil.png");
+            }
+        }
+        internal static System.Drawing.Bitmap cursor_size_nesw
+        {
+            get
+            {
+                return GetBitmap("cursors.size_bdiag.png");
+            }
+        }
+        internal static System.Drawing.Bitmap cursor_size_nwse
+        {
+            get
+            {
+                return GetBitmap("cursors.size_fdiag.png");
+            }
+        }
+        internal static System.Drawing.Bitmap cursor_size_horz
+        {
+            get
+            {
+                return GetBitmap("cursors.size_hor.png");
+            }
+        }
+        internal static System.Drawing.Bitmap cursor_size_vert
+        {
+            get
+            {
+                return GetBitmap("cursors.size_ver.png");
+            }
+        }
+        internal static System.Drawing.Bitmap cursor_size_all
+        {
+            get
+            {
+                return GetBitmap("cursors.size_all.png");
+            }
+        }
+        internal static System.Drawing.Bitmap cursor_default
+        {
+            get
+            {
+                return GetBitmap("cursors.default.png");
+            }
+        }
         internal static System.Drawing.Bitmap eraser_icon
         {
             get
@@ -256,14 +316,6 @@ namespace linerider
             }
         }
 
-        internal static System.Drawing.Bitmap line_cursor
-        {
-            get
-            {
-                return GetBitmap("cursors.line.png");
-            }
-        }
-
         internal static System.Drawing.Bitmap pencil_icon
         {
             get
@@ -296,14 +348,6 @@ namespace linerider
             }
         }
 
-        internal static System.Drawing.Bitmap move_cursor
-        {
-            get
-            {
-                return GetBitmap("cursors.move.png");
-            }
-        }
-
         internal static System.Drawing.Bitmap move_icon
         {
             get
@@ -318,49 +362,6 @@ namespace linerider
             get
             {
                 return GetBitmap("pause.png");
-            }
-        }
-
-        internal static System.Drawing.Bitmap pencil_cursor
-        {
-            get
-            {
-                return GetBitmap("cursors.pencil.png");
-            }
-        }
-        internal static System.Drawing.Bitmap size_nesw_cursor
-        {
-            get
-            {
-                return GetBitmap("cursors.size_bdiag.png");
-            }
-        }
-        internal static System.Drawing.Bitmap size_nwse_cursor
-        {
-            get
-            {
-                return GetBitmap("cursors.size_fdiag.png");
-            }
-        }
-        internal static System.Drawing.Bitmap size_hor_cursor
-        {
-            get
-            {
-                return GetBitmap("cursors.size_hor.png");
-            }
-        }
-        internal static System.Drawing.Bitmap size_ver_cursor
-        {
-            get
-            {
-                return GetBitmap("cursors.size_ver.png");
-            }
-        }
-        internal static System.Drawing.Bitmap default_cursor
-        {
-            get
-            {
-                return GetBitmap("cursors.default.png");
             }
         }
 

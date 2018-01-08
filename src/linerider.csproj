@@ -179,6 +179,7 @@
     <EmbeddedResource Include="Resources\cursors\size_ver.png" />
     <EmbeddedResource Include="Resources\cursors\size_hor.png" />
     <EmbeddedResource Include="Resources\cursors\default.png" />
+    <EmbeddedResource Include="Resources\cursors\size_all.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\leg.png" />

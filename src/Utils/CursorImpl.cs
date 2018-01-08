@@ -23,33 +23,44 @@ namespace linerider.Utils
 {
     public class CursorImpl : Gwen.Platform.Neutral.CursorImplementation
     {
-        
+
         private GLWindow game;
         public CursorImpl(GLWindow game)
         {
             this.game = game;
         }
+        private void SetGameCursor(OpenTK.MouseCursor cursor)
+        {
+            if (game.Cursor != cursor)
+            {
+                game.Cursor = cursor;
+            }
+        }
         public override void SetCursor(System.Windows.Forms.Cursor cursor)
         {
             if (cursor == Cursors.SizeNS)
             {
-                game.Cursor = game.Cursors["size_ver"];
+                SetGameCursor(game.Cursors["size_ver"]);
             }
             else if (cursor == Cursors.SizeWE)
             {
-                game.Cursor = game.Cursors["size_hor"];
+                SetGameCursor(game.Cursors["size_hor"]);
             }
             else if (cursor == Cursors.SizeNWSE)
             {
-                game.Cursor = game.Cursors["size_nwse"];
+                SetGameCursor(game.Cursors["size_nwse"]);
             }
             else if (cursor == Cursors.SizeNESW)
             {
-                game.Cursor = game.Cursors["size_nesw"];
+                SetGameCursor(game.Cursors["size_nesw"]);
             }
             else if (cursor == Cursors.Default)
             {
-                game.Cursor = game.Cursors["default"];
+                SetGameCursor(game.Cursors["default"]);
+            }
+            else if (Program.IsDebugged)
+            {
+                Program.NonFatalError("Unknown mouse cursor");
             }
         }
     }
