@@ -49,7 +49,7 @@ namespace linerider
         public List<ConcurrentDictionary<int, StandardLine>> Collisions =
             new List<ConcurrentDictionary<int, StandardLine>>();
 
-        public FastGrid FastChunks = new FastGrid();
+        public FastGrid RenderCells = new FastGrid();
 
         public int Frame;
 
@@ -123,7 +123,7 @@ namespace linerider
         {
             if (!(sl is SceneryLine))
                 Chunks.AddLine(sl);
-            FastChunks.AddLine(sl);
+            RenderCells.AddLine(sl);
         }
 
         private int _collisioncalculations;
@@ -263,7 +263,7 @@ namespace linerider
             _sceneryidcounter = -1;
             Lines.Clear();
             Chunks = new ChunkCollection();
-            FastChunks = new FastGrid();
+            RenderCells = new FastGrid();
             ResetUndo();
             ResetChanges();
             GC.Collect();
@@ -348,7 +348,7 @@ namespace linerider
             var searchrect = new FloatRect((Vector2)(pos - eraser), (Vector2)(eraser * 2));
             searchrect = searchrect.Inflate(24, 24);
             var fr = new FloatRect((Vector2)(pos - eraser), (Vector2)(eraser * 2));
-            var lines = FastChunks.LinesInChunks(FastChunks.UsedChunksInRect(fr));
+            var lines = RenderCells.LinesInChunks(RenderCells.UsedChunksInRect(fr));
 
             foreach (var line in lines)
             {
@@ -423,13 +423,13 @@ namespace linerider
             List<Line> ret;
             if (standardlinesonly)
             {
-                chunks = FastChunks.UsedSolidChunksInRect(rect);
-                ret = FastChunks.SortedLinesInChunks(chunks);
+                chunks = RenderCells.UsedSolidChunksInRect(rect);
+                ret = RenderCells.SortedLinesInChunks(chunks);
             }
             else
             {
-                chunks = FastChunks.UsedChunksInRect(rect);
-                ret = FastChunks.LinesInChunks(chunks);
+                chunks = RenderCells.UsedChunksInRect(rect);
+                ret = RenderCells.LinesInChunks(chunks);
             }
             if (precise)
             {
@@ -504,7 +504,7 @@ namespace linerider
         {
             if (!(sl is SceneryLine))
                 Chunks.RemoveLine(sl);
-            FastChunks.RemoveLine(sl);
+            RenderCells.RemoveLine(sl);
         }
 
         public void Reset()
