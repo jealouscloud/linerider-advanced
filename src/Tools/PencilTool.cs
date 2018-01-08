@@ -27,15 +27,24 @@ using linerider.Drawing;
 
 namespace linerider
 {
-	
+
     public class PencilTool : Tool
     {
+        public override bool NeedsRender
+        {
+            get
+            {
+                return true;
+            }
+        }
         private Vector2d _start;
         private Vector2d _end;
         private bool _started = false;
-        const float MINIMUM_LINE = 20f;
+        const float MINIMUM_LINE = 0.1f;
         private StandardLine _last = null;
         private bool inv = false;
+        private Vector2d _mouseshadow;
+        private Vector2d _lastrendered;
         public override MouseCursor Cursor
         {
             get { return game.Cursors["pencil"]; }
@@ -44,7 +53,7 @@ namespace linerider
             : base()
         {
         }
-        public override void OnMouseDown (Vector2d pos)
+        public override void OnMouseDown(Vector2d pos)
         {
             _started = true;
             _last = null;
@@ -57,7 +66,7 @@ namespace linerider
 
                 if (snap != null)
                 {
-                    _start = (snap.CompliantPosition - gamepos).Length < (snap.CompliantPosition2 - gamepos).Length ? snap.CompliantPosition : snap.CompliantPosition2;
+                    _start = (snap.Start - gamepos).Length < (snap.End - gamepos).Length ? snap.Start : snap.End;
                     _last = snap;
                 }
                 else if (ssnap != null)
@@ -115,9 +124,10 @@ namespace linerider
             }
             game.Invalidate();
         }
-        public override void OnMouseMoved (Vector2d pos)
+        public override void OnMouseMoved(Vector2d pos)
         {
-            if (_started) {
+            if (_started)
+            {
                 _end = MouseCoordsToGame(pos);
                 var diff = _end - _start;
                 var x = diff.X;
@@ -129,12 +139,15 @@ namespace linerider
                 }
                 game.Invalidate();
             }
-            base.OnMouseMoved (pos);
+
+            _mouseshadow = MouseCoordsToGame(pos);
+            base.OnMouseMoved(pos);
         }
-        public override void OnMouseUp (Vector2d pos)
+        public override void OnMouseUp(Vector2d pos)
         {
             game.Invalidate();
-            if (_started) {
+            if (_started)
+            {
                 _started = false;
                 var diff = _end - _start;
                 var x = diff.X;
@@ -144,20 +157,16 @@ namespace linerider
                 AddLine();
                 _last = null;
             }
-            base.OnMouseUp (pos);
+            base.OnMouseUp(pos);
         }
-        public override void Render ()
+        public override void Render()
         {
             base.Render();
-            if (_started) {
-                var diff = _end - _start;
-                var x = diff.X;
-                var y = diff.Y;
-                if (Math.Abs(x) + Math.Abs(y) < MINIMUM_LINE / game.Track.Zoom)
-                {
-                    GameRenderer.RenderRoundedLine(_start, _end, Color.Red, 1);
-                }
+            if (game.Canvas.ColorControls.Selected == LineType.Scenery)
+            {
+                GameRenderer.RenderRoundedLine(_mouseshadow, _mouseshadow, Color.FromArgb(100,0x00, 0xCC, 0x00), 2f * game.Canvas.ColorControls.GreenMultiplier, false, false);
             }
+            _lastrendered = _mouseshadow;
         }
         public override void Stop()
         {
