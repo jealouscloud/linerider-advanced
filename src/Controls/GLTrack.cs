@@ -146,8 +146,6 @@ namespace linerider
 
         public readonly Stopwatch Fpswatch = new Stopwatch();
         internal readonly FPSCounter FpsCounter = new FPSCounter();
-        private readonly object _trackWriteLock = new object();
-        private readonly object _trackPlaybackLock = new object();
         private TrackRenderer _renderer;
         private SceneryRenderer _sceneryrenderer;
         public bool Animating;
