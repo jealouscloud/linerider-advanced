@@ -211,7 +211,7 @@ namespace linerider
 
         public bool FastGridCheck(double x, double y)
         {
-            var chunk = _track.FastChunks.PointToChunk(new Vector2d(x, y));
+            var chunk = _track.RenderCells.PointToChunk(new Vector2d(x, y));
             return chunk != null && chunk.Count != 0;
         }
         public bool GridCheck(double x, double y)
