@@ -114,7 +114,6 @@ namespace linerider
             };
             Label labeliteration = new Label(this);
             labeliteration.Name = "labeliterations";
-            labeliteration.Font = new Font(renderer, "Arial", 18);
             labeliteration.SetText("");
             labeliteration.TextColor = Color.Black;
             Align.PlaceDownLeft(labeliteration, labelTrackName);
@@ -126,10 +125,10 @@ namespace linerider
                 Height = 300,
                 MouseInputEnabled = false
             };
-            var fps = new Label(toprightcontainer) { TextColor = Color.Black, Name = "fps" };
+            new Label(toprightcontainer) { TextColor = Color.Black, Name = "fps" };
             var labelppf = new Label(toprightcontainer) { TextColor = Color.Black, Name = "ppf" };
             var labelPlayback = new Label(toprightcontainer) { TextColor = Color.Black, Name = "labelplayback" };
-            var flagtime = new Label(this) { TextColor = Color.Black, Name = "flagtime" };
+            new Label(this) { TextColor = Color.Black, Name = "flagtime" };
             var textheight = renderer.MeasureText(skin.DefaultFont, "").Y + 3;
             labelppf.SetPosition(0, textheight);
             labelPlayback.SetPosition(0, textheight * 2);
