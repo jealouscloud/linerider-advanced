@@ -149,7 +149,7 @@ namespace linerider
                         {
                             _snappedline.diff = _snappedline.Position2 - _snappedline.Position;
                             game.Track.AddLineToGrid(_snappedline);
-                            game.Track.LineChanged(_snappedline);
+                            game.Track.RedrawLine(_snappedline);
                             if (_snappedline != null && _snappedline is StandardLine)
                             {
                                 _snappedline.CalculateConstants();
@@ -159,7 +159,7 @@ namespace linerider
                         }
                         _nonphysicalline.diff = _nonphysicalline.Position2 - _nonphysicalline.Position;
                         game.Track.AddLineToGrid(_nonphysicalline);
-                        game.Track.LineChanged(_nonphysicalline);
+                        game.Track.RedrawLine(_nonphysicalline);
                         game.Invalidate();
                         return;
                     }
@@ -228,10 +228,10 @@ namespace linerider
                         game.Track.ChangeMade(oldpos, oldpos2);
                         updatetrack = true;
                     }
-                    game.Track.LineChanged(_line);
+                    game.Track.RedrawLine(_line);
                     if (ispaired)
                     {
-                        game.Track.LineChanged(_snappedline);
+                        game.Track.RedrawLine(_snappedline);
                     }
                     game.Invalidate();
                 }
@@ -415,7 +415,7 @@ namespace linerider
                                 line.Trigger = null;
                             }
                         }
-                        game.Track.LineChanged(line);
+                        game.Track.RedrawLine(line);
                     };
                     var prop = row.Add("Zoom");
                     prop.Name = "Zoom";
@@ -822,7 +822,7 @@ namespace linerider
             {
                 var rl = (RedLine)l;
                 rl.Multiplier = (int)Math.Round(((NumericUpDown)sender).Value);
-                game.Track.LineChanged(rl);
+                game.Track.RedrawLine(rl);
                 game.Track.TrackUpdated();
                 game.Invalidate();
             }

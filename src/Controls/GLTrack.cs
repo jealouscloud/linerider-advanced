@@ -296,7 +296,7 @@ namespace linerider
                 _renderer.AddLine((StandardLine)l);
             }
         }
-        public void LineChanged(Line l)
+        public void RedrawLine(Line l)
         {
             if (l is SceneryLine)
             {

@@ -97,7 +97,7 @@ namespace linerider
                     ((StandardLine)L).CalculateConstants();
                 }
                 track.AddLineToGrid(sl);
-                game.Track.LineChanged(sl);
+                game.Track.RedrawLine(sl);
                 if (pairline != null)
                 {
                     track.RemoveLineFromGrid(pairline);
@@ -109,7 +109,7 @@ namespace linerider
                         //StandardLine.TryConnectLines(track, (StandardLine)L, (StandardLine)pairline);
                     }
                     track.AddLineToGrid(pairline);
-                    game.Track.LineChanged(pairline);
+                    game.Track.RedrawLine(pairline);
                 }
                 track.ChangeMade(NewPos1, NewPos2);
                 track.ChangeMade(OriginalPos1, OriginalPos2);
@@ -135,7 +135,7 @@ namespace linerider
                     ((StandardLine)L).CalculateConstants();
                 }
                 track.AddLineToGrid(sl);
-				game.Track.LineChanged(sl);
+				game.Track.RedrawLine(sl);
                 if (pairline != null)
                 {
                     track.RemoveLineFromGrid(pairline);
@@ -148,7 +148,7 @@ namespace linerider
                         // StandardLine.TryConnectLines(track, (StandardLine)L, (StandardLine)pairline);
                     }
                     track.AddLineToGrid(pairline);
-                    game.Track.LineChanged(pairline);
+                    game.Track.RedrawLine(pairline);
                 }
                 track.ChangeMade(NewPos1, NewPos2);
                 track.ChangeMade(OriginalPos1, OriginalPos2);
