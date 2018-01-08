@@ -594,7 +594,7 @@ namespace linerider
             else
                 return;
             //var leftlink = (l1.CompliantPosition == joint && l2.CompliantPosition2 == joint);
-            var rightlink = (l1.CompliantPosition2 == joint && l2.CompliantPosition == joint);
+            var rightlink = (l1.End == joint && l2.Start == joint);
             if (rightlink)
             {
                 l1.Next = null;
@@ -625,13 +625,13 @@ namespace linerider
                 joint = l1.Position2;
             else
                 return;
-            var leftlink = (l1.CompliantPosition == joint && l2.CompliantPosition2 == joint);
-            var rightlink = (l1.CompliantPosition2 == joint && l2.CompliantPosition == joint);
+            var leftlink = (l1.Start == joint && l2.End == joint);
+            var rightlink = (l1.End == joint && l2.Start == joint);
 
             if (!leftlink && !rightlink) return;
 
-            var diff1 = l2.CompliantPosition2 - l2.CompliantPosition;
-            var diff2 = l1.CompliantPosition2 - l1.CompliantPosition;
+            var diff1 = l2.End - l2.Start;
+            var diff2 = l1.End - l1.Start;
 
             var angle1 = Angle.FromVector(diff1).Degrees;
             var angle2 = Angle.FromVector(diff2).Degrees;

@@ -52,7 +52,7 @@ namespace linerider
         /// <summary>
         /// Gets/sets the property Position and complies to the inv field.
         /// </summary>
-        public Vector2d CompliantPosition
+        public Vector2d Start
         {
             get { return inv ? Position2 : Position; }
             set
@@ -66,7 +66,7 @@ namespace linerider
         /// <summary>
         /// Gets/sets the property Position2 and complies to the inv field.
         /// </summary>
-        public Vector2d CompliantPosition2
+        public Vector2d End
         {
             get { return inv ? Position : Position2; }
             set

@@ -84,8 +84,8 @@ namespace linerider
                 if (L is StandardLine)
                 {
                     var stl = L as StandardLine;
-                    stl.CompliantPosition = OriginalPos1;
-                    stl.CompliantPosition2 = OriginalPos2;
+                    stl.Start = OriginalPos1;
+                    stl.End = OriginalPos2;
                 }
                 else
                 {
@@ -122,8 +122,8 @@ namespace linerider
                 if (L is StandardLine)
                 {
                     var stl = L as StandardLine;
-                    stl.CompliantPosition = NewPos1;
-                    stl.CompliantPosition2 = NewPos2;
+                    stl.Start = NewPos1;
+                    stl.End = NewPos2;
                 }
                 else
                 {
