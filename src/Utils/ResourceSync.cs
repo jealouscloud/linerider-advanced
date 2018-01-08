@@ -65,8 +65,8 @@ namespace linerider
                 //Debug.Print(String.Format("IDisposable object finalized: {0}", GetType()));
             }
         }
-        private volatile int _readlocks = 0;
-        private volatile int _writertid = 0;
+        private int _readlocks = 0;
+        private int _writertid = 0;
         private ConcurrentQueue<int> _writerqueue = new ConcurrentQueue<int>();
         public ResourceLock TryAcquireRead()
         {
