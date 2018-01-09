@@ -252,24 +252,21 @@ namespace linerider
         {
             if (Program.NewVersion == null)
                 return;
-            var window = PopupWindow.Create(this, this.game, "Would you like to download the latest version?", "Update Available! v" + Program.NewVersion, true, true);
-            window.FindChildByName("Okay", true).Clicked += (o, e) =>
+            var window = PopupWindow.Create("Would you like to download the latest version?", "Update Available! v" + Program.NewVersion, true, true);
+            window.Dismissed += (o, e) =>
             {
-                try
+                if (window.Result == System.Windows.Forms.DialogResult.OK)
                 {
-                    OpenUrl(@"https://github.com/jealouscloud/linerider-advanced/releases/latest");
-                }
-                catch
-                {
-                    var w2 = PopupWindow.Create(this, this.game, "Unable to open the browser.", "Error!", true, false);
-                    w2.FindChildByName("Okay", true).Clicked += (o2, e2) =>
+                    try
                     {
-                        w2.Close();
-                    };
+                        OpenUrl(@"https://github.com/jealouscloud/linerider-advanced/releases/latest");
+                    }
+                    catch
+                    {
+                        PopupWindow.Error("Unable to open the browser.");
+                    }
                 }
-                window.Close();
             };
-            window.FindChildByName("Cancel", true).Clicked += (o, e) => { window.Close(); };
             Program.NewVersion = null;
         }
         public void ButtonsToggleNightmode()
@@ -317,15 +314,16 @@ namespace linerider
         }
         public void ShowDelete()
         {
-            var window = PopupWindow.Create(this, game, "Do you want to delete the current track?", "Delete Track", true, true);
-            window.FindChildByName("Okay", true).Clicked += (o, e) =>
+            var window = PopupWindow.Create("Do you want to delete the current track?", "Delete Track", true, true);
+            window.Dismissed += (o, e) =>
             {
-                game.Track.Stop();
-                game.Track.ChangeTrack(new Track() { Name = "untitled" });
-                game.Invalidate();
-                window.Close();
+                if (window.Result == System.Windows.Forms.DialogResult.OK)
+                {
+                    game.Track.Stop();
+                    game.Track.ChangeTrack(new Track() { Name = "untitled" });
+                    game.Invalidate();
+                }
             };
-            window.FindChildByName("Cancel", true).Clicked += (o, e) => { window.Close(); };
         }
         public void ShowPreferences()
         {

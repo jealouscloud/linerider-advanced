@@ -28,13 +28,20 @@ using Gwen;
 
 namespace linerider.UI
 {
-    abstract class Window : Gwen.Controls.WindowControl
+    public class Window : Gwen.Controls.WindowControl
     {
+        public EventHandler<EventArgs> Dismissed;
+        public ControlBase Container;
+        public System.Windows.Forms.DialogResult Result { get; set; }
         public string Text { get; private set; }
         public bool Modal = false;
         private List<Label> labels = new List<Label>();
         public Window(Gwen.Controls.ControlBase ctrl, string title = "") : base(ctrl, title)
         {
+            Container = new ControlBase(m_InnerPanel);
+            Container.Margin = new Margin(0, 20, 0, 10);
+            Container.Dock = Pos.Top;
+            Container.Height = 25;
         }
         public void SetText(string text)
         {
@@ -45,7 +52,7 @@ namespace linerider.UI
         {
             foreach (Label l in labels)
             {
-                RemoveChild(l, true);
+                m_InnerPanel.RemoveChild(l, true);
             }
             labels.Clear();
             if (Text == null)
@@ -56,6 +63,7 @@ namespace linerider.UI
             // i rewrote fucking gwen's layout engine and cant actually commit it to master because
             // i can't afford the time it takes to maintain that project too
             string idontcareanymore = "";
+            string remaining = "";
             for (int i = 0; i < Text.Length; i++)
             {
                 var idx = Text.IndexOfAny(new char[] { ' ', '\n' }, i);
@@ -63,19 +71,26 @@ namespace linerider.UI
                 {
                     var substr = Text.Substring(i, idx - i);
                     var sz = Skin.Renderer.MeasureText(font, idontcareanymore + substr);
+                    var subsz = Skin.Renderer.MeasureText(font, substr);
+
                     if (Text[idx] == '\n')
                     {
-                        AddLine(idontcareanymore);
+                        AddLine(idontcareanymore + substr);
                         idontcareanymore = "";
-                        i = idx;
+                        i = idx;//skip the newline
+                    }
+                    else if (subsz.X > maxwidth)
+                    {
+                        var remain = BreakString(idontcareanymore + substr, maxwidth);
+                        i = idx - remain;//start again on what does fit...
                     }
                     else if (sz.X > maxwidth)
                     {
                         AddLine(idontcareanymore);
                         idontcareanymore = "";
-                        if (Skin.Renderer.MeasureText(font, substr).X < maxwidth)//honestly i dont fucking care
+                        if (Skin.Renderer.MeasureText(font, substr).X < maxwidth)
                         {
-                            i--;
+                            i--;//repeat this word with a newline
                         }
                     }
                     else
@@ -86,30 +101,71 @@ namespace linerider.UI
                 }
                 else
                 {
-                    idontcareanymore += Text.Substring(i,Text.Length - i);
+                    remaining = Text.Substring(i, Text.Length - i);
                     break;
                 }
             }
-            if (idontcareanymore.Length != 0)
+            if (idontcareanymore.Length != 0 || remaining.Length != 0)
             {
-                AddLine(idontcareanymore);
+                var sz = Skin.Renderer.MeasureText(font, idontcareanymore + remaining);
+                if (sz.X > maxwidth)
+                {
+                    if (Skin.Renderer.MeasureText(font,remaining).X > maxwidth)
+                    {
+                        var remain = BreakString(idontcareanymore + remaining, maxwidth);
+                        if (remain != 0)
+                            AddLine(Text.Substring(Text.Length - remain, remain));
+                    }
+                    else
+                    {
+                        AddLine(idontcareanymore);
+                        AddLine(remaining);
+                    }
+                }
+                else
+                {
+                    AddLine(idontcareanymore + remaining);
+                }
             }
+            Container.BringToFront();
+            m_InnerPanel.Layout();
+            m_InnerPanel.SizeToChildren(false, true);
+            SizeToChildren(false, true);
+        }
+        /// Breaks the given string and returns the remaining characters
+        private int BreakString(string bigtext, int maxwidth)
+        {
+            string longword = "";
+            for (int i = 0; i < bigtext.Length; i++)
+            {
+                if (Skin.Renderer.MeasureText(Skin.DefaultFont, longword + bigtext[i]).X > maxwidth)
+                {
+                    AddLine(longword);
+                    longword = "";
+                }
+                else
+                {
+                    longword += bigtext[i];
+                }
+            }
+            return longword.Length;
         }
         private void AddLine(string line)
         {
-            Label add = new Label(this);
+            Label add = new Label(m_InnerPanel);
             add.Alignment = Pos.CenterH | Pos.Top;
-            add.Text = line;
             add.Dock = Pos.Top;
-            add.SizeToContents();
-            int maxwidth = this.m_InnerPanel.Width - (m_InnerPanel.Padding.Left + m_InnerPanel.Padding.Right);
             add.AutoSizeToContents = false;
-            add.Width = maxwidth;
+            add.Text = line;
+            var measure = Skin.Renderer.MeasureText(add.Font, "|");
+            int maxwidth = this.m_InnerPanel.Width - (m_InnerPanel.Padding.Left + m_InnerPanel.Padding.Right);
+            add.SetSize(maxwidth, measure.Y);
             labels.Add(add);
         }
         protected override void OnBoundsChanged(System.Drawing.Rectangle oldBounds)
         {
             base.OnBoundsChanged(oldBounds);
+
         }
         protected override void Layout(Gwen.Skin.SkinBase skin)
         {

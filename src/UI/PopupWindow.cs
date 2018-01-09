@@ -28,69 +28,52 @@ using Gwen;
 using linerider.UI;
 namespace linerider
 {
-    internal class PopupWindow
+    internal class PopupWindow : GameService
     {
-        class PopupControl : Window
+        public static Window Error(string text, string title = "Error!")
         {
-            public PopupControl(ControlBase parent, string title) : base(parent, title)
-            {
-            }
+            return Create(text, title, true, false);
         }
-        public static WindowControl Error(ControlBase parent, GLWindow game, string text, string title)
+        public static Window Create(string text, string title, bool ok, bool cancel)
         {
-            var wc = new PopupControl(parent, title);
+            var wc = new Window(game.Canvas, title);
             wc.MakeModal(true);
-            wc.Width = 200;
+            wc.Width = 300;
+            wc.Layout();
+
             wc.SetText(text);
             wc.Layout();
-            wc.Height += 65; ;
-            Button btn = new Button(wc);
-            btn.Name = "Okay";
-            btn.Text = "Okay";
-            btn.Height = 20;
-            btn.Y = wc.Height - 10;// l.Y + l.Height + 10;
-            btn.Width = 100;
-            btn.Clicked += (o, e) => { ((WindowControl)o.Parent).Close(); };
-            wc.Show();
-            wc.SetPosition((game.RenderSize.Width / 2) - (wc.Width / 2), (game.RenderSize.Height / 2) - (wc.Height / 2));
-            wc.DisableResizing();
-            return wc;
-        }
-        public static WindowControl Create(ControlBase parent, GLWindow game, string text, string title, bool ok, bool cancel)
-        {
-            var wc = new WindowControl(parent, title, false);
-            wc.MakeModal(true);
-            wc.Width = 200;
-            RichLabel l = new RichLabel(wc);
-            //  Align.StretchHorizontally(l);
-            l.Dock = Pos.Top;
-            l.Width = wc.Width;
-            l.AddText(text, parent.Skin.Colors.Label.Default, parent.Skin.DefaultFont);
-            wc.Layout();
-            l.SizeToChildren(false, true);
-            wc.Height = 65 + l.Height;
-            Align.CenterHorizontally(l);
-            if (ok)
-            {
-                Button btn = new Button(wc);
-                btn.Name = "Okay";
-                btn.Text = "Okay";
-                btn.Height = 20;
-                btn.Y = l.Y + l.Height + 10;
-                btn.Width = 100;
-                Align.AlignLeft(l);
-
-            }
             if (cancel)
             {
-                Button btn = new Button(wc);
+                Button btn = new Button(wc.Container);
+                btn.Margin = new Margin(1, 1, 5, 1);
+                btn.Dock = Pos.Right;
                 btn.Name = "Cancel";
                 btn.Text = "Cancel";
-                btn.SizeToContents();
-                btn.Height = 20;
                 btn.Width = 70;
-                btn.Y = l.Y + l.Height + 10;
-                btn.X = (wc.Width - 12) - btn.Width;
+                btn.Clicked += (o, e) =>
+                {
+                    wc.Close();
+                    wc.Result = System.Windows.Forms.DialogResult.Cancel;
+                    if (wc.Dismissed != null)
+                        wc.Dismissed.Invoke(o, e);
+                };
+            }
+            if (ok)
+            {
+                Button btn = new Button(wc.Container);
+                btn.Margin = new Margin(1, 1, 5, 1);
+                btn.Dock = Pos.Right;
+                btn.Name = "Okay";
+                btn.Text = "Okay";
+                btn.Width = 70;
+                btn.Clicked += (o, e) =>
+                {
+                    wc.Close();
+                    wc.Result = System.Windows.Forms.DialogResult.OK;
+                    if (wc.Dismissed != null)
+                        wc.Dismissed.Invoke(o, e);
+                };
             }
             wc.Show();
             wc.SetPosition((game.RenderSize.Width / 2) - (wc.Width / 2), (game.RenderSize.Height / 2) - (wc.Height / 2));

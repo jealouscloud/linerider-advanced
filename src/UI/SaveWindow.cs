@@ -31,7 +31,7 @@ using OpenTK;
 
 namespace linerider.UI
 {
-    class SaveWindow : Window
+    class SaveWindow : WindowControl
     {
         private GLWindow game;
         public SaveWindow(Gwen.Controls.ControlBase parent, GLWindow glgame) : base(parent, "Save Track")

@@ -31,7 +31,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace linerider.UI
 {
-	class PreferencesWindow : Window
+	class PreferencesWindow : WindowControl
 	{
 		private GLWindow game;
 		public PreferencesWindow(Gwen.Controls.ControlBase parent, GLWindow pgame) : base(parent, "Preferences")
