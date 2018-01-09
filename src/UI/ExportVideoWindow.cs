@@ -27,93 +27,66 @@ using Gwen;
 using Gwen.Controls;
 namespace linerider.UI
 {
-    class ExportVideoWindow : Window
+    static class ExportVideoWindow
     {
-
-        public ExportVideoWindow(Gwen.Controls.ControlBase parent, GLWindow game) : base(parent, "Export Video")
+        public static void Create(GLWindow game)
         {
-            game.Track.Stop();
-            var openwindows = game.Canvas.GetOpenWindows();
-            foreach (var v in openwindows)
+            string howto = "You are about to export your track as a video file. Make sure the end of the track is marked by a flag. " +
+            "It will be located in your line rider user directory (Documents/LRA).\r\n" +
+            "Please allow some minutes depending on your computer speed. " +
+            "The window will become unresponsive during this time.\n\n" +
+            "After recording, a console window will open to encode the video. " +
+            "Closing it will cancel the process and all progress will be lost.";
+
+            if (!Drawing.SafeFrameBuffer.CanRecord)
             {
-                if (v is WindowControl)
-                {
-                    ((WindowControl)v).Close();
-                }
+                howto = "Video export is not supported on this machine.\n\nSorry.";
             }
-            MakeModal(true);
-            Width = 400;
-            Height = 300;
-            ControlBase bottom = new ControlBase(this);
-            bottom.Height = 150;
-            bottom.Width = 400 - 13;
-            Align.AlignBottom(bottom);
+            var popup = PopupWindow.Create(howto, "Export Video", true, true);
+            popup.Width = 350;
 
-            var buttonok = new Button(bottom);
-
-            buttonok.Name = "Okay";
-            buttonok.Text = "Record";
-            buttonok.Height = 20;
-            buttonok.Y = 80;
-            buttonok.Width = 100;
-			if (!Drawing.SafeFrameBuffer.CanRecord)
-			{
-				buttonok.IsHidden = true;
-			}
-			buttonok.Clicked += (o, e) =>
-            {
-                var wnd = ((WindowControl)o.Parent.Parent);
-                wnd.Close();
-                if (game.Track.GetFlag() == null)
-                {
-                    var pop = PopupWindow.Create(parent, game,
-                        "No flag detected, place one at the end of the track so the recorder knows where to stop.",
-                        "Error", true, false);
-                    pop.FindChildByName("Okay", true).Clicked +=
-                        (o1, e1) => { pop.Close(); };
-                }
-                else
-                {
-                    var radiogrp = (RadioButtonGroup)this.FindChildByName("qualityselector",true);
-                    bool is1080p = radiogrp.Selected.Text == "1080p";
-                    TrackFiles.TrackRecorder.RecordTrack(game,is1080p,((LabeledCheckBox)FindChildByName("smooth",true)).IsChecked);
-                }
-            };
-            Align.AlignLeft(buttonok);
-            var buttoncancel = new Button(bottom);
-
-            buttoncancel.Name = "Cancel";
-            buttoncancel.Text = "Cancel";
-            buttoncancel.Height = 20;
-            buttoncancel.Y = 80;
-            buttoncancel.Width = 100;
-            buttoncancel.Clicked += (o, e) => { this.Close(); };
-            Align.AlignRight(buttoncancel);
-			if (Drawing.SafeFrameBuffer.CanRecord)
-			{
-				this.SetText("You are about to export your track as a video file. Make sure the end of the track is marked by a flag. It will be located in your line rider user directory (Documents/LRA).\r\nPlease allow some minutes depending on your computer speed. The window will become unresponsive during this time." + Environment.NewLine + Environment.NewLine + "After recording, a console window will open to encode the video. Closing it will cancel the process and all progress will be lost.");
-			}
-			else
-			{
-                this.SetText("Video export is not supported on this machine." + Environment.NewLine + "Sorry.");
-			}
-            var radio = new RadioButtonGroup(bottom);
+            popup.Container.Height += 50;
+            var btn = popup.Container.FindChildByName("Okay");
+            btn.Margin = new Margin(btn.Margin.Left, btn.Margin.Top + 50, btn.Margin.Right, btn.Margin.Bottom);
+            btn = popup.Container.FindChildByName("Cancel");
+            btn.Margin = new Margin(btn.Margin.Left, btn.Margin.Top + 50, btn.Margin.Right, btn.Margin.Bottom);
+            popup.Layout();
+            var radio = new RadioButtonGroup(popup.Container);
             radio.Name = "qualityselector";
             radio.AddOption("720p").Select();
             radio.AddOption("1080p");
-            Align.AlignLeft(radio);
-            radio.Y += 20;
-			if (!Drawing.SafeFrameBuffer.CanRecord)
-			{
-				radio.IsHidden = true;
-			}
-            LabeledCheckBox smooth = new LabeledCheckBox(bottom);
+            if (!Drawing.SafeFrameBuffer.CanRecord)
+            {
+                radio.IsHidden = true;
+            }
+            LabeledCheckBox smooth = new LabeledCheckBox(popup.Container);
             smooth.Name = "smooth";
             smooth.IsChecked = true;
-            smooth.Text = "Use Smooth Playback";
-            Align.AlignLeft(smooth);
-            smooth.Y += 5;
-            DisableResizing();
+            smooth.Text = "Smooth Playback";
+            Align.AlignBottom(smooth);
+            popup.Layout();
+            //smooth.Y += 30;
+
+            popup.SetPosition((game.RenderSize.Width / 2) - (popup.Width / 2), (game.RenderSize.Height / 2) - (popup.Height / 2));
+
+            popup.Dismissed += (o, e) =>
+            {
+                if (popup.Result == System.Windows.Forms.DialogResult.OK)
+                {
+                    if (game.Track.GetFlag() == null)
+                    {
+                        var pop = PopupWindow.Create(
+                            "No flag detected, place one at the end of the track so the recorder knows where to stop.",
+                            "Error", true, false);
+                    }
+                    else
+                    {
+                        var radiogrp = radio;
+                        bool is1080p = radiogrp.Selected.Text == "1080p";
+                        TrackFiles.TrackRecorder.RecordTrack(game, is1080p, smooth.IsChecked);
+                    }
+                }
+            };
         }
     }
 }

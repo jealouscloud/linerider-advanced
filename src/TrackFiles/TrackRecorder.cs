@@ -302,7 +302,7 @@ namespace linerider.TrackFiles
                 }
                 else
                 {
-                    PopupWindow.Error(game.Canvas, game, errormessage, "Error!");
+                    PopupWindow.Error(errormessage);
                 }
             }
             SafeFrameBuffer.BindFramebuffer(FramebufferTarget.Framebuffer, 0);

@@ -29,7 +29,7 @@ using Gwen.Controls.Property;
 using System.IO;
 namespace linerider.UI
 {
-    class LoadWindow : Window
+    class LoadWindow : WindowControl
     {
         class BadException : Exception
         {
@@ -232,8 +232,7 @@ namespace linerider.UI
                     catch
                     {
                         window.Close();
-                        var wc = PopupWindow.Create(this, game, "An error occured loading the track.", "Error", true, false);
-                        wc.FindChildByName("Okay", true).Clicked += (o, e) => { wc.Close(); };
+                        PopupWindow.Error("An error occured loading the track.", "Error");
                         return;
                     }
                 }
@@ -268,7 +267,7 @@ namespace linerider.UI
                             }
                             catch
                             {
-                                PopupWindow.Error(game.Canvas, game, "An error occured", "Error!");
+                                PopupWindow.Error("An error occured loading the .sol", "Error!");
                             }
                         }
                         else
@@ -293,8 +292,7 @@ namespace linerider.UI
                     catch
                     {
                         window.Close();
-                        var wc = PopupWindow.Create(this, game, "An error occured loading the track. \nIt might be from a newer version.", "Error", true, false);
-                        wc.FindChildByName("Okay", true).Clicked += (o, e) => { wc.Close(); };
+                        PopupWindow.Error("An error occured loading the track. \nIt might be from a newer version.");
                         return;
                     }
                 }

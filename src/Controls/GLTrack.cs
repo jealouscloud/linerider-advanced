@@ -986,28 +986,20 @@ namespace linerider
                 bool scenerywidth;
                 features.TryGetValue("SIX_ONE", out six_one);
                 features.TryGetValue("REDMULTIPLIER", out redmultiplier);
-                features.TryGetValue("SCENERY_WIDTH", out scenerywidth);
+                features.TryGetValue("SCENERYWIDTH", out scenerywidth);
                 if (six_one || redmultiplier || scenerywidth)
                 {
-                    var window = PopupWindow.Create(game.Canvas, game, "Unable to export SOL file due to it containing special LRA specific features,\nspecifically, " + (six_one ? "\nthe track is based on 6.1, " : "") + (redmultiplier ? "\nthe track uses red multiplier lines, " : "") + (scenerywidth ? "\nthe track uses varying scenery line width " : "") + "\nand therefore cannot be loaded", "Error!", true, false);
-
-                    window.FindChildByName("Okay", true).Clicked += (o, e) =>
-                    {
-                        window.Close();
-                    };
+                    var window = PopupWindow.Error("Unable to export SOL file due to it containing special LRA specific features.\n" + (six_one ? "\nthe track is based on 6.1, " : "") + (redmultiplier ? "\nthe track uses red multiplier lines, " : "") + (scenerywidth ? "\nthe track uses varying scenery line width " : "") + "\n\nand therefore cannot be loaded");
                 }
                 else
                 {
-                    var window = PopupWindow.Create(game.Canvas, game, "Are you sure you wish to save this track as an SOL file? It will overwrite any file named savedLines.sol", "Are you sure?", true, true);
-
-                    window.FindChildByName("Okay", true).Clicked += (o, e) =>
+                    var window = PopupWindow.Create("Are you sure you wish to save this track as an SOL file? It will overwrite any file with its name. (trackname+savedLines.sol)", "Are you sure?", true, true);
+                    window.Dismissed += (o, e) =>
                     {
-                        window.Close();
-                        TrackLoader.SaveTrackSol(_track);
-                    };
-                    window.FindChildByName("Cancel", true).Clicked += (o, e) =>
-                    {
-                        window.Close();
+                        if (window.Result == System.Windows.Forms.DialogResult.OK)
+                        {
+                            TrackLoader.SaveTrackSol(_track);
+                        }
                     };
                 }
             }

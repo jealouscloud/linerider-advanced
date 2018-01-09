@@ -1024,15 +1024,11 @@ namespace linerider
             {
                 if (SafeFrameBuffer.CanRecord)
                 {
-                    ExportVideoWindow x = new ExportVideoWindow(Canvas, this);
-
-                    x.Show();
-                    x.SetPosition(RenderSize.Width / 2 - (x.Width / 2), RenderSize.Height / 2 - (x.Height / 2));
+                    ExportVideoWindow.Create(this);
                 }
                 else
                 {
-                    var wc = PopupWindow.Create(Canvas, this, "This computer does not support recording.\nTry updating your graphics drivers.", "Error!", true, false);
-                    wc.FindChildByName("Okay", true).Clicked += (o, e) => { wc.Close(); };
+                    PopupWindow.Error("This computer does not support recording.\nTry updating your graphics drivers.");
                 }
             };
             btn.Clicked += (o, e) =>
