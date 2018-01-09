@@ -296,10 +296,10 @@ namespace Gwen.Renderer
                 return;
             if (font is BitmapFont)
             {
-                var f = font.RendererData as Texture;
-                if (f == null)
+                var tx = ((BitmapFont)font).texture;
+                if (tx == null)
                     throw new InvalidOperationException("Freeing empty font");
-                FreeTexture(f);
+                FreeTexture(tx);
                 return;
             }
             Debug.Print(String.Format("FreeFont {0} - actual free", font.FaceName));
