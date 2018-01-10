@@ -199,9 +199,9 @@ namespace linerider
         }
         public void Render(float blend = 1)
         {
-            bool shouldrender = Canvas.NeedsRedraw || 
-            (Track.Animating && (Track.SimulationNeedsDraw || Settings.SmoothPlayback)) || 
-            Loading || 
+            bool shouldrender = Canvas.NeedsRedraw ||
+            (Track.Animating && (Track.SimulationNeedsDraw || Settings.SmoothPlayback)) ||
+            Loading ||
             Track.RequiresUpdate ||
             SelectedTool.NeedsRender;
 
@@ -339,7 +339,7 @@ namespace linerider
             var renderer = new Gwen.Renderer.OpenTK();
 
             var skinpng = new Texture(renderer);
-            Gwen.Renderer.OpenTK.LoadTextureInternal(skinpng, GameResources.DefaultSkin); 
+            Gwen.Renderer.OpenTK.LoadTextureInternal(skinpng, GameResources.DefaultSkin);
             var fontpng = new Texture(renderer);
             Gwen.Renderer.OpenTK.LoadTextureInternal(fontpng, GameResources.gamefont_15_png);
             var gamefont_15 = new Gwen.Renderer.BitmapFont(renderer, GameResources.gamefont_15_fnt, fontpng);
@@ -357,12 +357,12 @@ namespace linerider
             AddCursor("hand", GameResources.cursor_move, 16, 16);
             AddCursor("closed_hand", GameResources.cursor_dragging, 16, 16);
             AddCursor("adjustline", GameResources.cursor_select, 12, 12);
-            AddCursor("size_nesw", GameResources.cursor_size_nesw, 16,16);
+            AddCursor("size_nesw", GameResources.cursor_size_nesw, 16, 16);
             AddCursor("size_nwse", GameResources.cursor_size_nwse, 16, 16);
             AddCursor("size_hor", GameResources.cursor_size_horz, 16, 16);
             AddCursor("size_ver", GameResources.cursor_size_vert, 16, 16);
             AddCursor("size_all", GameResources.cursor_size_all, 16, 16);
-            AddCursor("default", GameResources.cursor_default,7,4);
+            AddCursor("default", GameResources.cursor_default, 7, 4);
             Gwen.Platform.Neutral.CursorSetter = new Utils.CursorImpl(this);
             Program.UpdateCheck();
         }
@@ -712,7 +712,10 @@ namespace linerider
                 }
                 else if (e.Key == Key.T)
                 {
-                    SetTool(Tools.HandTool);
+                    if (SelectedTool != _handtool)
+                    {
+                        SetTool(Tools.HandTool);
+                    }
                 }
                 else if (e.Key == Key.Y)
                 {
