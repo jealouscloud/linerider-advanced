@@ -20,12 +20,15 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using OpenTK;
 
 namespace linerider
 {
     public abstract class Tool : GameService
     {
+        public virtual bool NeedsRender { get { return false; } }
         public abstract MouseCursor Cursor { get; }
         public Tool()
         {
@@ -72,13 +75,133 @@ namespace linerider
         public virtual void OnChangingTool()
         {
         }
+        // heavy lifting function for creating lines
+        // expects the caller to handle thread safety and telling the simluation
+        public Line CreateLine(Vector2d start, Vector2d end, bool inv)
+        {
+            Line added = null;
+            switch (game.Canvas.ColorControls.Selected)
+            {
+                case LineType.Blue:
+                    added = new StandardLine(start, end, false) { inv = inv };
+                    added.CalculateConstants();
+                    break;
+
+                case LineType.Red:
+                    added = new RedLine(start, end, false) { inv = inv };
+                    (added as RedLine).Multiplier = game.Canvas.ColorControls.RedMultiplier;
+                    added.CalculateConstants();
+                    break;
+
+                case LineType.Scenery:
+                    added = new SceneryLine(start, end) { Width = game.Canvas.ColorControls.GreenMultiplier };
+                    break;
+            }
+            game.Track.AddLine(added);
+            if (game.Canvas.ColorControls.Selected != LineType.Scenery)
+            {
+                game.Track.ChangeMade(start, end);
+            }
+            game.Invalidate();
+            return added;
+        }
+        /// Heavy lifting function for moving an existing line.
+        /// Expects the caller to handle thread safety & telling the simulation
+        protected void MoveLine(Line line, Vector2d pos1, Vector2d pos2)
+        {
+            if (line is SceneryLine)
+            {
+                game.Track.RemoveLineFromGrid(line);
+                line.Position = pos1;
+                line.Position2 = pos2;
+                game.Track.AddLineToGrid(line);
+            }
+            else
+            {
+                var phys = (StandardLine)line;
+                game.Track.RemoveLineFromGrid(phys);
+                game.Track.ChangeMade(line.Position, line.Position2);
+                game.Track.ChangeMade(pos1, pos2);
+                line.Position = pos1;
+                line.Position2 = pos2;
+                game.Track.RedrawLine(line);
+                game.Track.AddLineToGrid(phys);
+                game.Invalidate();
+            }
+        }
+        /// Gets lines near the point by radius.
+        // does not support large distances as it only gets a small number of grid cells
+        protected Line[] LinesInRadius(Vector2d point, int rad)
+        {
+            var lines =
+                game.Track.GetLinesInRect(new FloatRect((Vector2)point - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
+                    false);
+            SortedList<double, Line> ret = new SortedList<double, Line>();
+            for (int i = 0; i < lines.Count; i++)
+            {
+                var p1 = (point - lines[i].Position).Length;
+                var p2 = (point - lines[i].Position2).Length;
+                var closer = Math.Min(p1, p2);
+                if (closer < rad)
+                {
+                    ret.Add(closer, lines[i]);
+                }
+            }
+            return ret.Values.ToArray();
+        }
+        /// Snaps the point specified in endpoint of line to the
+        // line.
+        protected void SnapLineEnd(Line line, Vector2d endpoint)
+        {
+            var lines = LinesInRadius(endpoint, 4);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var curr = lines[i];
+                if (curr != line)
+                {
+                    if (line is StandardLine && curr is SceneryLine)
+                        continue;//phys lines dont wanna snap to scenery
+
+                    if (line.Position == endpoint)
+                    {
+                        if ((line.Position - curr.Position).Length < (line.Position - curr.Position2).Length)
+                        {
+                            line.Position = curr.Position;
+                        }
+                        else
+                        {
+                            line.Position = curr.Position2;
+                        }
+                    }
+                    else if (line.Position == endpoint)
+                    {
+                        if ((line.Position2 - curr.Position).Length < (line.Position2 - curr.Position2).Length)
+                        {
+                            line.Position2 = curr.Position;
+                        }
+                        else
+                        {
+                            line.Position2 = curr.Position;
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Endpoint does not match line position in snap");
+                    }
+                    if (line is StandardLine)
+                        game.Track.TryConnectLines((StandardLine)line, (StandardLine)curr);
+
+                    break;
+                }
+            }
+        }
         public Line SnapLine(Vector2d pos)
         {
             var lines =
                 game.Track.GetLinesInRect(new FloatRect((Vector2)pos - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
                     true);
 
-            var eraser = new Vector2d(0.5,0.5);
+            var eraser = new Vector2d(0.5, 0.5);
             var fr = new FloatRect((Vector2)(pos - eraser), (Vector2)(eraser * 2));
             for (var i = 0; i < lines.Count; i++)
             {
