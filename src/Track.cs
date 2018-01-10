@@ -344,7 +344,7 @@ namespace linerider
         public List<Line> Erase(Vector2d pos, LineType t, float zoom)
         {
             List<Line> ret = new List<Line>();
-            var eraser = new Vector2d(5 / zoom, 5 / zoom);
+            var eraser = new Vector2d(10 / zoom, 10 / zoom);
             var searchrect = new FloatRect((Vector2)(pos - eraser), (Vector2)(eraser * 2));
             searchrect = searchrect.Inflate(24, 24);
             var fr = new FloatRect((Vector2)(pos - eraser), (Vector2)(eraser * 2));
@@ -355,7 +355,7 @@ namespace linerider
                 var scenery = line as SceneryLine;
                 if (scenery != null)
                 {
-                    var sceneryeraser = new Vector2d((5 / zoom) * scenery.Width, (5 / zoom) * scenery.Width);
+                    var sceneryeraser = new Vector2d((10 / zoom) * scenery.Width, (10 / zoom) * scenery.Width);
                     var sceneryfr = new FloatRect((Vector2)(pos - sceneryeraser), (Vector2)(sceneryeraser * 2));
                     if (!Line.DoesLineIntersectRect(line, sceneryfr))
                         continue;
