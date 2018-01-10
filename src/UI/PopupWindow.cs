@@ -38,7 +38,7 @@ namespace linerider
         {
             var wc = new Window(game.Canvas, title);
             wc.MakeModal(true);
-            wc.Width = 300;
+            wc.Width = 250;
             wc.Layout();
 
             wc.SetText(text);
