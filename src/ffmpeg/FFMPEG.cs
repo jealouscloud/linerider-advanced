@@ -28,126 +28,128 @@ using System.Drawing;
 
 namespace linerider.ffmpeg
 {
-	public static class FFMPEG
-	{
-		public static string FFMPEGExecutableFilePath;
+    public static class FFMPEG
+    {
+        public static string FFMPEGExecutableFilePath;
 
-		private const int MaximumBuffers = 25;
+        private const int MaximumBuffers = 25;
 
-		static FFMPEG()
-		{
-		}
-		private static bool inited = false;
-		private static void TryInitialize()
-		{
-			if (inited)
-				return;
-			inited = true;
-			string ffmpegname = Program.CurrentDirectory + Program.BinariesFolder + Path.DirectorySeparatorChar + "ffmpeg";
-			if (OpenTK.Configuration.RunningOnMacOS)
-				ffmpegname += "-mac";
-			else if (OpenTK.Configuration.RunningOnWindows)
-				ffmpegname += "-win.exe";
-			else if (OpenTK.Configuration.RunningOnUnix)
-			{
-				ffmpegname += "-linux";
-			}
-			else
-			{
-				throw new Exception("Unable to detect platform for ffmpeg");
-			}
-			FFMPEGExecutableFilePath = ffmpegname;
-		}
-		public static string ConvertSongToOgg(string file, Func<string, bool> stdout)
-		{
-			TryInitialize();
-			if (!file.EndsWith(".ogg", true, Program.Culture))
-			{
-				var par = new ffmpeg.FFMPEGParameters();
-				par.AddOption("i", "\"" + file + "\"");
-				par.OutputFilePath = file.Remove(file.IndexOf(".", StringComparison.Ordinal)) + ".ogg";
-				if (File.Exists(par.OutputFilePath))
-				{
-					if (File.Exists(file))
-					{
-						File.Delete(par.OutputFilePath);
-					}
-					else
-					{
-						return par.OutputFilePath;
-					}
-				}
-				Execute(par, stdout);
+        static FFMPEG()
+        {
+        }
+        private static bool inited = false;
+        private static void TryInitialize()
+        {
+            if (inited)
+                return;
+            inited = true;
+            string ffmpegname = Program.CurrentDirectory + Program.BinariesFolder + Path.DirectorySeparatorChar + "ffmpeg";
+            if (OpenTK.Configuration.RunningOnMacOS)
+                ffmpegname += "-mac";
+            else if (OpenTK.Configuration.RunningOnWindows)
+                ffmpegname += "-win.exe";
+            else if (OpenTK.Configuration.RunningOnUnix)
+            {
+                ffmpegname += "-linux";
+            }
+            else
+            {
+                throw new Exception("Unable to detect platform for ffmpeg");
+            }
+            FFMPEGExecutableFilePath = ffmpegname;
+        }
+        public static string ConvertSongToOgg(string file, Func<string, bool> stdout)
+        {
+            TryInitialize();
+            if (!file.EndsWith(".ogg", true, Program.Culture))
+            {
+                var par = new ffmpeg.FFMPEGParameters();
+                par.AddOption("i", "\"" + file + "\"");
+                par.OutputFilePath = file.Remove(file.IndexOf(".", StringComparison.Ordinal)) + ".ogg";
+                if (File.Exists(par.OutputFilePath))
+                {
+                    if (File.Exists(file))
+                    {
+                        File.Delete(par.OutputFilePath);
+                    }
+                    else
+                    {
+                        return par.OutputFilePath;
+                    }
+                }
+                Execute(par, stdout);
 
-				file = par.OutputFilePath;
-			}
-			return file;
-		}
-		public static void Execute(FFMPEGParameters parameters, Func<string, bool> stdout)
-		{
-			TryInitialize();
-			if (String.IsNullOrWhiteSpace(FFMPEGExecutableFilePath))
-			{
-				throw new Exception("Path to FFMPEG executable cannot be null");
-			}
+                file = par.OutputFilePath;
+            }
+            return file;
+        }
+        public static void Execute(FFMPEGParameters parameters, Func<string, bool> stdout)
+        {
+            TryInitialize();
+            if (String.IsNullOrWhiteSpace(FFMPEGExecutableFilePath))
+            {
+                throw new Exception("Path to FFMPEG executable cannot be null");
+            }
 
-			if (parameters == null)
-			{
-				throw new Exception("FFMPEG parameters cannot be completely null");
-			}
+            if (parameters == null)
+            {
+                throw new Exception("FFMPEG parameters cannot be completely null");
+            }
 
-			using (Process ffmpegProcess = new Process())
-			{
-				ProcessStartInfo info = new ProcessStartInfo(FFMPEGExecutableFilePath)
-				{
-					Arguments = parameters.ToString(),
-					WorkingDirectory = Path.GetDirectoryName(FFMPEGExecutableFilePath),
-					UseShellExecute = false,
-					CreateNoWindow = true,
-					RedirectStandardOutput = false,
-					RedirectStandardError = false
-				};
-				info.RedirectStandardOutput = true;
-				info.RedirectStandardError = true;
-				ffmpegProcess.StartInfo = info;
-				ffmpegProcess.Start();
-				if (stdout != null)
-				{
-					while (true)
-					{
-						string str = "";
-						try
-						{
-							str = ffmpegProcess.StandardError.ReadLine();
-						}
-						catch
-						{
-							Console.WriteLine("stdout log failed");
-							break;
-							//ignored 
-						}
-						if (ffmpegProcess.HasExited)
-							break;
-						if (!stdout.Invoke(str))
-						{
-							ffmpegProcess.Kill();
-							return;
-						}
-					}
-				}
-				else
-				{
-					/*if (debug)
+            using (Process ffmpegProcess = new Process())
+            {
+                ProcessStartInfo info = new ProcessStartInfo(FFMPEGExecutableFilePath)
+                {
+                    Arguments = parameters.ToString(),
+                    WorkingDirectory = Path.GetDirectoryName(FFMPEGExecutableFilePath),
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = false,
+                    RedirectStandardError = false
+                };
+                info.RedirectStandardOutput = true;
+                info.RedirectStandardError = true;
+                ffmpegProcess.StartInfo = info;
+                ffmpegProcess.Start();
+                if (stdout != null)
+                {
+                    while (true)
+                    {
+                        string str = "";
+                        try
+                        {
+                            str = ffmpegProcess.StandardError.ReadLine();
+                        }
+                        catch
+                        {
+                            Console.WriteLine("stdout log failed");
+                            break;
+                            //ignored 
+                        }
+                        if (ffmpegProcess.HasExited)
+                            break;
+                        if (str == null)
+                            str = "";
+                        if (!stdout.Invoke(str))
+                        {
+                            ffmpegProcess.Kill();
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    /*if (debug)
 					{
 						string processOutput = ffmpegProcess.StandardError.ReadToEnd();
 					}*/
 
-					ffmpegProcess.WaitForExit();
-				}
-			}
+                    ffmpegProcess.WaitForExit();
+                }
+            }
 
-		}
+        }
 
-	}
+    }
 
 }
