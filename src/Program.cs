@@ -57,10 +57,10 @@ namespace linerider
 #endif
         public static string BinariesFolder = "bin";
         public readonly static CultureInfo Culture = new CultureInfo("en-US");
-        public static string Version = "1.02";
-        public static string TestVersion = " | unstable";
+        public static string Version = "1.03a";
+        public static string TestVersion = "1.03 unstable a";
         public static string NewVersion = null;
-        public static readonly string WindowTitle = "Line Rider: Advanced " + Version + TestVersion;
+        public static readonly string WindowTitle = "Line Rider: Advanced " + TestVersion;
         public static Random Random;
         private static bool _crashed;
         private static GLWindow glGame;
