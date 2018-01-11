@@ -228,8 +228,8 @@ namespace linerider
 #endif
 
                 Track.Render(blend);
-                Canvas.RenderCanvas();
                 SelectedTool.Render();
+                Canvas.RenderCanvas();
                 MSAABuffer.End();
 
                 if (Settings.NightMode)//todo this is a gross hack, use shader?

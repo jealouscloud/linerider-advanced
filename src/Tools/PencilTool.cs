@@ -27,7 +27,6 @@ using linerider.Drawing;
 
 namespace linerider
 {
-
     public class PencilTool : Tool
     {
         public override bool NeedsRender
@@ -89,6 +88,10 @@ namespace linerider
             _end = _start;
             game.Invalidate();
             base.OnMouseDown(pos);
+        }
+        public override void OnChangingTool()
+        {
+            _mouseshadow = Vector2d.Zero;
         }
         private void AddLine()
         {
@@ -162,7 +165,7 @@ namespace linerider
         public override void Render()
         {
             base.Render();
-            if (game.Canvas.ColorControls.Selected == LineType.Scenery)
+            if (game.Canvas.ColorControls.Selected == LineType.Scenery && _mouseshadow != Vector2d.Zero)
             {
                 GameRenderer.RenderRoundedLine(_mouseshadow, _mouseshadow, Color.FromArgb(100,0x00, 0xCC, 0x00), 2f * game.Canvas.ColorControls.GreenMultiplier, false, false);
             }
