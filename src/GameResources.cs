@@ -190,6 +190,13 @@ namespace linerider
                 return GetBitmap("cursors.size_all.png");
             }
         }
+        internal static System.Drawing.Bitmap cursor_zoom_in
+        {
+            get
+            {
+                return GetBitmap("cursors.zoom.png");
+            }
+        }
         internal static System.Drawing.Bitmap cursor_default
         {
             get

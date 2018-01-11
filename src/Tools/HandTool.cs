@@ -18,7 +18,7 @@
 //
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+using System;
 using OpenTK;
 using OpenTK.Input;
 
@@ -26,22 +26,47 @@ namespace linerider
 {
     public class HandTool : Tool
     {
-        private Vector2d Start;
-        private bool started;
+        private Vector2d CameraStart;
+        private Vector2d CameraTarget;
         private Vector2d startposition;
-        public override MouseCursor Cursor => Mouse.GetState().IsButtonDown(MouseButton.Left)
-            ? game.Cursors["closed_hand"]
-            : game.Cursors["hand"];
+        private Vector2d lastposition;
+        private bool zoom = false;
+
+        private bool started = false;
+        public override MouseCursor Cursor
+        {
+            get
+            {
+                if (started)
+                {
+                    return zoom ?game.Cursors["zoom"] : game.Cursors["closed_hand"];
+                }
+                return game.Cursors["hand"];
+            }
+        }
 
         public HandTool() : base()
         {
         }
 
+        public override void OnMouseRightDown(Vector2d pos)
+        {
+            zoom = true;
+            started = true;
+            startposition = pos;
+            lastposition = startposition;
+            CameraStart = game.Track.Camera.Location.GetPosition();
+            CameraTarget = MouseCoordsToGame(pos);
+            game.Invalidate();
+            game.UpdateCursor();
+            base.OnMouseRightDown(pos);
+        }
         public override void OnMouseDown(Vector2d pos)
         {
+            zoom = false;
             started = true;
-            startposition = pos / game.Track.Zoom;
-            Start = game.Track.Camera.Location.GetPosition();
+            startposition = pos;// / game.Track.Zoom;
+            CameraStart = game.Track.Camera.Location.GetPosition();
             game.Invalidate();
             base.OnMouseDown(pos);
         }
@@ -50,12 +75,24 @@ namespace linerider
         {
             if (started)
             {
-                game.Track.Camera.SetFrame(Start - ((pos / game.Track.Zoom) - startposition),false);
+                if (zoom)
+                {
+                    game.Zoom((float)(0.02 * (lastposition.Y - pos.Y)));
+                    lastposition = pos;
+                }
+                else
+                {
+                    game.Track.Camera.SetFrame(CameraStart - ((pos / game.Track.Zoom) - (startposition / game.Track.Zoom)), false);
+                }
                 game.Invalidate();
             }
             base.OnMouseMoved(pos);
         }
-
+        public override void OnMouseRightUp(Vector2d pos)
+        {
+            started = false;
+            base.OnMouseRightUp(pos);
+        }
         public override void OnMouseUp(Vector2d pos)
         {
             started = false;

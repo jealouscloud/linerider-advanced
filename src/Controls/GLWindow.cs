@@ -363,6 +363,7 @@ namespace linerider
             AddCursor("size_ver", GameResources.cursor_size_vert, 16, 16);
             AddCursor("size_all", GameResources.cursor_size_all, 16, 16);
             AddCursor("default", GameResources.cursor_default, 7, 4);
+            AddCursor("zoom",GameResources.cursor_zoom_in,11,10);
             Gwen.Platform.Neutral.CursorSetter = new Utils.CursorImpl(this);
             Program.UpdateCheck();
         }
@@ -442,7 +443,10 @@ namespace linerider
             }
             else if (e.Button == MouseButton.Right)
             {
-                SelectedTool.OnMouseRightUp(new Vector2d(e.X, e.Y));
+                if (_handToolOverride)
+                    _handtool.OnMouseRightUp(new Vector2d(e.X, e.Y));
+                else
+                    SelectedTool.OnMouseRightUp(new Vector2d(e.X, e.Y));
             }
             else if (e.Button == MouseButton.Middle)
             {
