@@ -121,6 +121,7 @@ namespace linerider
             var toprightcontainer = new ControlBase(this)
             {
                 Dock = Pos.Right,
+                IsTabable = false,
                 Width = 150,
                 Height = 300,
                 MouseInputEnabled = false
@@ -133,7 +134,14 @@ namespace linerider
             labelppf.SetPosition(0, textheight);
             labelPlayback.SetPosition(0, textheight * 2);
 
-            var vslider = new VerticalSlider(this) { Min = 0.1f, Max = 24f, Value = game.Track.Zoom, IsTabable = false };
+            var vslider = new VerticalSlider(this)
+            {
+                Min = 0.1f,
+                Max = 24f,
+                Value = game.Track.Zoom,
+                IsTabable = false,
+                KeyboardInputEnabled = false
+            };
             vslider.ValueChanged += (o, e) =>
             {
                 var slider = (VerticalSlider)o;
