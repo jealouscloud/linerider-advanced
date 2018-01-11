@@ -343,6 +343,7 @@ namespace linerider
         }
         public List<Line> Erase(Vector2d pos, LineType t, float zoom)
         {
+            //todo circular eraser
             List<Line> ret = new List<Line>();
             var eraser = new Vector2d(10 / zoom, 10 / zoom);
             var searchrect = new FloatRect((Vector2)(pos - eraser), (Vector2)(eraser * 2));
