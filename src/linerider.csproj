@@ -71,6 +71,7 @@
     <Compile Include="ffmpeg\FFMPEG.cs" />
     <Compile Include="ffmpeg\FFMPEGParameters.cs" />
     <Compile Include="Game\Camera.cs" />
+    <Compile Include="Game\Chunk.cs" />
     <Compile Include="Game\DoubleRect.cs" />
     <Compile Include="Game\DynamicObject.cs" />
     <Compile Include="Game\FastGrid.cs" />

@@ -36,10 +36,7 @@ namespace linerider
 
         public const int CellSize = 14;
         public int GridVersion = 62;
-
-        private readonly ConcurrentDictionary<int, ConcurrentDictionary<int, Chunk>> Chunks =
-            new ConcurrentDictionary<int, ConcurrentDictionary<int, Chunk>>();
-
+        private readonly Dictionary<ulong, Chunk> Cells = new Dictionary<ulong, Chunk>(4096);
         #endregion Fields
 
         #region Methods
@@ -61,16 +58,9 @@ namespace linerider
 
         public Chunk GetChunk(int x, int y)
         {
-            ConcurrentDictionary<int, Chunk> row;
-            if (Chunks.TryGetValue(x, out row))
-            {
-                Chunk chunk;
-                if (row.TryGetValue(y, out chunk))
-                {
-                    return chunk;
-                }
-            }
-            return null;
+            Chunk ret;
+            Cells.TryGetValue(GetCellKey(x, y), out ret);
+            return ret;
         }
 
         public List<CellLocation> GetGridPositions(Line line)
@@ -115,57 +105,75 @@ namespace linerider
             }
             if (GridVersion == 61) //eh
             {
-                double slope = 0;
-                double _loc13 = 0;
-                double isbelowactualY = 0;
-                if (line.diff.X != 0 && line.diff.Y != 0)
+                ret = GetGridPositions61(line);
+            }
+            return ret;
+        }
+        public List<CellLocation> GetGridPositions61(Line line)
+        {
+            var ret = new List<CellLocation>();
+            var cell = CellInfo(line.Position.X, line.Position.Y);
+            var gridend = CellInfo(line.Position2.X, line.Position2.Y);
+
+            ret.Add(cell);
+            if ((line.diff.X == 0 && line.diff.Y == 0) || (cell.X == gridend.X && cell.Y == gridend.Y))
+                return ret;
+
+            int p1X = Math.Min(cell.X, gridend.X),
+                p2X = Math.Max(cell.X, gridend.X),
+                p1Y = Math.Min(cell.Y, gridend.Y),
+                p2Y = Math.Max(cell.Y, gridend.Y);
+            var box = Rectangle.FromLTRB(p1X, p1Y, p2X, p2Y);
+            var current = line.Position;
+            double slope = 0;
+            double _loc13 = 0;
+            double isbelowactualY = 0;
+            if (line.diff.X != 0 && line.diff.Y != 0)
+            {
+                slope = line.diff.Y / line.diff.X;
+                _loc13 = 1.0 / slope;
+                isbelowactualY = line.Position.Y - slope * line.Position.X;
+            } // end if
+            while (true)
+            {
+                double difY, difX;
+                difX = -cell.Remainder.X + (line.diff.X > 0 ? CellSize : -1);
+                difY = -cell.Remainder.Y + (line.diff.Y > 0 ? CellSize : -1);
+                if (line.diff.X == 0)
                 {
-                    slope = line.diff.Y / line.diff.X;
-                    _loc13 = 1.0 / slope;
-                    isbelowactualY = line.Position.Y - slope * line.Position.X;
-                } // end if
-                while (true)
+                    current.Y = current.Y + difY;
+                }
+                else if (line.diff.Y == 0)
                 {
-                    double difY, difX;
-                    difX = -cell.Remainder.X + (line.diff.X > 0 ? CellSize : -1);
-                    difY = -cell.Remainder.Y + (line.diff.Y > 0 ? CellSize : -1);
-                    if (line.diff.X == 0)
-                    {
-                        current.Y = current.Y + difY;
-                    }
-                    else if (line.diff.Y == 0)
+                    current.X = current.X + difX;
+                }
+                else
+                {
+                    var whyyy = Math.Round(slope * (current.X + difX) + isbelowactualY);
+                    if (Math.Abs(whyyy - current.Y) < Math.Abs(difY))
                     {
                         current.X = current.X + difX;
+                        current.Y = whyyy;
+                    }
+                    else if (Math.Abs(whyyy - current.Y) == Math.Abs(difY))
+                    {
+                        current.X = current.X + difX;
+                        current.Y = current.Y + difY;
                     }
                     else
                     {
-                        var whyyy = Math.Round(slope * (current.X + difX) + isbelowactualY);
-                        if (Math.Abs(whyyy - current.Y) < Math.Abs(difY))
-                        {
-                            current.X = current.X + difX;
-                            current.Y = whyyy;
-                        }
-                        else if (Math.Abs(whyyy - current.Y) == Math.Abs(difY))
-                        {
-                            current.X = current.X + difX;
-                            current.Y = current.Y + difY;
-                        }
-                        else
-                        {
-                            current.X = Math.Round((current.Y + difY - isbelowactualY) * _loc13);
-                            current.Y = current.Y + difY;
-                        }
+                        current.X = Math.Round((current.Y + difY - isbelowactualY) * _loc13);
+                        current.Y = current.Y + difY;
                     }
-                    cell = CellInfo(current.X, current.Y);
-                    if (CheckBounds(box, cell.X, cell.Y))
-                    {
-                        ret.Add(cell);
-                        continue;
-                    }
-                    return ret;
                 }
+                cell = CellInfo(current.X, current.Y);
+                if (CheckBounds(box, cell.X, cell.Y))
+                {
+                    ret.Add(cell);
+                    continue;
+                }
+                return ret;
             }
-            return ret;
         }
 
         public Chunk PointToChunk(Vector2d pos)
@@ -189,111 +197,38 @@ namespace linerider
 
         private void Register(Line l, int x, int y)
         {
-            ConcurrentDictionary<int, Chunk> xrow;
-            if (!Chunks.ContainsKey(x))
+            Chunk ret;
+            var idx = GetCellKey(x, y);
+            if (!Cells.TryGetValue(idx, out ret))
             {
-                xrow = new ConcurrentDictionary<int, Chunk>();
-                Chunks[x] = xrow;
+                ret = new Chunk();
+                Cells[idx] = ret;
             }
-            else
-            {
-                xrow = Chunks[x];
-            }
-            Chunk yrow;
-            if (!xrow.ContainsKey(y))
-            {
-                yrow = new Chunk();
-                xrow[y] = yrow;
-            }
-            else
-            {
-                yrow = xrow[y];
-            }
-            yrow[l.ID] = l;
+            ret.AddLine(l);
         }
 
         private void Unregister(Line l, int x, int y)
         {
-            ConcurrentDictionary<int, Chunk> xrow;
-            if (!Chunks.ContainsKey(x))
+            Chunk ret;
+            var idx = GetCellKey(x, y);
+            if (Cells.TryGetValue(idx, out ret))
             {
-                return;
+                ret.RemoveLine(l);
             }
-            xrow = Chunks[x];
-            if (xrow.ContainsKey(y))
-            {
-                xrow[y].Remove(l.ID);
-            }
+        }
+        private ulong GetCellKey(int x, int y)
+        {
+            return ((ulong)y & 0xFFFFFFFF) | ((((ulong)x) << 32) & 0xFFFFFFFF00000000);
         }
 
         #endregion Methods
-    }
-
-    public class Chunk : SortedList<int, Line>
-    {
-        #region Classes
-
-        private class descintcomparer : IComparer<int>
+        public struct CellLocation
         {
-            #region Methods
+            public Vector2d Remainder;
 
-            public int Compare(int x, int y)
-            {
-                return y - x;
-            }
+            public int X;
 
-            #endregion Methods
+            public int Y;
         }
-
-        #endregion Classes
-
-        #region Properties
-
-        public SortedList<int, Line> Lines
-        {
-            get { return this; }
-        }
-
-        #endregion Properties
-
-        #region Constructors
-
-        public Chunk()
-            : base(new descintcomparer())
-        {
-        }
-
-        #endregion Constructors
-    }
-
-    public struct CellLocation
-    {
-        public Vector2d Remainder;
-
-        public int X;
-
-        public int Y;
-    }
-
-    public class Linecomparer : IComparer<Line>, IEqualityComparer<Line>
-    {
-        #region Methods
-
-        public int Compare(Line x, Line y)
-        {
-            return y.ID - x.ID;
-        }
-
-        public bool Equals(Line x, Line y)
-        {
-            return x.ID == y.ID;
-        }
-
-        public int GetHashCode(Line x)
-        {
-            return x.ID;
-        }
-
-        #endregion Methods
     }
 }

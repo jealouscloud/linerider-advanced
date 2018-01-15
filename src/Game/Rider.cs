@@ -184,8 +184,7 @@ namespace linerider
                         var gr = track.Chunks.GetChunk(ax + x, ay + y);
                         if (gr != null)
                         {
-                            var values = gr.Values;
-                            foreach (Line l in values)
+                            foreach (Line l in gr)
                             {
                                 if (l.Interact(anchor))
                                 {
@@ -214,44 +213,6 @@ namespace linerider
                 index++;
             }
         }
-        public bool GwellSatisfyBoundaries(Track track, int anchorid)
-        {
-            int index = 0;
-            foreach (DynamicObject anchor in ModelAnchors)
-            {
-                var ax = (int)Math.Floor(anchor.Position.X / 14);
-                var ay = (int)Math.Floor(anchor.Position.Y / 14);
-
-                for (var x = -1; x <= 1; x++)
-                {
-                    for (var y = -1; y <= 1; y++)
-                    {
-                        var gr = track.Chunks.GetChunk(ax + x, ay + y);
-                        if (gr != null)
-                        {
-                            var values = gr.Values;
-                            foreach (Line l in values)
-                            {
-                                if (l.Interact(anchor))
-                                {
-                                    if (index == anchorid)
-                                    {
-                                        return true;
-                                    }
-                                    else
-                                    {
-                                        return false;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                index++;
-            }
-            return false;
-        }
-
 
         public void SatisfyDistance()
         {

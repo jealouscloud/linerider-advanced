@@ -484,27 +484,30 @@ namespace linerider
                     nud.Margin = marg;
                     nud.Dock = Gwen.Pos.Top;
                     var lines = game.Track.GetLinesInRect(new FloatRect((Vector2)line.Position, new Vector2(1, 1)), false);
-                    List<Line> redlines = new List<Line>();
+                    Chunk redlines = new Chunk();
                     foreach (var red in lines)
                     {
                         if (red.Position == line.Position && red.Position2 == line.Position2)
                         {
-                            redlines.Add(red);
+                            redlines.AddLine(red);
                         }
                     }
                     nud.Min = 1;
                     nud.Max = 9999;
-                    redlines.Sort(new Linecomparer());
                     nud.Value = redlines.Count;
                     nud.ValueChanged += (o, e) =>
                     {
                         var diff = nud.Value - redlines.Count;
+                        //i dont trust this numeric updown, it could go negative probably.
+                        if (diff < redlines.Count)
+                            diff = redlines.Count;
                         if (diff < 0)
                         {
                             for (int i = 0; i > diff; i--)
                             {
-                                game.Track.RemoveLine(redlines[(int)((redlines.Count - 1))]);
-                                redlines.RemoveAt(redlines.Count - 1);
+                                var remove = redlines.Last.Value;
+                                redlines.RemoveLast();
+                                game.Track.RemoveLine(remove);
                             }
                         }
                         else
@@ -513,7 +516,7 @@ namespace linerider
                             {
                                 var red = new RedLine(line.Position, line.Position2, line.inv) { Multiplier = ((RedLine)line).Multiplier };
                                 game.Track.AddLine(red);
-                                redlines.Add(red);
+                                redlines.AddLine(red);
                             }
                         }
                         game.Track.TrackUpdated();
