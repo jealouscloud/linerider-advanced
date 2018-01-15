@@ -571,15 +571,11 @@ namespace linerider
                 state.SatisfyBoundaries(this, collisions);
             }
             var points = state.ModelAnchors;
-            var sleddiff = points[3].Position - points[0].Position;
-            if (sleddiff.X * (points[1].Position.Y - points[0].Position.Y) -
-                sleddiff.Y * (points[1].Position.X - points[0].Position.X) < 0)
-            {
-                state.Crashed = true;
-                state.SledBroken = true;
-            }
-            if (sleddiff.X * (points[5].Position.Y - points[4].Position.Y) -
-                sleddiff.Y * (points[5].Position.X - points[4].Position.X) > 0)
+            var nose = points[Rider.SledTR].Position - points[Rider.SledTL].Position;
+            var tail = points[Rider.SledBL].Position - points[Rider.SledTL].Position;
+            var body = points[Rider.BodyShoulder].Position - points[Rider.BodyButt].Position;
+            if ((nose.X * tail.Y) - (nose.Y * tail.X) < 0 || // tail fakie
+                (nose.X * body.Y) - (nose.Y * body.X) > 0)   // body fakie
             {
                 state.Crashed = true;
                 state.SledBroken = true;
@@ -604,15 +600,11 @@ namespace linerider
                 state.SatisfyBoundaries(this, collisions);
             }
             var points = state.ModelAnchors;
-            var sleddiff = points[3].Position - points[0].Position;
-            if (sleddiff.X * (points[1].Position.Y - points[0].Position.Y) -
-                sleddiff.Y * (points[1].Position.X - points[0].Position.X) < 0)
-            {
-                state.Crashed = true;
-                state.SledBroken = true;
-            }
-            if (sleddiff.X * (points[5].Position.Y - points[4].Position.Y) -
-                sleddiff.Y * (points[5].Position.X - points[4].Position.X) > 0)
+            var nose = points[Rider.SledTR].Position - points[Rider.SledTL].Position;
+            var tail = points[Rider.SledBL].Position - points[Rider.SledTL].Position;
+            var body = points[Rider.BodyShoulder].Position - points[Rider.BodyButt].Position;
+            if ((nose.X * tail.Y) - (nose.Y * tail.X) < 0 || // tail fakie
+                (nose.X * body.Y) - (nose.Y * body.X) > 0)   // body fakie
             {
                 state.Crashed = true;
                 state.SledBroken = true;

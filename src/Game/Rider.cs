@@ -28,6 +28,16 @@ namespace linerider
 {
     public class Rider
     {
+        public const int SledTL = 0;
+        public const int SledBL = 1;
+        public const int SledBR = 2;
+        public const int SledTR = 3;
+        public const int BodyButt = 4;
+        public const int BodyShoulder = 5;
+        public const int BodyHandLeft = 6;
+        public const int BodyHandRight = 7;
+        public const int BodyFootLeft = 8;
+        public const int BodyFootRight = 9;
         #region Fields
 
         public bool Crashed;
