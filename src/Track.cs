@@ -110,7 +110,7 @@ namespace linerider
                     _idcounter = lines[i].ID + 1;
                 }
                 AddLineToGrid(lines[i]);
-                UndoManager.AddLine(lines[i]);
+               UndoManager.AddLine(lines[i]);
                 if (!scenery)
                     ChangeMade(lines[i].Position, lines[i].Position2);
             }
@@ -410,14 +410,6 @@ namespace linerider
             return ret;
         }
 
-        public SortedList<int, Line> GetChunkAtPosition(Vector2d pos)
-        {
-            var chk = Chunks.PointToChunk(pos);
-            if (chk == null)
-                return new SortedList<int, Line>();
-            return chk;
-        }
-
         public List<Line> GetLinesInRect(FloatRect rect, bool precise, bool standardlinesonly = false)
         {
             List<FastGrid.Chunk> chunks;
@@ -448,7 +440,7 @@ namespace linerider
             return ret;
         }
 
-        public decimal GetVersion()
+        public int GetVersion()
         {
             return Chunks.GridVersion;
         }
