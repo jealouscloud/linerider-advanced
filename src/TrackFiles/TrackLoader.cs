@@ -127,7 +127,7 @@ namespace linerider
                 }
             }
 
-            if (trk.GetVersion() == 6.1m)
+            if (trk.GetVersion() == 61)
                 ret["SIX_ONE"] = true;
             return ret;
         }
@@ -206,12 +206,13 @@ namespace linerider
             TryMoveAndReplaceFile(dir + sn1 + ".trk", dir + sn2 + ".trk");
             SaveTrackTrk(track, sn1, songdata);
         }
-        public static void SaveTrackTrk(Track trk, string savename, string songdata = null)
+        public static string SaveTrackTrk(Track trk, string savename, string songdata = null)
         {
             var dir = GetTrackDirectory(trk);
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
-            using (var file = File.Create(dir + savename + ".trk"))
+            var filename = dir + savename + ".trk";
+            using (var file = File.Create(filename))
             {
                 var bw = new BinaryWriter(file);
                 bw.Write(new byte[] { (byte)'T', (byte)'R', (byte)'K', 0xF2 });
@@ -262,7 +263,7 @@ namespace linerider
                     }
                 }
 
-                if (trk.GetVersion() == 6.1m)
+                if (trk.GetVersion() == 61)
                     saved_features[SIX_ONE_INDEX] = true;
                 for (int i = 0; i < supported_features.Length; i++)
                 {
@@ -362,8 +363,62 @@ namespace linerider
                     bw.Write(trk.Lines[i].Position2.Y);
                 }
             }
+            return filename;
         }
-
+        public static void CreateTestFromTrack(Track track)
+        {
+            track.RiderState.Reset(track.Start, track);
+            track.Reset();
+            int framecount =40*60*5;
+            for (int i = 0; i < framecount; i++)
+            {
+                track.Tick();
+            }
+            var filename = SaveTrackTrk(track, track.Name + ".test");
+            if (System.IO.File.Exists(filename + ".result"))
+                System.IO.File.Delete(filename + ".result");
+            using (var f = System.IO.File.Create(filename + ".result"))
+            {
+                var bw = new BinaryWriter(f);
+                bw.Write((int)framecount);
+                for (int i = 0; i < track.RiderState.ModelAnchors.Length; i++)
+                {
+                    bw.Write(track.RiderState.ModelAnchors[i].Position.X);
+                    bw.Write(track.RiderState.ModelAnchors[i].Position.Y);
+                }
+            }
+        }
+        public static bool TestCompare(Track track, string dir)
+        {
+            var testfile = dir + track.Name + ".test.trk.result";
+            if (!File.Exists(testfile))
+            {
+                return false;
+            }
+            using (var file =
+                    File.Open(testfile, FileMode.Open))
+            {
+                var br = new BinaryReader(file);
+                var frame = br.ReadInt32();
+                track.RiderState.Reset(track.Start, track);
+                track.Reset();
+                for (int i = 0; i < frame; i++)
+                {
+                    track.Tick();
+                }
+//track.Chunks.fg.PrintMetrics();
+                for (int i = 0; i < track.RiderState.ModelAnchors.Length; i++)
+                {
+                    var x = br.ReadDouble();
+                    var y = br.ReadDouble();
+                    var riderx = track.RiderState.ModelAnchors[i].Position.X;
+                    var ridery = track.RiderState.ModelAnchors[i].Position.Y;
+                    if (x != riderx || y != ridery)
+                        return false;
+                }
+            }
+            return true;
+        }
         public static Track LoadTrackTRK(string trackfile, string trackname)
         {
             var ret = new Track();
