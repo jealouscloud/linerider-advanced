@@ -22,6 +22,8 @@
 using System;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using linerider.Lines;
+using linerider.Game;
 namespace linerider
 {
     public class StandardLine : Line
@@ -37,13 +39,13 @@ namespace linerider
 
         public LineTrigger Trigger = null;
         public const double Zone = 10;
-        public Vector2d Perpendicular;
-        protected double invSqrDis;
+        public Vector2d Normal;
+        protected double DotScalar;
         public double Distance;
         public ExtensionDirection Extension;
         protected double ExtensionRatio;
-        protected double Limleft;
-        protected double Limright;
+        protected double limit_left => Extension.HasFlag(ExtensionDirection.Left) ? -ExtensionRatio : 0.0;
+        protected double limit_right => Extension.HasFlag(ExtensionDirection.Right) ? 1.0 + ExtensionRatio : 1.0;
 
         public bool inv = false;
         public StandardLine Next;
@@ -132,34 +134,6 @@ namespace linerider
         public void SetExtension(ExtensionDirection i)
         {
             Extension = i;
-            switch (i)
-            {
-
-                case ExtensionDirection.None:
-                    {
-                        Limleft = 0;
-                        Limright = 1;
-                        break;
-                    }
-                case ExtensionDirection.Left:
-                    {
-                        Limleft = -ExtensionRatio;
-                        Limright = 1;
-                        break;
-                    }
-                case ExtensionDirection.Right:
-                    {
-                        Limleft = 0;
-                        Limright = 1 + ExtensionRatio;
-                        break;
-                    }
-                case ExtensionDirection.Both:
-                    {
-                        Limleft = -ExtensionRatio;
-                        Limright = 1 + ExtensionRatio;
-                        break;
-                    }
-            }
         }
         /// <summary>
         /// Calculates the line constants, needs called if a point changes.
@@ -168,43 +142,49 @@ namespace linerider
         {
             diff = Position2 - Position;
             var sqrDistance = diff.LengthSquared;
-            invSqrDis = (1 / sqrDistance);
+            DotScalar = (1 / sqrDistance);
             Distance = Math.Sqrt(sqrDistance);
             var invDist = 1 / Distance;
 
-            Perpendicular = diff * invDist;//normalize
-            Perpendicular = inv ? Perpendicular.PerpendicularRight : Perpendicular.PerpendicularLeft;
+            Normal = diff * invDist;//normalize
+            //flip to be the angle towards the top of the line
+            Normal = inv ? Normal.PerpendicularRight : Normal.PerpendicularLeft;
             ExtensionRatio = Math.Min(0.25, Zone / Distance);
         }
-        public override bool Interact(DynamicObject obj)
+        public override SimulationPoint Interact(SimulationPoint p)
         {
-            if (!((Vector2d.Dot(obj.Momentum,Perpendicular) > 0))) return false;
-
-            var fp = Position;
-            var d1 = obj.Position - fp;
-            var cmpy = Vector2d.Dot(Perpendicular,d1); //Perpendicular.X * d1.X + Perpendicular.Y * d1.Y;
-            if (!(cmpy > 0) || !(cmpy < Zone)) return false;
-
-            var cmpx = Vector2d.Dot(d1,diff) * invSqrDis;
-
-            if (!(cmpx >= Limleft) || !(cmpx <= Limright)) return false;
-            
-            obj.Position -= cmpy * Perpendicular;
-            var resistance = Perpendicular.PerpendicularRight * obj.Friction * cmpy;
-
-            obj.Prev.X = obj.Prev.X +
-                         Perpendicular.Y * obj.Friction * cmpy * (obj.Prev.X < obj.Position.X ? 1 : -1);
-            obj.Prev.Y = obj.Prev.Y -
-                         Perpendicular.X * obj.Friction * cmpy * (obj.Prev.Y < obj.Position.Y ? -1 : 1);
-            if (Trigger != null)
+            if (Vector2d.Dot(p.Momentum, Normal) > 0)
             {
-                var track = game.Track;
-                if (track.Playing && !track.ActiveTriggers.Contains(Trigger))
+                var startDelta = p.Location - this.Position;
+                var doty = Vector2d.Dot(Normal, startDelta);
+                if (doty > 0 && doty < Zone)
                 {
-                    track.ActiveTriggers.Add(Trigger);
+                    var dotx = Vector2d.Dot(startDelta, diff) * DotScalar;
+                    if (dotx <= limit_right && dotx >= limit_left)
+                    {
+                        var pos = p.Location - doty * Normal;
+                        var friction = Normal.Yx * p.Friction * doty;
+                        if (p.Previous.X >= pos.X)
+                            friction.X = -friction.X;
+                        if (p.Previous.Y >= pos.Y)
+                            friction.Y = -friction.Y;
+                        if (Trigger != null)
+                        {
+                            var track = game.Track;
+                            if (track.Playing && !track.ActiveTriggers.Contains(Trigger))
+                            {
+                                track.ActiveTriggers.Add(Trigger);
+                            }
+                        }
+                        return new SimulationPoint(pos, p.Previous + friction, p.Momentum, p.Friction);
+                    }
                 }
             }
-            return true;
+            return p;
+        }
+        public override LineState GetState()
+        {
+            return new LineState() { Pos1 = Position, Pos2 = Position2, extension = Extension, Next = Next, Prev = Prev, Parent = this };
         }
     }
 

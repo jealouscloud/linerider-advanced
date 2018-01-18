@@ -63,6 +63,7 @@
     <Compile Include="Drawing\SceneryRenderer.cs" />
     <Compile Include="Drawing\SceneryVBO.cs" />
     <Compile Include="Drawing\StaticRenderer.cs" />
+    <Compile Include="Drawing\SimulationRenderer.cs" />
     <Compile Include="Drawing\TrackRenderer.cs" />
     <Compile Include="Drawing\Turtle.cs" />
     <Compile Include="Drawing\VAO.cs" />
@@ -71,7 +72,6 @@
     <Compile Include="ffmpeg\FFMPEG.cs" />
     <Compile Include="ffmpeg\FFMPEGParameters.cs" />
     <Compile Include="Game\Camera.cs" />
-    <Compile Include="Game\Chunk.cs" />
     <Compile Include="Game\DoubleRect.cs" />
     <Compile Include="Game\DynamicObject.cs" />
     <Compile Include="Game\FastGrid.cs" />
@@ -82,14 +82,11 @@
     <Compile Include="Game\GridPoint.cs" />
     <Compile Include="Game\Rider.cs" />
     <Compile Include="Game\SimulationGrid.cs" />
-    <Compile Include="Lines\BindLine.cs" />
-    <Compile Include="Lines\DynamicLine.cs" />
+    <Compile Include="Game\SimulationCell.cs" />
     <Compile Include="Lines\Line.cs" />
     <Compile Include="Lines\LineTrigger.cs" />
     <Compile Include="Lines\LineType.cs" />
     <Compile Include="Lines\RedLine.cs" />
-    <Compile Include="Lines\RepelLine.cs" />
-    <Compile Include="Lines\ScarfLine.cs" />
     <Compile Include="Lines\SceneryLine.cs" />
     <Compile Include="Lines\StandardLine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -122,6 +119,12 @@
     <Compile Include="GameResources.cs" />
     <Compile Include="Utils\ResourceSync.cs" />
     <Compile Include="Utils\CursorImpl.cs" />
+    <Compile Include="Utils\TrackWriter.cs" />
+    <Compile Include="Utils\TrackReader.cs" />
+    <Compile Include="Game\RiderConstants.cs" />
+    <Compile Include="Game\Bone.cs" />
+    <Compile Include="Game\SimulationPoint.cs" />
+    <Compile Include="Lines\LineState.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="NVorbis, Version=0.8.5.0, Culture=neutral, processorArchitecture=MSIL">
@@ -204,6 +207,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
+    <None Include="Lines\DynamicLine.cs" />
+    <None Include="Lines\RepelLine.cs" />
+    <None Include="Lines\BindLine.cs" />
+    <None Include="Lines\ScarfLine.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\lib\Gwen\Gwen.csproj">

@@ -182,7 +182,7 @@ namespace linerider
                 {
                     fpsorlinecount = game.SettingRecordingMode ? "40 FPS" : fpslabel.Text;
                 }
-                var ppf = game.Track.RiderState.CalculateMomentum().Length;
+                var ppf = game.Track.RenderRider.CalculateMomentum().Length;
                 var pixels = Math.Round(ppf, 2);
                 sppf = string.Format("{0:N2}", pixels) + " ppf";
                 if (!game.SettingShowPpf && game.SettingRecordingMode)
@@ -227,6 +227,120 @@ namespace linerider
                 labelflagtime.IsHidden = true;
             }
             base.Render(skin);
+        }
+
+        public void UpdateIterationUI()
+        {
+            //todo update renderrider
+            var l = (Label)FindChildByName("labeliterations");
+            l.IsHidden = !(game.Track.Animating && game.Track.Paused);
+            if (!l.IsHidden)
+            {
+                if (game.Track.IterationsOffset == 6)
+                    l.SetText("");
+                else if (game.Track.IterationsOffset == 0)
+                    l.SetText("Physics Iteration: " + game.Track.IterationsOffset + " (momentum tick)");
+                else
+                    l.SetText("Physics Iteration: " + game.Track.IterationsOffset);
+            }
+        }
+        public void ShowPlaybackUI()
+        {
+            var buttons = FindChildByName("buttons");
+            var slider = (HorizontalIntSlider)FindChildByName("timeslider");
+            FindChildByName("btnfastforward").IsHidden = game.SettingRecordingMode;
+            FindChildByName("btnslowmo").IsHidden = game.SettingRecordingMode;
+            if (game.SettingRecordingMode)
+            {
+                buttons.FindChildByName("pause").IsHidden = true;
+                buttons.FindChildByName("start").IsHidden = false;
+                FindChildByName("trackname", true).IsHidden = true;
+                slider.IsHidden = true;
+                buttons.IsHidden = !game.SettingRecordingShowTools;
+                FindChildByName("fps", true).IsHidden = !game.SettingShowFps;
+                FindChildByName("ppf", true).IsHidden = !game.SettingShowPpf;
+                FindChildByName("labelplayback", true).IsHidden = !game.SettingShowTimer;
+            }
+            else
+            {
+                buttons.FindChildByName("pause").IsHidden = false;
+                buttons.FindChildByName("start").IsHidden = true;
+                FindChildByName("trackname", true).IsHidden = false;
+                slider.IsHidden = false;
+                buttons.IsHidden = false;
+            }
+            FindChildByName("labeliterations").IsHidden = true;
+            FindChildByName("vslider", true).IsHidden = true;
+        }
+        public void HidePlaybackUI()
+        {
+            var buttons = FindChildByName("buttons");
+            buttons.FindChildByName("pause").IsHidden = true;
+            buttons.FindChildByName("start").IsHidden = false;
+            var slider = FindChildByName("timeslider");
+            slider.IsHidden = true;
+            FindChildByName("labeliterations").IsHidden = true;
+            FindChildByName("vslider", true).IsHidden = false;
+            FindChildByName("btnfastforward").IsHidden = true;
+            FindChildByName("btnslowmo").IsHidden = true;
+
+            //incase recording mode was enabled at the start. There's a risk it was disabled during playback
+            //if that's the case checking game.RecordingMode would fail but controls would remain invisible.
+            //instead, we just by default ensure visibility
+            {
+                buttons.IsHidden = false;
+                FindChildByName("fps", true).IsHidden = false;
+                FindChildByName("ppf", true).IsHidden = false;
+                FindChildByName("labelplayback", true).IsHidden = false;
+                FindChildByName("trackname", true).IsHidden = false;
+            }
+        }
+        public void UpdatePauseUI()
+        {
+            var container = game.Canvas.FindChildByName("buttons");
+            var start = container.FindChildByName("start");
+            var pause = container.FindChildByName("pause");
+            pause.IsHidden = game.Track.Paused;
+            start.IsHidden = !game.Track.Paused;
+        }
+        public void UpdateScrubber()
+        {
+
+            var slider = (HorizontalIntSlider)FindChildByName("timeslider");
+            slider.Min = 0;
+            slider.Max = game.Track.MaxFrame;
+            slider.Value = game.Track.Offset;
+        }
+        public void ExportAsSol()
+        {
+            using (var trk = game.Track.CreateTrackReader())
+            {
+                if (trk.GetFirstLine() != null)
+                {
+                    var features = trk.GetFeatures();
+                    bool six_one;
+                    bool redmultiplier;
+                    bool scenerywidth;
+                    features.TryGetValue("SIX_ONE", out six_one);
+                    features.TryGetValue("REDMULTIPLIER", out redmultiplier);
+                    features.TryGetValue("SCENERYWIDTH", out scenerywidth);
+                    if (six_one || redmultiplier || scenerywidth)
+                    {
+                        var window = PopupWindow.Error("Unable to export SOL file due to it containing special LRA specific features.\n" + (six_one ? "\nthe track is based on 6.1, " : "") + (redmultiplier ? "\nthe track uses red multiplier lines, " : "") + (scenerywidth ? "\nthe track uses varying scenery line width " : "") + "\n\nand therefore cannot be loaded");
+                    }
+                    else
+                    {
+                        var window = PopupWindow.Create("Are you sure you wish to save this track as an SOL file? It will overwrite any file with its name. (trackname+savedLines.sol)", "Are you sure?", true, true);
+                        window.Dismissed += (o, e) =>
+                        {
+                            if (window.Result == System.Windows.Forms.DialogResult.OK)
+                            {
+                                trk.SaveTrackAsSol();
+                            }
+                        };
+                    }
+                }
+            }
         }
         private static void OpenUrl(string url)
         {
@@ -387,32 +501,35 @@ namespace linerider
             RemoveTooltip(FlagTool);
         }
 
-        internal void CalculateFlag(GLTrack.Tracklocation loc)
+        internal void CalculateFlag(TrackService.Tracklocation loc)
         {
             if (loc?.State == null || FlagTool.Tooltip != null) return;
             var invalid = false;
-            var state = new Rider();
-            game.Track.Reset(state);
-            var frame = loc.Frame;
-            if (frame > 400) //many frames, will likely lag the game. Update the window as a fallback.
-            {
-                if (frame > 24000) //too many frames, could lag the game very bad.
-                {
-                    SetTooltip(FlagTool, "Flag is incalculable.");
-                    game.Invalidate();
-                    return;
-                }
-                game.Title = Program.WindowTitle + " [Validating flag]";
-            }
 
-            for (var i = 0; i < frame; i++) //tick the exact number of frames that the flag should be on.
+			var state = game.Track.GetStart();
+			var frame = loc.Frame;
+            using (var trk = game.Track.CreateTrackReader())
             {
-                game.Track.Tick(state);
+                if (frame > 400) //many frames, will likely lag the game. Update the window as a fallback.
+                {
+                    if (frame > 24000) //too many frames, could lag the game very bad.
+                    {
+                        SetTooltip(FlagTool, "Flag is incalculable.");
+                        game.Invalidate();
+                        return;
+                    }
+                    game.Title = Program.WindowTitle + " [Validating flag]";
+                }
+
+                for (var i = 0; i < frame; i++) //tick the exact number of frames that the flag should be on.
+                {
+                    state = trk.Tick(state);
+                }
             }
-            for (var i = 0; i < state.ModelAnchors.Count(); i++)
+            for (var i = 0; i < state.Body.Length; i++)
             {
-                if (state.ModelAnchors[i].Position != loc.State.ModelAnchors[i].Position ||
-                    state.ModelAnchors[i].Prev != loc.State.ModelAnchors[i].Prev)
+                if (state.Body[i].Location != loc.State.Body[i].Location ||
+                    state.Body[i].Previous != loc.State.Body[i].Previous)
                 {
                     invalid = true;
                     break;
@@ -451,13 +568,10 @@ namespace linerider
             var slider = (HorizontalIntSlider)sender;
             if (slider.Held || _draggingSlider)
             {
-                using (game.Track.EnterPlayback())
-                {
-                    game.Track.SetFrame(slider.Value, false);
-                }
+                game.Track.SetFrame(slider.Value, false);
                 if (!game.Track.Playing)
                 {
-                    game.Track.Camera.SetFrame(game.Track.RiderState.CalculateCenter(), false);
+                    game.Track.Camera.SetFrame(game.Track.RenderRider.CalculateCenter(), false);
                 }
             }
             if (slider.Held)

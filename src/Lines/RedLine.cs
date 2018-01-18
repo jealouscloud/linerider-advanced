@@ -20,7 +20,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using OpenTK;
-
+using linerider.Game;
 namespace linerider
 {
     public class RedLine : StandardLine
@@ -44,39 +44,39 @@ namespace linerider
         public override void CalculateConstants()
         {
             base.CalculateConstants();
-            _acc = Perpendicular * (ConstAcc * _multiplier);
+            _acc = Normal * (ConstAcc * _multiplier);
             _acc = inv ? _acc.PerpendicularRight : _acc.PerpendicularLeft;
         }
-        public override bool Interact(DynamicObject obj)
-        {
-            if (!((obj.Momentum.X * Perpendicular.X) + (obj.Momentum.Y * Perpendicular.Y) > 0)) return false;
-
-            var fp = Position;
-            var diffx = obj.Position.X - fp.X;
-            var diffy = obj.Position.Y - fp.Y;
-            var cmpy = Perpendicular.X * diffx + Perpendicular.Y * diffy;
-            if (!(cmpy > 0) || !(cmpy < Zone)) return false;
-
-            double cmpx = (diffx * diff.X + diffy * diff.Y) * invSqrDis;
-
-            if (!(cmpx >= Limleft) || !(cmpx <= Limright)) return false;
-
-            obj.Position = new Vector2d(obj.Position.X - (cmpy * Perpendicular.X),
-                obj.Position.Y - (cmpy * Perpendicular.Y));
-
-            obj.Prev.X = obj.Prev.X +
-                         Perpendicular.Y * obj.Friction * cmpy * (obj.Prev.X < obj.Position.X ? 1 : -1) + _acc.X;
-            obj.Prev.Y = obj.Prev.Y -
-                         Perpendicular.X * obj.Friction * cmpy * (obj.Prev.Y < obj.Position.Y ? -1 : 1) + _acc.Y;
-            if (Trigger != null)
+		public override SimulationPoint Interact(SimulationPoint p)
+		{
+            if (Vector2d.Dot(p.Momentum, Normal) > 0)
             {
-                var track = game.Track;
-                if (track.Playing && !track.ActiveTriggers.Contains(Trigger))
+                var startDelta = p.Location - this.Position;
+                var doty = Vector2d.Dot(Normal, startDelta);
+                if (doty > 0 && doty < Zone)
                 {
-                    track.ActiveTriggers.Add(Trigger);
+                    var dotx = Vector2d.Dot(startDelta, diff) * DotScalar;
+                    if (dotx <= limit_right && dotx >= limit_left)
+                    {
+                        var pos = p.Location - doty * Normal;
+                        var friction = Normal.Yx * p.Friction * doty;
+                        if (p.Previous.X >= pos.X)
+                            friction.X = -friction.X;
+                        if (p.Previous.Y >= pos.Y)
+                            friction.Y = -friction.Y;
+                        if (Trigger != null)
+                        {
+                            var track = game.Track;
+                            if (track.Playing && !track.ActiveTriggers.Contains(Trigger))
+                            {
+                                track.ActiveTriggers.Add(Trigger);
+                            }
+                        }
+                        return new SimulationPoint(pos, p.Previous + friction + _acc, p.Momentum, p.Friction);
+                    }
                 }
             }
-            return true;
-        }
+            return p;
+		}
     }
 }

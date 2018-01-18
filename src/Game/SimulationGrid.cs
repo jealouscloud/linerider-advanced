@@ -18,7 +18,6 @@
 //
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 using linerider.Drawing;
 using OpenTK;
 using System;
@@ -30,38 +29,17 @@ using linerider.Game;
 namespace linerider
 {
 
-    public class ChunkCollection
+    public class SimulationGrid
     {
         #region Fields
 
         public const int CellSize = 14;
         public int GridVersion = 62;
-        private readonly Dictionary<ulong, Chunk> Cells = new Dictionary<ulong, Chunk>(4096);
+        private readonly Dictionary<int, SimulationCell> Cells = new Dictionary<int, SimulationCell>(4096);
         #endregion Fields
 
         #region Methods
 
-        public void AddLine(Line line)
-        {
-            var positions = GetGridPositions(line);
-            foreach (var pos in positions)
-            {
-                Register(line, pos.X, pos.Y);
-            }
-        }
-        public CellLocation CellInfo(double posx, double posy)
-        {
-            int x = (int)Math.Floor(posx / CellSize);
-            int y = (int)Math.Floor(posy / CellSize);
-            return new CellLocation() { X = x, Y = y, Remainder = new Vector2d(posx - (CellSize * x), posy - (CellSize * y)) };
-        }
-
-        public Chunk GetChunk(int x, int y)
-        {
-            Chunk ret;
-            Cells.TryGetValue(GetCellKey(x, y), out ret);
-            return ret;
-        }
 
         public List<CellLocation> GetGridPositions(Line line)
         {
@@ -175,10 +153,34 @@ namespace linerider
                 return ret;
             }
         }
-
-        public Chunk PointToChunk(Vector2d pos)
+        public void AddLine(Line line)
         {
-            return GetChunk((int)Math.Floor(pos.X / CellSize), (int)Math.Floor(pos.Y / CellSize));
+            var positions = GetGridPositions(line);
+            foreach (var pos in positions)
+            {
+                Register(line, pos.X, pos.Y);
+            }
+        }
+        public CellLocation CellInfo(double posx, double posy)
+        {
+            int x = (int)Math.Floor(posx / CellSize);
+            int y = (int)Math.Floor(posy / CellSize);
+            return new CellLocation() { X = x, Y = y, Remainder = new Vector2d(posx - (CellSize * x), posy - (CellSize * y)) };
+        }
+
+        public SimulationCell GetCell(int x, int y)
+        {
+            SimulationCell cell;
+            var pos = GetCellKey(x, y);
+            if (!Cells.TryGetValue(pos, out cell))
+                return null;
+            return cell;
+
+        }
+
+        public SimulationCell PointToChunk(Vector2d pos)
+        {
+            return GetCell((int)Math.Floor(pos.X / CellSize), (int)Math.Floor(pos.Y / CellSize));
         }
 
         public void RemoveLine(Line line)
@@ -197,28 +199,33 @@ namespace linerider
 
         private void Register(Line l, int x, int y)
         {
-            Chunk ret;
-            var idx = GetCellKey(x, y);
-            if (!Cells.TryGetValue(idx, out ret))
+            var key = GetCellKey(x, y);
+            SimulationCell cell;
+            if (!Cells.TryGetValue(key, out cell))
             {
-                ret = new Chunk();
-                Cells[idx] = ret;
+                cell = new SimulationCell();
+                Cells[key] = cell;
             }
-            ret.AddLine(l);
+            cell.AddLine(l);
         }
 
         private void Unregister(Line l, int x, int y)
         {
-            Chunk ret;
-            var idx = GetCellKey(x, y);
-            if (Cells.TryGetValue(idx, out ret))
-            {
-                ret.RemoveLine(l);
-            }
+            SimulationCell cell;
+            var pos = GetCellKey(x, y);
+            if (!Cells.TryGetValue(pos, out cell))
+                return;
+            cell.RemoveLine(l);
         }
-        private ulong GetCellKey(int x, int y)
+        private int GetCellKey(int x, int y)
         {
-            return ((ulong)y & 0xFFFFFFFF) | ((((ulong)x) << 32) & 0xFFFFFFFF00000000);
+            unchecked
+            {
+                int hash = 27;
+                hash = hash * 486187739 + x;
+                hash = hash * 486187739 + y;
+                return hash;
+            }
         }
 
         #endregion Methods

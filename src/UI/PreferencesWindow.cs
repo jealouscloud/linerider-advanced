@@ -164,8 +164,8 @@ will stay as they are in editor mode");
 			lcb.Dock = Pos.Top;
 			lcb = new LabeledCheckBox(gb);
 			lcb.Text = "Hit Test";
-			lcb.IsChecked = game.HitTest;
-			lcb.CheckChanged += (o, e) => { game.HitTest = ((LabeledCheckBox)o).IsChecked; };
+			lcb.IsChecked = Settings.Local.HitTest;
+			lcb.CheckChanged += (o, e) => { Settings.Local.HitTest = ((LabeledCheckBox)o).IsChecked; };
 			lcb.SetToolTipText(@"During playback, hitting a line will turn it 
 the color of the original line.");
 			lcb.Dock = Pos.Top;

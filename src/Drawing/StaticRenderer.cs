@@ -288,6 +288,18 @@ namespace linerider.Drawing
 			ret[3] = p - t;
 			return ret;
 		}
+		public static Vector2d[] GenerateThickLine(Vector2d p, Vector2d p1, float width)
+		{
+			Vector2d[] ret = new Vector2d[4];
+			var angle = Tools.Angle.FromLine(p, p1);
+			angle.Radians += 1.5708f; //90 degrees as const, radians so no conversion between degrees for a radians only calculation
+			var t = CalculateLine(Vector2d.Zero, angle, width / 2);
+			ret[0] = p + t;
+			ret[1] = p1 + t;
+			ret[2] = p1 - t;
+			ret[3] = p - t;
+			return ret;
+		}
 		public static List<Vertex> GenerateRoundedLine(Vector2 p, Vector2 p1, float width, Color c)
 		{
 			List<Vertex> ret = new List<Vertex>();

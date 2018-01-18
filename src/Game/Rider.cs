@@ -21,269 +21,235 @@
 
 using OpenTK;
 using System;
-using System.Collections.Concurrent;
+using System.Linq;
 using System.Collections.Generic;
 using linerider.Lines;
-namespace linerider
+namespace linerider.Game
 {
-    public class Rider
+    public struct Rider
     {
-        public const int SledTL = 0;
-        public const int SledBL = 1;
-        public const int SledBR = 2;
-        public const int SledTR = 3;
-        public const int BodyButt = 4;
-        public const int BodyShoulder = 5;
-        public const int BodyHandLeft = 6;
-        public const int BodyHandRight = 7;
-        public const int BodyFootLeft = 8;
-        public const int BodyFootRight = 9;
-        #region Fields
-
         public bool Crashed;
-        public List<Rider> iterations = null;
-        public DynamicObject[] ModelAnchors;
-        public DynamicLine[] ModelLines;
-        public Scarf scarf;
-        public short[] Endpoints;
+        public readonly SimulationPoint[] Body;
+        public readonly Scarf Scarf;
         public bool SledBroken;
 
-        #endregion Fields
 
-        #region Constructors
-
-        public Rider()
+        public Rider(SimulationPoint[] body, Scarf scarf, bool dead = false, bool sledbroken = false)
         {
-            Reset(new Vector2d(0, 0), null);
+            Body = body;
+            Scarf = scarf;
+            Crashed = dead;
+            SledBroken = sledbroken;
         }
-
-        protected Rider(Rider r)
+        public static Rider Create(Vector2d start, Vector2d momentum)
         {
-            scarf = r.scarf.Clone();
-            Crashed = r.Crashed;
-            SledBroken = r.SledBroken;
-            ModelAnchors = new DynamicObject[r.ModelAnchors.Length];
-            Endpoints = new short[ModelAnchors.Length];
-            for (int i = 0; i < ModelAnchors.Length; i++)
+            var joints = new SimulationPoint[RiderConstants.DefaultRider.Length];
+            var scarf = new SimulationPoint[RiderConstants.DefaultScarf.Length];
+            for (int i = 0; i < joints.Length; i++)
             {
-                ModelAnchors[i] = r.ModelAnchors[i].Clone();
-            }
-            CreateLines();
-
-            for (int i = 0; i < ModelLines.Length; i++)
-            {
-                ModelLines[i].restLength = r.ModelLines[i].restLength;
-                if (ModelLines[i] is BindLine)
+                var coord = (RiderConstants.DefaultRider[i] + start);
+                var prev = coord - momentum;
+                switch (i)
                 {
-                    (ModelLines[i] as BindLine).UpdateEndurance();
+                    case RiderConstants.SledTL:
+                    case RiderConstants.BodyButt:
+                    case RiderConstants.BodyShoulder:
+                        joints[i] = new SimulationPoint(coord, prev, Vector2d.Zero, 0.8);
+                        break;
+                    case RiderConstants.BodyHandLeft:
+                    case RiderConstants.BodyHandRight:
+                        joints[i] = new SimulationPoint(coord, prev, Vector2d.Zero, 0.1);
+                        break;
+                    default:
+                        joints[i] = new SimulationPoint(coord, prev, Vector2d.Zero, 0.0);
+                        break;
                 }
             }
-            if (iterations == null)
-                iterations = new List<Rider>();
-            if (r.iterations != null)
-            {
-                for (int i = 0; i < r.iterations.Count; i++)
-                {
-                    iterations.Add(r.iterations[i].Clone());
-                }
-            }
-        }
-        #endregion Constructors
 
-        #region Methods
+            return new Rider(joints, new Scarf(joints[5].Location), false, false);
+        }
 
-        public Rider Clone()
-        {
-            Rider ret = new Rider(this);
-            return ret;
-        }
-        public Vector2d CalculateMomentum()
-        {
-            var mo = Vector2d.Zero;
-            for (int i = 0; i < ModelAnchors.Length; i++)
-            {
-                mo += ModelAnchors[i].Momentum;
-            }
-            mo /= ModelAnchors.Length;
-            return mo;
-        }
-        public Rider Lerp(Rider rider2, float percent)
-        {
-            Rider ret = new Rider(this);
-            for (int i = 0; i < ret.ModelAnchors.Length; i++)
-            {
-                ret.ModelAnchors[i].Position = Vector2d.Lerp(ret.ModelAnchors[i].Position, rider2.ModelAnchors[i].Position, percent);
-                ret.ModelAnchors[i].Prev = Vector2d.Lerp(ret.ModelAnchors[i].Prev, rider2.ModelAnchors[i].Prev, percent);
-            }
-            for (int i = 0; i < ret.scarf._anchors.Length; i++)
-            {
-                ret.scarf._anchors[i].Position = Vector2d.Lerp(ret.scarf._anchors[i].Position, rider2.scarf._anchors[i].Position, percent);
-                ret.scarf._anchors[i].Prev = Vector2d.Lerp(ret.scarf._anchors[i].Prev, rider2.scarf._anchors[i].Prev, percent);
-            }
-            return ret;
-        }
 
         public Vector2d CalculateCenter()
         {
             if (Crashed)
-                return ModelAnchors[4].Position;
+                return Body[4].Location;
             var anchorsaverage = new Vector2d();
-            foreach (var anchor in ModelAnchors)
+            foreach (var anchor in Body)
             {
-                anchorsaverage += anchor.Position;
+                anchorsaverage += anchor.Location;
             }
-            return anchorsaverage / ModelAnchors.Length;
+            return anchorsaverage / Body.Length;
         }
 
-        public System.Drawing.Point GetAnchorOffset(int anchorID)
+        public Vector2d CalculateMomentum()
         {
-            return new System.Drawing.Point(Endpoints[anchorID] >> 8, Endpoints[anchorID] & 0xFF);
-        }
-
-        public void SetAnchorOffset(int anchorID, System.Drawing.Point p)
-        {
-            Endpoints[anchorID] = (short)(((byte)p.X << 8) | (byte)p.Y);
-        }
-
-        public void Reset(Vector2d offset, Track trk)
-        {
-            Crashed = false;
-            SledBroken = false;
-            ModelAnchors = new[]
+            var mo = Vector2d.Zero;
+            for (int i = 0; i < Body.Length; i++)
             {
-                new DynamicObject(new Vector2d(0, 0), 0.8),
-                new DynamicObject(new Vector2d(0, 10), 0),
-                new DynamicObject(new Vector2d(30, 10), 0),
-                new DynamicObject(new Vector2d(35, 0), 0),
-                new DynamicObject(new Vector2d(10, 0), 0.8),
-                new DynamicObject(new Vector2d(10, -11), 0.8),
-                new DynamicObject(new Vector2d(23, -10), 0.1),
-                new DynamicObject(new Vector2d(23, -10), 0.1),
-                new DynamicObject(new Vector2d(20, 10), 0),
-                new DynamicObject(new Vector2d(20, 10), 0)
-            };
-            Endpoints = new short[ModelAnchors.Length];
-
-            for (var i = 0; i < ModelAnchors.Length; i++)
-            {
-                ModelAnchors[i].Position *= 0.5;
+                mo += Body[i].Momentum;
             }
-            double momentum = (trk == null || !trk.ZeroStart) ? 0.8 * 0.5 : 0;
-            for (var i = 0; i < ModelAnchors.Length; i++)
-            {
-                ModelAnchors[i].Position += offset;
-                ModelAnchors[i].Prev = ModelAnchors[i].Position - new Vector2d(momentum, 0);
-            }
-            CreateLines();
-            scarf = new Lines.Scarf(ModelAnchors[5].Position );
+            mo /= Body.Length;
+            return mo;
         }
-
-        public void SatisfyBoundaries(Track track, ConcurrentDictionary<int, StandardLine> collisions)
+        public Rider Lerp(Rider rider2, float percent)
         {
-            int index = 0;
-            foreach (DynamicObject anchor in ModelAnchors)
+            Rider ret = this;
+            for (int i = 0; i < ret.Body.Length; i++)
             {
-                var ax = (int)Math.Floor(anchor.Position.X / 14);
-                var ay = (int)Math.Floor(anchor.Position.Y / 14);
-                System.Drawing.Point anchoroffset = new System.Drawing.Point(0, 0);
-
+                ret.Body[i] = new SimulationPoint(Vector2d.Lerp(ret.Body[i].Location, rider2.Body[i].Location, percent), Vector2d.Zero, Vector2d.Zero, 0);
+            }
+            for (int i = 0; i < ret.Scarf._anchors.Length; i++)
+            {
+                ret.Scarf._anchors[i].Position = Vector2d.Lerp(ret.Scarf._anchors[i].Position, rider2.Scarf._anchors[i].Position, percent);
+                ret.Scarf._anchors[i].Prev = Vector2d.Lerp(ret.Scarf._anchors[i].Prev, rider2.Scarf._anchors[i].Prev, percent);
+            }
+            return ret;
+        }
+        private static void ProcessLines(SimulationGrid grid, SimulationPoint[] joints, Dictionary<int, Line> collisions = null)
+        {
+            for (int i = 0; i < joints.Length; i++)
+            {
+                var cellx = (int)Math.Floor(joints[i].Location.X / 14);
+                var celly = (int)Math.Floor(joints[i].Location.Y / 14);
                 for (var x = -1; x <= 1; x++)
                 {
                     for (var y = -1; y <= 1; y++)
                     {
-                        var gr = track.Chunks.GetChunk(ax + x, ay + y);
-                        if (gr != null)
+                        var lines = grid.GetCell(cellx + x, celly + y);
+                        if (lines != null)
                         {
-                            foreach (Line l in gr)
+                            foreach (var line in lines)
                             {
-                                if (l.Interact(anchor))
+                                var newj = line.Interact(joints[i]);
+                                if (collisions != null && newj.Location != joints[i].Location)
                                 {
-                                    if (collisions != null)
-                                    {
-                                        collisions[l.ID] = (StandardLine)l;
-                                    }
+                                    collisions[line.ID] = line;
                                 }
-                                var dx1 = ax - (int)Math.Floor(anchor.Position.X / 14);
-                                var dy1 = ay - (int)Math.Floor(anchor.Position.Y / 14);
-                                if (dx1 != 0)
-                                {
-                                    if ((dx1 > 0 && anchoroffset.X < dx1) || (dx1 < 0 && anchoroffset.X > dx1))
-                                        anchoroffset.X = dx1;
-                                }
-                                if (dy1 != 0)
-                                {
-                                    if ((dy1 > 0 && anchoroffset.Y < dy1) || (dy1 < 0 && anchoroffset.Y > dy1))
-                                        anchoroffset.Y = dy1;
-                                }
+                                joints[i] = newj;
                             }
                         }
                     }
                 }
-                SetAnchorOffset(index, anchoroffset);
-                index++;
             }
         }
-
-        public void SatisfyDistance()
+        public static List<int> ProcessBones(Bone[] bones, SimulationPoint[] joints, ref bool dead, bool diagnose = false)
         {
-            for (var i = 0; i < ModelLines.Length; i++)
-            {
-                ModelLines[i].satisfyDistance(this);
-            }
-        }
+            List<int> ret = diagnose ? new List<int>() : null;
 
+            for (int i = 0; i < RiderConstants.Bones.Length; i++)
+            {
+                var bone = RiderConstants.Bones[i];
+                var j1 = joints[bone.joint1];
+                var j2 = joints[bone.joint2];
+                var d = j1.Location - j2.Location;
+                var len = d.Length;
+                if (!bone.OnlyRepel || len < bone.RestLength)
+				{
+					var scalar = (len - bone.RestLength) / len * 0.5;
+					// instead of 0 checking dista the rationale is technically dista could be really really small
+                    // and round off into infinity which gives us the NaN error.
+					if (double.IsInfinity(scalar))
+                    {
+                        scalar = 0;
+                    }
+                    if (bone.Breakable && (dead || scalar > bone.RestLength * RiderConstants.EnduranceFactor))
+                    {
+                        dead = true;
+                        if (diagnose)
+                        {
+                            ret.Add(i);
+                        }
+                    }
+                    else
+                    {
+						d *= scalar;
+						joints[bone.joint1] = j1.CreateNewLocation(j1.Location - d);
+						joints[bone.joint2] = j2.CreateNewLocation(j2.Location + d);
+                    }
+                }
+            }
+            return ret;
+        }
+        public Rider Simulate(Track track, Dictionary<int, Line> collisions)
+        {
+            SimulationPoint[] joints = Body.ToArray();
+            bool dead = Crashed;
+            for (int i = 0; i < joints.Length; i++)
+            {
+                joints[i] = joints[i].StepMomentum();
+            }
+            for (int i = 0; i < 6; i++)
+            {
+                ProcessBones(track.Bones, joints, ref dead);
+                ProcessLines(track.Grid, joints, collisions);
+            }
+            bool sledbroken = false;
+            var nose = joints[RiderConstants.SledTR].Location - joints[RiderConstants.SledTL].Location;
+            var tail = joints[RiderConstants.SledBL].Location - joints[RiderConstants.SledTL].Location;
+            var body = joints[RiderConstants.BodyShoulder].Location - joints[RiderConstants.BodyButt].Location;
+            if ((nose.X * tail.Y) - (nose.Y * tail.X) < 0 || // tail fakie
+                (nose.X * body.Y) - (nose.Y * body.X) > 0)   // body fakie
+            {
+                dead = true;
+                sledbroken = true;
+            }
+            var sc = Scarf.Clone();
+            sc.Step(joints[5].Location);
+            return new Rider(joints, sc, dead, sledbroken);
+        }
+        public HashSet<int> Diagnose(Track track, int maxiteration = 6)
+        {
+            var ret = new HashSet<int>();
+            if (Crashed)
+                return ret;
+
+            SimulationPoint[] joints = Body.ToArray();
+            bool dead = Crashed;
+            for (int i = 0; i < joints.Length; i++)
+            {
+                joints[i] = joints[i].StepMomentum();
+            }
+
+            for (int i = 0; i < maxiteration; i++)
+            {
+                var breaks = ProcessBones(track.Bones, joints, ref dead, true);
+                if (dead)
+                {
+                    return new HashSet<int>(breaks);
+                }
+                ProcessLines(track.Grid, joints);
+            }
+            var nose = joints[RiderConstants.SledTR].Location - joints[RiderConstants.SledTL].Location;
+            var tail = joints[RiderConstants.SledBL].Location - joints[RiderConstants.SledTL].Location;
+            var body = joints[RiderConstants.BodyShoulder].Location - joints[RiderConstants.BodyButt].Location;
+            if ((nose.X * tail.Y) - (nose.Y * tail.X) < 0) // tail fakie
+                                                           // body fakie
+            {
+                dead = true;
+                ret.Add(-1);
+            }
+            if ((nose.X * body.Y) - (nose.Y * body.X) > 0)
+            {
+                dead = true;
+                ret.Add(-2);
+            }
+
+            return ret;
+        }
         public void StepScarf()
         {
-            scarf.Step(ModelAnchors[5].Position);
-        }
-
-        public void TickMomentum()
-        {
-            for (var i = 0; i < ModelAnchors.Length; i++)
-            {
-                ModelAnchors[i].Tick();
-            }
+            Scarf.Step(Body[5].Location);
         }
         public Line[] GetScarf()
         {
-            var vecs = scarf.GetAnchors(ModelAnchors[5].Position);
+            var vecs = Scarf.GetAnchors(Body[5].Location);
             Line[] ret = new Line[vecs.Length - 1];
             for (int i = 0; i < ret.Length; i++)
             {
                 ret[i] = new Line(vecs[i], vecs[i + 1]);
             }
             return ret;
-        }
-
-        #endregion Methods
-
-        private void CreateLines()
-        {
-            ModelLines = new[]
-            {
-                new DynamicLine(ModelAnchors[0], ModelAnchors[1]),
-                new DynamicLine(ModelAnchors[1], ModelAnchors[2]),
-                new DynamicLine(ModelAnchors[2], ModelAnchors[3]),
-                new DynamicLine(ModelAnchors[3], ModelAnchors[0]),
-                new DynamicLine(ModelAnchors[0], ModelAnchors[2]),
-                new DynamicLine(ModelAnchors[3], ModelAnchors[1]),
-                new BindLine(ModelAnchors[0], ModelAnchors[4]),
-                new BindLine(ModelAnchors[1], ModelAnchors[4]),
-                new BindLine(ModelAnchors[2], ModelAnchors[4]),
-                new DynamicLine(ModelAnchors[5], ModelAnchors[4]),
-                new DynamicLine(ModelAnchors[5], ModelAnchors[6]),
-                new DynamicLine(ModelAnchors[5], ModelAnchors[7]),
-                new DynamicLine(ModelAnchors[4], ModelAnchors[8]),
-                new DynamicLine(ModelAnchors[4], ModelAnchors[9]),
-                new DynamicLine(ModelAnchors[5], ModelAnchors[7]),
-                new BindLine(ModelAnchors[5], ModelAnchors[0]),
-                new BindLine(ModelAnchors[3], ModelAnchors[6]),
-                new BindLine(ModelAnchors[3], ModelAnchors[7]),
-                new BindLine(ModelAnchors[8], ModelAnchors[2]),
-                new BindLine(ModelAnchors[9], ModelAnchors[2]),
-                new RepelLine(ModelAnchors[5], ModelAnchors[8]),
-                new RepelLine(ModelAnchors[5], ModelAnchors[9])
-            };
         }
     }
 }

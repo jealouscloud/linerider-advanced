@@ -7,7 +7,7 @@ using linerider.Drawing;
 
 namespace linerider
 {
-    public class Chunk : LinkedList<Line>
+    public class SimulationCell : LinkedList<Line>
     {
         public void AddLine(Line line)
         {

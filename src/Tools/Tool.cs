@@ -74,10 +74,37 @@ namespace linerider
 
         public virtual void OnChangingTool()
         {
+		}
+        private static double isLeft(Vector2d P0, Vector2d P1, Vector2d P2)
+		{
+			return ((P1.X - P0.Y) * (P2.Y - P0.Y) - (P2.X - P0.X) * (P1.Y - P0.Y));
+		}
+		//https://gamedev.stackexchange.com/questions/110229/how-do-i-efficiently-check-if-a-point-is-inside-a-rotated-rectangle
+		private static bool PointInRectangle(Vector2d X, Vector2d Y, Vector2d Z, Vector2d W, Vector2d P)
+		{
+			return (isLeft(X, Y, P) > 0 && isLeft(Y, Z, P) > 0 && isLeft(Z, W, P) > 0 && isLeft(W, X, P) > 0);
+		}
+        public Line SelectLine(TrackWriter trk, Vector2d position)
+        {
+            var ends = LineEndsInRadius(trk, position, 2);
+            if (ends.Length > 0)
+                return ends[0];
+			var lines =
+				trk.GetLinesInRect(new FloatRect((Vector2)position - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
+					false);
+            for (int i = 0; i < lines.Count; i++)
+            {
+                
+                var rect = Drawing.StaticRenderer.GenerateThickLine(lines[i].Position, lines[i].Position2, 2);
+                if (PointInRectangle(rect[0], rect[3], rect[2], rect[1], position))
+                {
+                    return lines[i];
+                }
+            }
+            return null;
         }
         // heavy lifting function for creating lines
-        // expects the caller to handle thread safety and telling the simluation
-        public Line CreateLine(Vector2d start, Vector2d end, bool inv)
+        public Line CreateLine(TrackWriter trk, Vector2d start, Vector2d end, bool inv)
         {
             Line added = null;
             switch (game.Canvas.ColorControls.Selected)
@@ -97,44 +124,43 @@ namespace linerider
                     added = new SceneryLine(start, end) { Width = game.Canvas.ColorControls.GreenMultiplier };
                     break;
             }
-            game.Track.AddLine(added);
+            trk.AddLine(added);
             if (game.Canvas.ColorControls.Selected != LineType.Scenery)
             {
-                game.Track.ChangeMade(start, end);
+                trk.Track.ChangeMade(start, end);
             }
             game.Invalidate();
             return added;
         }
         /// Heavy lifting function for moving an existing line.
-        /// Expects the caller to handle thread safety & telling the simulation
-        protected void MoveLine(Line line, Vector2d pos1, Vector2d pos2)
+        protected void MoveLine(TrackWriter trk, Line line, Vector2d pos1, Vector2d pos2)
         {
             if (line is SceneryLine)
             {
-                game.Track.RemoveLineFromGrid(line);
+                trk.Track.RemoveLineFromGrid(line);
                 line.Position = pos1;
                 line.Position2 = pos2;
-                game.Track.AddLineToGrid(line);
+                trk.Track.AddLineToGrid(line);
             }
             else
             {
                 var phys = (StandardLine)line;
-                game.Track.RemoveLineFromGrid(phys);
-                game.Track.ChangeMade(line.Position, line.Position2);
-                game.Track.ChangeMade(pos1, pos2);
+                trk.Track.RemoveLineFromGrid(phys);
+                trk.Track.ChangeMade(line.Position, line.Position2);
+                trk.Track.ChangeMade(pos1, pos2);
                 line.Position = pos1;
                 line.Position2 = pos2;
                 game.Track.RedrawLine(line);
-                game.Track.AddLineToGrid(phys);
+                trk.Track.AddLineToGrid(phys);
                 game.Invalidate();
             }
         }
         /// Gets lines near the point by radius.
         // does not support large distances as it only gets a small number of grid cells
-        protected Line[] LinesInRadius(Vector2d point, int rad)
+        protected Line[] LineEndsInRadius(TrackWriter trk, Vector2d point, int rad)
         {
             var lines =
-                game.Track.GetLinesInRect(new FloatRect((Vector2)point - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
+                trk.GetLinesInRect(new FloatRect((Vector2)point - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
                     false);
             SortedList<double, Line> ret = new SortedList<double, Line>();
             for (int i = 0; i < lines.Count; i++)
@@ -151,9 +177,9 @@ namespace linerider
         }
         /// Snaps the point specified in endpoint of line to the
         // line.
-        protected void SnapLineEnd(Line line, Vector2d endpoint)
+        protected void SnapLineEnd(TrackWriter trk, Line line, Vector2d endpoint)
         {
-            var lines = LinesInRadius(endpoint, 4);
+            var lines = LineEndsInRadius(trk, endpoint, 4);
             for (int i = 0; i < lines.Length; i++)
             {
                 var curr = lines[i];
@@ -189,16 +215,16 @@ namespace linerider
                         throw new Exception("Endpoint does not match line position in snap");
                     }
                     if (line is StandardLine)
-                        game.Track.TryConnectLines((StandardLine)line, (StandardLine)curr);
+                        trk.TryConnectLines((StandardLine)line, (StandardLine)curr);
 
                     break;
                 }
             }
         }
-        public Line SnapLine(Vector2d pos)
+        public Line SnapLine(TrackWriter trk, Vector2d pos)
         {
             var lines =
-                game.Track.GetLinesInRect(new FloatRect((Vector2)pos - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
+                trk.GetLinesInRect(new FloatRect((Vector2)pos - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
                     true);
 
             var eraser = new Vector2d(0.5, 0.5);
@@ -212,13 +238,13 @@ namespace linerider
             }
             return null;
         }
-        public Line Snap(Vector2d pos, Line ignore = null)
+        public Line Snap(TrackReader trk, Vector2d pos, Line ignore = null)
         {
             Line closest = null;
             double dist = 8 / Math.Min(10, game.Track.Zoom);
             float sq = (float)(dist * 2);
             var lines =
-                game.Track.GetLinesInRect(new FloatRect((Vector2)pos - new Vector2(sq, sq), new Vector2(sq * 2, sq * 2)),
+                trk.GetLinesInRect(new FloatRect((Vector2)pos - new Vector2(sq, sq), new Vector2(sq * 2, sq * 2)),
                     true);
 
             for (var i = 0; i < lines.Count; i++)

@@ -95,7 +95,7 @@ namespace linerider.Drawing
 			bool r_coloredline = _prepped_coloredline;
 			bool r_blackline = _prepped_blackline;
 			var lv = _lines[l.ID];
-			bool hittest = game.HitTest && game.Track.Animating && collisions.Contains(l.ID);
+			bool hittest = Settings.Local.HitTest && game.Track.Animating && collisions.Contains(l.ID);
 			// ids.Contains(line.Key);
 			if (r_coloredline && !hittest)
 				AddIndices(lv.coloredtrackline);
@@ -125,14 +125,14 @@ namespace linerider.Drawing
 
 					if (RequiresUpdate || _prepped_knobs != r_knobs || _prepped_knobs_red != r_knobs_red ||
 						r_coloredline != _prepped_coloredline || r_blackline != _prepped_blackline ||
-						(game.HitTest && game.Track.Animating && !track.AllCollidedLines.SetEquals(collisions)))
+						(Settings.Local.HitTest && game.Track.Animating && !track.AllCollidedLines.SetEquals(collisions)))
 					{
 						lock (SyncRoot)
 						{
 							RequiresUpdate = false;
 							lock (track.AllCollidedLines)
 							{
-								if (game.HitTest)
+								if (Settings.Local.HitTest)
 									collisions = new HashSet<int>(track.AllCollidedLines);
 							}
 							_vao.ClearIndices();
@@ -383,8 +383,8 @@ namespace linerider.Drawing
 						{
 							c = Color.FromArgb(0, 0x66, 0xFF);
 							var l = line;
-							var loc3 = (float)(l.Perpendicular.X > 0 ? (Math.Ceiling(l.Perpendicular.X)) : (Math.Floor(l.Perpendicular.X)));
-							var loc4 = (float)(l.Perpendicular.Y > 0 ? (Math.Ceiling(l.Perpendicular.Y)) : (Math.Floor(l.Perpendicular.Y)));
+							var loc3 = (float)(l.Normal.X > 0 ? (Math.Ceiling(l.Normal.X)) : (Math.Floor(l.Normal.X)));
+							var loc4 = (float)(l.Normal.Y > 0 ? (Math.Ceiling(l.Normal.Y)) : (Math.Floor(l.Normal.Y)));
 							Vector2 p1 = new Vector2((float)l.Position.X + loc3, (float)l.Position.Y + loc4),
 								p2 = new Vector2((float)l.Position2.X + loc3, (float)l.Position2.Y + loc4);
 							ret.AddRange(DrawBasicTrackLine(p1, p2, c));
@@ -395,8 +395,8 @@ namespace linerider.Drawing
 						{
 							c = Color.FromArgb(0xCC, 0, 0);
 							var l = line as RedLine;
-							var loc3 = (float)(l.Perpendicular.X > 0 ? (Math.Ceiling(l.Perpendicular.X)) : (Math.Floor(l.Perpendicular.X)));
-							var loc4 = (float)(l.Perpendicular.Y > 0 ? (Math.Ceiling(l.Perpendicular.Y)) : (Math.Floor(l.Perpendicular.Y)));
+							var loc3 = (float)(l.Normal.X > 0 ? (Math.Ceiling(l.Normal.X)) : (Math.Floor(l.Normal.X)));
+							var loc4 = (float)(l.Normal.Y > 0 ? (Math.Ceiling(l.Normal.Y)) : (Math.Floor(l.Normal.Y)));
 							for (int ix = 0; ix < l.Multiplier; ix++)
 							{
 								var angle = MathHelper.RadiansToDegrees(Math.Atan2(l.diff.Y, l.diff.X));

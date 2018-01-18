@@ -54,23 +54,26 @@ namespace linerider
             _started = true;
             var gamepos = MouseCoordsToGame(pos);
             if (game.EnableSnap)
-            {
-                var ssnap = Snap(gamepos);
-                var snap = ssnap as StandardLine;
-                if (snap != null)
+			{
+                using (var trk = game.Track.CreateTrackReader())
                 {
-                    _start = (snap.Start - gamepos).Length < (snap.End - gamepos).Length ? snap.Start : snap.End;
-                    _last = snap;
-                }
-                else if (ssnap != null)
-                {
-                    _start = (ssnap.Position - gamepos).Length < (ssnap.Position2 - gamepos).Length
-                        ? ssnap.Position
-                        : ssnap.Position2;
-                }
-                else
-                {
-                    _start = gamepos;
+                    var ssnap = Snap(trk,gamepos);
+                    var snap = ssnap as StandardLine;
+                    if (snap != null)
+                    {
+                        _start = (snap.Start - gamepos).Length < (snap.End - gamepos).Length ? snap.Start : snap.End;
+                        _last = snap;
+                    }
+                    else if (ssnap != null)
+                    {
+                        _start = (ssnap.Position - gamepos).Length < (ssnap.Position2 - gamepos).Length
+                            ? ssnap.Position
+                            : ssnap.Position2;
+                    }
+                    else
+                    {
+                        _start = gamepos;
+                    }
                 }
             }
             else
@@ -116,59 +119,50 @@ namespace linerider
                     _end = SnapXY(_start, _end);
                 }
                 else if (game.EnableSnap)
-                {
-                    var ssnap = Snap(_end);
-                    var snap = ssnap as StandardLine;
-                    if (snap != null)
+				{
+                    using (var trk = game.Track.CreateTrackWriter())
                     {
-                        var old = _end;
-
-                        _end = (snap.Start - _end).Length < (snap.End - _end).Length ? snap.Start : snap.End;
-                        if (_end == _start)
-                            _end = old;
-                        else
+                        var ssnap = Snap(trk,_end);
+                        var snap = ssnap as StandardLine;
+                        if (snap != null)
                         {
-                            next = snap;
+                            var old = _end;
+
+                            _end = (snap.Start - _end).Length < (snap.End - _end).Length ? snap.Start : snap.End;
+                            if (_end == _start)
+                                _end = old;
+                            else
+                            {
+                                next = snap;
+                            }
                         }
-                    }
-                    else if (ssnap != null)
-                    {
-                        var old = _end;
-                        _end = (ssnap.Position - _end).Length < (ssnap.Position2 - _end).Length
-    ? ssnap.Position
-    : ssnap.Position2;
-                        if (_end == _start)
-                            _end = old;
+                        else if (ssnap != null)
+                        {
+                            var old = _end;
+                            _end = (ssnap.Position - _end).Length < (ssnap.Position2 - _end).Length
+        ? ssnap.Position
+        : ssnap.Position2;
+                            if (_end == _start)
+                                _end = old;
+                        }
                     }
                 }
                 if ((_end - _start).Length >= MINIMUM_LINE)
                 {
-                    Line added = null;
-                    switch (game.Canvas.ColorControls.Selected)
-                    {
-                        case LineType.Blue:
-                            added = new StandardLine(_start, _end, _addflip);
-                            break;
-
-                        case LineType.Red:
-                            added = new RedLine(_start, _end, _addflip);
-                            (added as RedLine).Multiplier = game.Canvas.ColorControls.RedMultiplier;
-                            break;
-
-                        case LineType.Scenery:
-                            added = new SceneryLine(_start, _end) { Width = game.Canvas.ColorControls.GreenMultiplier };
-                            break;
-                    }
-                    game.Track.AddLine(added);
-                    if (added is StandardLine)
-                    {
-                        var stl = added as StandardLine;
-                        game.Track.TryConnectLines(stl, _last);
-                        game.Track.TryConnectLines(stl, next);
-                    }
-                    if (game.Canvas.ColorControls.Selected != LineType.Scenery)
-                    {
-                        game.Track.TrackUpdated();
+                    using (var trk = game.Track.CreateTrackWriter())
+					{
+						game.Track.UndoManager.BeginAction();
+						var added = CreateLine(trk, _start, _end, _addflip);
+						if (game.EnableSnap)
+						{
+							SnapLineEnd(trk, added, added.Position);
+							SnapLineEnd(trk, added, added.Position2);
+						}
+						if (added is StandardLine)
+                        {
+                            game.Track.TrackUpdated();
+						}
+						game.Track.UndoManager.EndAction();
                     }
                     game.Invalidate();
                 }

@@ -21,12 +21,13 @@
 
 using OpenTK;
 using System;
-
+using linerider.Game;
+using linerider.Lines;
 namespace linerider
 {
     public class Line : GameObject
     {
-        public virtual Vector2d Position2 { get; set; }
+        public Vector2d Position2 { get; set; }
         public Vector2d diff;
         public int ID = -1;
 
@@ -53,10 +54,13 @@ namespace linerider
         public virtual void CalculateConstants()
         {
         }
-
-        public virtual bool Interact(DynamicObject obj)
+        public virtual LineState GetState()
         {
-            return false;
+            return new LineState() { Pos1 = Position, Pos2 = Position2, Parent = this};
+        }
+        public virtual SimulationPoint Interact(SimulationPoint p)
+        {
+            return p;
         }
 
         public static bool DoesLineIntersectRect(Line l1, FloatRect rect)

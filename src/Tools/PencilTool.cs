@@ -40,7 +40,6 @@ namespace linerider
         private Vector2d _end;
         private bool _started = false;
         const float MINIMUM_LINE = 0.1f;
-        private StandardLine _last = null;
         private bool inv = false;
         private Vector2d _mouseshadow;
         private Vector2d _lastrendered;
@@ -55,28 +54,29 @@ namespace linerider
         public override void OnMouseDown(Vector2d pos)
         {
             _started = true;
-            _last = null;
 
             if (game.EnableSnap)
             {
-                var gamepos = MouseCoordsToGame(pos);
-                var ssnap = Snap(gamepos);
-                var snap = ssnap as StandardLine;
+				var gamepos = MouseCoordsToGame(pos);
+                using (var trk = game.Track.CreateTrackReader())
+                {
+                    var ssnap = Snap(trk, gamepos);
+                    var snap = ssnap as StandardLine;
 
-                if (snap != null)
-                {
-                    _start = (snap.Start - gamepos).Length < (snap.End - gamepos).Length ? snap.Start : snap.End;
-                    _last = snap;
-                }
-                else if (ssnap != null)
-                {
-                    _start = (ssnap.Position - gamepos).Length < (ssnap.Position2 - gamepos).Length
-                        ? ssnap.Position
-                        : ssnap.Position2;
-                }
-                else
-                {
-                    _start = gamepos;
+                    if (snap != null)
+                    {
+                        _start = (snap.Start - gamepos).Length < (snap.End - gamepos).Length ? snap.Start : snap.End;
+                    }
+                    else if (ssnap != null)
+                    {
+                        _start = (ssnap.Position - gamepos).Length < (ssnap.Position2 - gamepos).Length
+                            ? ssnap.Position
+                            : ssnap.Position2;
+                    }
+                    else
+                    {
+                        _start = gamepos;
+                    }
                 }
             }
             else
@@ -95,35 +95,20 @@ namespace linerider
         }
         private void AddLine()
         {
-            Line added = null;
-            switch (game.Canvas.ColorControls.Selected)
+            using (var trk = game.Track.CreateTrackWriter())
             {
-                case LineType.Blue:
-                    added = new StandardLine(_start, _end, false) { inv = inv };
-                    added.CalculateConstants();
-                    break;
-
-                case LineType.Red:
-                    added = new RedLine(_start, _end, false) { inv = inv };
-                    (added as RedLine).Multiplier = game.Canvas.ColorControls.RedMultiplier;
-                    added.CalculateConstants();
-                    break;
-
-                case LineType.Scenery:
-                    added = new SceneryLine(_start, _end) { Width = game.Canvas.ColorControls.GreenMultiplier };
-                    break;
-            }
-            game.Track.AddLine(added);
-            if (added is StandardLine)
-            {
-                var stl = added as StandardLine;
-                game.Track.TryConnectLines(stl, _last);
-                _last = stl;
-            }
-            if (game.Canvas.ColorControls.Selected != LineType.Scenery)
-            {
-                game.Track.ChangeMade(_start, _end);
-                game.Track.TrackUpdated();
+                game.Track.UndoManager.BeginAction();
+				Line added = CreateLine(trk, _start, _end, inv);
+				if (game.EnableSnap)
+				{
+					SnapLineEnd(trk, added, added.Position);
+					SnapLineEnd(trk, added, added.Position2);
+				}
+                if (added is StandardLine)
+				{
+                    game.Track.TrackUpdated();
+				}
+				game.Track.UndoManager.EndAction();
             }
             game.Invalidate();
         }
@@ -158,7 +143,6 @@ namespace linerider
                 if (Math.Abs(x) + Math.Abs(y) < MINIMUM_LINE / game.Track.Zoom && (_end != _start || game.Canvas.ColorControls.Selected != LineType.Scenery))
                     return;
                 AddLine();
-                _last = null;
             }
             base.OnMouseUp(pos);
         }
