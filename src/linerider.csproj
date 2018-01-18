@@ -207,10 +207,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
-    <None Include="Lines\DynamicLine.cs" />
-    <None Include="Lines\RepelLine.cs" />
-    <None Include="Lines\BindLine.cs" />
-    <None Include="Lines\ScarfLine.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\lib\Gwen\Gwen.csproj">
