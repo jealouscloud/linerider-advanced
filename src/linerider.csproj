@@ -54,7 +54,7 @@
     <Compile Include="Audio\AudioService.cs" />
     <Compile Include="Audio\Song.cs" />
     <Compile Include="Controls\GameCanvas.cs" />
-    <Compile Include="Controls\GLTrack.cs" />
+    <Compile Include="Controls\TrackService.cs" />
     <Compile Include="Controls\GLWindow.cs" />
     <Compile Include="Drawing\GameDrawingMatrix.cs" />
     <Compile Include="Drawing\GameRenderer.cs" />
