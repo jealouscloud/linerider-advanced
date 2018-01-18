@@ -73,11 +73,9 @@
     <Compile Include="ffmpeg\FFMPEGParameters.cs" />
     <Compile Include="Game\Camera.cs" />
     <Compile Include="Game\DoubleRect.cs" />
-    <Compile Include="Game\DynamicObject.cs" />
     <Compile Include="Game\FastGrid.cs" />
     <Compile Include="Game\FloatRect.cs" />
     <Compile Include="Game\FPSCounter.cs" />
-    <Compile Include="Game\GameObject.cs" />
     <Compile Include="Game\GameScheduler.cs" />
     <Compile Include="Game\GridPoint.cs" />
     <Compile Include="Game\Rider.cs" />
@@ -119,6 +117,7 @@
     <Compile Include="GameResources.cs" />
     <Compile Include="Utils\ResourceSync.cs" />
     <Compile Include="Utils\CursorImpl.cs" />
+    <Compile Include="Utils\PlaybackBufferManager.cs" />
     <Compile Include="Utils\TrackWriter.cs" />
     <Compile Include="Utils\TrackReader.cs" />
     <Compile Include="Game\RiderConstants.cs" />

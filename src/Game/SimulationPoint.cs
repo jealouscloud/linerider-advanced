@@ -20,6 +20,11 @@ namespace linerider.Game
             var momentum = Location - Previous + RiderConstants.Gravity;
             return new SimulationPoint(Location + momentum, Location, momentum, Friction);
         }
+        public SimulationPoint StepMomentumFriction()
+        {
+            var momentum = (Location - Previous) * Friction + RiderConstants.Gravity;
+            return new SimulationPoint(Location + momentum, Location, momentum, Friction);
+        }
         public SimulationPoint CreateNewLocation(Vector2d newloc)
         {
             return new SimulationPoint(newloc, Previous, Momentum, Friction);
