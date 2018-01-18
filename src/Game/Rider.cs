@@ -28,12 +28,10 @@ namespace linerider.Game
 {
     public struct Rider
     {
-        public bool Crashed;
         public readonly SimulationPoint[] Body;
         public readonly Scarf Scarf;
+        public bool Crashed;
         public bool SledBroken;
-
-
         public Rider(SimulationPoint[] body, Scarf scarf, bool dead = false, bool sledbroken = false)
         {
             Body = body;
@@ -99,10 +97,9 @@ namespace linerider.Game
             {
                 ret.Body[i] = new SimulationPoint(Vector2d.Lerp(ret.Body[i].Location, rider2.Body[i].Location, percent), Vector2d.Zero, Vector2d.Zero, 0);
             }
-            for (int i = 0; i < ret.Scarf._anchors.Length; i++)
+            for (int i = 0; i < ret.Scarf.Anchors.Length; i++)
             {
-                ret.Scarf._anchors[i].Position = Vector2d.Lerp(ret.Scarf._anchors[i].Position, rider2.Scarf._anchors[i].Position, percent);
-                ret.Scarf._anchors[i].Prev = Vector2d.Lerp(ret.Scarf._anchors[i].Prev, rider2.Scarf._anchors[i].Prev, percent);
+                ret.Scarf.Anchors[i] = new SimulationPoint(Vector2d.Lerp(ret.Scarf.Anchors[i].Location, rider2.Scarf.Anchors[i].Location, percent), Vector2d.Zero, Vector2d.Zero, 0);
             }
             return ret;
         }
