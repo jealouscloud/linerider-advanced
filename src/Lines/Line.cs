@@ -25,8 +25,9 @@ using linerider.Game;
 using linerider.Lines;
 namespace linerider
 {
-    public class Line : GameObject
+    public class Line : GameService
     {
+        public Vector2d Position { get; set; }
         public Vector2d Position2 { get; set; }
         public Vector2d diff;
         public int ID = -1;

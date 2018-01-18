@@ -4,20 +4,21 @@ using System.Linq;
 using System.Text;
 using linerider.Tools;
 using OpenTK;
+using linerider.Game;
 namespace linerider.Lines
 {
     public struct Scarf
     {
-        public ScarfObject[] _anchors;
+        public SimulationPoint[] Anchors;
         private Vector2d last;
         public Scarf(Vector2d start)
         {
             last = start;
-            _anchors = new ScarfObject[6];
-            for (int i = 0; i < _anchors.Length; i++)
+            Anchors = new SimulationPoint[6];
+            for (int i = 0; i < Anchors.Length; i++)
             {
-                _anchors[i] = new ScarfObject(start - new Vector2d(GetDefault(i + 1), -0.5), 0.9);
-                _anchors[i].Prev = _anchors[i].Position;
+                var pos = start - new Vector2d(GetDefault(i + 1), -0.5);
+                Anchors[i] = new SimulationPoint(pos, pos, Vector2d.Zero, 0.9);
             }
         }
         private float GetDefault(int index)
@@ -68,16 +69,16 @@ namespace linerider.Lines
         public void Step(Vector2d origin)
         {
             Vector2d kinetics = Vector2d.Zero;
-            for (int i = 0; i < _anchors.Length; i++)
+            for (int i = 0; i < Anchors.Length; i++)
             {
-                _anchors[i].Tick();
+                Anchors[i] = Anchors[i].StepMomentumFriction();
             }
             var speed = Math.Min(2, Math.Abs((origin - last).Length / 25));
             var points = GetAnchors(origin);
             //lets put the fancy things on the backburner for a bit.
             //StepAirResistance(points, origin);
             StepJoints(points);
-            ApplyChanges(points,false);
+            ApplyChanges(points, false);
             last = origin;
         }
         private void StepJoints(Vector2d[] points)
@@ -123,23 +124,25 @@ namespace linerider.Lines
             Vector2d kinetics = Vector2d.Zero;
             for (int i = points.Length - 1; i >= 1; i--)
             {
-                var diff = points[i] - _anchors[i - 1].Position;
-                _anchors[i - 1].Position = points[i];
+                var diff = points[i] - Anchors[i - 1].Location;
+                var pos = points[i];
+                var prev = Anchors[i - 1].Previous;
                 if (fancykinetics)
                 {
-                    _anchors[i - 1].Prev -= kinetics;
+                    prev -= kinetics;
                     kinetics += diff;
                     kinetics /= 4;
                 }
+                Anchors[i - 1] = new SimulationPoint(pos,prev,Anchors[i - 1].Momentum,Anchors[i - 1].Friction);
             }
         }
         public Vector2d[] GetAnchors(Vector2d origin)
         {
-            var ret = new Vector2d[_anchors.Length + 1];
+            var ret = new Vector2d[Anchors.Length + 1];
             ret[0] = origin;
-            for (int i = 0; i < _anchors.Length; i++)
+            for (int i = 0; i < Anchors.Length; i++)
             {
-                ret[i + 1] = _anchors[i].Position;
+                ret[i + 1] = Anchors[i].Location;
             }
             return ret;
         }
@@ -147,13 +150,10 @@ namespace linerider.Lines
         {
             Scarf ret = new Scarf();
             ret.last = last;
-            ret._anchors = new ScarfObject[this._anchors.Length];
-            for (int i = 0; i < ret._anchors.Length; i++)
+            ret.Anchors = new SimulationPoint[this.Anchors.Length];
+            for (int i = 0; i < ret.Anchors.Length; i++)
             {
-                var obj = new ScarfObject(_anchors[i].Position, _anchors[i].Friction);
-                obj.Prev = _anchors[i].Prev;
-                obj.Momentum = _anchors[i].Momentum;
-                ret._anchors[i] = obj;
+                ret.Anchors[i] = Anchors[i];
             }
             return ret;
         }
