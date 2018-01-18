@@ -26,7 +26,7 @@ using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-
+using linerider.Game;
 namespace linerider.Drawing
 {
     public static class GameRenderer
@@ -39,182 +39,73 @@ namespace linerider.Drawing
         #endregion Fields
 
         #region Methods
-
-        public static void DrawIteration(float opacity, Rider fullrider, int iteration, bool momentumvectors = false, bool drawcontactpoints = false)
-        {
-            var rider = fullrider.iterations[iteration];
-            DrawScarf(rider.GetScarf(), opacity);
-            var points = rider.ModelAnchors;
-
-            DrawTexture(Models.LegTexture, Models.LegRect, points[4].Position, points[9].Position, opacity);
-
-
-            DrawTexture(Models.ArmTexture, Models.ArmRect, points[5].Position, points[7].Position, opacity);
-            if (!rider.Crashed)
-                RenderRoundedLine(points[7].Position, points[3].Position, Color.Black, 0.1f);
-
-            if (rider.SledBroken)
-            {
-                DrawTexture(Models.BrokenSledTexture, Models.BrokenSledRect, points[0].Position, points[3].Position, opacity);
-            }
-            else
-            {
-                DrawTexture(Models.SledTexture, Models.SledRect, points[0].Position, points[3].Position, opacity);
-            }
-
-            DrawTexture(Models.LegTexture, Models.LegRect, points[4].Position, points[8].Position, opacity);
-            if (!rider.Crashed)
-            {
-                DrawTexture(Models.BodyTexture, Models.BodyRect, points[4].Position, points[5].Position, opacity);
-            }
-            else
-            {
-                DrawTexture(Models.BodyDeadTexture, Models.BodyRect, points[4].Position, points[5].Position, opacity);
-            }
-            if (!rider.Crashed)
-                RenderRoundedLine(points[6].Position, points[3].Position, Color.Black, 0.1f);
-
-            DrawTexture(Models.ArmTexture, Models.ArmRect, points[5].Position, points[6].Position, opacity);
-            if (momentumvectors)
-            {
-                foreach (var anchor in rider.ModelAnchors)
-                {
-                    var vec1 = anchor.Position;
-                    var vec2 = vec1 + (anchor.Position - anchor.Prev + anchor.Gravity);
-                    RenderRoundedLine(vec1, vec2, Color.Red, 1f / 2, false);
-                }
-            }
-            if (drawcontactpoints)
-            {
-                using (new GLEnableCap(EnableCap.Blend))
-                {
-                    GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-                    var brokenpoints = Game.Track.DiagnoseIteration(fullrider, iteration);
-                    for (var i = 0; i < rider.ModelLines.Length; i++)
-                    {
-                        var c = Color.FromArgb(255, Color.FromArgb(0xCC72B7));
-                        if (rider.ModelLines[i] is BindLine)
-                        {
-                            continue;
-                        }
-                        else if (rider.ModelLines[i] is RepelLine)
-                        {
-                            c = Color.CornflowerBlue;
-                            RenderRoundedLine(rider.ModelLines[i].Position, rider.ModelLines[i].Position2, c, 1f / 4, false);
-                        }
-                        else if (i <= 3)
-                        {
-                            RenderRoundedLine(rider.ModelLines[i].Position, rider.ModelLines[i].Position2, c, 1f / 4, false);
-                        }
-                    }
-                    for (var i = 0; i < rider.ModelLines.Length; i++)
-                    {
-                        if (rider.ModelLines[i] is BindLine)
-                        {
-                            if (rider.Crashed)
-                                continue;
-                            if (brokenpoints.Contains(i))
-                                RenderRoundedLine(rider.ModelLines[i].Position, rider.ModelLines[i].Position2, Color.DarkOrange, 1f / 4, false);
-                        }
-                    }
-                    for (int i = 0; i < rider.ModelAnchors.Length; i++)
-                    {
-                        Color c = Color.Cyan;
-                        if (((i == 0 || i == 1) && brokenpoints.Contains(-1)) || ((i == 4 || i == 5) && brokenpoints.Contains(-2)))
-                        {
-                            c = Color.Blue;
-                        }
-                        RenderRoundedLine(rider.ModelAnchors[i].Position, rider.ModelAnchors[i].Position, c, 1f / 4, false);
-
-                    }
-                }
-            }
-        }
-        public static void DrawRider(float opacity, Rider rider, bool scarf = false, bool drawcontactpoints = false, bool momentumvectors = false)
+        public static void DrawRider(float opacity, Rider rider, bool scarf = false, bool drawcontactpoints = false, bool momentumvectors = false, int iteration=6)
         {
             if (scarf)
             {
                 DrawScarf(rider.GetScarf(), opacity);
             }
-            var points = rider.ModelAnchors;
+            var points = rider.Body;
 
-            DrawTexture(Models.LegTexture, Models.LegRect, points[4].Position, points[9].Position, opacity);
+            DrawTexture(Models.LegTexture, Models.LegRect, 
+            points[RiderConstants.BodyButt].Location, 
+            points[RiderConstants.BodyFootRight].Location, opacity);
 
-            DrawTexture(Models.ArmTexture, Models.ArmRect, points[5].Position, points[7].Position, opacity);
+            DrawTexture(Models.ArmTexture, Models.ArmRect, 
+            points[RiderConstants.BodyShoulder].Location, 
+            points[RiderConstants.BodyHandRight].Location, opacity);
             if (!rider.Crashed)
-                RenderRoundedLine(points[7].Position, points[3].Position, Color.Black, 0.1f);
+                RenderRoundedLine(points[RiderConstants.BodyHandRight].Location, points[RiderConstants.SledTR].Location, 
+                Color.Black, 0.1f);
 
             if (rider.SledBroken)
             {
-                DrawTexture(Models.BrokenSledTexture, Models.SledRect, points[0].Position, points[3].Position, opacity);
+                DrawTexture(Models.BrokenSledTexture, Models.SledRect, 
+                points[RiderConstants.SledTL].Location, 
+                points[RiderConstants.SledTR].Location, opacity);
             }
             else
             {
-                DrawTexture(Models.SledTexture, Models.SledRect, points[0].Position, points[3].Position, opacity);
+                DrawTexture(Models.SledTexture, Models.SledRect, 
+                points[RiderConstants.SledTL].Location, 
+                points[RiderConstants.SledTR].Location, opacity);
             }
 
-            DrawTexture(Models.LegTexture, Models.LegRect, points[4].Position, points[8].Position, opacity);
+            DrawTexture(Models.LegTexture, Models.LegRect, 
+            points[RiderConstants.BodyButt].Location, 
+            points[RiderConstants.BodyFootLeft].Location, opacity);
             if (!rider.Crashed)
             {
-                DrawTexture(Models.BodyTexture, Models.BodyRect, points[4].Position, points[5].Position, opacity);
+                DrawTexture(Models.BodyTexture, Models.BodyRect, 
+                points[RiderConstants.BodyButt].Location, 
+                points[RiderConstants.BodyShoulder].Location, opacity);
             }
             else
             {
-                DrawTexture(Models.BodyDeadTexture, Models.BodyRect, points[4].Position, points[5].Position, opacity);
+                DrawTexture(Models.BodyDeadTexture, Models.BodyRect, 
+                points[RiderConstants.BodyButt].Location, 
+                points[RiderConstants.BodyShoulder].Location, opacity);
             }
             if (!rider.Crashed)
-                RenderRoundedLine(points[6].Position, points[3].Position, Color.Black, 0.1f);
+                RenderRoundedLine(points[RiderConstants.BodyHandLeft].Location, points[RiderConstants.SledTR].Location, 
+                Color.Black, 0.1f);
 
-            DrawTexture(Models.ArmTexture, Models.ArmRect, points[5].Position, points[6].Position, opacity);
+            DrawTexture(Models.ArmTexture, Models.ArmRect, 
+            points[RiderConstants.BodyShoulder].Location, 
+            points[RiderConstants.BodyHandLeft].Location, opacity);
             List<Vertex> vertices = new List<Vertex>(300);
             if (momentumvectors)
             {
-                foreach (var anchor in rider.ModelAnchors)
+                foreach (var anchor in rider.Body)
                 {
-                    var vec1 = anchor.Position;
+                    var vec1 = anchor.Location;
                     var vec2 = vec1 + (anchor.Momentum);
                     vertices.AddRange(GenRoundedLine(vec1, vec2, Color.Red, 1f / 2, false));
                 }
             }
             if (drawcontactpoints)
             {
-                var brokenpoints = Game.Track.Diagnose(rider);
-                for (var i = 0; i < rider.ModelLines.Length; i++)
-                {
-                    var c = Color.FromArgb(255, Color.FromArgb(0xCC72B7));
-                    if (rider.ModelLines[i] is BindLine)
-                    {
-                        continue;
-                    }
-                    else if (rider.ModelLines[i] is RepelLine)
-                    {
-                        c = Color.CornflowerBlue;
-                        vertices.AddRange(GenRoundedLine(rider.ModelLines[i].Position, rider.ModelLines[i].Position2, c, 1f / 4, false));
-                    }
-                    else if (i <= 3)
-                    {
-                        vertices.AddRange(GenRoundedLine(rider.ModelLines[i].Position, rider.ModelLines[i].Position2, c, 1f / 4, false));
-                    }
-                }
-                for (var i = 0; i < rider.ModelLines.Length; i++)
-                {
-                    if (rider.ModelLines[i] is BindLine)
-                    {
-                        if (rider.Crashed)
-                            continue;
-                        if (brokenpoints.Contains(i))
-                            vertices.AddRange(GenRoundedLine(rider.ModelLines[i].Position, rider.ModelLines[i].Position2, Color.DarkOrange, 1f / 4, false));
-                    }
-                }
-                for (int i = 0; i < rider.ModelAnchors.Length; i++)
-                {
-                    Color c = Color.Cyan;
-                    if (((i == 0 || i == 1) && brokenpoints.Contains(-1)) || ((i == 4 || i == 5) && brokenpoints.Contains(-2)))
-                    {
-                        c = Color.Blue;
-                    }
-                    vertices.AddRange(GenRoundedLine(rider.ModelAnchors[i].Position, rider.ModelAnchors[i].Position, c, 1f / 4, false));
-                }
+                DrawContactPoints(rider,iteration,vertices);
             }
             if (vertices.Count != 0)
             {
@@ -223,6 +114,49 @@ namespace linerider.Drawing
                 vao.AddVerticies(vertices);
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
                 vao.Draw(PrimitiveType.Triangles);
+            }
+        }
+        private static void DrawContactPoints(Rider rider, int iteration, List<Vertex> vertices)
+        {
+            using (var trk = Game.Track.CreateTrackReader())
+            {
+                var brokenpoints = trk.Diagnose(rider, iteration);
+                for (var i = 0; i < RiderConstants.Bones.Length; i++)
+                {
+                    var c = Color.FromArgb(255, Color.FromArgb(0xCC72B7));
+                    if (RiderConstants.Bones[i].Breakable)
+                    {
+                        continue;
+                    }
+                    else if (RiderConstants.Bones[i].OnlyRepel)
+                    {
+                        c = Color.CornflowerBlue;
+                        vertices.AddRange(GenRoundedLine(rider.Body[RiderConstants.Bones[i].joint1].Location, rider.Body[RiderConstants.Bones[i].joint2].Location, c, 1f / 4, false));
+                    }
+                    else if (i <= 3)
+                    {
+                        vertices.AddRange(GenRoundedLine(rider.Body[RiderConstants.Bones[i].joint1].Location, rider.Body[RiderConstants.Bones[i].joint2].Location, c, 1f / 4, false));
+                    }
+                }
+                for (var i = 0; i < RiderConstants.Bones.Length; i++)
+                {
+                    if (RiderConstants.Bones[i].Breakable)
+                    {
+                        if (rider.Crashed)
+                            continue;
+                        if (brokenpoints.Contains(i))
+                            vertices.AddRange(GenRoundedLine(rider.Body[RiderConstants.Bones[i].joint1].Location, rider.Body[RiderConstants.Bones[i].joint2].Location, Color.DarkOrange, 1f / 4, false));
+                    }
+                }
+                for (var i = 0; i < RiderConstants.Bones.Length; i++)
+                {
+                    Color c = Color.Cyan;
+                    if (((i == 0 || i == 1) && brokenpoints.Contains(-1)) || ((i == 4 || i == 5) && brokenpoints.Contains(-2)))
+                    {
+                        c = Color.Blue;
+                    }
+                    vertices.AddRange(GenRoundedLine(rider.Body[RiderConstants.Bones[i].joint1].Location, rider.Body[RiderConstants.Bones[i].joint2].Location, c, 1f / 4, false));
+                }
             }
         }
         public static void DrawScarf(Line[] lines, float opacity)
@@ -262,16 +196,16 @@ namespace linerider.Drawing
                 altvectors.Add(br.Position);
                 altvectors.Add(tr.Position); ;
             }
-            for (int i = 0; i < altvectors.Count - 4; i+=4)
+            for (int i = 0; i < altvectors.Count - 4; i += 4)
             {
                 scarf.AddVertex(new Vertex(altvectors[i], alt));
-                scarf.AddVertex(new Vertex(altvectors[i+1], alt));
-                scarf.AddVertex(new Vertex(altvectors[i+2], alt));
+                scarf.AddVertex(new Vertex(altvectors[i + 1], alt));
+                scarf.AddVertex(new Vertex(altvectors[i + 2], alt));
 
 
                 scarf.AddVertex(new Vertex(altvectors[i], alt));
-                scarf.AddVertex(new Vertex(altvectors[i+2], alt));
-                scarf.AddVertex(new Vertex(altvectors[i+3], alt));
+                scarf.AddVertex(new Vertex(altvectors[i + 2], alt));
+                scarf.AddVertex(new Vertex(altvectors[i + 3], alt));
             }
             scarf.Draw(PrimitiveType.Triangles);
             GameDrawingMatrix.Exit();
@@ -301,8 +235,8 @@ namespace linerider.Drawing
             }
             if (drawcolor)
             {
-                var loc3 = l.Perpendicular.X > 0 ? (Math.Ceiling(l.Perpendicular.X)) : (Math.Floor(l.Perpendicular.X));
-                var loc4 = l.Perpendicular.Y > 0 ? (Math.Ceiling(l.Perpendicular.Y)) : (Math.Floor(l.Perpendicular.Y));
+                var loc3 = l.Normal.X > 0 ? (Math.Ceiling(l.Normal.X)) : (Math.Floor(l.Normal.X));
+                var loc4 = l.Normal.Y > 0 ? (Math.Ceiling(l.Normal.Y)) : (Math.Floor(l.Normal.Y));
                 if (type == LineType.Red)
                 {
                     var redline = l as RedLine;

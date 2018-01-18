@@ -161,7 +161,13 @@ namespace linerider.Game
         /// <returns>A <see cref="System.Int32"/> that represents the hash code for this instance./></returns>
         public override int GetHashCode()
         {
-            return (x << 16) | y;
+            unchecked
+            {
+                int hash = 27;
+                hash = hash * 486187739 + x;
+                hash = hash * 486187739 + y;
+                return hash;
+            }
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿//
+﻿#define debuggrid
+//
 //  GLWindow.cs
 //
 //  Author:
@@ -71,7 +72,7 @@ namespace linerider
         private readonly Tool _linetool;
         private readonly Tool _erasertool;
         private readonly Tool _handtool;
-        private readonly Tool _lineadjusttool;
+        private readonly LineAdjustTool _lineadjusttool;
         private readonly Stopwatch _autosavewatch = Stopwatch.StartNew();
         public MsaaFbo MSAABuffer;
         public Dictionary<string, MouseCursor> Cursors = new Dictionary<string, MouseCursor>();
@@ -95,8 +96,6 @@ namespace linerider
         public bool SettingShowFps = true;
         public bool SettingShowPpf = true;
         public bool SettingShowTimer = true;
-        public bool HitTest = false;
-        public int IterationsOffset = 6;
         public Tool SelectedTool;
         public bool AllowTrackRender;
 
@@ -133,7 +132,7 @@ namespace linerider
             => Track.Camera.GetViewport().Vector;
 
         public Vector2d ScreenTranslation => -ScreenPosition;
-        public GLTrack Track { get; }
+        public TrackService Track { get; }
         public GLWindow()
             : base(1280, 720, new GraphicsMode(new ColorFormat(32), 0, 0, 0, ColorFormat.Empty),
                    "Line Rider: Advanced", GameWindowFlags.Default, DisplayDevice.Default)
@@ -150,7 +149,7 @@ namespace linerider
             _handtool = new HandTool();
             _lineadjusttool = new LineAdjustTool();
             SelectedTool = _penciltool;
-            Track = new GLTrack();
+            Track = new TrackService();
             VSync = VSyncMode.On;
             Context.ErrorChecking = true;
             WindowBorder = WindowBorder.Resizable;
@@ -232,7 +231,7 @@ namespace linerider
                 Canvas.RenderCanvas();
                 MSAABuffer.End();
 
-                if (Settings.NightMode)//todo this is a gross hack, use shader?
+                if (Settings.NightMode)
                 {
                     StaticRenderer.RenderRect(new FloatRect(0, 0, RenderSize.Width, RenderSize.Height), Color.FromArgb(40, 0, 0, 0));
                 }
@@ -279,7 +278,7 @@ namespace linerider
                 {
                     Track.Update(updates);
                 }
-                if (Track.Frame % Math.Max(1, Scheduler.UpdatesPerSecond / 2) == 0)
+                if (Track.Offset % Math.Max(1, Scheduler.UpdatesPerSecond / 2) == 0)
                 {
                     var sp = AudioService.SongPosition;
                     if (Math.Abs(((Track.CurrentFrame / 40f) + CurrentSong.Offset) - sp) > 0.1)
@@ -363,7 +362,7 @@ namespace linerider
             AddCursor("size_ver", GameResources.cursor_size_vert, 16, 16);
             AddCursor("size_all", GameResources.cursor_size_all, 16, 16);
             AddCursor("default", GameResources.cursor_default, 7, 4);
-            AddCursor("zoom",GameResources.cursor_zoom_in,11,10);
+            AddCursor("zoom", GameResources.cursor_zoom_in, 11, 10);
             Gwen.Platform.Neutral.CursorSetter = new Utils.CursorImpl(this);
             Program.UpdateCheck();
         }
@@ -433,7 +432,6 @@ namespace linerider
             var r = _input.ProcessMouseMessage(e);
             if (Canvas.GetOpenWindows().Count != 0)
                 return;
-
             if (e.Button == MouseButton.Left)
             {
                 if (_handToolOverride)
@@ -471,9 +469,15 @@ namespace linerider
             {
                 var pos = new Vector2d(e.X, e.Y);
                 var gamepos = ScreenPosition + (pos / Track.Zoom);
-                Track.StartPosition = gamepos;
-                Track.Reset(Track.RiderState);
-                Track.TrackUpdated();
+                using (var trk = Track.CreateTrackWriter())
+                {
+                    using (Track.EnterPlayback())
+                    {
+                        trk.Track.StartOffset = gamepos;
+                        Track.Reset();
+                        Track.TrackUpdated();
+                    }
+                }
                 Invalidate();
             }
             else if (_handToolOverride)
@@ -592,6 +596,7 @@ namespace linerider
                 }
                 if (SelectedTool == _lineadjusttool)
                 {
+                    _lineadjusttool.CanLifelock = true;
                     Invalidate();
                 }
                 if (input.IsKeyDown(Key.Enter))
@@ -612,37 +617,37 @@ namespace linerider
                 }
 
 
-                if (Track.Animating && Track.Paused && Track.Frame != 0)
+                if (Track.Animating && Track.Paused && Track.Offset != 0)
                 {
                     if (input.IsKeyDown(Key.Right))
                     {
-                        if (IterationsOffset < 6)
+                        if (Track.IterationsOffset < 6)
                         {
-                            IterationsOffset++;
-                            SetIteration(IterationsOffset, true);
+                            Track.IterationsOffset++;
+                            Canvas.UpdateIterationUI();
                         }
                         else
                         {
                             Track.NextFrame();
                             Invalidate();
-                            SetIteration(0, true);
-                            Track.Camera.SetFrame(Track.RiderState.CalculateCenter(), false);
+                            Canvas.UpdateIterationUI();
+                            Track.Camera.SetFrame(Track.RenderRider.CalculateCenter(), false);
                         }
                         return;
                     }
                     if (input.IsKeyDown(Key.Left))
                     {
-                        if (IterationsOffset > 0)
+                        if (Track.IterationsOffset > 0)
                         {
-                            IterationsOffset--;
-                            SetIteration(IterationsOffset, true);
+                            Track.IterationsOffset--;
+                            Canvas.UpdateIterationUI();
                         }
                         else
                         {
                             Track.PreviousFrame();
                             Invalidate();
-                            SetIteration(6, true);
-                            Track.Camera.SetFrame(Track.RiderState.CalculateCenter(), false);
+                            Canvas.UpdateIterationUI();
+                            Track.Camera.SetFrame(Track.RenderRider.CalculateCenter(), false);
                         }
                         return;
                     }
@@ -787,7 +792,7 @@ namespace linerider
                 {
                     if (!Track.Animating)
                     {
-                        Track.Camera.SetFrame(Track.RiderState.ModelAnchors[4].Position, false);
+                        Track.Camera.SetFrame(Track.RenderRider.Body[4].Location, false);
                         Invalidate();
                     }
                 }
@@ -798,7 +803,7 @@ namespace linerider
                         var flag = Track.GetFlag();
                         if (flag != null)
                         {
-                            Track.Camera.SetFrame(flag.State.ModelAnchors[4].Position, false);
+                            Track.Camera.SetFrame(flag.State.Body[4].Location, false);
                             Invalidate();
                         }
                     }
@@ -830,12 +835,19 @@ namespace linerider
                 {
                     if (!Track.Animating || Track.Paused)
                     {
-                        SelectedTool?.Stop(); //BUGFIX SLAGwell removal.
-                        var l = Track.GetLastLine();
-                        if (l != null)
-                            Track.RemoveLine(l);
-                        Track.TrackUpdated();
-                        Invalidate();
+                        using (var trk = Track.CreateTrackWriter())
+                        {
+                            SelectedTool?.Stop(); //BUGFIX SLAGwell removal.
+                            var l = trk.GetLastLine();
+                            if (l != null)
+                            {
+                                Track.UndoManager.BeginAction();
+                                trk.RemoveLine(l);
+                                Track.UndoManager.EndAction();
+                            }
+                            Track.TrackUpdated();
+                            Invalidate();
+                        }
                     }
                 }
                 else if (e.Key == Key.Right)
@@ -870,20 +882,26 @@ namespace linerider
                 }
                 else if (e.Key == Key.Home)
                 {
-                    var l = Track.GetFirstLine();
-                    if (l != null)
+                    using (var trk = Track.CreateTrackReader())
                     {
-                        Track.Camera.SetFrame(l.Position, false);
-                        Invalidate();
+                        var l = trk.GetFirstLine();
+                        if (l != null)
+                        {
+                            Track.Camera.SetFrame(l.Position, false);
+                            Invalidate();
+                        }
                     }
                 }
                 else if (e.Key == Key.End)
                 {
-                    var l = Track.GetLastLine();
-                    if (l != null)
+                    using (var trk = Track.CreateTrackReader())
                     {
-                        Track.Camera.SetFrame(l.Position, false);
-                        Invalidate();
+                        var l = trk.GetLastLine();
+                        if (l != null)
+                        {
+                            Track.Camera.SetFrame(l.Position, false);
+                            Invalidate();
+                        }
                     }
                 }
                 else if (e.Key == Key.Tab)
@@ -917,6 +935,7 @@ namespace linerider
             }
             else if (e.Key == Key.AltLeft || e.Key == Key.AltRight)
             {
+                _lineadjusttool.CanLifelock = false;
                 if (SelectedTool == _lineadjusttool)
                 {
                     Invalidate();
@@ -1024,7 +1043,10 @@ namespace linerider
             item.Clicked += (snd, msg) => { Canvas.ShowSongWindow(); };
             item = _menuEdit.AddItem("Export SOL");
             item.AutoSizeToContents = false;
-            item.Clicked += (snd, msg) => { Track.ExportAsSol(); };
+            item.Clicked += (snd, msg) =>
+            {
+                Canvas.ExportAsSol();
+            };
             item = _menuEdit.AddItem("Export Video");
             item.AutoSizeToContents = false;
             item.Clicked += (snd, msg) =>
@@ -1081,22 +1103,6 @@ namespace linerider
                     UpdateSongPosition(Track.CurrentFrame / 40f);
                 }
             }
-        }
-
-        public void SetIteration(int it, bool visible)
-        {
-            var l = (Label)Canvas.FindChildByName("labeliterations");
-            IterationsOffset = it;
-            l.IsHidden = !visible;
-
-            if (IterationsOffset == 6)
-                l.SetText("");
-            else if (IterationsOffset == 0)
-                l.SetText("Physics Iteration: " + it + " (momentum tick)");
-            else
-                l.SetText("Physics Iteration: " + it);
-
-            Track.SimulationNeedsDraw = true;//just in case
         }
 
         private void BeginOrtho()

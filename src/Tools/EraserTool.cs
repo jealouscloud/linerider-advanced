@@ -67,7 +67,8 @@ namespace linerider
 
         private void Erase(Vector2d pos)
         {
-            game.Track.Erase(pos, game.Canvas.ColorControls.Selected);
+            //todo implement eraser
+        //    game.Track.Erase(pos, game.Canvas.ColorControls.Selected);
         }
 
         public override void Stop()

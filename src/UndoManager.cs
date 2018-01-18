@@ -22,290 +22,123 @@
 using System.Collections.Generic;
 using OpenTK;
 using System;
+using linerider.Lines;
 namespace linerider
 {
     public class UndoManager : GameService
     {
         private class act : GameService
         {
-            public virtual bool Undo(Track track)
+            public List<LineState> States;
+            public act()
             {
-                return false;
+                States = new List<LineState>();
             }
-
-            public virtual bool Redo(Track track)
+            private bool DoAction(TrackWriter track, LineState beforeact, LineState afteract)
             {
-                return false;
-            }
-        }
-
-        private class lineaction : act
-        {
-            public List<ExtensionAction> extensions = new List<ExtensionAction>();
-            protected Line L;
-        }
-
-        private class adjustact : lineaction
-        {
-            public Vector2d OriginalPos1;
-            public Vector2d OriginalPos2;
-            public Vector2d NewPos1;
-            public Vector2d NewPos2;
-            private Vector2d SnapOriginalPos1;
-            private Vector2d SnapOriginalPos2;
-            private Vector2d SnapNewPos1;
-            private Vector2d SnapNewPos2;
-            private Line sl;
-            private Line pairline;
-
-            public adjustact(Line line, Line paired, Vector2d op1, Vector2d op2, Vector2d np1, Vector2d np2,
-                Vector2d pop1, Vector2d pop2, Vector2d pnp1, Vector2d pnp2)
-            {
-                sl = line;
-                pairline = paired;
-                L = line;
-                OriginalPos1 = op1;
-                OriginalPos2 = op2;
-                NewPos1 = np1;
-                NewPos2 = np2;
-                //calc pivot
-                if (pairline != null)
+                var parent = beforeact.Parent;
+                parent.Position = afteract.Pos1;
+                parent.Position2 = afteract.Pos2;
+                var std = parent as StandardLine;
+                // remove line
+                if (beforeact.Exists && !afteract.Exists)
                 {
-                    SnapOriginalPos1 = pop1;
-                    SnapOriginalPos2 = pop2;
-                    SnapNewPos1 = pnp1;
-                    SnapNewPos2 = pnp2;
+                    track.RemoveLine(parent);
                 }
-            }
-
-            public override bool Undo(Track track)
-            {
-                track.RemoveLineFromGrid(sl);
-                if (L is StandardLine)
+                // add line
+                else if (afteract.Exists && !beforeact.Exists)
                 {
-                    var stl = L as StandardLine;
-                    stl.Start = OriginalPos1;
-                    stl.End = OriginalPos2;
+                    track.AddLine(parent);
                 }
-                else
+                //do extensions
+                if (std != null)
                 {
-                    L.Position = OriginalPos1;
-                    L.Position2 = OriginalPos2;
-                }
-                if (L is StandardLine)
-                {
-                    ((StandardLine)L).CalculateConstants();
-                }
-                track.AddLineToGrid(sl);
-                game.Track.RedrawLine(sl);
-                if (pairline != null)
-                {
-                    track.RemoveLineFromGrid(pairline);
-                    pairline.Position = SnapOriginalPos1;
-                    pairline.Position2 = SnapOriginalPos2;
-                    if (pairline is StandardLine)
+                    if (beforeact.Prev != afteract.Prev)
                     {
-                        ((StandardLine)pairline).CalculateConstants();
-                        //StandardLine.TryConnectLines(track, (StandardLine)L, (StandardLine)pairline);
+                        var oldprev = beforeact.Prev as StandardLine;
+                        var newprev = afteract.Prev as StandardLine;
+                        if (oldprev != null)
+                        {
+                            oldprev.RemoveExtension(StandardLine.ExtensionDirection.Right);
+                            oldprev.Next = null;
+                        }
+                        if (newprev != null)
+                        {
+                            newprev.AddExtension(StandardLine.ExtensionDirection.Right);
+                            newprev.Next = std;
+                        }
+                        std.Prev = newprev;
                     }
-                    track.AddLineToGrid(pairline);
-                    game.Track.RedrawLine(pairline);
-                }
-                track.ChangeMade(NewPos1, NewPos2);
-                track.ChangeMade(OriginalPos1, OriginalPos2);
-                return true;
-            }
-
-            public override bool Redo(Track track)
-            {
-                track.RemoveLineFromGrid(sl);
-                if (L is StandardLine)
-                {
-                    var stl = L as StandardLine;
-                    stl.Start = NewPos1;
-                    stl.End = NewPos2;
-                }
-                else
-                {
-                    L.Position = NewPos1;
-                    L.Position2 = NewPos2;
-                }
-                if (L is StandardLine)
-                {
-                    ((StandardLine)L).CalculateConstants();
-                }
-                track.AddLineToGrid(sl);
-				game.Track.RedrawLine(sl);
-                if (pairline != null)
-                {
-                    track.RemoveLineFromGrid(pairline);
-
-                    pairline.Position = SnapNewPos1;
-                    pairline.Position2 = SnapNewPos2;
-                    if (pairline is StandardLine)
+                    if (beforeact.Next != afteract.Next)
                     {
-                        ((StandardLine)pairline).CalculateConstants();
-                        // StandardLine.TryConnectLines(track, (StandardLine)L, (StandardLine)pairline);
+                        var oldnext = beforeact.Next as StandardLine;
+                        var newnext = afteract.Next as StandardLine;
+                        if (oldnext != null)
+                        {
+                            oldnext.RemoveExtension(StandardLine.ExtensionDirection.Left);
+                            oldnext.Prev = null;
+                        }
+                        if (newnext != null)
+                        {
+                            newnext.AddExtension(StandardLine.ExtensionDirection.Left);
+                            newnext.Prev = std;
+                        }
+                        std.Next = newnext;
                     }
-                    track.AddLineToGrid(pairline);
-                    game.Track.RedrawLine(pairline);
+                    std.SetExtension(afteract.extension);
                 }
-                track.ChangeMade(NewPos1, NewPos2);
-                track.ChangeMade(OriginalPos1, OriginalPos2);
-                return true;
+                return !(parent is SceneryLine);
+
+            }
+            /// <summary>
+            /// undo previous action, returns true if physics are changed
+            /// </summary>
+            public virtual bool Undo(TrackWriter track)
+            {
+                bool ret = false;
+                for (int i = States.Count - 1; i > 0; i--)
+                {
+                    ret |= DoAction(track, States[i], States[i - 1]);
+                }
+                return ret;
+            }
+
+            public virtual bool Redo(TrackWriter track)
+            {
+                bool ret = false;
+                for (int i = 0; i < States.Count - 1; i--)
+                {
+                    ret |= DoAction(track, States[i], States[i + 1]);
+                }
+                return ret;
             }
         }
-
-        private class AddAction : lineaction
-        {
-            public AddAction(Line l)
-            {
-                L = l;
-            }
-
-            public override bool Undo(Track track)
-            {
-                game.Track.RemoveLine(L);
-                return L.GetLineType() != LineType.Scenery;
-            }
-
-            public override bool Redo(Track track)
-            {
-                game.Track.AddLine(L);
-                return L.GetLineType() != LineType.Scenery;
-            }
-        }
-
-        private class RemoveAction : lineaction
-        {
-            public RemoveAction(Line l)
-            {
-                L = l;
-            }
-
-            public override bool Redo(Track track)
-            {
-				game.Track.RemoveLine(L);
-                return L.GetLineType() != LineType.Scenery;
-            }
-
-            public override bool Undo(Track track)
-            {
-                game.Track.AddLine(L);
-                return L.GetLineType() != LineType.Scenery;
-            }
-        }
-
-        private class ExtensionAction : act
-        {
-            private StandardLine L;
-            private StandardLine L2;
-            private bool Add;
-
-            public ExtensionAction(StandardLine l, StandardLine l2, bool set)
-            {
-                L = l;
-                L2 = l2;
-                Add = set;
-            }
-
-            public override bool Redo(Track track)
-            {
-                if (Add)
-                {
-                    game.Track.TryConnectLines(L, L2, false);
-                }
-                else
-                {
-                    game.Track.TryDisconnectLines(L, L2, false);
-                }
-                return true;
-            }
-
-            public override bool Undo(Track track)
-            {
-                if (Add)
-                {
-                    game.Track.TryDisconnectLines(L, L2, false);
-                }
-                else
-                {
-                    game.Track.TryConnectLines(L, L2, false);
-                }
-                return true;
-            }
-        }
-
         private int pos;
         private List<act> _actions = new List<act>();
-        private bool _working;
-        private Track _track;
-        public UndoManager(Track track)
+        private act _currentaction;
+        public UndoManager()
         {
-            if (track == null)
-                throw new System.NullReferenceException();
-            _track = track;
         }
-
-        public void AddLineAdjustment(Line l, Line paired, Vector2d op1, Vector2d op2, Vector2d np1, Vector2d np2,
-            Vector2d pop1, Vector2d pop2, Vector2d pnp1, Vector2d pnp2)
+        /// <summary>
+        /// After calling beginaction the current state will be added tothe action
+        /// </summary>
+        /// <param name="state">the new state of the line</param>
+        public void AddChange(LineState state)
         {
-            if (!_working)
-            {
-                var act = new adjustact(l, paired, op1, op2, np1, np2, pop1, pop2, pnp1, pnp2);
-                if (pos != _actions.Count)
-                {
-                    if (pos < 0)
-                        pos = 0;
-                    _actions.RemoveRange(pos, _actions.Count - pos);
-                }
-                _actions.Add(act);
-                pos = _actions.Count;
-            }
+            if (_currentaction == null)
+                throw new Exception("UndoManager current action null");
+            _currentaction.States.Add(state);
         }
-
-        public void AddExtensionChange(StandardLine l1, StandardLine l2, bool add)
+        public void BeginAction()
         {
-            if (!_working)
-            {
-                if (_actions.Count == 0)
-                    return;
-                var ac = new ExtensionAction(l1, l2, add);
-                var act = (lineaction)_actions[_actions.Count - 1];
-                act.extensions.Add(ac);
-            }
+            _currentaction = new act();
         }
-
-        public void AddLine(Line l)
+        public void EndAction()
         {
-            if (!_working)
-            {
-                var ac = new AddAction(l);
-                if (pos != _actions.Count)
-                {
-                    if (pos < 0)
-                        pos = 0;
-                    _actions.RemoveRange(pos, _actions.Count - pos);
-                }
-                _actions.Add(ac);
-                pos = _actions.Count;
-            }
-        }
-
-        public void RemoveLine(Line l)
-        {
-            if (!_working)
-            {
-                var ac = new RemoveAction(l);
-                if (pos != _actions.Count)
-                {
-                    if (pos < 0)
-                        pos = 0;
-                    _actions.RemoveRange(pos, _actions.Count - pos);
-                }
-                _actions.Add(ac);
-                pos = _actions.Count;
-            }
+            if (_currentaction == null)
+                throw new Exception("UndoManager current action null");
+            _actions.Add(_currentaction);
+            _currentaction = null;
         }
 
         public bool Undo()
@@ -313,21 +146,13 @@ namespace linerider
             var needsupdate = false;
             if (_actions.Count > 0 && pos > 0)
             {
-                _working = true;
                 pos--;
                 var action = _actions[pos];
-                if (action.Undo(_track))
-                    needsupdate = true;
-                var la = action as lineaction;
-                if (la != null)
+                using (var trk = game.Track.CreateTrackWriter())
                 {
-                    foreach (var ext in la.extensions)
-                    {
-                        ext.Undo(_track);
-                        needsupdate = true;
-                    }
+                    trk.DisableUndo();
+                    needsupdate = action.Undo(trk);
                 }
-                _working = false;
             }
             return needsupdate;
         }
@@ -341,19 +166,11 @@ namespace linerider
                     pos = 0;
                 var action = _actions[pos];
                 pos++;
-                _working = true;
-                if (action.Redo(_track))
-                    needsupdate = true;
-                var la = action as lineaction;
-                if (la != null)
+                using (var trk = game.Track.CreateTrackWriter())
                 {
-                    foreach (var ext in la.extensions)
-                    {
-                        ext.Redo(_track);
-                        needsupdate = true;
-                    }
+                    trk.DisableUndo();
+                    needsupdate = action.Redo(trk);
                 }
-                _working = false;
             }
             return needsupdate;
         }

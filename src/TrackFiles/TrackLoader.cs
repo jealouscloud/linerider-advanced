@@ -278,8 +278,8 @@ namespace linerider
                 {
                     bw.Write(songdata);
                 }
-                bw.Write(trk.Start.X);
-                bw.Write(trk.Start.Y);
+                bw.Write(trk.StartOffset.X);
+                bw.Write(trk.StartOffset.Y);
                 bw.Write(trk.Lines.Count);
                 for (var i = 0; i < trk.Lines.Count; i++)
                 {
@@ -367,12 +367,11 @@ namespace linerider
         }
         public static void CreateTestFromTrack(Track track)
         {
-            track.RiderState.Reset(track.Start, track);
             track.Reset();
             int framecount =40*60*5;
             for (int i = 0; i < framecount; i++)
             {
-                track.Tick();
+                track.AddFrame();
             }
             var filename = SaveTrackTrk(track, track.Name + ".test");
             if (System.IO.File.Exists(filename + ".result"))
@@ -381,10 +380,11 @@ namespace linerider
             {
                 var bw = new BinaryWriter(f);
                 bw.Write((int)framecount);
-                for (int i = 0; i < track.RiderState.ModelAnchors.Length; i++)
+                var state = track.RiderStates[track.RiderStates.Count - 1];
+                for (int i = 0; i < state.Body.Length; i++)
                 {
-                    bw.Write(track.RiderState.ModelAnchors[i].Position.X);
-                    bw.Write(track.RiderState.ModelAnchors[i].Position.Y);
+                    bw.Write(state.Body[i].Location.X);
+                    bw.Write(state.Body[i].Location.Y);
                 }
             }
         }
@@ -400,19 +400,19 @@ namespace linerider
             {
                 var br = new BinaryReader(file);
                 var frame = br.ReadInt32();
-                track.RiderState.Reset(track.Start, track);
                 track.Reset();
                 for (int i = 0; i < frame; i++)
                 {
-                    track.Tick();
+                    track.AddFrame();
                 }
-//track.Chunks.fg.PrintMetrics();
-                for (int i = 0; i < track.RiderState.ModelAnchors.Length; i++)
+				//track.Chunks.fg.PrintMetrics();
+				var state = track.RiderStates[track.RiderStates.Count - 1];
+				for (int i = 0; i < state.Body.Length; i++)
                 {
                     var x = br.ReadDouble();
                     var y = br.ReadDouble();
-                    var riderx = track.RiderState.ModelAnchors[i].Position.X;
-                    var ridery = track.RiderState.ModelAnchors[i].Position.Y;
+                    var riderx = state.Body[i].Location.X;
+                    var ridery = state.Body[i].Location.Y;
                     if (x != riderx || y != ridery)
                         return false;
                 }
@@ -509,7 +509,7 @@ namespace linerider
                             // ignored
                         }
                     }
-                    ret.Start = new Vector2d(br.ReadDouble(), br.ReadDouble());
+                    ret.StartOffset = new Vector2d(br.ReadDouble(), br.ReadDouble());
                     var lines = br.ReadInt32();
                     for (var i = 0; i < lines; i++)
                     {
@@ -611,12 +611,12 @@ namespace linerider
                             if (!addedlines.ContainsKey(l.ID))
                             {
                                 addedlines[ID] = (StandardLine)l;
-                                ret.AddLines(l);
+                                ret.AddLine(l,true);
                             }
                         }
                         else
                         {
-                            ret.AddLines(l);
+                            ret.AddLine(l,true);
                         }
                     }
                 }
@@ -648,8 +648,6 @@ namespace linerider
                     }
                 }
             }
-            ret.ResetUndo();
-            ret.ResetChanges();
             return ret;
         }
         public static int LineTypeForSOL(LineType t)
@@ -732,7 +730,7 @@ namespace linerider
                             }
                             if (!addedlines.ContainsKey(l.ID))
                             {
-                                ret.AddLines(l);
+                                ret.AddLine(l,true);
                                 addedlines[l.ID] = l;
                             }
                         }
@@ -763,19 +761,19 @@ namespace linerider
                             }
                             if (!addedlines.ContainsKey(l.ID))
                             {
-                                ret.AddLines(l);
+                                ret.AddLine(l,true);
                                 addedlines[l.ID] = l;
                             }
                         }
                         break;
 
                     case 2:
-                        ret.AddLines(
+                        ret.AddLine(
                             new SceneryLine(
                                 new Vector2d(Convert.ToDouble(line[0].data, CultureInfo.InvariantCulture),
                                     Convert.ToDouble(line[1].data, CultureInfo.InvariantCulture)),
                                 new Vector2d(Convert.ToDouble(line[2].data, CultureInfo.InvariantCulture),
-                                    Convert.ToDouble(line[3].data, CultureInfo.InvariantCulture))));
+                                    Convert.ToDouble(line[3].data, CultureInfo.InvariantCulture))),true);
                         break;
 
                     default:
@@ -822,10 +820,8 @@ namespace linerider
                 startline.Add(new Amf0Object { data = ret.Lines[conv].Position.X });
                 startline.Add(new Amf0Object { data = ret.Lines[conv].Position.Y - 50 * 0.5 });
             }
-            ret.Start.X = Convert.ToDouble(startline[0].data, CultureInfo.InvariantCulture);
-            ret.Start.Y = Convert.ToDouble(startline[1].data, CultureInfo.InvariantCulture);
-            ret.ResetUndo();
-            ret.ResetChanges();
+            ret.StartOffset = new Vector2d(Convert.ToDouble(startline[0].data, CultureInfo.InvariantCulture), 
+            Convert.ToDouble(startline[1].data, CultureInfo.InvariantCulture));
             return ret;
         }
     }

@@ -31,41 +31,38 @@ namespace linerider
 {
     public class Track
     {
-        #region Constructors
-
-        public Track()
-        {
-            UndoManager = new UndoManager(this);
-        }
-
-        #endregion Constructors
-
         #region Fields
 
         public HashSet<int> AllCollidedLines = new HashSet<int>();
 
-        public ChunkCollection Chunks = new ChunkCollection();
+        public SimulationGrid Grid = new SimulationGrid();
 
         public List<ConcurrentDictionary<int, StandardLine>> Collisions =
             new List<ConcurrentDictionary<int, StandardLine>>();
 
         public FastGrid RenderCells = new FastGrid();
 
-        public int Frame;
-
         public List<Line> Lines = new List<Line>();
 
         public string Name = "untitled";
 
-        public Rider RiderState = new Rider();
-
         public List<Rider> RiderStates = new List<Rider>();
-
-        public Vector2d Start = new Vector2d(0, 0);
+        private Vector2d _start = Vector2d.Zero;
+        public Bone[] Bones = new Bone[RiderConstants.Bones.Length];
+        public Vector2d StartOffset
+        {
+            get
+            {
+                return _start;
+            }
+            set
+            {
+                _start = value;
+                GenerateBones();
+            }
+        }
 
         public bool ZeroStart = false;
-
-        private readonly ConcurrentQueue<Line> Changes = new ConcurrentQueue<Line>();
 
         internal int _idcounter;
 
@@ -79,7 +76,7 @@ namespace linerider
         {
             get
             {
-                var ret = new FloatRect((Vector2)Start, new Vector2(0, 0));
+                var ret = new FloatRect((Vector2)StartOffset, new Vector2(0, 0));
                 ret.Width = 35;
                 ret.Height = 22;
                 ret.Top -= 11;
@@ -87,33 +84,47 @@ namespace linerider
             }
         }
 
-        public UndoManager UndoManager { get; private set; }
-
         #endregion Properties
 
         #region Methods
 
-        public void AddLines(params Line[] lines)
+        public Track()
         {
-            for (var i = 0; i < lines.Length; i++)
+            GenerateBones();
+            Reset();
+        }
+        private void GenerateBones()
+        {
+            // if the start offset is different the floating point math could
+            // result in a slightly different restlength and cause inconsistency.
+            var joints = GetStart().Body;
+            for (int i = 0; i < RiderConstants.Bones.Length; i++)
             {
-                Lines.Add(lines[i]);
-                var scenery = lines[i] is SceneryLine;
-                if (scenery)
-                {
-                    lines[i].ID = _sceneryidcounter--;
-                }
-                else if (lines[i].ID == -1)
-                    lines[i].ID = _idcounter++;
-                else if (lines[i].ID >= _idcounter)
-                {
-                    _idcounter = lines[i].ID + 1;
-                }
-                AddLineToGrid(lines[i]);
-               UndoManager.AddLine(lines[i]);
-                if (!scenery)
-                    ChangeMade(lines[i].Position, lines[i].Position2);
+                var bone = RiderConstants.Bones[i];
+                bone.RestLength = (joints[bone.joint1].Location - joints[bone.joint2].Location).Length;
+                if (bone.OnlyRepel)
+                    bone.RestLength *= 0.5;
+                Bones[i] = bone;
             }
+        }
+        public void AddLine(Line line, bool isloading = false)
+        {
+            Lines.Add(line);
+            var scenery = line is SceneryLine;
+            if (scenery)
+            {
+                line.ID = _sceneryidcounter--;
+            }
+            else if (line.ID == -1)
+                line.ID = _idcounter++;
+            else if (line.ID >= _idcounter)
+            {
+                _idcounter = line.ID + 1;
+            }
+            AddLineToGrid(line);
+            if (!scenery && !isloading)
+                ChangeMade(line.Position, line.Position2);
+
         }
 
         /// <summary>
@@ -122,124 +133,18 @@ namespace linerider
         public void AddLineToGrid(Line sl)
         {
             if (!(sl is SceneryLine))
-                Chunks.AddLine(sl);
+                Grid.AddLine(sl);
             RenderCells.AddLine(sl);
         }
 
-        private int _collisioncalculations;
-        private readonly object _collisioncalculationlock = new object();
-
         public void CalculateAllCollidedLines()
         {
-            ThreadPool.QueueUserWorkItem(new WaitCallback((o) =>
-            {
-                ConcurrentDictionary<int, StandardLine>[] collisions = null;
-                try
-                {
-                    lock (_collisioncalculationlock)
-                    {
-                        Interlocked.Increment(ref _collisioncalculations);
-                    }
-                    while (_collisioncalculations != 1)
-                    {
-                        Thread.Sleep(1);
-                    }
-                    lock (Collisions)
-                    {
-                        collisions = Collisions.ToArray();
-                    }
-                    lock (AllCollidedLines)
-                    {
-                        AllCollidedLines.Clear();
-                        foreach (var v in collisions)
-                        {
-                            if (_collisioncalculations > 1)
-                                return;
-                            foreach (var l in v)
-                            {
-                                if (_collisioncalculations > 1)
-                                    return;
-                                AllCollidedLines.Add(l.Key);
-                            }
-                        }
-                    }
-                }
-                finally
-                {
-                    Interlocked.Decrement(ref _collisioncalculations);
-                }
-            }));
+            //todo collision states are completely unprogrammed
         }
 
         public int CalculateUpdateStart()
         {
-            //todo function is O(n*y)
-            //    return RiderStates.Count - 10;
-            var updateStart = RiderStates.Count;
-            var riderpositions = new List<HashSet<Point>>();
-            lock (Changes)
-            {
-                while (Changes.Count > 0)
-                {
-                    Line l = null;
-                    if (!Changes.TryDequeue(out l))
-                        break;
-                    var positions = Chunks.GetGridPositions(l);
-                    var endi = Math.Min(updateStart, RiderStates.Count);
-                    for (var i = 0; i < endi; i++)
-                    {
-                        var state = RiderStates[i];
-                        var statepositions = new HashSet<Point>();
-                        if (riderpositions.Count > i)
-                        {
-                            statepositions = riderpositions[i];
-                        }
-                        else
-                        {
-                            var anchorindex = 0;
-                            foreach (var anchor in state.ModelAnchors)
-                            {
-                                var info = Chunks.CellInfo(anchor.Position.X, anchor.Position.Y);
-                                for (var x = -2; x <= 2; x++)
-                                {
-                                    for (var y = -2; y <= 2; y++)
-                                    {
-                                        statepositions.Add(new Point(info.X + x, info.Y + y));
-                                    }
-                                }
-                                var off = state.GetAnchorOffset(anchorindex);
-                                if (off.X != 0 || off.Y != 0)
-                                {
-                                    info = Chunks.CellInfo(anchor.Position.X + off.X, anchor.Position.Y + off.Y);
-                                    for (var x = -2; x <= 2; x++)
-                                    {
-                                        for (var y = -2; y <= 2; y++)
-                                        {
-                                            statepositions.Add(new Point(info.X + x, info.Y + y));
-                                        }
-                                    }
-                                }
-                                anchorindex++;
-                            }
-                            riderpositions.Add(statepositions);
-                        }
-                        var end = false;
-                        foreach (var position in positions)
-                        {
-                            if (statepositions.Contains(new Point(position.X, position.Y)))
-                            {
-                                end = true;
-                                if (i < updateStart)
-                                    updateStart = i;
-                                break;
-                            }
-                        }
-                        if (end)
-                            break;
-                    }
-                }
-            }
-            return updateStart;
+            return 0;
         }
 
         /// <remarks>Does not care about inv lines, result is same</remarks>
@@ -247,14 +152,7 @@ namespace linerider
         /// <param name="end"></param>
         public void ChangeMade(Vector2d start, Vector2d end)
         {
-            var l = new Line(start, end);
-            foreach (var v in Changes)
-            {
-                if (v.Position == start && v.Position2 == end)
-                    return;
-            }
-            l.diff = end - start;
-            Changes.Enqueue(l);
+            return;
         }
 
         public void ClearTrack()
@@ -262,85 +160,17 @@ namespace linerider
             _idcounter = 0;
             _sceneryidcounter = -1;
             Lines.Clear();
-            Chunks = new ChunkCollection();
+            Grid = new SimulationGrid();
             RenderCells = new FastGrid();
-            ResetUndo();
             ResetChanges();
             GC.Collect();
         }
 
-        public bool DbgGridCheck(int gx, int gy)
+        public HashSet<int> Diagnose(Rider state, int maxiteration = 6)
         {
-            var r = Chunks.PointToChunk(new Vector2d(gx * 14, gy * 14));
-            return r != null && r.Count > 0;
+            return state.Diagnose(this, maxiteration);
         }
 
-        public HashSet<int> Diagnose(Rider state)
-        {
-            var ret = new HashSet<int>();
-            if (state.Crashed)
-                return ret;
-            var s = state.Clone();
-
-            s.TickMomentum();
-
-            for (var iteration = 0; iteration < 6; iteration++)
-            {
-                for (var i = 0; i < s.ModelLines.Length; i++)
-                {
-                    s.ModelLines[i].satisfyDistance(s);
-                    if (s.Crashed)
-                    {
-                        ret.Add(i);
-                        s.Crashed = false;
-                    }
-                }
-                s.SatisfyBoundaries(this, null);
-            }
-            var sleddiff = s.ModelAnchors[3].Position - s.ModelAnchors[0].Position;
-            if (sleddiff.X * (s.ModelAnchors[1].Position.Y - s.ModelAnchors[0].Position.Y) -
-                sleddiff.Y * (s.ModelAnchors[1].Position.X - s.ModelAnchors[0].Position.X) < 0)
-            {
-                s.Crashed = true;
-                s.SledBroken = true;
-                ret.Add(-1);
-            }
-            if (sleddiff.X * (s.ModelAnchors[5].Position.Y - s.ModelAnchors[4].Position.Y) -
-                sleddiff.Y * (s.ModelAnchors[5].Position.X - s.ModelAnchors[4].Position.X) > 0)
-            {
-                s.Crashed = true;
-                s.SledBroken = true;
-                ret.Add(-2);
-            }
-            return ret;
-        }
-
-        public HashSet<int> DiagnoseIteration(Rider state, int it)
-        {
-            var ret = new HashSet<int>();
-            if (state.iterations[it].Crashed)
-                return ret;
-            var s = state.iterations[0].Clone();
-            it -= 1; //skip momentum tick
-            for (var iteration = 0; iteration < 6; iteration++)
-            {
-                for (var i = 0; i < s.ModelLines.Length; i++)
-                {
-                    s.ModelLines[i].satisfyDistance(s);
-                    if (s.Crashed)
-                    {
-                        if (iteration != it + 1)
-                            return ret;
-                        ret.Add(i);
-                        s.Crashed = false;
-                    }
-                }
-                if (ret.Count != 0)
-                    break;
-                s.SatisfyBoundaries(this, null);
-            }
-            return ret;
-        }
         public List<Line> Erase(Vector2d pos, LineType t, float zoom)
         {
             //todo circular eraser
@@ -398,14 +228,6 @@ namespace linerider
                 }
                 RemoveLine(line);
                 ret.Add(line);
-                if (pl1 != null)
-                {
-                    UndoManager.AddExtensionChange(pl1, pl2, false);
-                }
-                if (nl1 != null)
-                {
-                    UndoManager.AddExtensionChange(nl1, nl2, false);
-                }
             }
             return ret;
         }
@@ -442,52 +264,18 @@ namespace linerider
 
         public int GetVersion()
         {
-            return Chunks.GridVersion;
-        }
-
-        public void GwellAddLine(Line line)
-        {
-            if (line.ID == -1)
-                line.ID = _idcounter;
-            AddLineToGrid(line);
-        }
-
-        public void GwellRemoveLine(Line line)
-        {
-            RemoveLineFromGrid(line);
+            return Grid.GridVersion;
         }
 
         public bool IsLineCollided(int id)
         {
-            ConcurrentDictionary<int, StandardLine>[] collisions = null;
-            lock (Collisions)
-            {
-                collisions = Collisions.ToArray();
-            }
-            foreach (var v in collisions)
-            {
-                if (v.ContainsKey(id))
-                    return true;
-            }
             return false;
         }
-
-        public void NextFrame()
-        {
-            SetFrame(++Frame);
-        }
-
-        public bool Redo()
-        {
-            return UndoManager.Redo();
-        }
-
         public void RemoveLine(Line l)
         {
             ChangeMade(l.Position, l.Position2);
             Lines.Remove(l);
             RemoveLineFromGrid(l);
-            UndoManager.RemoveLine(l);
         }
 
         /// <summary>
@@ -496,132 +284,42 @@ namespace linerider
         public void RemoveLineFromGrid(Line sl)
         {
             if (!(sl is SceneryLine))
-                Chunks.RemoveLine(sl);
+                Grid.RemoveLine(sl);
             RenderCells.RemoveLine(sl);
         }
-
+        public Rider GetStart()
+        {
+            return Rider.Create(this.StartOffset, new Vector2d(ZeroStart ? 0 : RiderConstants.StartingMomentum, 0));
+        }
         public void Reset()
         {
-            Frame = 0;
+            Reset(GetStart());
+        }
+        public void Reset(Rider start)
+        {
             RiderStates.Clear();
-            RiderStates.Add(RiderState.Clone());
+            RiderStates.Add(start);
         }
 
         public void ResetChanges()
         {
-            Line l = null;
-            while (Changes.TryDequeue(out l)) ;
+            //todo for live update rework
         }
 
-        public void ResetUndo()
-        {
-            UndoManager = new UndoManager(this);
-        }
-
-        public void SetFrame(int f)
-        {
-            if (f > RiderStates.Count)
-            {
-                // f = RiderStates.Count;
-                throw new Exception("unsupported frameskip to " + (f - RiderStates.Count));
-            }
-            if (f == RiderStates.Count)
-            {
-                var c = Tick();
-                lock (Collisions)
-                {
-                    Collisions.Add(c);
-                }
-                lock (AllCollidedLines)
-                {
-                    foreach (var V in c)
-                    {
-                        AllCollidedLines.Add(V.Key);
-                    }
-                }
-                RiderStates.Add(RiderState.Clone());
-                Frame = f;
-            }
-            else
-            {
-                Frame = f;
-                RiderState = RiderStates[f].Clone();
-            }
-        }
 
         public void SetVersion(int version)
         {
-            Chunks.GridVersion = version;
+            Grid.GridVersion = version;
         }
 
-        public ConcurrentDictionary<int, StandardLine> Tick()
+        public void AddFrame()
         {
-            return Tick(RiderState);
+            RiderStates.Add(Tick(RiderStates[RiderStates.Count - 1]));
         }
 
-        public ConcurrentDictionary<int, StandardLine> Tick(Rider state)
+        public Rider Tick(Rider state, int maxiterations = 6, Dictionary<int, Line> collisions = null)
         {
-            var collisions = new ConcurrentDictionary<int, StandardLine>();
-            state.TickMomentum();
-            //state.iterations.Clear();
-            for (var iteration = 0; iteration < 6; iteration++)
-            {
-                //state.iterations.Add(state.Clone());
-                state.SatisfyDistance();
-                state.SatisfyBoundaries(this, collisions);
-            }
-            var points = state.ModelAnchors;
-            var nose = points[Rider.SledTR].Position - points[Rider.SledTL].Position;
-            var tail = points[Rider.SledBL].Position - points[Rider.SledTL].Position;
-            var body = points[Rider.BodyShoulder].Position - points[Rider.BodyButt].Position;
-            if ((nose.X * tail.Y) - (nose.Y * tail.X) < 0 || // tail fakie
-                (nose.X * body.Y) - (nose.Y * body.X) > 0)   // body fakie
-            {
-                state.Crashed = true;
-                state.SledBroken = true;
-            }
-            state.StepScarf();
-            return collisions;
-        }
-
-        public void TickWithIterations(Rider state)
-        {
-            var collisions = new ConcurrentDictionary<int, StandardLine>();
-            state.TickMomentum();
-            if (state.iterations == null)
-                state.iterations = new List<Rider>();
-            state.iterations.Clear();
-            for (var iteration = 0; iteration < 6; iteration++)
-            {
-                var it = state.Clone();
-                it.StepScarf();
-                state.iterations.Add(it);
-                state.SatisfyDistance();
-                state.SatisfyBoundaries(this, collisions);
-            }
-            var points = state.ModelAnchors;
-            var nose = points[Rider.SledTR].Position - points[Rider.SledTL].Position;
-            var tail = points[Rider.SledBL].Position - points[Rider.SledTL].Position;
-            var body = points[Rider.BodyShoulder].Position - points[Rider.BodyButt].Position;
-            if ((nose.X * tail.Y) - (nose.Y * tail.X) < 0 || // tail fakie
-                (nose.X * body.Y) - (nose.Y * body.X) > 0)   // body fakie
-            {
-                state.Crashed = true;
-                state.SledBroken = true;
-            }
-            state.StepScarf();
-        }
-
-        public void TrackChanged()
-        {
-            var start = Frame + 1;
-            if (start < RiderStates.Count)
-                RiderStates.RemoveRange(start, RiderStates.Count - start);
-        }
-
-        public bool Undo()
-        {
-            return UndoManager.Undo();
+            return state.Simulate(this, collisions);
         }
 
         #endregion Methods

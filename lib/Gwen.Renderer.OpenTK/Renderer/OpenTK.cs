@@ -292,16 +292,17 @@ namespace Gwen.Renderer
         public override void FreeFont(Font font)
         {
             Debug.Print(String.Format("FreeFont {0}", font.FaceName));
-            if (font.RendererData == null)
-                return;
             if (font is BitmapFont)
             {
                 var tx = ((BitmapFont)font).texture;
                 if (tx == null)
                     throw new InvalidOperationException("Freeing empty font");
-                FreeTexture(tx);
+                tx.Dispose();
+
                 return;
             }
+            if (font.RendererData == null)
+                return;
             Debug.Print(String.Format("FreeFont {0} - actual free", font.FaceName));
             System.Drawing.Font sysFont = font.RendererData as System.Drawing.Font;
             if (sysFont == null)

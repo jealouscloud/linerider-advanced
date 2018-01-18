@@ -96,7 +96,7 @@ namespace linerider.Game
             var ret = GetViewport();
             var pos = ret.Vector + (ret.Size / 2);
             var b = new CameraBoundingBox() { RiderPosition = pos };
-            return b.GetBox(framebox.GetSmoothCamRatio((float)game.Track.RiderState.CalculateMomentum().Length));
+            return b.GetBox(framebox.GetSmoothCamRatio((float)game.Track.RenderRider.CalculateMomentum().Length));
         }
         private Vector2d GetCameraCenter()
         {
@@ -112,7 +112,7 @@ namespace linerider.Game
                     }
                     if (ScaleCamera)
                     {
-                        var ppf = (float)game.Track.RiderState.CalculateMomentum().Length;
+                        var ppf = (float)game.Track.RenderRider.CalculateMomentum().Length;
                         camcenter = framebox.SmoothClamp(camcenter, !framebox.SmoothIntersects(nextrider, 10000) ? 10000 : ppf).GetPosition();//basically, don't allow it to rubber band
                     }
                     else

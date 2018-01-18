@@ -99,15 +99,18 @@ namespace linerider.UI
                     sender.SetToolTipText("Attempted to save with an invalid name");
                     return;
                 }
-                game.Track.Name = txt;
-                try
+                using (var trk = game.Track.CreateTrackWriter())
                 {
-                    game.Track.Save(tb.Text, game.CurrentSong);
-                }
-                catch
-                {
-                    sender.SetToolTipText("An error occured trying to save");
-                    return;
+                    trk.Track.Name = txt;
+                    try
+                    {
+                        trk.SaveTrackTrk(tb.Text,game.CurrentSong?.ToString());
+                    }
+                    catch
+                    {
+                        sender.SetToolTipText("An error occured trying to save");
+                        return;
+                    }
                 }
             }
             window.Close();

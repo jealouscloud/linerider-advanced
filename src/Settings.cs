@@ -29,6 +29,10 @@ namespace linerider
 {
     static class Settings
     {
+        public static class Local
+        {
+            public static bool HitTest = false;
+        }
         public static int PlaybackZoomType = 0;
         public static float PlaybackZoomValue = 4;
         public static float Volume = 100;

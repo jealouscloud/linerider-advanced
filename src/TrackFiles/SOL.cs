@@ -87,7 +87,7 @@ namespace linerider
 
 			var data = new List<Amf0Object>();
 			dataobj.data = data;
-			sl.data = new List<Amf0Object>() { new Amf0Object(0, trk.Start.X), new Amf0Object(1, trk.Start.Y) };
+			sl.data = new List<Amf0Object>() { new Amf0Object(0, trk.StartOffset.X), new Amf0Object(1, trk.StartOffset.Y) };
 
 			trackdata.Add(sl);
 			trackdata.Add(dataobj);
