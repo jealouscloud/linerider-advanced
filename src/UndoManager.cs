@@ -96,7 +96,7 @@ namespace linerider
             public virtual bool Undo(TrackWriter track)
             {
                 bool ret = false;
-                for (int i = States.Count - 1; i > 0; i--)
+                for (int i = States.Count - 1; i > 0; i-=2)
                 {
                     ret |= DoAction(track, States[i], States[i - 1]);
                 }
@@ -106,7 +106,7 @@ namespace linerider
             public virtual bool Redo(TrackWriter track)
             {
                 bool ret = false;
-                for (int i = 0; i < States.Count - 1; i--)
+                for (int i = 0; i < States.Count - 1; i+=2)
                 {
                     ret |= DoAction(track, States[i], States[i + 1]);
                 }
@@ -131,13 +131,22 @@ namespace linerider
         }
         public void BeginAction()
         {
+            if (_currentaction == null)
+                throw new Exception("Attempt to overwrite current undo state");
             _currentaction = new act();
         }
         public void EndAction()
         {
             if (_currentaction == null)
                 throw new Exception("UndoManager current action null");
+                if (pos != _actions.Count)
+            {
+                if (pos < 0)
+                    pos = 0;
+                _actions.RemoveRange(pos, _actions.Count - pos);
+            }
             _actions.Add(_currentaction);
+            pos = _actions.Count;
             _currentaction = null;
         }
 
@@ -153,6 +162,7 @@ namespace linerider
                     trk.DisableUndo();
                     needsupdate = action.Undo(trk);
                 }
+                game.InvalidateTrack();
             }
             return needsupdate;
         }
@@ -171,6 +181,7 @@ namespace linerider
                     trk.DisableUndo();
                     needsupdate = action.Redo(trk);
                 }
+                game.InvalidateTrack();
             }
             return needsupdate;
         }

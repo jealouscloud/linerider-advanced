@@ -168,14 +168,6 @@ namespace linerider
                             friction.X = -friction.X;
                         if (p.Previous.Y >= pos.Y)
                             friction.Y = -friction.Y;
-                        if (Trigger != null)
-                        {
-                            var track = game.Track;
-                            if (track.Playing && !track.ActiveTriggers.Contains(Trigger))
-                            {
-                                track.ActiveTriggers.Add(Trigger);
-                            }
-                        }
                         return new SimulationPoint(pos, p.Previous + friction, p.Momentum, p.Friction);
                     }
                 }
@@ -184,7 +176,7 @@ namespace linerider
         }
         public override LineState GetState()
         {
-            return new LineState() { Pos1 = Position, Pos2 = Position2, extension = Extension, Next = Next, Prev = Prev, Parent = this };
+            return new LineState() { Pos1 = Position, Pos2 = Position2, extension = Extension, Next = Next, Prev = Prev, Parent = this, Inverted = inv };
         }
     }
 

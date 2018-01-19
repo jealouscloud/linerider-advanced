@@ -7,6 +7,7 @@ namespace linerider.Lines
         public Line Parent;
         public Vector2d Pos1;
         public Vector2d Pos2;
+        public bool Inverted;
         public StandardLine.ExtensionDirection extension;
         public Line Prev;
         public Line Next;

@@ -57,7 +57,7 @@ namespace linerider
         }
         public virtual LineState GetState()
         {
-            return new LineState() { Pos1 = Position, Pos2 = Position2, Parent = this};
+            return new LineState() { Pos1 = Position, Pos2 = Position2, Parent = this, Inverted = false};
         }
         public virtual SimulationPoint Interact(SimulationPoint p)
         {

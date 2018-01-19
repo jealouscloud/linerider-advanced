@@ -47,6 +47,8 @@ namespace linerider
         public string Name = "untitled";
 
         public List<Rider> RiderStates = new List<Rider>();
+        //todo probably needs to be linkedlist for performance
+        public List<LineTrigger> ActiveTriggers=null;
         private Vector2d _start = Vector2d.Zero;
         public Bone[] Bones = new Bone[RiderConstants.Bones.Length];
         public Vector2d StartOffset
@@ -132,8 +134,8 @@ namespace linerider
         /// </summary>
         public void AddLineToGrid(Line sl)
         {
-            if (!(sl is SceneryLine))
-                Grid.AddLine(sl);
+            if (sl is StandardLine)
+                Grid.AddLine((StandardLine)sl);
             RenderCells.AddLine(sl);
         }
 
@@ -283,8 +285,8 @@ namespace linerider
         /// </summary>
         public void RemoveLineFromGrid(Line sl)
         {
-            if (!(sl is SceneryLine))
-                Grid.RemoveLine(sl);
+            if (sl is StandardLine)
+                Grid.RemoveLine((StandardLine)sl);
             RenderCells.RemoveLine(sl);
         }
         public Rider GetStart()
