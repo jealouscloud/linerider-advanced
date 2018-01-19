@@ -64,6 +64,7 @@ namespace linerider
         public int CurrentFrame => Animating ? Offset + _startFrame : 0;
         public int LineCount => _track.Lines.Count;
         public bool SimulationNeedsDraw = false;
+        public PlaybackBufferManager BufferManager;
 
         public bool RequiresUpdate
         {
@@ -131,10 +132,25 @@ namespace linerider
         {
             Camera = new Camera();
             _track = new Track();
-            _track.Reset();
+            _track.ActiveTriggers = ActiveTriggers;
             Offset = 0;
+            BufferManager = new PlaybackBufferManager(_track);
             _renderrider = new Tracklocation() { Frame = 0, State = _track.RiderStates[0], Iteration = 6 };
             UndoManager = new UndoManager();
+        }
+        /// <summary>
+        /// Function to be called after updating the playback buffer
+        /// </summary>
+        public void UpdateRenderRider()
+        {
+            if (_renderrider.Iteration < 6 && _renderrider.Frame > 0)
+            {
+                _renderrider.State = _track.Tick(_track.RiderStates[_renderrider.Frame], _renderrider.Iteration);
+            }
+            else
+            {
+                _renderrider.State = _track.RiderStates[_renderrider.Frame];
+            }
         }
         public Rider GetStart()
         {
@@ -167,11 +183,17 @@ namespace linerider
             renderer.RedrawLine(l);
         }
 
+        /// <summary>
+        /// Function for indicating the physics of the track have changed, so inform buffermanager
+        /// </summary>
         public void TrackUpdated()
         {
             //todo
             //if (Animating)
             //TrackUpdater.Instance.Reset();
+            if (Animating)
+                BufferManager.Update();
+
         }
         SimulationRenderer renderer = new SimulationRenderer();
         public void Render(float blend)
@@ -378,7 +400,7 @@ namespace linerider
         }
         public TrackWriter CreateTrackWriter()
         {
-            return TrackWriter.AcquireWrite(_tracksync, _track, renderer, UndoManager);
+            return TrackWriter.AcquireWrite(_tracksync, _track, renderer, UndoManager, BufferManager);
         }
         public TrackReader CreateTrackReader()
         {
@@ -484,10 +506,14 @@ namespace linerider
         public void ChangeTrack(Track trk)
         {
             _flag = null;
+            if (_track != null && _track.ActiveTriggers == ActiveTriggers)
+                _track.ActiveTriggers = null;
             _track = trk;
+            _track.ActiveTriggers = ActiveTriggers;
             RefreshTrack();
             Reset();
             Camera.SetFrame(trk.StartOffset, false);
+            BufferManager = new PlaybackBufferManager(_track);
         }
 
         internal Tracklocation GetFlag()

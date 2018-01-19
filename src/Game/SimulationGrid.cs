@@ -31,17 +31,10 @@ namespace linerider
 
     public class SimulationGrid
     {
-        #region Fields
-
         public const int CellSize = 14;
         public int GridVersion = 62;
         private readonly Dictionary<int, SimulationCell> Cells = new Dictionary<int, SimulationCell>(4096);
-        #endregion Fields
-
-        #region Methods
-
-
-        public List<CellLocation> GetGridPositions(Line line)
+        public List<CellLocation> GetGridPositions(StandardLine line)
         {
             var ret = new List<CellLocation>();
             var cell = CellInfo(line.Position.X, line.Position.Y);
@@ -87,7 +80,7 @@ namespace linerider
             }
             return ret;
         }
-        public List<CellLocation> GetGridPositions61(Line line)
+        private List<CellLocation> GetGridPositions61(Line line)
         {
             var ret = new List<CellLocation>();
             var cell = CellInfo(line.Position.X, line.Position.Y);
@@ -153,7 +146,7 @@ namespace linerider
                 return ret;
             }
         }
-        public void AddLine(Line line)
+        public void AddLine(StandardLine line)
         {
             var positions = GetGridPositions(line);
             foreach (var pos in positions)
@@ -183,7 +176,7 @@ namespace linerider
             return GetCell((int)Math.Floor(pos.X / CellSize), (int)Math.Floor(pos.Y / CellSize));
         }
 
-        public void RemoveLine(Line line)
+        public void RemoveLine(StandardLine line)
         {
             var positions = GetGridPositions(line);
             foreach (var pos in positions)
@@ -197,7 +190,7 @@ namespace linerider
             return x >= r.Left && x <= r.Right && y >= r.Top && y <= r.Bottom;
         }
 
-        private void Register(Line l, int x, int y)
+        private void Register(StandardLine l, int x, int y)
         {
             var key = GetCellKey(x, y);
             SimulationCell cell;
@@ -209,7 +202,7 @@ namespace linerider
             cell.AddLine(l);
         }
 
-        private void Unregister(Line l, int x, int y)
+        private void Unregister(StandardLine l, int x, int y)
         {
             SimulationCell cell;
             var pos = GetCellKey(x, y);
@@ -226,16 +219,6 @@ namespace linerider
                 hash = hash * 486187739 + y;
                 return hash;
             }
-        }
-
-        #endregion Methods
-        public struct CellLocation
-        {
-            public Vector2d Remainder;
-
-            public int X;
-
-            public int Y;
         }
     }
 }

@@ -74,29 +74,90 @@ namespace linerider
 
         public virtual void OnChangingTool()
         {
-		}
+        }
+        static bool PointInTriangle(Vector2d A, Vector2d B, Vector2d C, Vector2d P)
+        {
+            // Compute vectors        
+            Vector2d v0 = C - A;
+            Vector2d v1 = B - A;
+            Vector2d v2 = P - A;
+
+            // Compute dot products
+            double dot00 = Vector2d.Dot(v0, v0);
+            double dot01 = Vector2d.Dot(v0, v1);
+            double dot02 = Vector2d.Dot(v0, v2);
+            double dot11 = Vector2d.Dot(v1, v1);
+            double dot12 = Vector2d.Dot(v1, v2);
+
+            // Compute barycentric coordinates
+            double invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+            double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+            double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+            // Check if point is in triangle
+            if (u >= 0 && v >= 0 && (u + v) < 1)
+            { return true; }
+            else { return false; }
+        }
+
         private static double isLeft(Vector2d P0, Vector2d P1, Vector2d P2)
-		{
-			return ((P1.X - P0.Y) * (P2.Y - P0.Y) - (P2.X - P0.X) * (P1.Y - P0.Y));
-		}
-		//https://gamedev.stackexchange.com/questions/110229/how-do-i-efficiently-check-if-a-point-is-inside-a-rotated-rectangle
-		private static bool PointInRectangle(Vector2d X, Vector2d Y, Vector2d Z, Vector2d W, Vector2d P)
-		{
-			return (isLeft(X, Y, P) > 0 && isLeft(Y, Z, P) > 0 && isLeft(Z, W, P) > 0 && isLeft(W, X, P) > 0);
-		}
+        {
+            return ((P1.X - P0.Y) * (P2.Y - P0.Y) - (P2.X - P0.X) * (P1.Y - P0.Y));
+        }
+        //https://gamedev.stackexchange.com/questions/110229/how-do-i-efficiently-check-if-a-point-is-inside-a-rotated-rectangle
+        private static bool PointInRectangle(Vector2d tl, Vector2d tr, Vector2d br, Vector2d bl, Vector2d p)
+        {
+            return (PointInTriangle(tl, tr, bl, p) || PointInTriangle(tr, bl, br, p));
+        }
+        public List<Line> LinesInRadius(TrackWriter trk, Vector2d position, double rad)
+        {
+            HashSet<Line> ret = new HashSet<Line>();
+            var ends = LineEndsInRadius(trk, position, rad);
+            foreach (var line in ends)
+            {
+                ret.Add(line);
+            }
+            var lines =
+                trk.GetLinesInRect(new FloatRect((Vector2)position - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
+                    false);
+            var evilcirc = Drawing.StaticRenderer.GenerateCircle(position.X, position.Y, rad, 10);
+            for (int i = 0; i < lines.Count; i++)
+            {
+                float lnsize = 2;
+                if (lines[i] is SceneryLine)
+                {
+                    lnsize = (lines[i] as SceneryLine).Width;
+                }
+                var rect = Drawing.StaticRenderer.GenerateThickLine(lines[i].Position, lines[i].Position2, lnsize);
+                for (int j = 0; j < evilcirc.Length; j++)
+                {
+                    if (PointInRectangle(rect[3], rect[2], rect[1], rect[0], evilcirc[j]))
+                    {
+                        ret.Add(lines[i]);
+                        break;
+                    }
+                }
+            }
+            return ret.ToList();
+        }
         public Line SelectLine(TrackWriter trk, Vector2d position)
         {
             var ends = LineEndsInRadius(trk, position, 2);
             if (ends.Length > 0)
                 return ends[0];
-			var lines =
-				trk.GetLinesInRect(new FloatRect((Vector2)position - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
-					false);
+            var lines =
+                trk.GetLinesInRect(new FloatRect((Vector2)position - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
+                    false);
             for (int i = 0; i < lines.Count; i++)
             {
-                
-                var rect = Drawing.StaticRenderer.GenerateThickLine(lines[i].Position, lines[i].Position2, 2);
-                if (PointInRectangle(rect[0], rect[3], rect[2], rect[1], position))
+                float lnsize = 2;
+                if (lines[i] is SceneryLine)
+                {
+                    lnsize = (lines[i] as SceneryLine).Width;
+                }
+
+                var rect = Drawing.StaticRenderer.GenerateThickLine(lines[i].Position, lines[i].Position2, lnsize);
+                if (PointInRectangle(rect[3], rect[2], rect[1], rect[0], position))
                 {
                     return lines[i];
                 }
@@ -157,7 +218,7 @@ namespace linerider
         }
         /// Gets lines near the point by radius.
         // does not support large distances as it only gets a small number of grid cells
-        protected Line[] LineEndsInRadius(TrackWriter trk, Vector2d point, int rad)
+        protected Line[] LineEndsInRadius(TrackWriter trk, Vector2d point, double rad)
         {
             var lines =
                 trk.GetLinesInRect(new FloatRect((Vector2)point - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),

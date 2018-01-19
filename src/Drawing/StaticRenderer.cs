@@ -187,9 +187,9 @@ namespace linerider.Drawing
 			return ret;
 		}
 
-		public static Vector2[] GenerateCircle(float cx, float cy, float r, int num_segments)
+		public static Vector2d[] GenerateCircle(double cx, double cy, double r, int num_segments)
 		{
-			Vector2[] ret = new Vector2[num_segments + 1];
+			Vector2d[] ret = new Vector2d[num_segments + 1];
 			var theta = 2 * 3.1415926 / num_segments;
 			var tangetialFactor = Math.Tan(theta); //calculate the tangential factor
 			var radialFactor = Math.Cos(theta); //calculate the radial factor
@@ -197,7 +197,7 @@ namespace linerider.Drawing
 			double y = 0;
 			for (var ii = 0; ii < num_segments; ii++)
 			{
-				ret[ii] = new Vector2((float)x + cx, (float)y + cy);
+				ret[ii] = new Vector2d(x + cx, y + cy);
 				//calculate the tangential vector
 				//remember, the radial vector is (x, y)
 				//to get the tangential vector we flip those coordinates and negate one of them
@@ -294,10 +294,10 @@ namespace linerider.Drawing
 			var angle = Tools.Angle.FromLine(p, p1);
 			angle.Radians += 1.5708f; //90 degrees as const, radians so no conversion between degrees for a radians only calculation
 			var t = CalculateLine(Vector2d.Zero, angle, width / 2);
-			ret[0] = p + t;
-			ret[1] = p1 + t;
-			ret[2] = p1 - t;
-			ret[3] = p - t;
+			ret[0] = p + t;//bl
+			ret[1] = p1 + t;//br
+			ret[2] = p1 - t;//tr
+			ret[3] = p - t;//tl
 			return ret;
 		}
 		public static List<Vertex> GenerateRoundedLine(Vector2 p, Vector2 p1, float width, Color c)

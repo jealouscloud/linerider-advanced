@@ -29,12 +29,14 @@ using System.Threading;
 using System.Diagnostics;
 using linerider.Tools;
 using linerider.Drawing;
+using linerider.Lines;
 namespace linerider
 {
     public class TrackWriter : TrackReader
     {
         private bool _disposed = false;
         private UndoManager _undo;
+        private PlaybackBufferManager _buffermanager;
         private SimulationRenderer _renderer;
         public Track Track
         {
@@ -45,7 +47,7 @@ namespace linerider
                 return _track;
             }
         }
-        protected TrackWriter(ResourceSync.ResourceLock sync, Track track) : base(sync,track)
+        protected TrackWriter(ResourceSync.ResourceLock sync, Track track) : base(sync, track)
         {
             _track = track;
             _sync = sync;
@@ -57,37 +59,46 @@ namespace linerider
         {
             _undo = null;
         }
-        public static TrackWriter AcquireWrite(ResourceSync sync, Track track, SimulationRenderer renderer, UndoManager undo = null)
+        public static TrackWriter AcquireWrite(ResourceSync sync, Track track, SimulationRenderer renderer, UndoManager undo = null, PlaybackBufferManager manager = null)
         {
-            return new TrackWriter(sync.AcquireWrite(), track) { _undo = undo, _renderer = renderer };
+            return new TrackWriter(sync.AcquireWrite(), track) { _undo = undo, _renderer = renderer, _buffermanager = manager };
+        }
+        /// <summary>
+        /// state a change to the undo and buffer managers.
+        /// always needs to be in PAIRS with a before and after
+        /// </summary>
+        private void StateChange(LineState state)
+        {
+            _undo?.AddChange(state);
+            _buffermanager?.AddChange(state);
         }
         public void AddLine(Line l)
         {
             Track.AddLine(l);
             _renderer.AddLine(l);
             if (_undo != null)
-			{
-				var state = l.GetState();
-				state.Exists = false;
-				_undo.AddChange(state); 
+            {
+                var state = l.GetState();
+                state.Exists = false;
+                StateChange(state);
                 state = l.GetState();
-				state.Exists = true;
-				_undo.AddChange(state);
-			}
+                state.Exists = true;
+                StateChange(state);
+            }
         }
         public void RemoveLine(Line l)
         {
             Track.RemoveLine(l);
-			_renderer.RemoveLine(l);
-			if (_undo != null)
-			{
-				var state = l.GetState();
+            _renderer.RemoveLine(l);
+            if (_undo != null)
+            {
+                var state = l.GetState();
                 state.Exists = true;
-				_undo.AddChange(state);
-				state = l.GetState();
+                StateChange(state);
+                state = l.GetState();
                 state.Exists = false;
-				_undo.AddChange(state);
-			}
+                StateChange(state);
+            }
         }
         public void TryDisconnectLines(StandardLine l1, StandardLine l2)
         {
@@ -101,7 +112,8 @@ namespace linerider
                 return;
             //var leftlink = (l1.CompliantPosition == joint && l2.CompliantPosition2 == joint);
             var rightlink = (l1.End == joint && l2.Start == joint);
-            _undo?.AddChange(l1.GetState());
+            StateChange(l1.GetState());
+            StateChange(l2.GetState());
             if (rightlink)
             {
                 l1.Next = null;
@@ -146,7 +158,8 @@ namespace linerider
             bool cmp2 = anglediff2 > 0 && anglediff2 <= 180;
             if ((rightlink) ? cmp2 : cmp1)
             {
-                _undo?.AddChange(l1.GetState());
+                StateChange(l1.GetState());
+                StateChange(l2.GetState());
                 if (rightlink)
                 {
                     l1.Next = l2;

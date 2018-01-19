@@ -1,4 +1,4 @@
-﻿//
+//
 //  RedLine.cs
 //
 //  Author:
@@ -18,34 +18,20 @@
 //
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+using System;
 using OpenTK;
 using linerider.Game;
-namespace linerider
+namespace linerider.Lines
 {
-    public class RedLine : StandardLine
+    public class InteractionTestLine : StandardLine
     {
-        private Vector2d _acc;
-        private const double ConstAcc = 0.1;
-        private int _multiplier = 1;
-        public int Multiplier
+        public class LineInteractionException : Exception
         {
-            get
-            {
-                return _multiplier;
-            }
-            set
-            {
-                _multiplier = value;
-                CalculateConstants();
-            }
         }
-        public RedLine(Vector2d p1, Vector2d p2, bool inv = false) : base(p1, p2, inv) { }
+        public InteractionTestLine(Vector2d p1, Vector2d p2, bool inv = false) : base(p1, p2, inv) { }
         public override void CalculateConstants()
         {
             base.CalculateConstants();
-            _acc = Normal * (ConstAcc * _multiplier);
-            _acc = inv ? _acc.PerpendicularRight : _acc.PerpendicularLeft;
         }
 		public override SimulationPoint Interact(SimulationPoint p)
 		{
@@ -55,17 +41,7 @@ namespace linerider
                 var doty = Vector2d.Dot(Normal, startDelta);
                 if (doty > 0 && doty < Zone)
                 {
-                    var dotx = Vector2d.Dot(startDelta, diff) * DotScalar;
-                    if (dotx <= limit_right && dotx >= limit_left)
-                    {
-                        var pos = p.Location - doty * Normal;
-                        var friction = Normal.Yx * p.Friction * doty;
-                        if (p.Previous.X >= pos.X)
-                            friction.X = -friction.X;
-                        if (p.Previous.Y >= pos.Y)
-                            friction.Y = -friction.Y;
-                        return new SimulationPoint(pos, p.Previous + friction + _acc, p.Momentum, p.Friction);
-                    }
+                    throw new LineInteractionException();
                 }
             }
             return p;

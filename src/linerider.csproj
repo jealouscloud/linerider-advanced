@@ -14,7 +14,6 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
     <OutputPath>..\build</OutputPath>
     <DefineConstants>DEBUG;</DefineConstants>
     <WarningLevel>4</WarningLevel>
@@ -72,6 +71,7 @@
     <Compile Include="ffmpeg\FFMPEG.cs" />
     <Compile Include="ffmpeg\FFMPEGParameters.cs" />
     <Compile Include="Game\Camera.cs" />
+    <Compile Include="Game\CellLocation.cs" />
     <Compile Include="Game\DoubleRect.cs" />
     <Compile Include="Game\FastGrid.cs" />
     <Compile Include="Game\FloatRect.cs" />
@@ -87,6 +87,7 @@
     <Compile Include="Lines\RedLine.cs" />
     <Compile Include="Lines\SceneryLine.cs" />
     <Compile Include="Lines\StandardLine.cs" />
+    <Compile Include="Lines\InteractionTestLine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tools\Angle.cs" />
     <Compile Include="Tools\ColorControls.cs" />
