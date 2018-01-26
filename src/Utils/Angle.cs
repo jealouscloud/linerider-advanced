@@ -22,7 +22,7 @@
 using OpenTK;
 using System;
 
-namespace linerider.Tools
+namespace linerider.Utils
 {
     internal class Angle
     {

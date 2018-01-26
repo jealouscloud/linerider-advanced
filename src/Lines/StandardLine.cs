@@ -39,7 +39,7 @@ namespace linerider
 
         public LineTrigger Trigger = null;
         public const double Zone = 10;
-        public Vector2d Normal;
+        public Vector2d DiffNormal;
         protected double DotScalar;
         public double Distance;
         public ExtensionDirection Extension;
@@ -144,26 +144,25 @@ namespace linerider
             var sqrDistance = diff.LengthSquared;
             DotScalar = (1 / sqrDistance);
             Distance = Math.Sqrt(sqrDistance);
-            var invDist = 1 / Distance;
 
-            Normal = diff * invDist;//normalize
+            DiffNormal = diff * (1 / Distance);//normalize
             //flip to be the angle towards the top of the line
-            Normal = inv ? Normal.PerpendicularRight : Normal.PerpendicularLeft;
+            DiffNormal = inv ? DiffNormal.PerpendicularRight : DiffNormal.PerpendicularLeft;
             ExtensionRatio = Math.Min(0.25, Zone / Distance);
         }
         public override SimulationPoint Interact(SimulationPoint p)
         {
-            if (Vector2d.Dot(p.Momentum, Normal) > 0)
+            if (Vector2d.Dot(p.Momentum, DiffNormal) > 0)
             {
                 var startDelta = p.Location - this.Position;
-                var doty = Vector2d.Dot(Normal, startDelta);
+                var doty = Vector2d.Dot(DiffNormal, startDelta);
                 if (doty > 0 && doty < Zone)
                 {
                     var dotx = Vector2d.Dot(startDelta, diff) * DotScalar;
                     if (dotx <= limit_right && dotx >= limit_left)
                     {
-                        var pos = p.Location - doty * Normal;
-                        var friction = Normal.Yx * p.Friction * doty;
+                        var pos = p.Location - doty * DiffNormal;
+                        var friction = DiffNormal.Yx * p.Friction * doty;
                         if (p.Previous.X >= pos.X)
                             friction.X = -friction.X;
                         if (p.Previous.Y >= pos.Y)
@@ -176,7 +175,7 @@ namespace linerider
         }
         public override LineState GetState()
         {
-            return new LineState() { Pos1 = Position, Pos2 = Position2, extension = Extension, Next = Next, Prev = Prev, Parent = this, Inverted = inv };
+            return new LineState() { Pos1 = Position, Pos2 = Position2, extension = Extension, Next = Next, Prev = Prev, Parent = this, Inverted = inv, Exists = ID >= 0 };
         }
     }
 

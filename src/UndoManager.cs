@@ -37,19 +37,31 @@ namespace linerider
             private bool DoAction(TrackWriter track, LineState beforeact, LineState afteract)
             {
                 var parent = beforeact.Parent;
-                parent.Position = afteract.Pos1;
-                parent.Position2 = afteract.Pos2;
-                var std = parent as StandardLine;
+
+
                 // remove line
                 if (beforeact.Exists && !afteract.Exists)
                 {
                     track.RemoveLine(parent);
+                    parent.Position = afteract.Pos1;
+                    parent.Position2 = afteract.Pos2;
                 }
                 // add line
                 else if (afteract.Exists && !beforeact.Exists)
                 {
+                    parent.Position = afteract.Pos1;
+                    parent.Position2 = afteract.Pos2;
                     track.AddLine(parent);
                 }
+                else if (parent.Position != afteract.Pos1 || parent.Position2 != afteract.Pos2)//adjust act
+                {
+                    track.Track.RemoveLineFromGrid(parent);
+                    parent.Position = afteract.Pos1;
+                    parent.Position2 = afteract.Pos2;
+                    parent.CalculateConstants();
+                    track.Track.AddLineToGrid(parent);
+                }
+                var std = parent as StandardLine;
                 //do extensions
                 if (std != null)
                 {
@@ -96,7 +108,7 @@ namespace linerider
             public virtual bool Undo(TrackWriter track)
             {
                 bool ret = false;
-                for (int i = States.Count - 1; i > 0; i-=2)
+                for (int i = States.Count - 1; i > 0; i -= 2)
                 {
                     ret |= DoAction(track, States[i], States[i - 1]);
                 }
@@ -106,7 +118,7 @@ namespace linerider
             public virtual bool Redo(TrackWriter track)
             {
                 bool ret = false;
-                for (int i = 0; i < States.Count - 1; i+=2)
+                for (int i = 0; i < States.Count - 1; i += 2)
                 {
                     ret |= DoAction(track, States[i], States[i + 1]);
                 }
@@ -131,7 +143,7 @@ namespace linerider
         }
         public void BeginAction()
         {
-            if (_currentaction == null)
+            if (_currentaction != null)
                 throw new Exception("Attempt to overwrite current undo state");
             _currentaction = new act();
         }
@@ -139,7 +151,7 @@ namespace linerider
         {
             if (_currentaction == null)
                 throw new Exception("UndoManager current action null");
-                if (pos != _actions.Count)
+            if (pos != _actions.Count)
             {
                 if (pos < 0)
                     pos = 0;

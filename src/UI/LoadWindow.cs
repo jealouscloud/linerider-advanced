@@ -226,7 +226,7 @@ namespace linerider.UI
                     var data = (sol_track)selected.UserData;
                     try
                     {
-                        game.EnableSong = false;
+                        Settings.Local.EnableSong = false;
                         game.Track.ChangeTrack(TrackLoader.LoadTrack(data));
                     }
                     catch
@@ -255,7 +255,7 @@ namespace linerider.UI
                                 }
                                 if (tracks.Count == 1)
                                 {
-                                    game.EnableSong = false;
+                                    Settings.Local.EnableSong = false;
                                     game.Track.ChangeTrack(TrackLoader.LoadTrack(tracks[0]));
                                 }
                                 else
@@ -285,7 +285,7 @@ namespace linerider.UI
                             {
                                 trackname = Path.GetFileNameWithoutExtension(data);
                             }
-                            game.EnableSong = false;
+                            Settings.Local.EnableSong = false;
                             game.Track.ChangeTrack(TrackLoader.LoadTrackTRK(data, trackname));
                         }
                     }

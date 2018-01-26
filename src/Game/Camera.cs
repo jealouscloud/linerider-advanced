@@ -26,6 +26,7 @@ using System.Text;
 using linerider.Game;
 using linerider.Drawing;
 using OpenTK;
+using linerider.Utils;
 namespace linerider.Game
 {
     public class Camera : GameService
@@ -89,7 +90,7 @@ namespace linerider.Game
 
         public void Pop()
         {
-            SetFrame(camerastack.Pop().GetPosition(),false);
+            SetFrame(camerastack.Pop().GetPosition(), false);
         }
         public DoubleRect getclamp(float zoom, float width, float height)
         {
@@ -101,7 +102,7 @@ namespace linerider.Game
         private Vector2d GetCameraCenter()
         {
             var camcenter = Location.GetPosition();
-            if (game.Track.Animating)
+            if (game.Track.PlaybackMode)
             {
                 if (Settings.SmoothCamera)
                 {

@@ -27,350 +27,351 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using OpenTK;
+using linerider.Utils;
 namespace linerider.Game
 {
-	public class FastGrid
-	{
-		#region Fields
+    public class FastGrid
+    {
+        #region Fields
 
-		private SortedList<int, SortedList<int, Chunk>> Chunks = new SortedList<int, SortedList<int, Chunk>>();
-		private object _syncRoot = new object();
-		private const int SquareSize = 128;
-		private FastGrid _bluegrid;
-		public FastGrid()
-		{
-			_bluegrid = new FastGrid(true);
-		}
-		protected FastGrid(bool bluegrid)
-		{
-		}
-		#endregion Fields
+        private SortedList<int, SortedList<int, Chunk>> Chunks = new SortedList<int, SortedList<int, Chunk>>();
+        private object _syncRoot = new object();
+        private const int SquareSize = 128;
+        private FastGrid _bluegrid;
+        public FastGrid()
+        {
+            _bluegrid = new FastGrid(true);
+        }
+        protected FastGrid(bool bluegrid)
+        {
+        }
+        #endregion Fields
 
-		#region Methods
-		private void Register(Line l, int x, int y)
-		{
-			SortedList<int, Chunk> xrow;
-			lock (_syncRoot)
-			{
-				if (!Chunks.ContainsKey(x))
-				{
-					xrow = new SortedList<int, Chunk>();
-					Chunks[x] = xrow;
-				}
-				else
-				{
-					xrow = Chunks[x];
-				}
-				Chunk yrow;
-				if (!xrow.ContainsKey(y))
-				{
-					yrow = new Chunk();
-					xrow[y] = yrow;
-				}
-				else
-				{
-					yrow = xrow[y];
-				}
-				yrow[l.ID] = l;
-			}
-		}
+        #region Methods
+        private void Register(Line l, int x, int y)
+        {
+            SortedList<int, Chunk> xrow;
+            lock (_syncRoot)
+            {
+                if (!Chunks.ContainsKey(x))
+                {
+                    xrow = new SortedList<int, Chunk>();
+                    Chunks[x] = xrow;
+                }
+                else
+                {
+                    xrow = Chunks[x];
+                }
+                Chunk yrow;
+                if (!xrow.ContainsKey(y))
+                {
+                    yrow = new Chunk();
+                    xrow[y] = yrow;
+                }
+                else
+                {
+                    yrow = xrow[y];
+                }
+                yrow[l.ID] = l;
+            }
+        }
 
-		private void Unregister(Line l, int x, int y)
-		{
-			lock (_syncRoot)
-			{
-				if (!Chunks.ContainsKey(x))
-				{
-					return;
-				}
-				var xrow = Chunks[x];
-				if (xrow.ContainsKey(y))
-				{
-					xrow[y].Remove(l.ID);
-				}
-			}
-		}
-		public void AddLine(Line line)
-		{
-			if (_bluegrid != null && line is StandardLine)
-				_bluegrid.AddLine(line);
-			var pts = GetPointsOnLine(line.Position.X / SquareSize,
-				line.Position.Y / SquareSize,
-				line.Position2.X / SquareSize,
-				line.Position2.Y / SquareSize);
+        private void Unregister(Line l, int x, int y)
+        {
+            lock (_syncRoot)
+            {
+                if (!Chunks.ContainsKey(x))
+                {
+                    return;
+                }
+                var xrow = Chunks[x];
+                if (xrow.ContainsKey(y))
+                {
+                    xrow[y].Remove(l.ID);
+                }
+            }
+        }
+        public void AddLine(Line line)
+        {
+            if (_bluegrid != null && line is StandardLine)
+                _bluegrid.AddLine(line);
+            var pts = GetPointsOnLine(line.Position.X / SquareSize,
+                line.Position.Y / SquareSize,
+                line.Position2.X / SquareSize,
+                line.Position2.Y / SquareSize);
 
-			lock (_syncRoot)
-			{
-				foreach (var pt in pts)
-				{
-					Register(line, pt.X, pt.Y);
-				}
-			}
-		}
-		public void RemoveLine(Line line)
-		{
-			if (_bluegrid != null && line is StandardLine)
-				_bluegrid.RemoveLine(line);
-			
-			var pts = GetPointsOnLine(line.Position.X / SquareSize,
-				line.Position.Y / SquareSize,
-				line.Position2.X / SquareSize,
-				line.Position2.Y / SquareSize);
+            lock (_syncRoot)
+            {
+                foreach (var pt in pts)
+                {
+                    Register(line, pt.X, pt.Y);
+                }
+            }
+        }
+        public void RemoveLine(Line line)
+        {
+            if (_bluegrid != null && line is StandardLine)
+                _bluegrid.RemoveLine(line);
 
-			lock (_syncRoot)
-			{
-				foreach (var pt in pts)
-				{
-					Unregister(line, pt.X, pt.Y);
-				}
-			}
-		}
+            var pts = GetPointsOnLine(line.Position.X / SquareSize,
+                line.Position.Y / SquareSize,
+                line.Position2.X / SquareSize,
+                line.Position2.Y / SquareSize);
 
-		public Chunk PointToChunk(Vector2d point)
-		{
-			var x = (int)Math.Floor(point.X / SquareSize);
-			var y = (int)Math.Floor(point.Y / SquareSize);
-			SortedList<int, Chunk> row;
-			lock (_syncRoot)
-			{
-				if (Chunks.TryGetValue(x, out row))
-				{
-					Chunk chunk;
-					if (row.TryGetValue(y, out chunk))
-					{
-						return chunk;
-					}
-				}
-			}
+            lock (_syncRoot)
+            {
+                foreach (var pt in pts)
+                {
+                    Unregister(line, pt.X, pt.Y);
+                }
+            }
+        }
 
-			return null;
-		}
-		public List<Chunk> UsedSolidChunksInRect(FloatRect rect)
-		{
-			return _bluegrid.UsedChunksInRect(rect);
-		}
-		public List<Chunk> UsedChunksInRect(FloatRect rect)
-		{
-			int yfirst = (int)Math.Floor(rect.Top / SquareSize);
-			int xfirst = (int)Math.Floor(rect.Left / SquareSize);
-			int ylast = (int)Math.Floor((rect.Top + rect.Height) / SquareSize);
-			int xlast = (int)Math.Floor((rect.Left + rect.Width) / SquareSize);
-			var ret = new List<Chunk>(((xlast - xfirst) * (ylast - yfirst)) / 2);
-			int start = 0;
+        public Chunk PointToChunk(Vector2d point)
+        {
+            var x = (int)Math.Floor(point.X / SquareSize);
+            var y = (int)Math.Floor(point.Y / SquareSize);
+            SortedList<int, Chunk> row;
+            lock (_syncRoot)
+            {
+                if (Chunks.TryGetValue(x, out row))
+                {
+                    Chunk chunk;
+                    if (row.TryGetValue(y, out chunk))
+                    {
+                        return chunk;
+                    }
+                }
+            }
 
-			lock (_syncRoot)
-			{
-				for (int i = 0; i < Chunks.Keys.Count; i++)
-				{
-					if (Chunks.Keys[i] >= xfirst)
-					{
-						if (Chunks.Keys[i] > xlast)
-							return ret;
-						start = i;
-						break;
-					}
-				}
-				for (int i = start; i < Chunks.Keys.Count; i++)
-				{
-					if (Chunks.Keys[i] > xlast)
-					{
-						return ret;
-					}
-					var row = Chunks.Values[i];
-					var ixstart = row.Keys.Count;
-					for (int ix = 0; ix < row.Keys.Count; ix++)
-					{
-						if (row.Keys[ix] >= yfirst)
-						{
-							if (row.Keys[ix] > ylast)
-								break;
-							ixstart = ix;
-							break;
-						}
-					}
-					for (int ix = ixstart; ix < row.Keys.Count; ix++)
-					{
-						if (row.Keys[ix] > ylast)
-							break;
-						ret.Add(row.Values[ix]);
-					}
-				}
-			}
-			return ret;
-		}
-		public List<Line> LinesInChunks(List<Chunk> c)
-		{
-			var hs = new HashSet<Line>(new Linecomparer());
-			foreach (var chunk in c)
-			{
-				hs.UnionWith(chunk.Values);
-			}
-			List<Line> ret = new List<Line>();
-			ret.AddRange(hs);
-			return ret;
-		}
-		public List<Line> SortedLinesInChunks(List<Chunk> c)
-		{
-			var ss = new SortedSet<Line>(new Linecomparer() { reverse = false });
-			foreach (var chunk in c)
-			{
-				ss.UnionWith(chunk.Values);
-			}
-			List<Line> ret = new List<Line>();
-			ret.AddRange(ss);
-			return ret;
-		}
-		private static Vector2d AngleLock(Vector2d pt, Vector2d pos, Vector2d diff)
-		{
-			var angle = Math.Atan2(diff.Y, diff.X);
-			var delta = pt - pos;
-			var ret = new Vector2d(Math.Cos(angle), Math.Sin(angle));
-			return (new Vector2d(ret.X, ret.Y) * Vector2d.Dot(delta, ret)) + pos;
-		}
-		/// <summary>
-		/// Raytrace the specified x0, y0, x1 and y1.
-		/// </summary>
-		/// <returns>The raytrace.</returns>
-		/// <param name="x0">X0.</param>
-		/// <remarks>From http://playtechs.blogspot.ca/2007/03/raytracing-on-grid.html</remarks>
-		public static IEnumerable<GridPoint> raytrace(double x0, double y0, double x1, double y1)
-		{
-			double dx = Math.Abs(x1 - x0);
-			double dy = Math.Abs(y1 - y0);
+            return null;
+        }
+        public List<Chunk> UsedSolidChunksInRect(FloatRect rect)
+        {
+            return _bluegrid.UsedChunksInRect(rect);
+        }
+        public List<Chunk> UsedChunksInRect(FloatRect rect)
+        {
+            int yfirst = (int)Math.Floor(rect.Top / SquareSize);
+            int xfirst = (int)Math.Floor(rect.Left / SquareSize);
+            int ylast = (int)Math.Floor((rect.Top + rect.Height) / SquareSize);
+            int xlast = (int)Math.Floor((rect.Left + rect.Width) / SquareSize);
+            var ret = new List<Chunk>(((xlast - xfirst) * (ylast - yfirst)) / 2);
+            int start = 0;
 
-			int x = (int)(Math.Floor(x0));
-			int y = (int)(Math.Floor(y0));
+            lock (_syncRoot)
+            {
+                for (int i = 0; i < Chunks.Keys.Count; i++)
+                {
+                    if (Chunks.Keys[i] >= xfirst)
+                    {
+                        if (Chunks.Keys[i] > xlast)
+                            return ret;
+                        start = i;
+                        break;
+                    }
+                }
+                for (int i = start; i < Chunks.Keys.Count; i++)
+                {
+                    if (Chunks.Keys[i] > xlast)
+                    {
+                        return ret;
+                    }
+                    var row = Chunks.Values[i];
+                    var ixstart = row.Keys.Count;
+                    for (int ix = 0; ix < row.Keys.Count; ix++)
+                    {
+                        if (row.Keys[ix] >= yfirst)
+                        {
+                            if (row.Keys[ix] > ylast)
+                                break;
+                            ixstart = ix;
+                            break;
+                        }
+                    }
+                    for (int ix = ixstart; ix < row.Keys.Count; ix++)
+                    {
+                        if (row.Keys[ix] > ylast)
+                            break;
+                        ret.Add(row.Values[ix]);
+                    }
+                }
+            }
+            return ret;
+        }
+        public List<Line> LinesInChunks(List<Chunk> c)
+        {
+            var hs = new HashSet<Line>(new Linecomparer());
+            foreach (var chunk in c)
+            {
+                hs.UnionWith(chunk.Values);
+            }
+            List<Line> ret = new List<Line>();
+            ret.AddRange(hs);
+            return ret;
+        }
+        public List<Line> SortedLinesInChunks(List<Chunk> c)
+        {
+            var ss = new SortedSet<Line>(new Linecomparer() { reverse = false });
+            foreach (var chunk in c)
+            {
+                ss.UnionWith(chunk.Values);
+            }
+            List<Line> ret = new List<Line>();
+            ret.AddRange(ss);
+            return ret;
+        }
+        private static Vector2d AngleLock(Vector2d pt, Vector2d pos, Vector2d diff)
+        {
+            var angle = Math.Atan2(diff.Y, diff.X);
+            var delta = pt - pos;
+            var ret = new Vector2d(Math.Cos(angle), Math.Sin(angle));
+            return (new Vector2d(ret.X, ret.Y) * Vector2d.Dot(delta, ret)) + pos;
+        }
+        /// <summary>
+        /// Raytrace the specified x0, y0, x1 and y1.
+        /// </summary>
+        /// <returns>The raytrace.</returns>
+        /// <param name="x0">X0.</param>
+        /// <remarks>From http://playtechs.blogspot.ca/2007/03/raytracing-on-grid.html</remarks>
+        public static IEnumerable<GridPoint> raytrace(double x0, double y0, double x1, double y1)
+        {
+            double dx = Math.Abs(x1 - x0);
+            double dy = Math.Abs(y1 - y0);
 
-			int n = 1;
-			int x_inc, y_inc;
-			double error;
-			HashSet<GridPoint> hs = new HashSet<GridPoint>();
-			if (dx == 0)
-			{
-				x_inc = 0;
-				error = double.PositiveInfinity;
-			}
-			else if (x1 > x0)
-			{
-				x_inc = 1;
-				n += (int)(Math.Floor(x1)) - x;
-				error = (Math.Floor(x0) + 1 - x0) * dy;
-			}
-			else
-			{
-				x_inc = -1;
-				n += x - (int)(Math.Floor(x1));
-				error = (x0 - Math.Floor(x0)) * dy;
-			}
+            int x = (int)(Math.Floor(x0));
+            int y = (int)(Math.Floor(y0));
 
-			if (dy == 0)
-			{
-				y_inc = 0;
-				error -= double.PositiveInfinity;
-			}
-			else if (y1 > y0)
-			{
-				y_inc = 1;
-				n += (int)(Math.Floor(y1)) - y;
-				error -= (Math.Floor(y0) + 1 - y0) * dx;
-			}
-			else
-			{
-				y_inc = -1;
-				n += y - (int)(Math.Floor(y1));
-				error -= (y0 - Math.Floor(y0)) * dx;
-			}
+            int n = 1;
+            int x_inc, y_inc;
+            double error;
+            HashSet<GridPoint> hs = new HashSet<GridPoint>();
+            if (dx == 0)
+            {
+                x_inc = 0;
+                error = double.PositiveInfinity;
+            }
+            else if (x1 > x0)
+            {
+                x_inc = 1;
+                n += (int)(Math.Floor(x1)) - x;
+                error = (Math.Floor(x0) + 1 - x0) * dy;
+            }
+            else
+            {
+                x_inc = -1;
+                n += x - (int)(Math.Floor(x1));
+                error = (x0 - Math.Floor(x0)) * dy;
+            }
 
-			for (; n > 0; --n)
-			{
-				hs.Add(new Game.GridPoint(x, y));
+            if (dy == 0)
+            {
+                y_inc = 0;
+                error -= double.PositiveInfinity;
+            }
+            else if (y1 > y0)
+            {
+                y_inc = 1;
+                n += (int)(Math.Floor(y1)) - y;
+                error -= (Math.Floor(y0) + 1 - y0) * dx;
+            }
+            else
+            {
+                y_inc = -1;
+                n += y - (int)(Math.Floor(y1));
+                error -= (y0 - Math.Floor(y0)) * dx;
+            }
 
-				if (error > 0)
-				{
-					y += y_inc;
-					error -= dx;
-				}
-				else
-				{
-					x += x_inc;
-					error += dy;
-				}
-			}
-			return hs.ToArray();
-		}
-		/// <summary>
-		/// Takes the line (in double precision floating point) and finds all points on a 1x1 grid it interacts with.
-		/// </summary>
-		/// <remarks>The Vector2d and doublerect classes can be replaced with your own.</remarks>
-		public static IEnumerable<GridPoint> GetPointsOnLine(double x0, double y0, double x1, double y1)
-		{
-			return raytrace(x0, y0, x1, y1);
-		}
-		#endregion Methods
+            for (; n > 0; --n)
+            {
+                hs.Add(new Game.GridPoint(x, y));
 
-		#region Classes
-		public class Linecomparer : IComparer<Line>, IEqualityComparer<Line>
-		{
-			#region Methods
-			public bool reverse = true;
-			public int Compare(Line x, Line y)
-			{
-					return reverse ? y.ID - x.ID : x.ID - y.ID;
-			}
+                if (error > 0)
+                {
+                    y += y_inc;
+                    error -= dx;
+                }
+                else
+                {
+                    x += x_inc;
+                    error += dy;
+                }
+            }
+            return hs.ToArray();
+        }
+        /// <summary>
+        /// Takes the line (in double precision floating point) and finds all points on a 1x1 grid it interacts with.
+        /// </summary>
+        /// <remarks>The Vector2d and doublerect classes can be replaced with your own.</remarks>
+        public static IEnumerable<GridPoint> GetPointsOnLine(double x0, double y0, double x1, double y1)
+        {
+            return raytrace(x0, y0, x1, y1);
+        }
+        #endregion Methods
 
-			public bool Equals(Line x, Line y)
-			{
-				return x.ID == y.ID;
-			}
+        #region Classes
+        public class Linecomparer : IComparer<Line>, IEqualityComparer<Line>
+        {
+            #region Methods
+            public bool reverse = true;
+            public int Compare(Line x, Line y)
+            {
+                return reverse ? y.ID - x.ID : x.ID - y.ID;
+            }
 
-			public int GetHashCode(Line x)
-			{
-				return x.ID;
-			}
+            public bool Equals(Line x, Line y)
+            {
+                return x.ID == y.ID;
+            }
 
-			#endregion Methods
-		}
-		public class Chunk : SortedList<int, Line>
-		{
+            public int GetHashCode(Line x)
+            {
+                return x.ID;
+            }
 
-			#region Properties
+            #endregion Methods
+        }
+        public class Chunk : SortedList<int, Line>
+        {
 
-			public SortedList<int, Line> Lines
-			{
-				get { return this; }
-			}
+            #region Properties
 
-			#endregion Properties
+            public SortedList<int, Line> Lines
+            {
+                get { return this; }
+            }
 
-			#region Constructors
+            #endregion Properties
 
-			public Chunk()
-							: base(new descintcomparer())
-			{
-			}
+            #region Constructors
 
-			#endregion Constructors
+            public Chunk()
+                            : base(new descintcomparer())
+            {
+            }
 
-			#region Classes
+            #endregion Constructors
 
-			public class descintcomparer : IComparer<int>
-			{
+            #region Classes
 
-				#region Methods
+            public class descintcomparer : IComparer<int>
+            {
 
-				public int Compare(int x, int y)
-				{
-					return y - x;
-				}
+                #region Methods
 
-				#endregion Methods
+                public int Compare(int x, int y)
+                {
+                    return y - x;
+                }
 
-			}
+                #endregion Methods
 
-			#endregion Classes
+            }
 
-		}
+            #endregion Classes
 
-		#endregion Classes
-	}
+        }
+
+        #endregion Classes
+    }
 }

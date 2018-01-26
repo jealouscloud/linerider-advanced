@@ -22,7 +22,7 @@
 using System;
 using OpenTK;
 using OpenTK.Graphics;
-namespace linerider
+namespace linerider.Utils
 {
     public struct FloatRect : IEquatable<FloatRect>
     {
@@ -41,7 +41,7 @@ namespace linerider
         {
             get
             {
-                return new Vector2(Width,Height);
+                return new Vector2(Width, Height);
             }
         }
         public float Right
@@ -80,7 +80,7 @@ namespace linerider
 
             if (d > 1)
             {
-                Tools.Angle angle = Tools.Angle.FromLine(center, position);
+                Angle angle = Angle.FromLine(center, position);
                 double t = Math.Atan((Width / 2) * Math.Tan(angle.Radians) / (Height / 2));
                 if (angle.Degrees < 270 && angle.Degrees >= 90)
                 {

@@ -26,7 +26,7 @@ using Gwen.Controls;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace linerider.Tools
+namespace linerider.UI
 {
     public class Sprite : ControlBase
     {

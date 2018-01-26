@@ -19,18 +19,19 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Gwen;
-using Gwen.Controls;
-using Gwen.Skin;
-using linerider.Tools;
-using System.Diagnostics;
-using System.IO;
 using System.Threading;
-using linerider.Audio;
+using System.Linq;
+using System.IO;
+using System.Diagnostics;
+using System.Collections.Generic;
+using System;
 using OpenTK;
+using linerider.UI;
+using linerider.Tools;
+using linerider.Audio;
+using Gwen.Skin;
+using Gwen.Controls;
+using Gwen;
 using Color = System.Drawing.Color;
 
 namespace linerider
@@ -167,34 +168,32 @@ namespace linerider
             var fpslabel = ((Label)FindChildByName("fps", true));
             var ppflabel = ((Label)FindChildByName("ppf", true));
             var labelplayback = ((Label)FindChildByName("labelplayback", true));
-            if (game.Track.Animating)
+            if (game.Track.PlaybackMode)
             {
+                var currts = TimeSpan.FromSeconds(game.Track.CurrentFrame / 40f);
+                var ppf = game.Track.RenderRider.CalculateMomentum().Length;
                 if (Math.Abs(Environment.TickCount - _lastfpsupdate) > 500)
                 {
                     _lastfpsupdate = Environment.TickCount;
-                    fpsorlinecount = game.SettingRecordingMode ? "40 FPS" : Math.Round(game.Track.FpsCounter.FPS) + " FPS";
-                    if (!game.SettingShowFps && game.SettingRecordingMode)
-                    {
-                        fpsorlinecount = "";
-                    }
+                    fpsorlinecount = Settings.Local.RecordingMode ? "40 FPS" : Math.Round(game.Track.FpsCounter.FPS) + " FPS";
                 }
                 else
                 {
-                    fpsorlinecount = game.SettingRecordingMode ? "40 FPS" : fpslabel.Text;
+                    fpsorlinecount = fpslabel.Text;
                 }
-                var ppf = game.Track.RenderRider.CalculateMomentum().Length;
-                var pixels = Math.Round(ppf, 2);
-                sppf = string.Format("{0:N2}", pixels) + " ppf";
-                if (!game.SettingShowPpf && game.SettingRecordingMode)
+                sppf = string.Format("{0:N2}", Math.Round(ppf, 2)) + " ppf";
+                playback = currts.ToString("mm\\:ss") + ":"
+                + (game.Track.CurrentFrame % 40f) + " " + Math.Round(game.Scheduler.UpdatesPerSecond / 40f, 3) + "x";
+                if (Settings.Local.RecordingMode)
                 {
-                    sppf = "";
-                }
-                var currts = TimeSpan.FromSeconds(game.Track.CurrentFrame / 40f);
-                playback = currts.ToString("mm\\:ss") + ":" + (game.Track.CurrentFrame % 40f) + " " +
-                    Math.Round(game.Scheduler.UpdatesPerSecond / 40f, 3) + "x";
-                if (!game.SettingShowTimer && game.SettingRecordingMode)
-                {
-                    playback = "";
+                    if (Settings.Local.ShowFps)
+                        fpsorlinecount = Settings.Local.SmoothRecording ? "60 FPS" : "40 FPS";
+                    else
+                        fpsorlinecount = "";
+                    if (!Settings.Local.ShowPpf)
+                        sppf = "";
+                    if (!Settings.Local.ShowTimer)
+                        playback = "";
                 }
             }
             else
@@ -233,7 +232,7 @@ namespace linerider
         {
             //todo update renderrider
             var l = (Label)FindChildByName("labeliterations");
-            l.IsHidden = !(game.Track.Animating && game.Track.Paused);
+            l.IsHidden = !(game.Track.PlaybackMode && game.Track.Paused);
             if (!l.IsHidden)
             {
                 if (game.Track.IterationsOffset == 6)
@@ -248,18 +247,18 @@ namespace linerider
         {
             var buttons = FindChildByName("buttons");
             var slider = (HorizontalIntSlider)FindChildByName("timeslider");
-            FindChildByName("btnfastforward").IsHidden = game.SettingRecordingMode;
-            FindChildByName("btnslowmo").IsHidden = game.SettingRecordingMode;
-            if (game.SettingRecordingMode)
+            FindChildByName("btnfastforward").IsHidden = Settings.Local.RecordingMode;
+            FindChildByName("btnslowmo").IsHidden = Settings.Local.RecordingMode;
+            if (Settings.Local.RecordingMode)
             {
                 buttons.FindChildByName("pause").IsHidden = true;
                 buttons.FindChildByName("start").IsHidden = false;
                 FindChildByName("trackname", true).IsHidden = true;
                 slider.IsHidden = true;
-                buttons.IsHidden = !game.SettingRecordingShowTools;
-                FindChildByName("fps", true).IsHidden = !game.SettingShowFps;
-                FindChildByName("ppf", true).IsHidden = !game.SettingShowPpf;
-                FindChildByName("labelplayback", true).IsHidden = !game.SettingShowTimer;
+                buttons.IsHidden = !Settings.Local.RecordingShowTools;
+                FindChildByName("fps", true).IsHidden = !Settings.Local.ShowFps;
+                FindChildByName("ppf", true).IsHidden = !Settings.Local.ShowPpf;
+                FindChildByName("labelplayback", true).IsHidden = !Settings.Local.ShowTimer;
             }
             else
             {
@@ -308,7 +307,7 @@ namespace linerider
 
             var slider = (HorizontalIntSlider)FindChildByName("timeslider");
             slider.Min = 0;
-            slider.Max = game.Track.MaxFrame;
+            slider.Max = game.Track.EndFrameID;
             slider.Value = game.Track.Offset;
         }
         public void ExportAsSol()
@@ -450,7 +449,7 @@ namespace linerider
         public void ShowPreferences()
         {
             var trk = game.Track;
-            if (trk.Animating && !trk.Paused)
+            if (trk.PlaybackMode && !trk.Paused)
             {
                 trk.TogglePause();
             }
@@ -506,8 +505,8 @@ namespace linerider
             if (loc?.State == null || FlagTool.Tooltip != null) return;
             var invalid = false;
 
-			var state = game.Track.GetStart();
-			var frame = loc.Frame;
+            var state = game.Track.GetStart();
+            var frame = loc.Frame;
             using (var trk = game.Track.CreateTrackReader())
             {
                 if (frame > 400) //many frames, will likely lag the game. Update the window as a fallback.
@@ -577,7 +576,7 @@ namespace linerider
             if (slider.Held)
             {
                 _draggingSlider = true;
-                if (game.EnableSong)
+                if (Settings.Local.EnableSong)
                 {
                     AudioService.Pause();
                 }
@@ -586,7 +585,7 @@ namespace linerider
             {
                 _draggingSlider = false;
                 game.Scheduler.Reset();
-                if (game.EnableSong)
+                if (Settings.Local.EnableSong)
                 {
                     game.UpdateSongPosition(game.Track.CurrentFrame / 40f);
                 }

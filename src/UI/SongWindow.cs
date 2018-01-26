@@ -43,8 +43,8 @@ namespace linerider.UI
             this.Height = 240;
             //wc.DisableResizing();
             var enablesongcb = new LabeledCheckBox(this);
-            enablesongcb.CheckChanged += (o, e) => { game.EnableSong = enablesongcb.IsChecked; };
-            enablesongcb.IsChecked = game.EnableSong;
+            enablesongcb.CheckChanged += (o, e) => { Settings.Local.EnableSong = enablesongcb.IsChecked; };
+            enablesongcb.IsChecked = Settings.Local.EnableSong;
             enablesongcb.Text = "Enable Song";
             enablesongcb.Dock = Pos.Top;
             var gb = new GroupBox(this);
@@ -85,7 +85,7 @@ namespace linerider.UI
                     var nodename = name.ToLower().Contains(".ogg") ? name : "[convert] " + name;
                     var node = Songs.AddNode(nodename);
                     node.UserData = name;
-                    if (name == game.CurrentSong?.Location)
+                    if (name == Settings.Local.CurrentSong?.Location)
                         node.IsSelected = true;
                 }
             }
@@ -95,17 +95,17 @@ namespace linerider.UI
                 var list = (List<TreeNode>)tc.SelectedChildren;
                 if (list.Count == 1)
                 {
-                    game.CurrentSong.Location = (string)list[0].UserData;
+                    Settings.Local.CurrentSong.Location = (string)list[0].UserData;
                 }
             };
             this.IsHiddenChanged += (o, e) =>
             {
                 if (!this.IsHidden) return;
-                if (game.EnableSong)
+                if (Settings.Local.EnableSong)
                 {
                     var fn = Program.UserDirectory + "Songs" +
                              Path.DirectorySeparatorChar +
-                             game.CurrentSong.Location;
+                             Settings.Local.CurrentSong.Location;
                     if (File.Exists(fn))
                     {
                         game.Loading = true;
@@ -129,10 +129,10 @@ namespace linerider.UI
             container.Dock = Pos.Bottom;
             container.Height = 20;
             var offset = new NumericUpDown(container);
-            offset.ValueChanged += (snd, ev) => { game.CurrentSong.Offset = offset.Value; };
+            offset.ValueChanged += (snd, ev) => { Settings.Local.CurrentSong.Offset = offset.Value; };
             offset.Min = 0;
             offset.Max = 10000;
-            offset.Value = game.CurrentSong.Offset;
+            offset.Value = Settings.Local.CurrentSong.Offset;
             offset.Dock = Pos.Right;
             var label = new Label(container);
             label.Dock = Pos.Left;

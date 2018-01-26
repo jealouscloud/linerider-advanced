@@ -24,15 +24,49 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using OpenTK.Input;
+using OpenTK.Graphics;
+using linerider.Audio;
+using linerider.UI;
 
 namespace linerider
 {
     static class Settings
     {
+        public static class Static
+        {
+            public static readonly Color4 ColorOffwhite = new Color4(244, 245, 249, 255);
+            public static readonly Color4 ColorWhite = new Color4(255, 255, 255, 255);
+            public static readonly Color4 ColorNightMode = new Color4(20, 20, 25, 255);
+            public static readonly int[] MotionArray =
+            {
+            1, 2, 5, 10, 20, 30, 40, 80, 160, 320, 640
+        };
+        }
         public static class Local
         {
             public static bool HitTest = false;
+            public static float DefaultPlayback = 1f;
+            public static bool DisableSnap = false;
+            public static bool ForceXySnap = false;
+            public static bool MomentumVectors = false;
+            public static bool PreviewMode;
+            public static int SlowmoSpeed = 1;
+            public static bool RecordingMode;
+            public static bool RenderGravityWells;
+            public static bool ColorPlayback;
+            public static bool DrawContactPoints;
+            public static bool OnionSkinning;
+            //recording:
+            public static bool RecordingShowTools = false;
+            public static bool ShowFps = true;
+            public static bool ShowPpf = true;
+            public static bool ShowTimer = true;
+            public static bool SmoothRecording = true;
+            public static Song CurrentSong = new Song("", 0);
+            public static bool EnableSong = false;
         }
+        public static Dictionary<Hotkey, List<Keybinding>> Keybinds = new Dictionary<Hotkey, List<Keybinding>>();
         public static int PlaybackZoomType = 0;
         public static float PlaybackZoomValue = 4;
         public static float Volume = 100;
@@ -44,6 +78,78 @@ namespace linerider
         public static bool SmoothCamera = true;
         public static bool SmoothPlayback = true;
         public static bool CheckForUpdates = true;
+        static Settings()
+        {
+
+            CreateKeybind(Hotkey.EditorPencilTool, new Keybinding(Key.Q));
+            CreateKeybind(Hotkey.EditorLineTool, new Keybinding(Key.W));
+            CreateKeybind(Hotkey.EditorEraserTool, new Keybinding(Key.E));
+            CreateKeybind(Hotkey.EditorSelectTool, new Keybinding(Key.R));
+            CreateKeybind(Hotkey.EditorPanTool, new Keybinding(Key.T));
+            CreateKeybind(Hotkey.EditorToolColor1, new Keybinding(Key.Number1));
+            CreateKeybind(Hotkey.EditorToolColor2, new Keybinding(Key.Number2));
+            CreateKeybind(Hotkey.EditorToolColor3, new Keybinding(Key.Number3));
+
+            CreateKeybind(Hotkey.EditorUseTool, new Keybinding(MouseButton.Left));
+            CreateKeybind(Hotkey.EditorCycleToolSetting, new Keybinding(Key.Tab));
+
+            CreateKeybind(Hotkey.EditorRemoveLatestLine, new Keybinding(Key.BackSpace));
+            CreateKeybind(Hotkey.EditorFocusStart, new Keybinding(Key.Home));
+            CreateKeybind(Hotkey.EditorFocusLastLine, new Keybinding(Key.End));
+            CreateKeybind(Hotkey.EditorFocusRider, new Keybinding(Key.F1));
+            CreateKeybind(Hotkey.EditorFocusFlag, new Keybinding(Key.F2));
+            CreateKeybind(Hotkey.ToolLifeLock, new Keybinding(Key.AltLeft));
+            CreateKeybind(Hotkey.ToolAngleLock, new Keybinding(Key.ShiftLeft));
+            CreateKeybind(Hotkey.ToolLengthLock, new Keybinding(Key.L));
+            CreateKeybind(Hotkey.ToolXYSnap, new Keybinding(Key.X));
+            CreateKeybind(Hotkey.ToolDisableSnap, new Keybinding(Key.S));
+            CreateKeybind(Hotkey.ToolSelectBothJoints, new Keybinding(MouseButton.Left, KeyModifiers.Control));
+            CreateKeybind(Hotkey.EditorUndo, new Keybinding(Key.Z, KeyModifiers.Control));
+
+            CreateKeybind(Hotkey.EditorRedo, new Keybinding(Key.Y, KeyModifiers.Control));
+            CreateKeybind(Hotkey.EditorRedo, new Keybinding(Key.Z, KeyModifiers.Control | KeyModifiers.Shift));
+
+            CreateKeybind(Hotkey.PlaybackStartIgnoreFlag, new Keybinding(Key.Y, KeyModifiers.Alt));
+            CreateKeybind(Hotkey.PlaybackStartGhostFlag, new Keybinding(Key.I, KeyModifiers.Shift));
+            CreateKeybind(Hotkey.PlaybackStartSlowmo, new Keybinding(Key.Y, KeyModifiers.Shift));
+            CreateKeybind(Hotkey.PlaybackFlag, new Keybinding(Key.I));
+            CreateKeybind(Hotkey.PlaybackStart, new Keybinding(Key.Y));
+            CreateKeybind(Hotkey.PlaybackStop, new Keybinding(Key.U));
+            CreateKeybind(Hotkey.PlaybackSlowmo, new Keybinding(Key.M));
+            CreateKeybind(Hotkey.PlaybackZoom, new Keybinding(Key.Z));
+            CreateKeybind(Hotkey.PlaybackUnzoom, new Keybinding(Key.X));
+
+            CreateKeybind(Hotkey.PlaybackSpeedUp, new Keybinding(Key.Plus));
+            CreateKeybind(Hotkey.PlaybackSpeedUp, new Keybinding(Key.KeypadPlus));
+
+            CreateKeybind(Hotkey.PlaybackSpeedDown, new Keybinding(Key.Minus));
+            CreateKeybind(Hotkey.PlaybackSpeedDown, new Keybinding(Key.KeypadMinus));
+
+            CreateKeybind(Hotkey.PlaybackFrameNext, new Keybinding(Key.Right));
+            CreateKeybind(Hotkey.PlaybackFramePrev, new Keybinding(Key.Left));
+            CreateKeybind(Hotkey.PlaybackForward, new Keybinding(Key.Right, KeyModifiers.Shift));
+            CreateKeybind(Hotkey.PlaybackBackward, new Keybinding(Key.Left, KeyModifiers.Shift));
+            CreateKeybind(Hotkey.PlaybackIterationNext, new Keybinding(Key.Right, KeyModifiers.Alt));
+            CreateKeybind(Hotkey.PlaybackIterationPrev, new Keybinding(Key.Left, KeyModifiers.Alt));
+            CreateKeybind(Hotkey.PlaybackTogglePause, new Keybinding(Key.Space));
+
+            CreateKeybind(Hotkey.PreferencesWindow, new Keybinding(Key.Escape));
+            CreateKeybind(Hotkey.PreferencesWindow, new Keybinding(Key.P, KeyModifiers.Control));
+            CreateKeybind(Hotkey.PreferenceOnionSkinning, new Keybinding(Key.O, KeyModifiers.Control));
+            CreateKeybind(Hotkey.LoadWindow, new Keybinding(Key.O));
+
+            CreateKeybind(Hotkey.EditorQuickPan, new Keybinding(Key.Space));
+        }
+        private static void CreateKeybind(Hotkey hotkey, Keybinding keybinding)
+        {
+            if (keybinding.IsEmpty)
+                return;
+            if (!Keybinds.ContainsKey(hotkey))
+            {
+                Keybinds[hotkey] = new List<Keybinding>();
+            }
+            Keybinds[hotkey].Add(keybinding);
+        }
         public static void Load()
         {
             string[] lines = null;
@@ -69,6 +175,10 @@ namespace linerider
             LoadBool(GetSetting(lines, nameof(SmoothCamera)), ref SmoothCamera);
             LoadBool(GetSetting(lines, nameof(CheckForUpdates)), ref CheckForUpdates);
             LoadBool(GetSetting(lines, nameof(SmoothPlayback)), ref SmoothPlayback);
+            foreach (string name in Enum.GetNames(typeof(Hotkey)))
+            {
+                LoadKeybinding(lines, name);
+            }
         }
         public static void Save()
         {
@@ -83,19 +193,76 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(SmoothCamera), SmoothCamera.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(CheckForUpdates), CheckForUpdates.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SmoothPlayback), SmoothPlayback.ToString(Program.Culture));
+            foreach (var binds in Keybinds)
+            {
+                foreach (var bind in binds.Value)
+                {
+                    config += "\r\n" + MakeSetting(binds.Key.ToString(),
+                    "Mod=" + bind.Modifiers.ToString() +
+                    ";Key=" + bind.Key.ToString() +
+                    ";Mouse=" + bind.MouseButton.ToString() + ";");
+                }
+            }
             try
             {
                 File.WriteAllText(Program.UserDirectory + "linerider.conf", config);
             }
             catch { }
         }
+        private static void LoadKeybinding(string[] config, string hotkeyname)
+        {
+            var hotkey = (Hotkey)Enum.Parse(typeof(Hotkey), hotkeyname);
+            int line = 0;
+            var setting = GetSetting(config, hotkeyname, ref line);
+            if (setting != null)
+                Keybinds[hotkey] = new List<Keybinding>();
+            while (setting != null)
+            {
+                line++;
+                int modstart = setting.IndexOf("Mod=");
+                int keystart = setting.IndexOf("Key=");
+                int mousestart = setting.IndexOf("Mouse=");
+                if (modstart == -1 || keystart == -1 || mousestart == -1)
+                    return;
+                int modend = setting.IndexOf(";", modstart);
+                int keyend = setting.IndexOf(";", keystart);
+                int mouseend = setting.IndexOf(";", mousestart);
+                if (modend == -1 || keyend == -1 || mouseend == -1)
+                    return;
+                modstart += 5;
+                keystart += 5;
+                mousestart += 7;
+                try
+                {
+
+                    Keybinding ret = new Keybinding();
+                    ret.Modifiers = (KeyModifiers)Enum.Parse(typeof(KeyModifiers), setting.Substring(modstart, modend - modstart));
+                    ret.MouseButton = (MouseButton)Enum.Parse(typeof(MouseButton), setting.Substring(mousestart, mouseend - mousestart));
+                    ret.Key = (Key)Enum.Parse(typeof(Key), setting.Substring(keystart, keyend - keystart));
+                    CreateKeybind(hotkey, ret);
+                }
+                catch
+                {
+                }
+                setting = GetSetting(config, hotkeyname, ref line);
+            }
+
+        }
         private static string GetSetting(string[] config, string name)
         {
-            for (int i = 0; i < config.Length; i++)
+            int start = 0;
+            return GetSetting(config, name, ref start);
+        }
+        private static string GetSetting(string[] config, string name, ref int start)
+        {
+            for (int i = start; i < config.Length; i++)
             {
                 var split = config[i].Split('=');
                 if (split[0] == name && split.Length > 1)
+                {
+                    start = i;
                     return split[1];
+                }
             }
             return null;
         }

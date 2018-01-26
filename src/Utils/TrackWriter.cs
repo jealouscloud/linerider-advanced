@@ -30,6 +30,7 @@ using System.Diagnostics;
 using linerider.Tools;
 using linerider.Drawing;
 using linerider.Lines;
+using linerider.Utils;
 namespace linerider
 {
     public class TrackWriter : TrackReader
@@ -67,39 +68,72 @@ namespace linerider
         /// state a change to the undo and buffer managers.
         /// always needs to be in PAIRS with a before and after
         /// </summary>
-        private void StateChange(LineState state)
+        private void StateChange(Line line, bool exists)
         {
-            _undo?.AddChange(state);
-            _buffermanager?.AddChange(state);
+            if (_undo != null || _buffermanager != null)
+            {
+                var state = line.GetState();
+                state.Exists = exists;
+                _undo?.AddChange(state);
+                _buffermanager?.AddChange(state);
+            }
         }
+        /// <summary>
+        /// Moves the line in the track, grid, and renderer. Is naive to extensions, and notifies the undo/buffer managers
+        /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
+        /// </summary>
+        public void MoveLine(Line line, Vector2d pos1, Vector2d pos2)
+        {
+            if (line.Position != pos1 || line.Position2 != pos2)
+            {
+                StateChange(line, true);
+                Track.RemoveLineFromGrid(line);
+                line.Position = pos1;
+                line.Position2 = pos2;
+                line.CalculateConstants();
+                Track.AddLineToGrid(line);
+                StateChange(line, true);
+                _renderer.RedrawLine(line);
+            }
+        }
+        /// <summary>
+        /// Adds the line to the track, grid, and renderer. Is naive to extensions, and notifies the undo/buffer managers
+        /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
+        /// </summary>
         public void AddLine(Line l)
         {
+            //give a "before" state
+            StateChange(l, false);
+
             Track.AddLine(l);
+            //"after" state.
+            StateChange(l, true);
             _renderer.AddLine(l);
-            if (_undo != null)
-            {
-                var state = l.GetState();
-                state.Exists = false;
-                StateChange(state);
-                state = l.GetState();
-                state.Exists = true;
-                StateChange(state);
-            }
         }
+        /// <summary>
+        /// Removes the line from the track, grid, and renderer, updates extensions, and notifies undo/buffer managers.
+        /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
+        /// </summary>
         public void RemoveLine(Line l)
         {
-            Track.RemoveLine(l);
-            _renderer.RemoveLine(l);
-            if (_undo != null)
+            //give a "before" state
+            StateChange(l, true);
+
+            if (l is StandardLine)
             {
-                var state = l.GetState();
-                state.Exists = true;
-                StateChange(state);
-                state = l.GetState();
-                state.Exists = false;
-                StateChange(state);
+                var st = l as StandardLine;
+                TryDisconnectLines(st, st.Next);
+                TryDisconnectLines(st, st.Prev);
             }
+            Track.RemoveLine(l);
+            //"after" state
+            StateChange(l, false);
+            _renderer.RemoveLine(l);
         }
+        /// <summary>
+        /// Tries to disconnect two lines that are currently on the grid, updating extensions
+        /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
+        /// </summary>
         public void TryDisconnectLines(StandardLine l1, StandardLine l2)
         {
             if (l1 == null || l2 == null) return;
@@ -110,14 +144,13 @@ namespace linerider
                 joint = l1.Position2;
             else
                 return;
-            //var leftlink = (l1.CompliantPosition == joint && l2.CompliantPosition2 == joint);
             var rightlink = (l1.End == joint && l2.Start == joint);
-            StateChange(l1.GetState());
-            StateChange(l2.GetState());
+            StateChange(l1, true);
             if (rightlink)
             {
                 l1.Next = null;
                 l1.RemoveExtension(StandardLine.ExtensionDirection.Right);
+                StateChange(l1, true);
                 l2.Prev = null;
                 l2.RemoveExtension(StandardLine.ExtensionDirection.Left);
             }
@@ -125,11 +158,17 @@ namespace linerider
             {
                 l1.Prev = null;
                 l1.RemoveExtension(StandardLine.ExtensionDirection.Left);
+                StateChange(l1, true);
+
                 l2.Next = null;
                 l2.RemoveExtension(StandardLine.ExtensionDirection.Right);
             }
         }
 
+        /// <summary>
+        /// Tries to connect two lines that are currently on the grid, updating extensions
+        /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
+        /// </summary>
         public void TryConnectLines(StandardLine l1, StandardLine l2)
         {
             if (l1 == null || l2 == null) return;
@@ -158,8 +197,7 @@ namespace linerider
             bool cmp2 = anglediff2 > 0 && anglediff2 <= 180;
             if ((rightlink) ? cmp2 : cmp1)
             {
-                StateChange(l1.GetState());
-                StateChange(l2.GetState());
+                StateChange(l1, true);
                 if (rightlink)
                 {
                     l1.Next = l2;
@@ -174,6 +212,7 @@ namespace linerider
                     l2.Next = l1;
                     l2.AddExtension(StandardLine.ExtensionDirection.Right);
                 }
+                StateChange(l1, true);
             }
         }
     }

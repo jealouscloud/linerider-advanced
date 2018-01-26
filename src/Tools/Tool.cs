@@ -23,17 +23,31 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenTK;
+using linerider.Utils;
 
-namespace linerider
+namespace linerider.Tools
 {
     public abstract class Tool : GameService
     {
+        public bool Snapped = false;
+        protected virtual double SnapRadius
+        {
+            get
+            {
+                return 2 / game.Track.Zoom;
+            }
+        }
         public virtual bool NeedsRender { get { return false; } }
         public abstract MouseCursor Cursor { get; }
         public Tool()
         {
         }
 
+        protected Vector2d MouseCoordsToGame(Vector2d mouse)
+        {
+            var p = game.ScreenPosition + (mouse / game.Track.Zoom);
+            return p;
+        }
         public virtual void OnMouseMoved(Vector2d pos)
         {
         }
@@ -75,74 +89,9 @@ namespace linerider
         public virtual void OnChangingTool()
         {
         }
-        static bool PointInTriangle(Vector2d A, Vector2d B, Vector2d C, Vector2d P)
-        {
-            // Compute vectors        
-            Vector2d v0 = C - A;
-            Vector2d v1 = B - A;
-            Vector2d v2 = P - A;
-
-            // Compute dot products
-            double dot00 = Vector2d.Dot(v0, v0);
-            double dot01 = Vector2d.Dot(v0, v1);
-            double dot02 = Vector2d.Dot(v0, v2);
-            double dot11 = Vector2d.Dot(v1, v1);
-            double dot12 = Vector2d.Dot(v1, v2);
-
-            // Compute barycentric coordinates
-            double invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-            double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-            double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-            // Check if point is in triangle
-            if (u >= 0 && v >= 0 && (u + v) < 1)
-            { return true; }
-            else { return false; }
-        }
-
-        private static double isLeft(Vector2d P0, Vector2d P1, Vector2d P2)
-        {
-            return ((P1.X - P0.Y) * (P2.Y - P0.Y) - (P2.X - P0.X) * (P1.Y - P0.Y));
-        }
-        //https://gamedev.stackexchange.com/questions/110229/how-do-i-efficiently-check-if-a-point-is-inside-a-rotated-rectangle
-        private static bool PointInRectangle(Vector2d tl, Vector2d tr, Vector2d br, Vector2d bl, Vector2d p)
-        {
-            return (PointInTriangle(tl, tr, bl, p) || PointInTriangle(tr, bl, br, p));
-        }
-        public List<Line> LinesInRadius(TrackWriter trk, Vector2d position, double rad)
-        {
-            HashSet<Line> ret = new HashSet<Line>();
-            var ends = LineEndsInRadius(trk, position, rad);
-            foreach (var line in ends)
-            {
-                ret.Add(line);
-            }
-            var lines =
-                trk.GetLinesInRect(new FloatRect((Vector2)position - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
-                    false);
-            var evilcirc = Drawing.StaticRenderer.GenerateCircle(position.X, position.Y, rad, 10);
-            for (int i = 0; i < lines.Count; i++)
-            {
-                float lnsize = 2;
-                if (lines[i] is SceneryLine)
-                {
-                    lnsize = (lines[i] as SceneryLine).Width;
-                }
-                var rect = Drawing.StaticRenderer.GenerateThickLine(lines[i].Position, lines[i].Position2, lnsize);
-                for (int j = 0; j < evilcirc.Length; j++)
-                {
-                    if (PointInRectangle(rect[3], rect[2], rect[1], rect[0], evilcirc[j]))
-                    {
-                        ret.Add(lines[i]);
-                        break;
-                    }
-                }
-            }
-            return ret.ToList();
-        }
         public Line SelectLine(TrackWriter trk, Vector2d position)
         {
-            var ends = LineEndsInRadius(trk, position, 2);
+            var ends = LineEndsInRadius(trk, position, 0);
             if (ends.Length > 0)
                 return ends[0];
             var lines =
@@ -150,22 +99,16 @@ namespace linerider
                     false);
             for (int i = 0; i < lines.Count; i++)
             {
-                float lnsize = 2;
-                if (lines[i] is SceneryLine)
-                {
-                    lnsize = (lines[i] as SceneryLine).Width;
-                }
-
-                var rect = Drawing.StaticRenderer.GenerateThickLine(lines[i].Position, lines[i].Position2, lnsize);
-                if (PointInRectangle(rect[3], rect[2], rect[1], rect[0], position))
+                double lnradius = Line.GetLineRadius(lines[i]);
+                var rect = Drawing.StaticRenderer.GenerateThickLine(lines[i].Position, lines[i].Position2, lnradius * 2);
+                if (Utility.PointInRectangle(rect[3], rect[2], rect[1], rect[0], position))
                 {
                     return lines[i];
                 }
             }
             return null;
         }
-        // heavy lifting function for creating lines
-        public Line CreateLine(TrackWriter trk, Vector2d start, Vector2d end, bool inv)
+        public Line CreateLine(TrackWriter trk, Vector2d start, Vector2d end, bool inv, bool snapstart, bool snapend)
         {
             Line added = null;
             switch (game.Canvas.ColorControls.Selected)
@@ -188,59 +131,96 @@ namespace linerider
             trk.AddLine(added);
             if (game.Canvas.ColorControls.Selected != LineType.Scenery)
             {
-                trk.Track.ChangeMade(start, end);
+                if (snapstart)
+                    SnapLineEnd(trk, added, added.Position);
+                if (snapend)
+                    SnapLineEnd(trk, added, added.Position2);
             }
-            game.Invalidate();
+            game.Track.RequiresUpdate = true;
             return added;
         }
-        /// Heavy lifting function for moving an existing line.
-        protected void MoveLine(TrackWriter trk, Line line, Vector2d pos1, Vector2d pos2)
-        {
-            if (line is SceneryLine)
-            {
-                trk.Track.RemoveLineFromGrid(line);
-                line.Position = pos1;
-                line.Position2 = pos2;
-                trk.Track.AddLineToGrid(line);
-            }
-            else
-            {
-                var phys = (StandardLine)line;
-                trk.Track.RemoveLineFromGrid(phys);
-                trk.Track.ChangeMade(line.Position, line.Position2);
-                trk.Track.ChangeMade(pos1, pos2);
-                line.Position = pos1;
-                line.Position2 = pos2;
-                game.Track.RedrawLine(line);
-                trk.Track.AddLineToGrid(phys);
-                game.Invalidate();
-            }
-        }
+        /// <summary>
         /// Gets lines near the point by radius.
-        // does not support large distances as it only gets a small number of grid cells
-        protected Line[] LineEndsInRadius(TrackWriter trk, Vector2d point, double rad)
+        /// does not support large distances as it only gets a small number of grid cells
+        /// </summary>
+        /// <returns>a sorted array of lines where 0 is the closest point within the radius</returns>
+        public List<Line> LinesInRadius(TrackWriter trk, Vector2d position, double rad)
+        {
+            HashSet<Line> ret = new HashSet<Line>();
+            var ends = LineEndsInRadius(trk, position, rad);
+            foreach (var line in ends)
+            {
+                ret.Add(line);
+            }
+            var lines =
+                trk.GetLinesInRect(new FloatRect((Vector2)position - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
+                    false);
+            var evilcirc = Drawing.StaticRenderer.GenerateCircle(position.X, position.Y, rad, 10);
+            for (int i = 0; i < lines.Count; i++)
+            {
+                double lnradius = Line.GetLineRadius(lines[i]);
+                var rect = Drawing.StaticRenderer.GenerateThickLine(lines[i].Position, lines[i].Position2, lnradius * 2);
+                for (int j = 0; j < evilcirc.Length; j++)
+                {
+                    if (Utility.PointInRectangle(rect[3], rect[2], rect[1], rect[0], evilcirc[j]))
+                    {
+                        ret.Add(lines[i]);
+                        break;
+                    }
+                }
+            }
+            return ret.ToList();
+        }
+        /// <summary>
+        /// Gets line ends near the point by radius.
+        /// does not support large distances as it only gets a small number of grid cells
+        /// </summary>
+        /// <returns>a sorted array of lines where 0 is the closest point within the radius</returns>
+        protected Line[] LineEndsInRadius(TrackReader trk, Vector2d point, double rad)
         {
             var lines =
                 trk.GetLinesInRect(new FloatRect((Vector2)point - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
                     false);
-            SortedList<double, Line> ret = new SortedList<double, Line>();
+            SortedList<double, List<Line>> ret = new SortedList<double, List<Line>>();
             for (int i = 0; i < lines.Count; i++)
             {
                 var p1 = (point - lines[i].Position).Length;
                 var p2 = (point - lines[i].Position2).Length;
+                double lnradius = Line.GetLineRadius(lines[i]);
                 var closer = Math.Min(p1, p2);
-                if (closer < rad)
+                if (closer - lnradius < rad)
                 {
-                    ret.Add(closer, lines[i]);
+                    if (ret.ContainsKey(closer))
+                    {
+                        ret[closer].Add(lines[i]);
+                    }
+                    var l = new List<Line>();
+                    l.Add(lines[i]);
+                    ret[closer] = l;
                 }
             }
-            return ret.Values.ToArray();
+            List<Line> retn = new List<Line>();
+            for (int i = 0; i < ret.Values.Count; i++)
+            {
+                retn.AddRange(ret.Values[i]);
+            }
+            return retn.ToArray();
         }
-        /// Snaps the point specified in endpoint of line to the
-        // line.
+        protected Vector2d TrySnapPoint(TrackReader track, Vector2d point)
+        {
+            var lines = this.LineEndsInRadius(track, point, SnapRadius);
+            if (lines.Length == 0)
+                return point;
+
+            var snap = lines[0];
+            return Utility.CloserPoint(point, snap.Position, snap.Position2);
+        }
+        /// <summary>
+        /// Snaps the point specified in endpoint of line to another line if within snapradius
+        /// </summary>
         protected void SnapLineEnd(TrackWriter trk, Line line, Vector2d endpoint)
         {
-            var lines = LineEndsInRadius(trk, endpoint, 4);
+            var lines = LineEndsInRadius(trk, endpoint, SnapRadius);
             for (int i = 0; i < lines.Length; i++)
             {
                 var curr = lines[i];
@@ -249,31 +229,18 @@ namespace linerider
                     if (line is StandardLine && curr is SceneryLine)
                         continue;//phys lines dont wanna snap to scenery
 
+                    var snap = Utility.CloserPoint(endpoint, curr.Position, curr.Position2);
                     if (line.Position == endpoint)
                     {
-                        if ((line.Position - curr.Position).Length < (line.Position - curr.Position2).Length)
-                        {
-                            line.Position = curr.Position;
-                        }
-                        else
-                        {
-                            line.Position = curr.Position2;
-                        }
+                        trk.MoveLine(line, snap, line.Position2);
                     }
-                    else if (line.Position == endpoint)
+                    else if (line.Position2 == endpoint)
                     {
-                        if ((line.Position2 - curr.Position).Length < (line.Position2 - curr.Position2).Length)
-                        {
-                            line.Position2 = curr.Position;
-                        }
-                        else
-                        {
-                            line.Position2 = curr.Position;
-                        }
+                        trk.MoveLine(line, line.Position, snap);
                     }
                     else
                     {
-                        throw new Exception("Endpoint does not match line position in snap");
+                        throw new Exception("Endpoint does not match line position in snap. It's not one of the ends of the line.");
                     }
                     if (line is StandardLine)
                         trk.TryConnectLines((StandardLine)line, (StandardLine)curr);
@@ -281,106 +248,6 @@ namespace linerider
                     break;
                 }
             }
-        }
-        public Line SnapLine(TrackWriter trk, Vector2d pos)
-        {
-            var lines =
-                trk.GetLinesInRect(new FloatRect((Vector2)pos - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
-                    true);
-
-            var eraser = new Vector2d(0.5, 0.5);
-            var fr = new FloatRect((Vector2)(pos - eraser), (Vector2)(eraser * 2));
-            for (var i = 0; i < lines.Count; i++)
-            {
-                if (Line.DoesLineIntersectRect(lines[i], fr))
-                {
-                    return lines[i];
-                }
-            }
-            return null;
-        }
-        public Line Snap(TrackReader trk, Vector2d pos, Line ignore = null)
-        {
-            Line closest = null;
-            double dist = 8 / Math.Min(10, game.Track.Zoom);
-            float sq = (float)(dist * 2);
-            var lines =
-                trk.GetLinesInRect(new FloatRect((Vector2)pos - new Vector2(sq, sq), new Vector2(sq * 2, sq * 2)),
-                    true);
-
-            for (var i = 0; i < lines.Count; i++)
-            {
-                var sl = lines[i];
-                if (sl != null)
-                {
-                    if (ignore == sl)
-                        continue;
-                    var cmpdist1 = (sl.Position - pos).Length;
-                    var cmpdist2 = (sl.Position2 - pos).Length;
-                    if (cmpdist1 < dist)
-                    {
-                        dist = cmpdist1;
-                        closest = sl;
-                    }
-                    if (cmpdist2 < dist)
-                    {
-                        dist = cmpdist2;
-                        closest = sl;
-                    }
-                }
-            }
-            if (ignore != null && dist != 0)
-            {
-                closest = null;
-            }
-            return closest;
-        }
-        public static Vector2d SnapXY(Vector2d start, Vector2d end)
-        {
-            var diff = end - start;
-            var angle = MathHelper.RadiansToDegrees(Math.Atan2(diff.Y, diff.X)) + 90;
-            if (angle < 0)
-                angle += 360;
-            const double deg = 45;
-            if (angle >= 360 - (deg / 2) || angle <= (deg / 2))
-            {
-                end.X = start.X;
-            }
-            else if (angle >= 45 - (deg / 2) && angle <= 45 + (deg / 2))
-            {
-                end.X = start.X - (end.Y - start.Y);
-            }
-            else if (angle >= 90 - (deg / 2) && angle <= 90 + (deg / 2))
-            {
-                end.Y = start.Y;
-            }
-            else if (angle >= 135 - (deg / 2) && angle <= 135 + (deg / 2))
-            {
-                end.Y = start.Y + (end.X - start.X);
-            }
-            else if (angle >= 180 - (deg / 2) && angle <= 180 + (deg / 2))
-            {
-                end.X = start.X;
-            }
-            else if (angle >= 225 - (deg / 2) && angle <= 225 + (deg / 2))
-            {
-                end.X = start.X - (end.Y - start.Y);
-            }
-            else if (angle >= 270 - (deg / 2) && angle <= 270 + (deg / 2))
-            {
-                end.Y = start.Y;
-            }
-            else if (angle >= 315 - (deg / 2) && angle <= 315 + (deg / 2))
-            {
-                end.Y = start.Y + (end.X - start.X);
-            }
-            return end;
-        }
-
-        protected Vector2d MouseCoordsToGame(Vector2d mouse)
-        {
-            var p = game.ScreenPosition + (mouse / game.Track.Zoom);
-            return p;
         }
     }
 }

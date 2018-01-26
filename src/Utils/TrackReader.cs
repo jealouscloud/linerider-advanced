@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using linerider.Tools;
 using linerider.Drawing;
 using linerider.Game;
+using linerider.Utils;
 namespace linerider
 {
     public class TrackReader : IDisposable
@@ -96,9 +97,9 @@ namespace linerider
         }
         public void SaveTrackTrk(string savename, string songdata)
         {
-            TrackLoader.SaveTrackTrk(_track,savename,songdata);
+            TrackLoader.SaveTrackTrk(_track, savename, songdata);
         }
-        public Dictionary<string,bool> GetFeatures()
+        public Dictionary<string, bool> GetFeatures()
         {
             return TrackLoader.TrackFeatures(Track);
         }

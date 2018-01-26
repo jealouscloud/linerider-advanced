@@ -27,6 +27,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using linerider.Game;
+using linerider.Utils;
+
 namespace linerider.Drawing
 {
     public static class GameRenderer
@@ -39,7 +41,7 @@ namespace linerider.Drawing
         #endregion Fields
 
         #region Methods
-        public static void DrawRider(float opacity, Rider rider, bool scarf = false, bool drawcontactpoints = false, bool momentumvectors = false, int iteration=6)
+        public static void DrawRider(float opacity, Rider rider, bool scarf = false, bool drawcontactpoints = false, bool momentumvectors = false, int iteration = 6)
         {
             if (scarf)
             {
@@ -47,51 +49,51 @@ namespace linerider.Drawing
             }
             var points = rider.Body;
 
-            DrawTexture(Models.LegTexture, Models.LegRect, 
-            points[RiderConstants.BodyButt].Location, 
+            DrawTexture(Models.LegTexture, Models.LegRect,
+            points[RiderConstants.BodyButt].Location,
             points[RiderConstants.BodyFootRight].Location, opacity);
 
-            DrawTexture(Models.ArmTexture, Models.ArmRect, 
-            points[RiderConstants.BodyShoulder].Location, 
+            DrawTexture(Models.ArmTexture, Models.ArmRect,
+            points[RiderConstants.BodyShoulder].Location,
             points[RiderConstants.BodyHandRight].Location, opacity);
             if (!rider.Crashed)
-                RenderRoundedLine(points[RiderConstants.BodyHandRight].Location, points[RiderConstants.SledTR].Location, 
+                RenderRoundedLine(points[RiderConstants.BodyHandRight].Location, points[RiderConstants.SledTR].Location,
                 Color.Black, 0.1f);
 
             if (rider.SledBroken)
             {
-                DrawTexture(Models.BrokenSledTexture, Models.SledRect, 
-                points[RiderConstants.SledTL].Location, 
+                DrawTexture(Models.BrokenSledTexture, Models.SledRect,
+                points[RiderConstants.SledTL].Location,
                 points[RiderConstants.SledTR].Location, opacity);
             }
             else
             {
-                DrawTexture(Models.SledTexture, Models.SledRect, 
-                points[RiderConstants.SledTL].Location, 
+                DrawTexture(Models.SledTexture, Models.SledRect,
+                points[RiderConstants.SledTL].Location,
                 points[RiderConstants.SledTR].Location, opacity);
             }
 
-            DrawTexture(Models.LegTexture, Models.LegRect, 
-            points[RiderConstants.BodyButt].Location, 
+            DrawTexture(Models.LegTexture, Models.LegRect,
+            points[RiderConstants.BodyButt].Location,
             points[RiderConstants.BodyFootLeft].Location, opacity);
             if (!rider.Crashed)
             {
-                DrawTexture(Models.BodyTexture, Models.BodyRect, 
-                points[RiderConstants.BodyButt].Location, 
+                DrawTexture(Models.BodyTexture, Models.BodyRect,
+                points[RiderConstants.BodyButt].Location,
                 points[RiderConstants.BodyShoulder].Location, opacity);
             }
             else
             {
-                DrawTexture(Models.BodyDeadTexture, Models.BodyRect, 
-                points[RiderConstants.BodyButt].Location, 
+                DrawTexture(Models.BodyDeadTexture, Models.BodyRect,
+                points[RiderConstants.BodyButt].Location,
                 points[RiderConstants.BodyShoulder].Location, opacity);
             }
             if (!rider.Crashed)
-                RenderRoundedLine(points[RiderConstants.BodyHandLeft].Location, points[RiderConstants.SledTR].Location, 
+                RenderRoundedLine(points[RiderConstants.BodyHandLeft].Location, points[RiderConstants.SledTR].Location,
                 Color.Black, 0.1f);
 
-            DrawTexture(Models.ArmTexture, Models.ArmRect, 
-            points[RiderConstants.BodyShoulder].Location, 
+            DrawTexture(Models.ArmTexture, Models.ArmRect,
+            points[RiderConstants.BodyShoulder].Location,
             points[RiderConstants.BodyHandLeft].Location, opacity);
             List<Vertex> vertices = new List<Vertex>(300);
             if (momentumvectors)
@@ -105,7 +107,7 @@ namespace linerider.Drawing
             }
             if (drawcontactpoints)
             {
-                DrawContactPoints(rider,iteration,vertices);
+                DrawContactPoints(rider, iteration, vertices);
             }
             if (vertices.Count != 0)
             {
@@ -235,8 +237,8 @@ namespace linerider.Drawing
             }
             if (drawcolor)
             {
-                var loc3 = l.Normal.X > 0 ? (Math.Ceiling(l.Normal.X)) : (Math.Floor(l.Normal.X));
-                var loc4 = l.Normal.Y > 0 ? (Math.Ceiling(l.Normal.Y)) : (Math.Floor(l.Normal.Y));
+                var loc3 = l.DiffNormal.X > 0 ? (Math.Ceiling(l.DiffNormal.X)) : (Math.Floor(l.DiffNormal.X));
+                var loc4 = l.DiffNormal.Y > 0 ? (Math.Ceiling(l.DiffNormal.Y)) : (Math.Floor(l.DiffNormal.Y));
                 if (type == LineType.Red)
                 {
                     var redline = l as RedLine;

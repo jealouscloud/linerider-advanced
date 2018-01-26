@@ -20,12 +20,12 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using OpenTK.Graphics.OpenGL;
 using OpenTK;
+using OpenTK.Graphics.OpenGL;
 using Color = System.Drawing.Color;
 using linerider.Drawing;
 
-namespace linerider
+namespace linerider.Tools
 {
     public class PencilTool : Tool
     {
@@ -47,41 +47,33 @@ namespace linerider
         {
             get { return game.Cursors["pencil"]; }
         }
-        public PencilTool()
-            : base()
-        {
-        }
+        public PencilTool() : base() { }
         public override void OnMouseDown(Vector2d pos)
         {
             _started = true;
 
             if (game.EnableSnap)
             {
-				var gamepos = MouseCoordsToGame(pos);
+                var gamepos = MouseCoordsToGame(pos);
                 using (var trk = game.Track.CreateTrackReader())
                 {
-                    var ssnap = Snap(trk, gamepos);
-                    var snap = ssnap as StandardLine;
-
-                    if (snap != null)
+                    var snap = TrySnapPoint(trk, gamepos);
+                    if (snap != gamepos)
                     {
-                        _start = (snap.Start - gamepos).Length < (snap.End - gamepos).Length ? snap.Start : snap.End;
-                    }
-                    else if (ssnap != null)
-                    {
-                        _start = (ssnap.Position - gamepos).Length < (ssnap.Position2 - gamepos).Length
-                            ? ssnap.Position
-                            : ssnap.Position2;
+                        _start = snap;
+                        Snapped = true;
                     }
                     else
                     {
                         _start = gamepos;
+                        Snapped = false;
                     }
                 }
             }
             else
             {
                 _start = MouseCoordsToGame(pos);
+                Snapped = false;
             }
             var state = OpenTK.Input.Keyboard.GetState();
             inv = state[OpenTK.Input.Key.ShiftLeft] || state[OpenTK.Input.Key.ShiftRight];
@@ -98,17 +90,12 @@ namespace linerider
             using (var trk = game.Track.CreateTrackWriter())
             {
                 game.Track.UndoManager.BeginAction();
-				Line added = CreateLine(trk, _start, _end, inv);
-				if (game.EnableSnap)
-				{
-					SnapLineEnd(trk, added, added.Position);
-					SnapLineEnd(trk, added, added.Position2);
-				}
+                var added = CreateLine(trk, _start, _end, inv, Snapped, game.EnableSnap);
                 if (added is StandardLine)
-				{
+                {
                     game.Track.TrackUpdated();
-				}
-				game.Track.UndoManager.EndAction();
+                }
+                game.Track.UndoManager.EndAction();
             }
             game.Invalidate();
         }
@@ -151,7 +138,7 @@ namespace linerider
             base.Render();
             if (game.Canvas.ColorControls.Selected == LineType.Scenery && _mouseshadow != Vector2d.Zero)
             {
-                GameRenderer.RenderRoundedLine(_mouseshadow, _mouseshadow, Color.FromArgb(100,0x00, 0xCC, 0x00), 2f * game.Canvas.ColorControls.GreenMultiplier, false, false);
+                GameRenderer.RenderRoundedLine(_mouseshadow, _mouseshadow, Color.FromArgb(100, 0x00, 0xCC, 0x00), 2f * game.Canvas.ColorControls.GreenMultiplier, false, false);
             }
             _lastrendered = _mouseshadow;
         }
