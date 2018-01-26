@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using linerider.Game;
 using linerider.Drawing;
+using linerider.Utils;
 using OpenTK;
 namespace linerider.Game
 {
@@ -23,7 +24,7 @@ namespace linerider.Game
             width /= game.Track.Zoom;
             height *= scale;
             width *= scale;
-            return new DoubleRect(RiderPosition.X - (width/2), RiderPosition.Y - (height/2), width, height);
+            return new DoubleRect(RiderPosition.X - (width / 2), RiderPosition.Y - (height / 2), width, height);
         }
         public CameraLocation Clamp(Vector2d camera)
         {
@@ -35,7 +36,7 @@ namespace linerider.Game
             var bounds = GetBox(GetSmoothCamRatio(ppf));
             var oval = bounds.EllipseClamp(camera);
             var square = bounds.Clamp(camera);
-            return CameraLocation.FromNewPosition(RiderPosition,(Vector2d.Lerp(square, oval, roundness) ));
+            return CameraLocation.FromNewPosition(RiderPosition, (Vector2d.Lerp(square, oval, roundness)));
         }
         public bool SmoothIntersects(Vector2d camera, float ppf)
         {

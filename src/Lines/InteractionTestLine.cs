@@ -29,22 +29,22 @@ namespace linerider.Lines
         {
         }
         public InteractionTestLine(Vector2d p1, Vector2d p2, bool inv = false) : base(p1, p2, inv) { }
-        public override void CalculateConstants()
+        public override SimulationPoint Interact(SimulationPoint p)
         {
-            base.CalculateConstants();
-        }
-		public override SimulationPoint Interact(SimulationPoint p)
-		{
-            if (Vector2d.Dot(p.Momentum, Normal) > 0)
+            if (Vector2d.Dot(p.Momentum, DiffNormal) > 0)
             {
                 var startDelta = p.Location - this.Position;
-                var doty = Vector2d.Dot(Normal, startDelta);
+                var doty = Vector2d.Dot(DiffNormal, startDelta);
                 if (doty > 0 && doty < Zone)
                 {
-                    throw new LineInteractionException();
+                    var dotx = Vector2d.Dot(startDelta, diff) * DotScalar;
+                    if (dotx <= limit_right && dotx >= limit_left)
+                    {
+                        throw new LineInteractionException();
+                    }
                 }
             }
             return p;
-		}
+        }
     }
 }

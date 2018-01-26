@@ -25,7 +25,7 @@ using System;
 using Color = System.Drawing.Color;
 using OpenTK.Input;
 
-namespace linerider
+namespace linerider.Tools
 {
     public class LineTool : Tool
     {
@@ -54,31 +54,26 @@ namespace linerider
             _started = true;
             var gamepos = MouseCoordsToGame(pos);
             if (game.EnableSnap)
-			{
+            {
                 using (var trk = game.Track.CreateTrackReader())
                 {
-                    var ssnap = Snap(trk,gamepos);
-                    var snap = ssnap as StandardLine;
-                    if (snap != null)
+                    var snap = TrySnapPoint(trk, gamepos);
+                    if (snap != gamepos)
                     {
-                        _start = (snap.Start - gamepos).Length < (snap.End - gamepos).Length ? snap.Start : snap.End;
-                        _last = snap;
-                    }
-                    else if (ssnap != null)
-                    {
-                        _start = (ssnap.Position - gamepos).Length < (ssnap.Position2 - gamepos).Length
-                            ? ssnap.Position
-                            : ssnap.Position2;
+                        _start = snap;
+                        Snapped = true;
                     }
                     else
                     {
                         _start = gamepos;
+                        Snapped = false;
                     }
                 }
             }
             else
             {
                 _start = gamepos;
+                Snapped = false;
             }
 
             var state = OpenTK.Input.Keyboard.GetState();
@@ -95,7 +90,7 @@ namespace linerider
                 _end = MouseCoordsToGame(pos);
                 if (game.ShouldXySnap())
                 {
-                    _end = SnapXY(_start, _end);
+                    _end = Utility.SnapDegrees45(_start, _end);
                 }
                 game.Invalidate();
             }
@@ -113,60 +108,37 @@ namespace linerider
                 var y = diff.Y;
                 if (Math.Abs(x) + Math.Abs(y) < MINIMUM_LINE)
                     return;
-                StandardLine next = null;
                 if (game.ShouldXySnap())
                 {
-                    _end = SnapXY(_start, _end);
+                    _end = Utility.SnapDegrees45(_start, _end);
                 }
                 else if (game.EnableSnap)
-				{
+                {
                     using (var trk = game.Track.CreateTrackWriter())
                     {
-                        var ssnap = Snap(trk,_end);
-                        var snap = ssnap as StandardLine;
-                        if (snap != null)
+                        var snap = TrySnapPoint(trk, _end);
+                        if (snap != _end)
                         {
-                            var old = _end;
-
-                            _end = (snap.Start - _end).Length < (snap.End - _end).Length ? snap.Start : snap.End;
-                            if (_end == _start)
-                                _end = old;
-                            else
-                            {
-                                next = snap;
-                            }
-                        }
-                        else if (ssnap != null)
-                        {
-                            var old = _end;
-                            _end = (ssnap.Position - _end).Length < (ssnap.Position2 - _end).Length
-        ? ssnap.Position
-        : ssnap.Position2;
-                            if (_end == _start)
-                                _end = old;
+                            _end = snap;
                         }
                     }
                 }
                 if ((_end - _start).Length >= MINIMUM_LINE)
                 {
                     using (var trk = game.Track.CreateTrackWriter())
-					{
-						game.Track.UndoManager.BeginAction();
-						var added = CreateLine(trk, _start, _end, _addflip);
-						if (game.EnableSnap)
-						{
-							SnapLineEnd(trk, added, added.Position);
-							SnapLineEnd(trk, added, added.Position2);
-						}
-						if (added is StandardLine)
+                    {
+                        game.Track.UndoManager.BeginAction();
+                        var added = CreateLine(trk, _start, _end, _addflip, Snapped, game.EnableSnap);
+                        if (added is StandardLine)
                         {
                             game.Track.TrackUpdated();
-						}
-						game.Track.UndoManager.EndAction();
+                        }
+                        game.Track.UndoManager.EndAction();
                     }
                     game.Invalidate();
                 }
             }
+            Snapped = false;
             base.OnMouseUp(pos);
         }
         public override void Render()
@@ -185,14 +157,14 @@ namespace linerider
                     case LineType.Blue:
                         StandardLine sl = new StandardLine(_start, _end, _addflip);
                         sl.CalculateConstants();
-                        GameRenderer.DrawTrackLine(sl, c, game.SettingRenderGravityWells, true, false, false);
+                        GameRenderer.DrawTrackLine(sl, c, Settings.Local.RenderGravityWells, true, false, false);
                         break;
 
                     case LineType.Red:
                         RedLine rl = new RedLine(_start, _end, _addflip);
                         rl.Multiplier = game.Canvas.ColorControls.RedMultiplier;
                         rl.CalculateConstants();
-                        GameRenderer.DrawTrackLine(rl, c, game.SettingRenderGravityWells, true, false, false);
+                        GameRenderer.DrawTrackLine(rl, c, Settings.Local.RenderGravityWells, true, false, false);
                         break;
 
                     case LineType.Scenery:
@@ -225,7 +197,6 @@ namespace linerider
         private const float MINIMUM_LINE = 0.01f;
         private bool _addflip;
         private Vector2d _end;
-        private StandardLine _last;
         private Vector2d _start;
         private bool _started = false;
 

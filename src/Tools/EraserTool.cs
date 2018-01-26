@@ -21,7 +21,7 @@
 
 using OpenTK;
 
-namespace linerider
+namespace linerider.Tools
 {
     public class EraserTool : Tool
     {
@@ -72,12 +72,13 @@ namespace linerider
                 var lines = LinesInRadius(trk, pos, 5 / game.Track.Zoom);
                 if (lines.Count != 0)
                 {
-                    game.Track.UndoManager.BeginAction();
                     for (int i = 0; i < lines.Count; i++)
                     {
+                        game.Track.UndoManager.BeginAction();
                         trk.RemoveLine(lines[i]);
+                        game.Track.UndoManager.EndAction();
                     }
-                    game.Track.UndoManager.EndAction();
+                    game.Track.RequiresUpdate = true;
                     game.Track.TrackUpdated();
                 }
             }

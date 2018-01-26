@@ -75,6 +75,7 @@ namespace linerider.TrackFiles
         public static bool Recording1080p;
         public static void RecordTrack(GLWindow game, bool is1080P, bool smooth)
         {
+            Settings.Local.SmoothRecording = smooth;
             var flag = game.Track.GetFlag();
             if (flag == null) return;
             var resolution = new Size(is1080P ? 1920 : 1280, is1080P ? 1080 : 720);
@@ -132,8 +133,8 @@ namespace linerider.TrackFiles
                     var flagbackup = flag;
                     var hardexit = false;
                     game.Track.Flag();
-                    var recmodesave = game.SettingRecordingMode;
-                    game.SettingRecordingMode = true;
+                    var recmodesave = Settings.Local.RecordingMode;
+                    Settings.Local.RecordingMode = true;
                     game.Track.Start(true, true, false, false);
                     game.Render();
                     var dir = Program.UserDirectory + game.Track.Name + "_rec";
@@ -288,7 +289,7 @@ namespace linerider.TrackFiles
                             Program.NonFatalError("Unable to delete " + filename);
                         }
                     }
-                    game.SettingRecordingMode = recmodesave;
+                    Settings.Local.RecordingMode = recmodesave;
                     game.Title = Program.WindowTitle;
                     game.Track.RestoreFlag(flagbackup);
                     game.Track.Stop();

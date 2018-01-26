@@ -23,6 +23,7 @@ using OpenTK;
 using System;
 using linerider.Game;
 using linerider.Lines;
+using linerider.Utils;
 namespace linerider
 {
     public class Line : GameService
@@ -57,11 +58,19 @@ namespace linerider
         }
         public virtual LineState GetState()
         {
-            return new LineState() { Pos1 = Position, Pos2 = Position2, Parent = this, Inverted = false};
+            return new LineState() { Pos1 = Position, Pos2 = Position2, Parent = this, Inverted = false };
         }
         public virtual SimulationPoint Interact(SimulationPoint p)
         {
             return p;
+        }
+        public static double GetLineRadius(Line line)
+        {
+            if (line is SceneryLine)
+            {
+                return 1 * ((SceneryLine)line).Width;
+            }
+            return 1;
         }
 
         public static bool DoesLineIntersectRect(Line l1, FloatRect rect)

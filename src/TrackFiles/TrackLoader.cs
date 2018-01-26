@@ -368,7 +368,7 @@ namespace linerider
         public static void CreateTestFromTrack(Track track)
         {
             track.Reset();
-            int framecount =40*60*5;
+            int framecount = 40 * 60 * 5;
             for (int i = 0; i < framecount; i++)
             {
                 track.AddFrame();
@@ -405,9 +405,9 @@ namespace linerider
                 {
                     track.AddFrame();
                 }
-				//track.Chunks.fg.PrintMetrics();
-				var state = track.RiderStates[track.RiderStates.Count - 1];
-				for (int i = 0; i < state.Body.Length; i++)
+                //track.Chunks.fg.PrintMetrics();
+                var state = track.RiderStates[track.RiderStates.Count - 1];
+                for (int i = 0; i < state.Body.Length; i++)
                 {
                     var x = br.ReadDouble();
                     var y = br.ReadDouble();
@@ -494,8 +494,8 @@ namespace linerider
                             {
                                 if (AudioService.LoadFile(ref fn))
                                 {
-                                    game.CurrentSong = new Song(Path.GetFileName(fn), float.Parse(strings[1]));
-                                    game.EnableSong = true;
+                                    Settings.Local.CurrentSong = new Song(Path.GetFileName(fn), float.Parse(strings[1]));
+                                    Settings.Local.EnableSong = true;
                                 }
                                 else
                                 {
@@ -611,12 +611,12 @@ namespace linerider
                             if (!addedlines.ContainsKey(l.ID))
                             {
                                 addedlines[ID] = (StandardLine)l;
-                                ret.AddLine(l,true);
+                                ret.AddLine(l, true);
                             }
                         }
                         else
                         {
-                            ret.AddLine(l,true);
+                            ret.AddLine(l, true);
                         }
                     }
                 }
@@ -730,7 +730,7 @@ namespace linerider
                             }
                             if (!addedlines.ContainsKey(l.ID))
                             {
-                                ret.AddLine(l,true);
+                                ret.AddLine(l, true);
                                 addedlines[l.ID] = l;
                             }
                         }
@@ -761,7 +761,7 @@ namespace linerider
                             }
                             if (!addedlines.ContainsKey(l.ID))
                             {
-                                ret.AddLine(l,true);
+                                ret.AddLine(l, true);
                                 addedlines[l.ID] = l;
                             }
                         }
@@ -773,7 +773,7 @@ namespace linerider
                                 new Vector2d(Convert.ToDouble(line[0].data, CultureInfo.InvariantCulture),
                                     Convert.ToDouble(line[1].data, CultureInfo.InvariantCulture)),
                                 new Vector2d(Convert.ToDouble(line[2].data, CultureInfo.InvariantCulture),
-                                    Convert.ToDouble(line[3].data, CultureInfo.InvariantCulture))),true);
+                                    Convert.ToDouble(line[3].data, CultureInfo.InvariantCulture))), true);
                         break;
 
                     default:
@@ -820,7 +820,7 @@ namespace linerider
                 startline.Add(new Amf0Object { data = ret.Lines[conv].Position.X });
                 startline.Add(new Amf0Object { data = ret.Lines[conv].Position.Y - 50 * 0.5 });
             }
-            ret.StartOffset = new Vector2d(Convert.ToDouble(startline[0].data, CultureInfo.InvariantCulture), 
+            ret.StartOffset = new Vector2d(Convert.ToDouble(startline[0].data, CultureInfo.InvariantCulture),
             Convert.ToDouble(startline[1].data, CultureInfo.InvariantCulture));
             return ret;
         }

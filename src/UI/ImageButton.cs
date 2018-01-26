@@ -19,11 +19,11 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+using System.Drawing;
 using Gwen;
 using Gwen.Controls;
-using System.Drawing;
 
-namespace linerider.Tools
+namespace linerider.UI
 {
     public class ImageButton : Button
     {
@@ -37,10 +37,7 @@ namespace linerider.Tools
 
         #region Constructors
 
-        public ImageButton(ControlBase canvas)
-            : base(canvas)
-        {
-        }
+        public ImageButton(ControlBase canvas) : base(canvas) { }
 
         #endregion Constructors
 

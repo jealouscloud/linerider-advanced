@@ -24,23 +24,27 @@ using OpenTK;
 using OpenTK.Input;
 using System;
 using System.Collections.Generic;
-
-namespace linerider
+using linerider.Lines;
+using linerider.UI;
+namespace linerider.Tools
 {
-    public class LineAdjustTool : Tool
+    public class SelectTool : Tool
     {
-        #region Fields
+        struct SelectInfo
+        {
+            public Vector2d start;
+            public Line line;
+            //     public Line snap;
+            public bool leftjoint;
+            public bool rightjoint;
 
+        }
         public bool LifeLock = false;
         public bool CanLifelock = false;
-
-     //   private Joint _joint = 0;
+        private SelectInfo _selection;
         private bool _started = false;
-
-        #endregion Fields
-
-        #region Properties
-
+        private LineState _before;
+        //   private LineState _before_snap;
         public override MouseCursor Cursor
         {
             get { return game.Cursors["adjustline"]; }
@@ -54,45 +58,84 @@ namespace linerider
             }
         }
 
-        #endregion Properties
 
-        #region Constructors
-
-        public LineAdjustTool()
+        public SelectTool()
         {
         }
 
-        #endregion Constructors
-
-        #region Methods
 
         public void Deselect()
         {
         }
 
-        public void MoveLine(Vector2d pos)
+        public void MoveSelection(Vector2d pos)
         {
+            if (_selection.line != null)
+            {
+                var line = _selection.line;
+                using (var trk = game.Track.CreateTrackWriter())
+                {
+                    trk.DisableUndo();
+                    var left = _selection.leftjoint ? _before.Pos1 + (pos - _selection.start) : line.Position;
+                    var right = _selection.rightjoint ? _before.Pos2 + (pos - _selection.start) : line.Position2;
+                    if (_selection.leftjoint != _selection.rightjoint)
+                    {
+                        if (_selection.leftjoint)
+                        {
+                            if (UI.InputUtils.Check(Hotkey.ToolAngleLock))
+                            {
+                                //   movedleft = Utility.AngleLock(left,right,Angle(_selection.line.Position2 - _selection.line.Position)
+                            }
+                        }
+                    }
+                    trk.MoveLine(line,
+                    left,
+                    right);
+                }
+            }
+            game.Invalidate();
         }
 
-        public override void OnMouseDown(Vector2d pos)
+        public override void OnMouseDown(Vector2d mousepos)
         {
+            Stop();//double check
+            var gamepos = MouseCoordsToGame(mousepos);
             using (var trk = game.Track.CreateTrackWriter())
             {
-                this.SelectLine(trk,pos);
+                _selection = new SelectInfo();
+                var line = SelectLine(trk, gamepos);
+                if (line != null)
+                {
+                    _before = line.GetState();
+                    var linerad = Line.GetLineRadius(line);
+                    var point = Utility.CloserPoint(gamepos, line.Position, line.Position2);//TrySnapPoint(trk, gamepos);
+                    //is it a knob?
+                    if ((gamepos - point).Length <= linerad)
+                    {
+                        _selection.start = gamepos;
+                        _selection.line = line;
+                        _selection.leftjoint = line.Position == point;
+                        if (!_selection.leftjoint /* todo test if we wanna drag line*/)
+                        {
+                            _selection.rightjoint = line.Position2 == point;
+                        }
+                    }
+                    else
+                    {
+                        //select whole line
+                    }
+                }
+                if (_selection.leftjoint || _selection.rightjoint)
+                    _started = true;
             }
-            base.OnMouseDown(pos);
+            base.OnMouseDown(gamepos);
         }
 
         public override void OnMouseMoved(Vector2d pos)
         {
             if (_started)
             {
-                MoveLine(pos);
-                if (_started)//moveline can call stop, so check again
-                {
-                    game.Canvas.RemoveTooltip(null);
-               //     UpdateTooltip();
-                }
+                MoveSelection(MouseCoordsToGame(pos));
             }
             base.OnMouseMoved(pos);
         }
@@ -104,71 +147,21 @@ namespace linerider
 
         public override void OnMouseUp(Vector2d pos)
         {
+            Stop();
             base.OnMouseUp(pos);
         }
 
         public override void Stop()
         {
-        }
-
-        private Vector2d AngleLock(Vector2d pt, Vector2d pos, Line l)
-        {
-            var diff = l.Position2 - l.Position;
-            var angle = Math.Atan2(diff.Y, diff.X);
-            var delta = pt - pos;
-            var ret = new Vector2d(Math.Cos(angle), Math.Sin(angle));
-            return (new Vector2d(ret.X, ret.Y) * Vector2d.Dot(delta, ret)) + pos;
-        }
-
-        private Vector2d LengthLock(Vector2d p1, Vector2d p2, Line l)
-		{
-			var diff = l.Position2 - l.Position;
-            var diff2 = p2 - p1;
-            if (diff.Length != diff2.Length)
+            _started = false;
+            if (_selection.line != null)
             {
-                var angle = Math.Atan2(diff2.Y, diff2.X);
-                Drawing.Turtle turtle = new Drawing.Turtle(p1);
-                turtle.Move(Tools.Angle.FromRadians(angle).Degrees, diff.Length);
-                return turtle.Point;
+                game.Track.UndoManager.BeginAction();
+                game.Track.UndoManager.AddChange(_before);
+                game.Track.UndoManager.AddChange(_selection.line.GetState());
+                game.Track.UndoManager.EndAction();
             }
-            return p2;
+            _selection.line = null;
         }
-
-        #endregion Methods
-
-        #region Classes
-
-        private class NoDecimalNUD : NumericUpDown
-        {
-            #region Constructors
-
-            public NoDecimalNUD(ControlBase b) : base(b)
-            {
-            }
-
-            #endregion Constructors
-
-            #region Methods
-
-            protected override bool IsTextAllowed(string str)
-            {
-                return base.IsTextAllowed(str) && !str.Contains(".");
-            }
-
-            #endregion Methods
-        }
-
-        #endregion Classes
-
-        #region Enums
-
-        private enum Joint
-        {
-            Left = 1,
-            Right = 2,
-            Both = 3
-        }
-
-        #endregion Enums
     }
 }

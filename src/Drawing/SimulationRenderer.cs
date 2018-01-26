@@ -10,6 +10,7 @@ using System.Threading;
 using Gwen.Controls;
 using linerider.Tools;
 using linerider.Audio;
+using linerider.Utils;
 
 namespace linerider
 {
@@ -93,6 +94,7 @@ namespace linerider
             {
                 _renderer.AddLine((StandardLine)l);
             }
+            RequiresUpdate = true;
         }
         public void RedrawLine(Line l)
         {
@@ -104,6 +106,7 @@ namespace linerider
             {
                 _renderer.LineChanged((StandardLine)l);
             }
+            RequiresUpdate = true;
         }
         public void RemoveLine(Line l)
         {
@@ -115,6 +118,7 @@ namespace linerider
             {
                 _renderer.RemoveLine((StandardLine)l);
             }
+            RequiresUpdate = true;
         }
         public void RefreshTrack(Track track)
         {

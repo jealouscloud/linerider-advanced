@@ -31,6 +31,7 @@ using System.Threading;
 using Gwen.Controls;
 using linerider.Tools;
 using linerider.Audio;
+using linerider.Utils;
 
 namespace linerider
 {
@@ -46,7 +47,10 @@ namespace linerider
 
         public readonly Stopwatch Fpswatch = new Stopwatch();
         internal readonly FPSCounter FpsCounter = new FPSCounter();
-        public bool Animating;
+        /// <summary>
+        /// indicates if we're in playbackmode
+        /// </summary>
+        public bool PlaybackMode;
         public bool Paused;
         public float Zoom = 4.0f;
         public Camera Camera;
@@ -61,7 +65,7 @@ namespace linerider
         /// The current number of frames since start (incl flag)
         /// </summary>
         public int Offset { get; private set; }
-        public int CurrentFrame => Animating ? Offset + _startFrame : 0;
+        public int CurrentFrame => PlaybackMode ? Offset + _startFrame : 0;
         public int LineCount => _track.Lines.Count;
         public bool SimulationNeedsDraw = false;
         public PlaybackBufferManager BufferManager;
@@ -92,7 +96,12 @@ namespace linerider
                 return _renderrider.State;
             }
         }
-        public int MaxFrame
+        /// <summary>
+        /// The ID of the last frame in the playback buffer
+        /// aka _track.RiderStates.Count - 1
+        /// </summary>
+        /// <returns></returns>
+        public int EndFrameID
         {
             get
             {
@@ -105,11 +114,16 @@ namespace linerider
             {
                 return _track.Name;
             }
+            set
+            {
+                //todo remove this setter
+                _track.Name = value;
+            }
         }
         /// Returns the real rider state associated with the current frame
 
         public UndoManager UndoManager;
-        public bool Playing => Animating && !Paused;
+        public bool Playing => PlaybackMode && !Paused;
         /// <summary>
         /// The offset between 0-6 of the currently rendered iteration
         /// </summary>
@@ -134,7 +148,7 @@ namespace linerider
             _track = new Track();
             _track.ActiveTriggers = ActiveTriggers;
             Offset = 0;
-            BufferManager = new PlaybackBufferManager(_track);
+            BufferManager = new PlaybackBufferManager();
             _renderrider = new Tracklocation() { Frame = 0, State = _track.RiderStates[0], Iteration = 6 };
             UndoManager = new UndoManager();
         }
@@ -188,30 +202,26 @@ namespace linerider
         /// </summary>
         public void TrackUpdated()
         {
-            //todo
-            //if (Animating)
-            //TrackUpdater.Instance.Reset();
-            if (Animating)
+            if (PlaybackMode)
                 BufferManager.Update();
-
         }
         SimulationRenderer renderer = new SimulationRenderer();
         public void Render(float blend)
         {
             SimulationRenderer.DrawOptions drawOptions = new SimulationRenderer.DrawOptions();
             drawOptions.Blend = blend;
-            drawOptions.GravityWells = game.SettingRenderGravityWells;
+            drawOptions.GravityWells = Settings.Local.RenderGravityWells;
             drawOptions.KnobState = 0;
-            if (game.SelectedTool is LineAdjustTool)
+            if (game.SelectedTool is SelectTool)
             {
-                drawOptions.KnobState = ((LineAdjustTool)game.SelectedTool).CanLifelock ? 2 : 1;
+                drawOptions.KnobState = ((SelectTool)game.SelectedTool).CanLifelock ? 2 : 1;
             }
-            drawOptions.LineColors = game.SettingPreviewMode || !Playing || game.SettingColorPlayback;
+            drawOptions.LineColors = Settings.Local.PreviewMode || !Playing || Settings.Local.ColorPlayback;
             drawOptions.Paused = Paused;
-            drawOptions.Playback = Animating;
+            drawOptions.Playback = PlaybackMode;
             drawOptions.Rider = RenderRider;
-            drawOptions.ShowContactLines = game.SettingDrawContactPoints;
-            drawOptions.ShowMomentumVectors = game.SettingMomentumVectors;
+            drawOptions.ShowContactLines = Settings.Local.DrawContactPoints;
+            drawOptions.ShowMomentumVectors = Settings.Local.MomentumVectors;
             if (Settings.SmoothPlayback && Playing && Offset > 0 && blend < 1)
             {
                 //interpolate between last frame and current one
@@ -229,7 +239,7 @@ namespace linerider
         {
             using (EnterPlayback())
             {
-                if (Animating)
+                if (PlaybackMode)
                 {
                     _flag = new Tracklocation { State = _track.RiderStates[Offset], Frame = CurrentFrame };
                 }
@@ -262,9 +272,9 @@ namespace linerider
 
         public void Stop()
         {
-            if (Animating)
+            if (PlaybackMode)
             {
-                Animating = false;
+                PlaybackMode = false;
                 Paused = false;
 
                 Zoom = _oldZoom;
@@ -276,7 +286,7 @@ namespace linerider
                     v.Reset();
                 }
                 ActiveTriggers.Clear();
-                if (game.EnableSong)
+                if (Settings.Local.EnableSong)
                 {
                     AudioService.Stop();
                 }
@@ -288,14 +298,14 @@ namespace linerider
 
         public void TogglePause()
         {
-            if (Animating)
+            if (PlaybackMode)
             {
                 Paused = !Paused;
                 game.Canvas.UpdatePauseUI();
                 game.Canvas.UpdateIterationUI();
                 game.Scheduler.Reset();
 
-                if (game.EnableSong)
+                if (Settings.Local.EnableSong)
                 {
                     if (Paused)
                     {
@@ -314,7 +324,7 @@ namespace linerider
         public void Start(bool ignoreflag = false, bool clearcollidedlines = true, bool startmusic = true, bool ghoststart = false)
         {
             //todo collisino line clearing removed
-            if (!Animating)
+            if (!PlaybackMode)
             {
                 _oldZoom = Zoom;
                 Camera.Push();
@@ -323,7 +333,7 @@ namespace linerider
             {
                 FpsCounter.Reset(40);
                 Fpswatch.Restart();
-                Animating = true;
+                PlaybackMode = true;
                 Paused = false;
                 _startFrame = 0;
                 if (_flag == null || ignoreflag)
@@ -342,7 +352,7 @@ namespace linerider
                 UpdateCamera();
                 game.UpdateCursor();
                 game.Scheduler.UpdatesPerSecond =
-                    (int)(Math.Round(game.SettingDefaultPlayback * 40));
+                    (int)(Math.Round(Settings.Local.DefaultPlayback * 40));
                 game.Canvas.ShowPlaybackUI();
                 switch (Settings.PlaybackZoomType)
                 {
@@ -374,7 +384,7 @@ namespace linerider
                         {
                             _track.AddFrame();
                         }
-                        SetFrame(MaxFrame);
+                        SetFrame(EndFrameID);
                     }
                     for (var i = 0; i < _track.RiderStates[Offset].Body.Length; i++)
                     {
@@ -388,7 +398,7 @@ namespace linerider
                     }
                     game.Canvas.UpdateScrubber();
                 }
-                if (startmusic && game.EnableSong)
+                if (startmusic && Settings.Local.EnableSong)
                 {
                     if (_flag != null)
                         game.UpdateSongPosition(CurrentFrame / 40f);
@@ -484,11 +494,11 @@ namespace linerider
                 {
                     if (Crash)
                     {
-                        TrackLoader.CreateTrackFile(_track, "Crash Backup", game.CurrentSong?.ToString());
+                        TrackLoader.CreateTrackFile(_track, "Crash Backup", Settings.Local.CurrentSong?.ToString());
                     }
                     else
                     {
-                        TrackLoader.CreateAutosave(_track, game.CurrentSong?.ToString());
+                        TrackLoader.CreateAutosave(_track, Settings.Local.CurrentSong?.ToString());
                     }
                 }
             }
@@ -508,12 +518,12 @@ namespace linerider
             _flag = null;
             if (_track != null && _track.ActiveTriggers == ActiveTriggers)
                 _track.ActiveTriggers = null;
+            BufferManager.Reset();
             _track = trk;
             _track.ActiveTriggers = ActiveTriggers;
             RefreshTrack();
             Reset();
             Camera.SetFrame(trk.StartOffset, false);
-            BufferManager = new PlaybackBufferManager(_track);
         }
 
         internal Tracklocation GetFlag()

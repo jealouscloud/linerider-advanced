@@ -44,22 +44,22 @@ namespace linerider
         public override void CalculateConstants()
         {
             base.CalculateConstants();
-            _acc = Normal * (ConstAcc * _multiplier);
+            _acc = DiffNormal * (ConstAcc * _multiplier);
             _acc = inv ? _acc.PerpendicularRight : _acc.PerpendicularLeft;
         }
-		public override SimulationPoint Interact(SimulationPoint p)
-		{
-            if (Vector2d.Dot(p.Momentum, Normal) > 0)
+        public override SimulationPoint Interact(SimulationPoint p)
+        {
+            if (Vector2d.Dot(p.Momentum, DiffNormal) > 0)
             {
                 var startDelta = p.Location - this.Position;
-                var doty = Vector2d.Dot(Normal, startDelta);
+                var doty = Vector2d.Dot(DiffNormal, startDelta);
                 if (doty > 0 && doty < Zone)
                 {
                     var dotx = Vector2d.Dot(startDelta, diff) * DotScalar;
                     if (dotx <= limit_right && dotx >= limit_left)
                     {
-                        var pos = p.Location - doty * Normal;
-                        var friction = Normal.Yx * p.Friction * doty;
+                        var pos = p.Location - doty * DiffNormal;
+                        var friction = DiffNormal.Yx * p.Friction * doty;
                         if (p.Previous.X >= pos.X)
                             friction.X = -friction.X;
                         if (p.Previous.Y >= pos.Y)
@@ -69,6 +69,6 @@ namespace linerider
                 }
             }
             return p;
-		}
+        }
     }
 }

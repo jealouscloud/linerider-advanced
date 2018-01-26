@@ -22,7 +22,7 @@ using System;
 using OpenTK;
 using OpenTK.Input;
 
-namespace linerider
+namespace linerider.Tools
 {
     public class HandTool : Tool
     {
@@ -39,7 +39,7 @@ namespace linerider
             {
                 if (started)
                 {
-                    return zoom ?game.Cursors["zoom"] : game.Cursors["closed_hand"];
+                    return zoom ? game.Cursors["zoom"] : game.Cursors["closed_hand"];
                 }
                 return game.Cursors["hand"];
             }

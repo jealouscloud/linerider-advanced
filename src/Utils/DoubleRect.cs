@@ -22,7 +22,7 @@
 using System;
 using OpenTK;
 using OpenTK.Graphics;
-namespace linerider
+namespace linerider.Utils
 {
     public struct DoubleRect : IEquatable<DoubleRect>
     {
@@ -86,7 +86,7 @@ namespace linerider
             if (d > 1)
             {
 
-                Tools.Angle angle = Tools.Angle.FromLine(center, position);
+                Angle angle = Angle.FromLine(center, position);
                 double t = Math.Atan((Width / 2) * Math.Tan(angle.Radians) / (Height / 2));
                 if (angle.Degrees < 270 && angle.Degrees >= 90)
                 {
@@ -130,7 +130,7 @@ namespace linerider
             var rect = this;
 
             var width = (Right - Left) * scale;
-            rect.Left -= (width / 2)  - (Width / 2);
+            rect.Left -= (width / 2) - (Width / 2);
             rect.Width = width;
 
             var height = (Bottom - Top) * scale;

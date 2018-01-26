@@ -24,7 +24,7 @@ using OpenTK;
 using System;
 using System.Drawing;
 
-namespace linerider.Tools
+namespace linerider.UI
 {
     public class ColorControls
     {

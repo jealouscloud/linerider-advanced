@@ -27,6 +27,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Threading;
 using linerider.Game;
+using linerider.Utils;
+
 namespace linerider
 {
     public class Track
@@ -48,7 +50,7 @@ namespace linerider
 
         public List<Rider> RiderStates = new List<Rider>();
         //todo probably needs to be linkedlist for performance
-        public List<LineTrigger> ActiveTriggers=null;
+        public List<LineTrigger> ActiveTriggers = null;
         private Vector2d _start = Vector2d.Zero;
         public Bone[] Bones = new Bone[RiderConstants.Bones.Length];
         public Vector2d StartOffset
@@ -124,8 +126,6 @@ namespace linerider
                 _idcounter = line.ID + 1;
             }
             AddLineToGrid(line);
-            if (!scenery && !isloading)
-                ChangeMade(line.Position, line.Position2);
 
         }
 
@@ -149,14 +149,6 @@ namespace linerider
             return 0;
         }
 
-        /// <remarks>Does not care about inv lines, result is same</remarks>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        public void ChangeMade(Vector2d start, Vector2d end)
-        {
-            return;
-        }
-
         public void ClearTrack()
         {
             _idcounter = 0;
@@ -164,74 +156,12 @@ namespace linerider
             Lines.Clear();
             Grid = new SimulationGrid();
             RenderCells = new FastGrid();
-            ResetChanges();
             GC.Collect();
         }
 
         public HashSet<int> Diagnose(Rider state, int maxiteration = 6)
         {
             return state.Diagnose(this, maxiteration);
-        }
-
-        public List<Line> Erase(Vector2d pos, LineType t, float zoom)
-        {
-            //todo circular eraser
-            List<Line> ret = new List<Line>();
-            var eraser = new Vector2d(10 / zoom, 10 / zoom);
-            var searchrect = new FloatRect((Vector2)(pos - eraser), (Vector2)(eraser * 2));
-            searchrect = searchrect.Inflate(24, 24);
-            var fr = new FloatRect((Vector2)(pos - eraser), (Vector2)(eraser * 2));
-            var lines = RenderCells.LinesInChunks(RenderCells.UsedChunksInRect(fr));
-
-            foreach (var line in lines)
-            {
-                var scenery = line as SceneryLine;
-                if (scenery != null)
-                {
-                    var sceneryeraser = new Vector2d((10 / zoom) * scenery.Width, (10 / zoom) * scenery.Width);
-                    var sceneryfr = new FloatRect((Vector2)(pos - sceneryeraser), (Vector2)(sceneryeraser * 2));
-                    if (!Line.DoesLineIntersectRect(line, sceneryfr))
-                        continue;
-                }
-                else
-                {
-                    if (!Line.DoesLineIntersectRect(line, fr))
-                        continue;
-                }
-                if (!(t == LineType.All || ((t == LineType.Red && line.GetLineType() == LineType.Red) ||
-                                            (t == LineType.Blue && line.GetLineType() == LineType.Blue) ||
-                                            (t == LineType.Scenery && line.GetLineType() == LineType.Scenery))))
-                    continue;
-                var sl = line as StandardLine;
-                StandardLine pl1 = null;
-                StandardLine pl2 = null;
-                StandardLine nl1 = null;
-                StandardLine nl2 = null;
-                if (sl != null)
-                {
-                    if (sl.Prev != null)
-                    {
-                        pl1 = sl.Prev;
-                        pl2 = sl;
-                        sl.Prev.Next = null;
-                        sl.Prev.RemoveExtension(StandardLine.ExtensionDirection.Right);
-                        sl.RemoveExtension(StandardLine.ExtensionDirection.Left);
-                        sl.Prev = null;
-                    }
-                    if (sl.Next != null)
-                    {
-                        nl1 = sl;
-                        nl2 = sl.Next;
-                        sl.Next.Prev = null;
-                        sl.Next.RemoveExtension(StandardLine.ExtensionDirection.Left);
-                        sl.RemoveExtension(StandardLine.ExtensionDirection.Right);
-                        sl.Next = null;
-                    }
-                }
-                RemoveLine(line);
-                ret.Add(line);
-            }
-            return ret;
         }
 
         public List<Line> GetLinesInRect(FloatRect rect, bool precise, bool standardlinesonly = false)
@@ -275,7 +205,6 @@ namespace linerider
         }
         public void RemoveLine(Line l)
         {
-            ChangeMade(l.Position, l.Position2);
             Lines.Remove(l);
             RemoveLineFromGrid(l);
         }
@@ -301,11 +230,6 @@ namespace linerider
         {
             RiderStates.Clear();
             RiderStates.Add(start);
-        }
-
-        public void ResetChanges()
-        {
-            //todo for live update rework
         }
 
 

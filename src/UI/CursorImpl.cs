@@ -19,7 +19,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace linerider.Utils
+namespace linerider.UI
 {
     public class CursorImpl : Gwen.Platform.Neutral.CursorImplementation
     {

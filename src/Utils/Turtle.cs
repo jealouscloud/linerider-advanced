@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using OpenTK;
-namespace linerider.Drawing
+namespace linerider.Utils
 {
     class Turtle
     {
@@ -65,7 +65,7 @@ namespace linerider.Drawing
         {
             get
             {
-                return new Tools.Angle(_degrees).Degrees;
+                return new Angle(_degrees).Degrees;
             }
         }
         private double _degrees = 0;
