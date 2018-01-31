@@ -30,6 +30,7 @@ namespace linerider.UI
         ToolXYSnap,
         ToolDisableSnap,
         ToolSelectBothJoints,
+        LineToolFlipLine,
 
         PlaybackStartSlowmo,
         PlaybackStartIgnoreFlag,

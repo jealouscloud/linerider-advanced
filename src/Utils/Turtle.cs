@@ -26,6 +26,10 @@ using System.Text;
 using OpenTK;
 namespace linerider.Utils
 {
+    /// <summary>
+    /// This is my pet turtle. I wrote him cause I'm bad at math.
+    /// His name is Sam
+    /// </summary>
     class Turtle
     {
         private Vector2d _point = new Vector2d(0, 0);

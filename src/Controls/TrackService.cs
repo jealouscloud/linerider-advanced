@@ -200,7 +200,7 @@ namespace linerider
         /// <summary>
         /// Function for indicating the physics of the track have changed, so inform buffermanager
         /// </summary>
-        public void TrackUpdated()
+        public void NotifyTrackChanged()
         {
             if (PlaybackMode)
                 BufferManager.Update();
@@ -212,9 +212,9 @@ namespace linerider
             drawOptions.Blend = blend;
             drawOptions.GravityWells = Settings.Local.RenderGravityWells;
             drawOptions.KnobState = 0;
-            if (game.SelectedTool is SelectTool)
+            if (game.SelectedTool is MoveTool)
             {
-                drawOptions.KnobState = ((SelectTool)game.SelectedTool).CanLifelock ? 2 : 1;
+                drawOptions.KnobState = ((MoveTool)game.SelectedTool).CanLifelock ? 2 : 1;
             }
             drawOptions.LineColors = Settings.Local.PreviewMode || !Playing || Settings.Local.ColorPlayback;
             drawOptions.Paused = Paused;
@@ -335,11 +335,11 @@ namespace linerider
                 Fpswatch.Restart();
                 PlaybackMode = true;
                 Paused = false;
-                _startFrame = 0;
+				_startFrame = 0;
+				Offset = 0;
                 if (_flag == null || ignoreflag)
                 {
                     _track.Reset();
-                    Offset = 0;
                 }
                 else
                 {
@@ -494,7 +494,7 @@ namespace linerider
                 {
                     if (Crash)
                     {
-                        TrackLoader.CreateTrackFile(_track, "Crash Backup", Settings.Local.CurrentSong?.ToString());
+                        TrackLoader.SaveTrackToFile(_track, "Crash Backup", Settings.Local.CurrentSong?.ToString());
                     }
                     else
                     {

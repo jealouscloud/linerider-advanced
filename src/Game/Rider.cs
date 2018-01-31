@@ -130,7 +130,7 @@ namespace linerider.Game
         {
             foreach (var line in cell)
             {
-                joint = line.Interact(joint);
+                line.Interact(ref joint);
             }
             return joint;
         }
@@ -141,8 +141,7 @@ namespace linerider.Game
         {
             foreach (var line in cell)
             {
-                var newj = line.Interact(joint);
-                if (newj.Location != joint.Location)
+                if (line.Interact(ref joint))
                 {
                     if (collisions != null)
                     {
@@ -156,7 +155,6 @@ namespace linerider.Game
                         }
                     }
                 }
-                joint = newj;
             }
             return joint;
         }
@@ -229,10 +227,13 @@ namespace linerider.Game
                 joints[i] = Body[i].StepMomentum();
             }
             PhysicsInfo nfo = new PhysicsInfo();
-            for (int i = 0; i < 6; i++)
+            using (track.Grid.Sync.AcquireRead())
             {
-                ProcessBones(track.Bones, joints, ref dead);
-                ProcessLines(track.Grid, joints, ref nfo, collisions, track.ActiveTriggers);
+                for (int i = 0; i < 6; i++)
+                {
+                    ProcessBones(track.Bones, joints, ref dead);
+                    ProcessLines(track.Grid, joints, ref nfo, collisions, track.ActiveTriggers);
+                }
             }
             bool sledbroken = false;
             var nose = joints[RiderConstants.SledTR].Location - joints[RiderConstants.SledTL].Location;

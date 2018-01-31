@@ -60,9 +60,9 @@ namespace linerider
         {
             return new LineState() { Pos1 = Position, Pos2 = Position2, Parent = this, Inverted = false };
         }
-        public virtual SimulationPoint Interact(SimulationPoint p)
+        public virtual bool Interact(ref SimulationPoint p)
         {
-            return p;
+            return false;
         }
         public static double GetLineRadius(Line line)
         {

@@ -36,13 +36,21 @@ namespace linerider.Tools
                 return true;
             }
         }
+        public bool Snapped = false;
         private Vector2d _start;
         private Vector2d _end;
         private bool _started = false;
-        const float MINIMUM_LINE = 0.1f;
-        private bool inv = false;
+        const float MINIMUM_LINE = 0.5f;
+        private bool _addflip = false;
         private Vector2d _mouseshadow;
         private Vector2d _lastrendered;
+        private bool DrawingScenery
+        {
+            get
+            {
+                return game.Canvas.ColorControls.Selected == LineType.Scenery;
+            }
+        }
         public override MouseCursor Cursor
         {
             get { return game.Cursors["pencil"]; }
@@ -75,8 +83,7 @@ namespace linerider.Tools
                 _start = MouseCoordsToGame(pos);
                 Snapped = false;
             }
-            var state = OpenTK.Input.Keyboard.GetState();
-            inv = state[OpenTK.Input.Key.ShiftLeft] || state[OpenTK.Input.Key.ShiftRight];
+            _addflip = UI.InputUtils.Check(UI.Hotkey.LineToolFlipLine);
             _end = _start;
             game.Invalidate();
             base.OnMouseDown(pos);
@@ -90,10 +97,10 @@ namespace linerider.Tools
             using (var trk = game.Track.CreateTrackWriter())
             {
                 game.Track.UndoManager.BeginAction();
-                var added = CreateLine(trk, _start, _end, inv, Snapped, game.EnableSnap);
+                var added = CreateLine(trk, _start, _end, false, Snapped, false);
                 if (added is StandardLine)
                 {
-                    game.Track.TrackUpdated();
+                    game.Track.NotifyTrackChanged();
                 }
                 game.Track.UndoManager.EndAction();
             }
@@ -105,9 +112,7 @@ namespace linerider.Tools
             {
                 _end = MouseCoordsToGame(pos);
                 var diff = _end - _start;
-                var x = diff.X;
-                var y = diff.Y;
-                if (Math.Abs(x) + Math.Abs(y) >= MINIMUM_LINE / game.Track.Zoom)
+                if (DrawingScenery || diff.Length >= MINIMUM_LINE)
                 {
                     AddLine();
                     _start = _end;
@@ -125,9 +130,7 @@ namespace linerider.Tools
             {
                 _started = false;
                 var diff = _end - _start;
-                var x = diff.X;
-                var y = diff.Y;
-                if (Math.Abs(x) + Math.Abs(y) < MINIMUM_LINE / game.Track.Zoom && (_end != _start || game.Canvas.ColorControls.Selected != LineType.Scenery))
+                if (!DrawingScenery && diff.Length < MINIMUM_LINE)
                     return;
                 AddLine();
             }
@@ -136,7 +139,7 @@ namespace linerider.Tools
         public override void Render()
         {
             base.Render();
-            if (game.Canvas.ColorControls.Selected == LineType.Scenery && _mouseshadow != Vector2d.Zero)
+            if (DrawingScenery && _mouseshadow != Vector2d.Zero)
             {
                 GameRenderer.RenderRoundedLine(_mouseshadow, _mouseshadow, Color.FromArgb(100, 0x00, 0xCC, 0x00), 2f * game.Canvas.ColorControls.GreenMultiplier, false, false);
             }

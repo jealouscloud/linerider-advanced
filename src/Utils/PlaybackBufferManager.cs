@@ -45,6 +45,7 @@ namespace linerider.Utils
         private ResourceSync _sync;
         private bool _restart = false;
         private bool _running = false;
+        private const int MaxLinesBeforeCellAutoPasses = 10;
         private const int DummyID = -1;
         private const int Aborted = -2;
         public PlaybackBufferManager()
@@ -92,7 +93,7 @@ namespace linerider.Utils
             while (_restart)
             {
                 LineState[] changes;
-                using (_sync.AcquireRead())
+                using (_sync.AcquireWrite())
                 {
                     _restart = false;
                     if (_changes.Count == 0 || game.Track.EndFrameID == 0)
@@ -102,7 +103,8 @@ namespace linerider.Utils
                 Track track;
                 using (var trk = game.Track.CreateTrackWriter())
                 {
-                    track = trk.Track;
+                    track = trk.Track;//hacky way to grab onto the track
+                    //have to be careful here about thread safety
                 }
                 int start = FindUpdateStart(track, changes);
                 if (start == Aborted)
@@ -153,23 +155,11 @@ namespace linerider.Utils
                     SimulationCell cell;
                     if (!points.TryGetValue(p.Point, out cell))
                     {
-                        cell = track.Grid.GetCell(p.X, p.Y).Clone();
-
+                        cell = new SimulationCell();
                         points[p.Point] = cell;
                     }
 
-                    var node = cell.AddFirst(sl).Next;
-                    while (node != null)
-                    {
-                        if (node.Value is InteractionTestLine)
-                        {
-                            node = node.Next;
-                        }
-                        else
-                        {
-                            node = cell.AddAfter(node, sl);
-                        }
-                    }
+                    cell.AddLine(sl);
                 }
             }
             return CalculateFirstInteraction(track, 0, track.RiderStates.Count - 1, points);
@@ -180,29 +170,23 @@ namespace linerider.Utils
             var gridpoints = cells.Keys.ToArray();
             Dictionary<int, Line> collisions = new Dictionary<int, Line>();
             int idx = start;
-            try
+            for (; idx <= end; idx++)
             {
-                for (; idx <= end; idx++)
+                if (_restart)
+                    return Aborted;
+                var state = track.RiderStates[idx];
+                for (int icx = 0; icx < gridpoints.Length; icx++)
                 {
-                    if (_restart)
-                        return Aborted;
-                    var state = track.RiderStates[idx];
-                    for (int icx = 0; icx < gridpoints.Length; icx++)
+                    if (state.PhysInfo.ContainsCell(gridpoints[icx]))
                     {
-                        if (state.PhysInfo.ContainsCell(gridpoints[icx]))
-                        {
-                            CheckInteraction(track, state, cells);
-                        }
+                        if (CheckInteraction(track, state, cells))
+                            return idx + 1;//the next frame will be different. this one stays the same.
                     }
                 }
             }
-            catch (InteractionTestLine.LineInteractionException)
-            {
-                return idx + 1;//the next frame will be different. this one stays the same.
-            }
             return -1;
         }
-        private void CheckInteraction(Track track, Rider state, Dictionary<GridPoint, SimulationCell> cells)
+        private bool CheckInteraction(Track track, Rider state, Dictionary<GridPoint, SimulationCell> changedcells)
         {
             SimulationPoint[] joints = new SimulationPoint[state.Body.Length];
             bool dead = state.Crashed;
@@ -223,14 +207,15 @@ namespace linerider.Utils
                         {
                             for (var y = -1; y <= 1; y++)
                             {
-                                SimulationCell cell;
-                                if (cells.TryGetValue(new GridPoint(cellx + x, celly + y), out cell))
+                                SimulationCell changelines;
+                                var lines = track.Grid.GetCell(cellx + x, celly + y);
+                                if (changedcells.TryGetValue(new GridPoint(cellx + x, celly + y), out changelines))
                                 {
-                                    joints[i] = Rider.ProcessCell(cell, joints[i]);
+                                    if (TestCell(ref joints[i], changelines, lines))
+                                        return true;
                                 }
                                 else
                                 {
-                                    var lines = track.Grid.GetCell(cellx + x, celly + y);
                                     if (lines != null)
                                         joints[i] = Rider.ProcessCell(lines, joints[i]);
                                 }
@@ -239,7 +224,36 @@ namespace linerider.Utils
                     }
                 }
             }
+            return false;
         }
-
+        private bool TestCell(ref SimulationPoint joint, SimulationCell changelines, SimulationCell tracklines)
+        {
+            if (tracklines != null)
+            {
+                if (tracklines.Count + changelines.Count > MaxLinesBeforeCellAutoPasses)
+                {
+                    return true;//unreasonable to test this
+                }
+                foreach (var line in tracklines)
+                {
+                    foreach (var test in changelines)
+                    {
+                        if (test.Interact(ref joint))
+                        {
+                            return true;
+                        }
+                    }
+                    line.Interact(ref joint);
+                }
+            }
+            foreach (var test in changelines)
+            {
+                if (test.Interact(ref joint))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

@@ -296,7 +296,7 @@ namespace linerider.UI
                         return;
                     }
                 }
-                game.Track.TrackUpdated();
+                game.Track.NotifyTrackChanged();
                 window.Close();
             }
         }

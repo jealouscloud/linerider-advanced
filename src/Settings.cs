@@ -99,11 +99,15 @@ namespace linerider
             CreateKeybind(Hotkey.EditorFocusRider, new Keybinding(Key.F1));
             CreateKeybind(Hotkey.EditorFocusFlag, new Keybinding(Key.F2));
             CreateKeybind(Hotkey.ToolLifeLock, new Keybinding(Key.AltLeft));
+            CreateKeybind(Hotkey.ToolLifeLock, new Keybinding(Key.AltRight));
             CreateKeybind(Hotkey.ToolAngleLock, new Keybinding(Key.ShiftLeft));
+            CreateKeybind(Hotkey.ToolAngleLock, new Keybinding(Key.ShiftRight));
             CreateKeybind(Hotkey.ToolLengthLock, new Keybinding(Key.L));
             CreateKeybind(Hotkey.ToolXYSnap, new Keybinding(Key.X));
             CreateKeybind(Hotkey.ToolDisableSnap, new Keybinding(Key.S));
             CreateKeybind(Hotkey.ToolSelectBothJoints, new Keybinding(MouseButton.Left, KeyModifiers.Control));
+            CreateKeybind(Hotkey.LineToolFlipLine, new Keybinding(Key.ShiftLeft));
+            CreateKeybind(Hotkey.LineToolFlipLine, new Keybinding(Key.ShiftRight));
             CreateKeybind(Hotkey.EditorUndo, new Keybinding(Key.Z, KeyModifiers.Control));
 
             CreateKeybind(Hotkey.EditorRedo, new Keybinding(Key.Y, KeyModifiers.Control));
@@ -224,14 +228,14 @@ namespace linerider
                 int mousestart = setting.IndexOf("Mouse=");
                 if (modstart == -1 || keystart == -1 || mousestart == -1)
                     return;
+                modstart += 4;
+                keystart += 4;
+                mousestart += 6;
                 int modend = setting.IndexOf(";", modstart);
                 int keyend = setting.IndexOf(";", keystart);
                 int mouseend = setting.IndexOf(";", mousestart);
                 if (modend == -1 || keyend == -1 || mouseend == -1)
                     return;
-                modstart += 5;
-                keystart += 5;
-                mousestart += 7;
                 try
                 {
 
@@ -257,11 +261,13 @@ namespace linerider
         {
             for (int i = start; i < config.Length; i++)
             {
-                var split = config[i].Split('=');
-                if (split[0] == name && split.Length > 1)
+                var idx = config[i].IndexOf("=");
+                if (idx != -1 && idx + 1 < config[i].Length && config[i].Substring(0,idx) == name)//split[0] == name && split.Length > 1)
                 {
+
+                    var split = config[i].Substring(idx+1);
                     start = i;
-                    return split[1];
+                    return split;
                 }
             }
             return null;
