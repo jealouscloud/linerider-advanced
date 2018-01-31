@@ -29,25 +29,18 @@ namespace linerider.Tools
 {
     public class LineTool : Tool
     {
-        #region Properties
-
         public override MouseCursor Cursor
         {
             get { return game.Cursors["line"]; }
         }
 
-        #endregion Properties
 
-        #region Constructors
+        public bool Snapped = false;
 
         public LineTool()
             : base()
         {
         }
-
-        #endregion Constructors
-
-        #region Methods
 
         public override void OnMouseDown(Vector2d pos)
         {
@@ -76,8 +69,8 @@ namespace linerider.Tools
                 Snapped = false;
             }
 
-            var state = OpenTK.Input.Keyboard.GetState();
-            _addflip = state[OpenTK.Input.Key.LShift] || state[OpenTK.Input.Key.RShift];
+
+            _addflip = UI.InputUtils.Check(UI.Hotkey.LineToolFlipLine);
             _end = _start;
             game.Invalidate();
             base.OnMouseDown(pos);
@@ -90,8 +83,18 @@ namespace linerider.Tools
                 _end = MouseCoordsToGame(pos);
                 if (game.ShouldXySnap())
                 {
-                    _end = Utility.SnapDegrees45(_start, _end);
+                    _end = Utility.SnapToDegrees(_start, _end);
                 }
+                if (game.EnableSnap)
+                {
+                using (var trk = game.Track.CreateTrackReader())
+                {
+                    var snap = TrySnapPoint(trk, _end);
+                    if (snap != _end)
+                    {
+                        _end = snap;
+                    }
+                }}
                 game.Invalidate();
             }
             base.OnMouseMoved(pos);
@@ -110,7 +113,7 @@ namespace linerider.Tools
                     return;
                 if (game.ShouldXySnap())
                 {
-                    _end = Utility.SnapDegrees45(_start, _end);
+                    _end = Utility.SnapToDegrees(_start, _end);
                 }
                 else if (game.EnableSnap)
                 {
@@ -131,7 +134,7 @@ namespace linerider.Tools
                         var added = CreateLine(trk, _start, _end, _addflip, Snapped, game.EnableSnap);
                         if (added is StandardLine)
                         {
-                            game.Track.TrackUpdated();
+                            game.Track.NotifyTrackChanged();
                         }
                         game.Track.UndoManager.EndAction();
                     }
@@ -189,17 +192,11 @@ namespace linerider.Tools
         {
             _started = false;
         }
-
-        #endregion Methods
-
-        #region Fields
-
         private const float MINIMUM_LINE = 0.01f;
         private bool _addflip;
         private Vector2d _end;
         private Vector2d _start;
         private bool _started = false;
 
-        #endregion Fields
     }
 }

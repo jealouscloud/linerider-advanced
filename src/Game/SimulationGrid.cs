@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Threading;
 using linerider.Game;
+using linerider.Utils;
 namespace linerider
 {
 
@@ -33,6 +34,7 @@ namespace linerider
     {
         public const int CellSize = 14;
         public int GridVersion = 62;
+        public readonly ResourceSync Sync = new ResourceSync();
         private readonly Dictionary<int, SimulationCell> Cells = new Dictionary<int, SimulationCell>(4096);
         public List<CellLocation> GetGridPositions(StandardLine line)
         {
@@ -149,9 +151,12 @@ namespace linerider
         public void AddLine(StandardLine line)
         {
             var positions = GetGridPositions(line);
-            foreach (var pos in positions)
+            using (Sync.AcquireWrite())
             {
-                Register(line, pos.X, pos.Y);
+                foreach (var pos in positions)
+                {
+                    Register(line, pos.X, pos.Y);
+                }
             }
         }
         public CellLocation CellInfo(double posx, double posy)
@@ -179,9 +184,12 @@ namespace linerider
         public void RemoveLine(StandardLine line)
         {
             var positions = GetGridPositions(line);
-            foreach (var pos in positions)
+            using (Sync.AcquireWrite())
             {
-                Unregister(line, pos.X, pos.Y);
+                foreach (var pos in positions)
+                {
+                    Unregister(line, pos.X, pos.Y);
+                }
             }
         }
 

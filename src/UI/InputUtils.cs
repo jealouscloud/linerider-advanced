@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenTK.Input;
+using linerider.Utils;
 namespace linerider.UI
 {
     static class InputUtils

@@ -31,52 +31,16 @@ namespace linerider
     public static class Utility
     {
 
-        public static Vector2d SnapDegrees45(Vector2d start, Vector2d end)
+        public static Vector2d SnapToDegrees(Vector2d start, Vector2d end, double degrees = 15)
         {
-            var diff = end - start;
-            var angle = MathHelper.RadiansToDegrees(Math.Atan2(diff.Y, diff.X)) + 90;
-            if (angle < 0)
-                angle += 360;
-            const double deg = 45;
-            if (angle >= 360 - (deg / 2) || angle <= (deg / 2))
-            {
-                end.X = start.X;
-            }
-            else if (angle >= 45 - (deg / 2) && angle <= 45 + (deg / 2))
-            {
-                end.X = start.X - (end.Y - start.Y);
-            }
-            else if (angle >= 90 - (deg / 2) && angle <= 90 + (deg / 2))
-            {
-                end.Y = start.Y;
-            }
-            else if (angle >= 135 - (deg / 2) && angle <= 135 + (deg / 2))
-            {
-                end.Y = start.Y + (end.X - start.X);
-            }
-            else if (angle >= 180 - (deg / 2) && angle <= 180 + (deg / 2))
-            {
-                end.X = start.X;
-            }
-            else if (angle >= 225 - (deg / 2) && angle <= 225 + (deg / 2))
-            {
-                end.X = start.X - (end.Y - start.Y);
-            }
-            else if (angle >= 270 - (deg / 2) && angle <= 270 + (deg / 2))
-            {
-                end.Y = start.Y;
-            }
-            else if (angle >= 315 - (deg / 2) && angle <= 315 + (deg / 2))
-            {
-                end.Y = start.Y + (end.X - start.X);
-            }
-            return end;
+            var angle = Math.Round(Angle.FromLine(start, end).Degrees / degrees) * degrees;
+            return AngleLock(start, end, Angle.FromDegrees(angle));
         }
-        public static Vector2d AngleLock(Vector2d start, Vector2d end, double angle)
+        public static Vector2d AngleLock(Vector2d start, Vector2d end, Angle a)
         {
-            var delta = start - end;
-            var ret = new Vector2d(Math.Cos(angle), Math.Sin(angle));
-            return (new Vector2d(ret.X, ret.Y) * Vector2d.Dot(delta, ret)) + end;
+            Turtle tort = new Turtle(start);
+            tort.Move(a.Degrees, (end - start).Length);
+            return tort.Point;
         }
 
         public static Vector2d LengthLock(Vector2d start, Vector2d end, double length)

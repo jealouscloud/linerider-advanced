@@ -97,7 +97,7 @@ namespace linerider
         }
         public void SaveTrackTrk(string savename, string songdata)
         {
-            TrackLoader.SaveTrackTrk(_track, savename, songdata);
+            TrackLoader.SaveTrackToFile(_track, savename, songdata);
         }
         public Dictionary<string, bool> GetFeatures()
         {

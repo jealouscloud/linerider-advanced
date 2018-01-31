@@ -79,7 +79,7 @@ namespace linerider.Tools
                         game.Track.UndoManager.EndAction();
                     }
                     game.Track.RequiresUpdate = true;
-                    game.Track.TrackUpdated();
+                    game.Track.NotifyTrackChanged();
                 }
             }
         }

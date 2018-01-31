@@ -151,7 +151,7 @@ namespace linerider
             return Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar
              + track.Name + Path.DirectorySeparatorChar;
         }
-        public static void CreateTrackFile(Track track, string savename, string songdata = null)
+        public static void SaveTrackToFile(Track track, string savename, string songdata = null)
         {
             var dir = GetTrackDirectory(track);
             if (!Directory.Exists(dir))
@@ -206,7 +206,7 @@ namespace linerider
             TryMoveAndReplaceFile(dir + sn1 + ".trk", dir + sn2 + ".trk");
             SaveTrackTrk(track, sn1, songdata);
         }
-        public static string SaveTrackTrk(Track trk, string savename, string songdata = null)
+        private static string SaveTrackTrk(Track trk, string savename, string songdata = null)
         {
             var dir = GetTrackDirectory(trk);
             if (!Directory.Exists(dir))

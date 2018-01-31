@@ -47,7 +47,7 @@ namespace linerider
             _acc = DiffNormal * (ConstAcc * _multiplier);
             _acc = inv ? _acc.PerpendicularRight : _acc.PerpendicularLeft;
         }
-        public override SimulationPoint Interact(SimulationPoint p)
+        public override bool Interact(ref SimulationPoint p)
         {
             if (Vector2d.Dot(p.Momentum, DiffNormal) > 0)
             {
@@ -64,11 +64,12 @@ namespace linerider
                             friction.X = -friction.X;
                         if (p.Previous.Y >= pos.Y)
                             friction.Y = -friction.Y;
-                        return new SimulationPoint(pos, p.Previous + friction + _acc, p.Momentum, p.Friction);
+                        p = new SimulationPoint(pos, p.Previous + friction + _acc, p.Momentum, p.Friction);
+                        return true;
                     }
                 }
             }
-            return p;
+            return false;
         }
     }
 }

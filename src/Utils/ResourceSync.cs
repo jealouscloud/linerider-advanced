@@ -27,11 +27,10 @@ using System.IO;
 using System.Threading;
 using System.Diagnostics;
 
-namespace linerider
+namespace linerider.Utils
 {
     public class ResourceSync
     {
-        private readonly object _syncroot = new object();
         public sealed class ResourceLock : IDisposable
         {
             private bool _disposed = false;
@@ -62,93 +61,119 @@ namespace linerider
             ~ResourceLock()
             {
                 throw new InvalidOperationException(String.Format("ResourceLock object finalized [{1:X}]: {0}", this, GetHashCode()));
-                //Debug.Print(String.Format("IDisposable object finalized: {0}", GetType()));
             }
         }
-        private int _readlocks = 0;
-        private int _writertid = 0;
-        private ConcurrentQueue<int> _writerqueue = new ConcurrentQueue<int>();
+        private volatile int __readers = 0;
+        private volatile int __writertid = 0;
+        private volatile int __lock_generation = 1;
+        private volatile int __writer_generation = 1;
+        private int _lock_waitid = 0;
+        private int _writer_waitid = 0;
         public ResourceLock TryAcquireRead()
         {
-            if (Thread.CurrentThread.ManagedThreadId == _writertid)
+            if (Thread.CurrentThread.ManagedThreadId == __writertid)
                 return new ResourceLock(false, false, this);//they dont really get a lock, we're already in one.
-            Interlocked.Increment(ref _readlocks);
-            if (_writertid == 0)
+            if (__writertid == 0 && AddReader())
             {
                 return new ResourceLock(true, false, this);
             }
-            Interlocked.Decrement(ref _readlocks);
             return null;
         }
         public ResourceLock AcquireRead()
         {
-            if (Thread.CurrentThread.ManagedThreadId == _writertid)
+            if (Thread.CurrentThread.ManagedThreadId == __writertid)
                 return new ResourceLock(false, false, this);//they dont really get a lock, we're already in one.
 
-            Stopwatch sw = Stopwatch.StartNew();
-            Interlocked.Increment(ref _readlocks);
-            while (_writertid != 0)
+            var wait = new IncrementalWait();
+            while (true)
             {
-                HybridWait(sw.ElapsedMilliseconds);
+                if (__writertid == 0 && AddReader())
+                    break;
+                wait.Wait();
             }
             return new ResourceLock(true, false, this);
         }
         public ResourceLock AcquireWrite()
         {
-            if (Thread.CurrentThread.ManagedThreadId == _writertid)
-                return new ResourceLock(false, false, this);//they dont really get a lock, we're already in one.
-            Stopwatch sw = Stopwatch.StartNew(); ;
-            bool writetaken = false;
-            bool isnext = false;
             var tid = Thread.CurrentThread.ManagedThreadId;
-            int nextout = 0;
-            _writerqueue.Enqueue(tid);
+            if (tid == __writertid)
+                return new ResourceLock(false, false, this);//they dont really get a lock, we're already in one.
+            var id = Interlocked.Increment(ref _writer_waitid);
+            var wait = new IncrementalWait();
 
-            while (_readlocks != 0 && !writetaken)
+            while (__writer_generation != id)
             {
-                if (!isnext && _writerqueue.TryPeek(out nextout))
-                {
-                    isnext = nextout == tid;
-                }
-                if (isnext && Interlocked.CompareExchange(ref _writertid, tid, 0) == tid)
-                {
-                    writetaken = true;
-                    int q = 0;
-                    if (!_writerqueue.TryDequeue(out q) || q != tid)
-                    {
-                        throw new Exception("Resource synchronize error");
-                    }
-                    if (_readlocks == 0)
-                        break;
-                }
-                HybridWait(sw.ElapsedMilliseconds);
+                wait.Wait();
             }
-            _writertid = tid;
+            wait.Reset();
+            while (true)
+            {
+                if (__readers == 0 && SetWriter(tid))
+                    break;
+                wait.Wait();
+            }
+
             return new ResourceLock(false, true, this);
         }
 
         private void ReleaseRead()
         {
-            Interlocked.Decrement(ref _readlocks);
+            EnterStateExclusive();
+            --__readers;
+            ExitStateExclusive();
         }
         private void ReleaseWrite()
         {
-            _writertid = 0;
+            EnterStateExclusive();
+            ++__writer_generation;
+            __writertid = 0;
+            ExitStateExclusive();
+
         }
-        private void HybridWait(long elapsed)
+        /// <summary>
+        /// Allows the caller to safely modify resourcesync variables
+        /// performance imperative that this state is kept a minimal amount of time
+        /// </summary>
+        private void EnterStateExclusive()
         {
-            if (elapsed > 100)
+            var waitid = Interlocked.Increment(ref _lock_waitid);
+            if (__lock_generation == waitid)
+                return;
+            var inc = new IncrementalWait();
+            while (true)
             {
-                Thread.Sleep(1);
+                inc.Wait(false);
+                if (__lock_generation == waitid)
+                    break;
             }
-            else if (elapsed > 16)
+        }
+        private void ExitStateExclusive()
+        {
+            Interlocked.Increment(ref __lock_generation);
+        }
+        private bool AddReader()
+        {
+            bool success = false;
+            EnterStateExclusive();
+            if (__writertid == 0)
             {
-                Thread.Sleep(0);
+                ++__readers;
+                success = true;
             }
-            else
+            ExitStateExclusive();
+            return success;
+        }
+        private bool SetWriter(int threadid)
+        {
+            bool success = false;
+            EnterStateExclusive();
+            if (__readers == 0)
             {
-                Thread.SpinWait(100);
+                __writertid = threadid;
+                success = true;
             }
+            ExitStateExclusive();
+            return success;
         }
     }
 }

@@ -24,7 +24,7 @@ using System;
 
 namespace linerider.Utils
 {
-    internal class Angle
+    public class Angle
     {
         private float _degrees;
         private float _radians;
@@ -114,6 +114,10 @@ namespace linerider.Utils
         public static Angle FromRadians(double radians)
         {
             return new Angle() { Radians = (float)radians };
+        }
+        public static Angle FromDegrees(double Degrees)
+        {
+            return new Angle(Degrees);
         }
 
         public static Angle FromRadians(float radians)

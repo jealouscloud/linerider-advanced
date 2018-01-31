@@ -107,7 +107,7 @@
   <ItemGroup>
     <Compile Include="Tools\EraserTool.cs" />
     <Compile Include="Tools\HandTool.cs" />
-    <Compile Include="Tools\LineAdjustTool.cs" />
+    <Compile Include="Tools\MoveTool.cs" />
     <Compile Include="Tools\LineTool.cs" />
     <Compile Include="Tools\PencilTool.cs" />
     <Compile Include="Tools\Tool.cs" />
@@ -140,6 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Utils\ResourceSync.cs" />
+    <Compile Include="Utils\IncrementalWait.cs" />
     <Compile Include="Utils\PlaybackBufferManager.cs" />
     <Compile Include="Utils\TrackWriter.cs" />
     <Compile Include="Utils\TrackReader.cs" />

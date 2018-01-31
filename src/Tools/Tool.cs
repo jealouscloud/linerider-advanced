@@ -29,7 +29,6 @@ namespace linerider.Tools
 {
     public abstract class Tool : GameService
     {
-        public bool Snapped = false;
         protected virtual double SnapRadius
         {
             get
@@ -114,14 +113,11 @@ namespace linerider.Tools
             switch (game.Canvas.ColorControls.Selected)
             {
                 case LineType.Blue:
-                    added = new StandardLine(start, end, false) { inv = inv };
-                    added.CalculateConstants();
+                    added = new StandardLine(start, end, inv);
                     break;
 
                 case LineType.Red:
-                    added = new RedLine(start, end, false) { inv = inv };
-                    (added as RedLine).Multiplier = game.Canvas.ColorControls.RedMultiplier;
-                    added.CalculateConstants();
+                    added = new RedLine(start, end, inv) { Multiplier = game.Canvas.ColorControls.RedMultiplier };
                     break;
 
                 case LineType.Scenery:
@@ -194,9 +190,12 @@ namespace linerider.Tools
                     {
                         ret[closer].Add(lines[i]);
                     }
-                    var l = new List<Line>();
-                    l.Add(lines[i]);
-                    ret[closer] = l;
+                    else
+                    {
+                        var l = new List<Line>();
+                        l.Add(lines[i]);
+                        ret[closer] = l;
+                    }
                 }
             }
             List<Line> retn = new List<Line>();

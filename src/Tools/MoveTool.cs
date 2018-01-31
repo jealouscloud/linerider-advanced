@@ -26,9 +26,10 @@ using System;
 using System.Collections.Generic;
 using linerider.Lines;
 using linerider.UI;
+using linerider.Utils;
 namespace linerider.Tools
 {
-    public class SelectTool : Tool
+    public class MoveTool : Tool
     {
         struct SelectInfo
         {
@@ -59,7 +60,7 @@ namespace linerider.Tools
         }
 
 
-        public SelectTool()
+        public MoveTool()
         {
         }
 
@@ -80,17 +81,30 @@ namespace linerider.Tools
                     var right = _selection.rightjoint ? _before.Pos2 + (pos - _selection.start) : line.Position2;
                     if (_selection.leftjoint != _selection.rightjoint)
                     {
-                        if (_selection.leftjoint)
+                        var start = _selection.leftjoint ? right : left;
+                        var end = _selection.rightjoint ? right : left;
+                        var currentdelta = _selection.line.Position2 - _selection.line.Position;
+                        if (UI.InputUtils.Check(Hotkey.ToolAngleLock))
                         {
-                            if (UI.InputUtils.Check(Hotkey.ToolAngleLock))
-                            {
-                                //   movedleft = Utility.AngleLock(left,right,Angle(_selection.line.Position2 - _selection.line.Position)
-                            }
+                            end = Utility.AngleLock(start, end, Angle.FromVector(currentdelta));
                         }
+                        if (UI.InputUtils.Check(Hotkey.ToolXYSnap))
+                        {
+                            end = Utility.SnapToDegrees(start, end);
+                        }
+                        if (UI.InputUtils.Check(Hotkey.ToolLengthLock))
+                        {
+                            end = Utility.LengthLock(start, end, currentdelta.Length);
+                        }
+                        if (_selection.rightjoint)
+                            right = end;
+                        else
+                            left = end;
                     }
                     trk.MoveLine(line,
                     left,
                     right);
+                    game.Track.NotifyTrackChanged();
                 }
             }
             game.Invalidate();

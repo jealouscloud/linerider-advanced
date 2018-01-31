@@ -4,14 +4,24 @@ using System.Linq;
 using System.Collections.Generic;
 using linerider.Game;
 using linerider.Drawing;
+using linerider.Lines;
+using System.Collections;
 
 namespace linerider
 {
-    public class SimulationCell : LinkedList<StandardLine>
+    public class SimulationCell : IEnumerable<StandardLine>
     {
+        LinkedList<StandardLine> _list = new LinkedList<StandardLine>();
+        public int Count
+        {
+            get
+            {
+                return _list.Count;
+            }
+        }
         public void AddLine(StandardLine line)
         {
-            var f = First;
+            var f = _list.First;
             if (f != null)
             {
                 while (line.ID < f.Value.ID)
@@ -19,20 +29,20 @@ namespace linerider
                     f = f.Next;
                     if (f == null)
                     {
-                        AddLast(line);
+                        _list.AddLast(line);
                         return;
                     }
                 }
-                AddBefore(f, line);
+                _list.AddBefore(f, line);
             }
             else
             {
-                AddFirst(line);
+                _list.AddFirst(line);
             }
         }
         public void RemoveLine(StandardLine line)
         {
-            if (!Remove(line))
+            if (!_list.Remove(line))
                 throw new Exception("Line was not found in the chunk");
         }
         public SimulationCell Clone()
@@ -43,6 +53,15 @@ namespace linerider
                 ret.AddLine(l);
             }
             return ret;
+        }
+        public IEnumerator<StandardLine> GetEnumerator()
+        {
+            return _list.GetEnumerator();
+		}
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _list.GetEnumerator();
         }
     }
 }

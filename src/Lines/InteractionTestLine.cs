@@ -29,7 +29,7 @@ namespace linerider.Lines
         {
         }
         public InteractionTestLine(Vector2d p1, Vector2d p2, bool inv = false) : base(p1, p2, inv) { }
-        public override SimulationPoint Interact(SimulationPoint p)
+        public override bool Interact(ref SimulationPoint p)
         {
             if (Vector2d.Dot(p.Momentum, DiffNormal) > 0)
             {
@@ -40,11 +40,11 @@ namespace linerider.Lines
                     var dotx = Vector2d.Dot(startDelta, diff) * DotScalar;
                     if (dotx <= limit_right && dotx >= limit_left)
                     {
-                        throw new LineInteractionException();
+                        return true;
                     }
                 }
             }
-            return p;
+            return false;
         }
     }
 }
