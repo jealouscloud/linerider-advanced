@@ -29,8 +29,153 @@ using System.Diagnostics;
 
 namespace linerider.Utils
 {
-    public class ResourceSync
+    public sealed class ResourceSync
     {
+        /// This class relies on the following assumptions:
+        /// Interlocked functions are atomic, but can have performance costs as they use Thread.MemoryBarrier()
+        /// Volatile.* functions are also atomic, but more limited. However, they can perform better
+        /// Volatile functions force a load from the cpu cache or save of at least the variable in question
+        /// The current thread will have an up to date cache of what it has personally modified
+        /// 
+        /// principals:
+        /// Any state modification must be done between acquire/realeaselockinternal
+        /// if the current thread owns a writer then we will pass a dummy reader/writer to them if asked
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// /// 
+
+        private int __readers = 0;
+        private int __writertid = 0;
+        private int __lock_generation = 1;
+        private int __writer_generation = 1;
+        private int _lock_waitid = 0;
+        private int _writer_waitid = 0;
+        public ResourceLock TryAcquireRead()
+        {
+            return TryCreateReader();
+        }
+        public ResourceLock AcquireRead()
+        {
+            var reader = TryCreateReader();
+            if (reader != null)
+                return reader;
+
+            var wait = new IncrementalWait();
+            while (true)
+            {
+                if (Volatile.Read(ref __writertid) == 0)
+                {
+                    reader = TryCreateReader();
+                    if (reader != null)
+                        return reader;
+                }
+                wait.Wait();
+            }
+        }
+        public ResourceLock AcquireWrite()
+        {
+            var tid = Thread.CurrentThread.ManagedThreadId;
+            // this should be right because our thread wrote to __writertid last if it is us
+            // so no need to use volatile
+            if (tid == __writertid)
+                return new ResourceLock(false, false, this);//provide dummy because we're under a parent lock.
+            
+
+            AcquireLockInternal();
+            int id = Volatile.Read(ref _writer_waitid) + 1;
+            Volatile.Write(ref _writer_waitid, id);
+            ReleaseLockInternal();
+
+            var wait = new IncrementalWait();
+
+            while (Volatile.Read(ref __writer_generation) != id)
+            {
+                wait.Wait();
+            }
+            wait.Reset();
+            while (true)
+            {
+                if (Volatile.Read(ref __readers) == 0 && SetWriter(tid))
+                    break;
+
+                wait.Wait();
+            }
+
+            return new ResourceLock(false, true, this);
+        }
+
+        private void ReleaseRead()
+        {
+            AcquireLockInternal();
+            //this operation is not atomic, but faster than interlocked
+            //that's why we have the lock
+            Volatile.Write(ref __readers, Volatile.Read(ref __readers) - 1);
+            ReleaseLockInternal();
+        }
+        private void ReleaseWrite()
+        {
+            AcquireLockInternal();
+            //this operation is not atomic, but faster than interlocked
+            Volatile.Write(ref __writer_generation, Volatile.Read(ref __writer_generation) + 1);
+
+            Volatile.Write(ref __writertid, 0);
+            ReleaseLockInternal();
+
+        }
+        /// <summary>
+        /// Allows the caller to safely modify resourcesync variables
+        /// performance imperative that this state is kept a minimal amount of time
+        /// </summary>
+        private void AcquireLockInternal()
+        {
+            var waitid = Interlocked.Increment(ref _lock_waitid);
+            // because we use an incrementing generation it's impossible
+            // for this read to cause an invalid return, so instead of 
+            // forcing a load acquire with volatile we can just check here first
+            if (__lock_generation == waitid)
+                return;
+            var inc = new IncrementalWait();
+            while (Volatile.Read(ref __lock_generation) != waitid)
+            {
+                inc.Wait(false);
+            }
+        }
+        private void ReleaseLockInternal()
+        {
+            Interlocked.Increment(ref __lock_generation);
+        }
+        private ResourceLock TryCreateReader()
+        {
+            ResourceLock ret = null;
+            if (__writertid == Thread.CurrentThread.ManagedThreadId)
+                return new ResourceLock(false, false, this);//dummy reader lock
+
+            AcquireLockInternal();
+            var writerid = Volatile.Read(ref __writertid);
+            if (__writertid == 0)
+            {
+                //this operation is not atomic, but faster than interlocked
+                Volatile.Write(ref __readers, Volatile.Read(ref __readers) + 1);
+                ret = new ResourceLock(true, false, this);
+            }
+            ReleaseLockInternal();
+            return ret;
+        }
+        private bool SetWriter(int threadid)
+        {
+            bool success = false;
+            AcquireLockInternal();
+            if (Volatile.Read(ref __readers) == 0)
+            {
+                Volatile.Write(ref __writertid, threadid);
+                success = true;
+            }
+            ReleaseLockInternal();
+            return success;
+        }
         public sealed class ResourceLock : IDisposable
         {
             private bool _disposed = false;
@@ -62,118 +207,6 @@ namespace linerider.Utils
             {
                 throw new InvalidOperationException(String.Format("ResourceLock object finalized [{1:X}]: {0}", this, GetHashCode()));
             }
-        }
-        private volatile int __readers = 0;
-        private volatile int __writertid = 0;
-        private volatile int __lock_generation = 1;
-        private volatile int __writer_generation = 1;
-        private int _lock_waitid = 0;
-        private int _writer_waitid = 0;
-        public ResourceLock TryAcquireRead()
-        {
-            if (Thread.CurrentThread.ManagedThreadId == __writertid)
-                return new ResourceLock(false, false, this);//they dont really get a lock, we're already in one.
-            if (__writertid == 0 && AddReader())
-            {
-                return new ResourceLock(true, false, this);
-            }
-            return null;
-        }
-        public ResourceLock AcquireRead()
-        {
-            if (Thread.CurrentThread.ManagedThreadId == __writertid)
-                return new ResourceLock(false, false, this);//they dont really get a lock, we're already in one.
-
-            var wait = new IncrementalWait();
-            while (true)
-            {
-                if (__writertid == 0 && AddReader())
-                    break;
-                wait.Wait();
-            }
-            return new ResourceLock(true, false, this);
-        }
-        public ResourceLock AcquireWrite()
-        {
-            var tid = Thread.CurrentThread.ManagedThreadId;
-            if (tid == __writertid)
-                return new ResourceLock(false, false, this);//they dont really get a lock, we're already in one.
-            var id = Interlocked.Increment(ref _writer_waitid);
-            var wait = new IncrementalWait();
-
-            while (__writer_generation != id)
-            {
-                wait.Wait();
-            }
-            wait.Reset();
-            while (true)
-            {
-                if (__readers == 0 && SetWriter(tid))
-                    break;
-                wait.Wait();
-            }
-
-            return new ResourceLock(false, true, this);
-        }
-
-        private void ReleaseRead()
-        {
-            EnterStateExclusive();
-            --__readers;
-            ExitStateExclusive();
-        }
-        private void ReleaseWrite()
-        {
-            EnterStateExclusive();
-            ++__writer_generation;
-            __writertid = 0;
-            ExitStateExclusive();
-
-        }
-        /// <summary>
-        /// Allows the caller to safely modify resourcesync variables
-        /// performance imperative that this state is kept a minimal amount of time
-        /// </summary>
-        private void EnterStateExclusive()
-        {
-            var waitid = Interlocked.Increment(ref _lock_waitid);
-            if (__lock_generation == waitid)
-                return;
-            var inc = new IncrementalWait();
-            while (true)
-            {
-                inc.Wait(false);
-                if (__lock_generation == waitid)
-                    break;
-            }
-        }
-        private void ExitStateExclusive()
-        {
-            Interlocked.Increment(ref __lock_generation);
-        }
-        private bool AddReader()
-        {
-            bool success = false;
-            EnterStateExclusive();
-            if (__writertid == 0)
-            {
-                ++__readers;
-                success = true;
-            }
-            ExitStateExclusive();
-            return success;
-        }
-        private bool SetWriter(int threadid)
-        {
-            bool success = false;
-            EnterStateExclusive();
-            if (__readers == 0)
-            {
-                __writertid = threadid;
-                success = true;
-            }
-            ExitStateExclusive();
-            return success;
         }
     }
 }
