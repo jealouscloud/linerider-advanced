@@ -43,12 +43,12 @@ namespace linerider
 
         public static void LoadModels()
         {
-            SledTexture = Drawing.StaticRenderer.LoadTexture(GameResources.sled_img);
-            BrokenSledTexture = Drawing.StaticRenderer.LoadTexture(GameResources.brokensled_img);
-            BodyTexture = Drawing.StaticRenderer.LoadTexture(GameResources.bosh_img);
-            BodyDeadTexture = Drawing.StaticRenderer.LoadTexture(GameResources.boshdead_img);
-            ArmTexture = Drawing.StaticRenderer.LoadTexture(GameResources.arm_img);
-            LegTexture = Drawing.StaticRenderer.LoadTexture(GameResources.leg_img);
+            SledTexture = Rendering.StaticRenderer.LoadTexture(GameResources.sled_img);
+            BrokenSledTexture = Rendering.StaticRenderer.LoadTexture(GameResources.brokensled_img);
+            BodyTexture = Rendering.StaticRenderer.LoadTexture(GameResources.bosh_img);
+            BodyDeadTexture = Rendering.StaticRenderer.LoadTexture(GameResources.boshdead_img);
+            ArmTexture = Rendering.StaticRenderer.LoadTexture(GameResources.arm_img);
+            LegTexture = Rendering.StaticRenderer.LoadTexture(GameResources.leg_img);
 
         }
 

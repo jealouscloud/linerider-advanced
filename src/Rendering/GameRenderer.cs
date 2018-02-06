@@ -28,8 +28,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using linerider.Game;
 using linerider.Utils;
+using linerider.Drawing;
 
-namespace linerider.Drawing
+namespace linerider.Rendering
 {
     public static class GameRenderer
     {
@@ -45,7 +46,7 @@ namespace linerider.Drawing
         {
             if (scarf)
             {
-                DrawScarf(rider.GetScarf(), opacity);
+                DrawScarf(rider.GetScarfLines(), opacity);
             }
             var points = rider.Body;
 
@@ -95,7 +96,7 @@ namespace linerider.Drawing
             DrawTexture(Models.ArmTexture, Models.ArmRect,
             points[RiderConstants.BodyShoulder].Location,
             points[RiderConstants.BodyHandLeft].Location, opacity);
-            List<Vertex> vertices = new List<Vertex>(300);
+            List<GenericVertex> vertices = new List<GenericVertex>(300);
             if (momentumvectors)
             {
                 foreach (var anchor in rider.Body)
@@ -118,7 +119,7 @@ namespace linerider.Drawing
                 vao.Draw(PrimitiveType.Triangles);
             }
         }
-        private static void DrawContactPoints(Rider rider, int iteration, List<Vertex> vertices)
+        private static void DrawContactPoints(Rider rider, int iteration, List<GenericVertex> vertices)
         {
             using (var trk = Game.Track.CreateTrackReader())
             {
@@ -178,10 +179,10 @@ namespace linerider.Drawing
             {
                 var thickline = StaticRenderer.GenerateThickLine((Vector2)lines[i].Position, (Vector2)lines[i].Position2, 2);
 
-                Vertex tl = (new Vertex(thickline[0], c));
-                Vertex tr = (new Vertex(thickline[1], c));
-                Vertex br = (new Vertex(thickline[2], c));
-                Vertex bl = (new Vertex(thickline[3], c));
+                GenericVertex tl = (new GenericVertex(thickline[0], c));
+                GenericVertex tr = (new GenericVertex(thickline[1], c));
+                GenericVertex br = (new GenericVertex(thickline[2], c));
+                GenericVertex bl = (new GenericVertex(thickline[3], c));
 
                 scarf.AddVertex(tl);
                 scarf.AddVertex(bl);
@@ -200,14 +201,14 @@ namespace linerider.Drawing
             }
             for (int i = 0; i < altvectors.Count - 4; i += 4)
             {
-                scarf.AddVertex(new Vertex(altvectors[i], alt));
-                scarf.AddVertex(new Vertex(altvectors[i + 1], alt));
-                scarf.AddVertex(new Vertex(altvectors[i + 2], alt));
+                scarf.AddVertex(new GenericVertex(altvectors[i], alt));
+                scarf.AddVertex(new GenericVertex(altvectors[i + 1], alt));
+                scarf.AddVertex(new GenericVertex(altvectors[i + 2], alt));
 
 
-                scarf.AddVertex(new Vertex(altvectors[i], alt));
-                scarf.AddVertex(new Vertex(altvectors[i + 2], alt));
-                scarf.AddVertex(new Vertex(altvectors[i + 3], alt));
+                scarf.AddVertex(new GenericVertex(altvectors[i], alt));
+                scarf.AddVertex(new GenericVertex(altvectors[i + 2], alt));
+                scarf.AddVertex(new GenericVertex(altvectors[i + 3], alt));
             }
             scarf.Draw(PrimitiveType.Triangles);
             GameDrawingMatrix.Exit();
@@ -307,19 +308,19 @@ namespace linerider.Drawing
                 }
             }
         }
-        public static List<Vertex> GenRoundedLine(Vector2d position, Vector2d position2, Color color, float thickness, bool knobs = false, bool redknobs = false)
+        public static List<GenericVertex> GenRoundedLine(Vector2d position, Vector2d position2, Color color, float thickness, bool knobs = false, bool redknobs = false)
         {
-            List<Vertex> vertices = new List<Vertex>(6 * 5);
+            List<GenericVertex> vertices = new List<GenericVertex>(6 * 5);
             var end1 = (position + Game.ScreenTranslation) * Game.Track.Zoom;
             var end2 = (position2 + Game.ScreenTranslation) * Game.Track.Zoom;
             var line = StaticRenderer.GenerateThickLine((Vector2)end1, (Vector2)end2, thickness * Game.Track.Zoom);
 
-            vertices.Add(new Vertex(line[0], color));
-            vertices.Add(new Vertex(line[1], color));
-            vertices.Add(new Vertex(line[2], color));
-            vertices.Add(new Vertex(line[0], color));
-            vertices.Add(new Vertex(line[3], color));
-            vertices.Add(new Vertex(line[2], color));
+            vertices.Add(new GenericVertex(line[0], color));
+            vertices.Add(new GenericVertex(line[1], color));
+            vertices.Add(new GenericVertex(line[2], color));
+            vertices.Add(new GenericVertex(line[0], color));
+            vertices.Add(new GenericVertex(line[3], color));
+            vertices.Add(new GenericVertex(line[2], color));
             vertices.AddRange(StaticRenderer.FastCircle((Vector2)(end1), Game.Track.Zoom * (thickness / 2), color));
             vertices.AddRange(StaticRenderer.FastCircle((Vector2)(end2), Game.Track.Zoom * (thickness / 2), color));
             if (knobs)
@@ -331,7 +332,7 @@ namespace linerider.Drawing
         }
         public static void DbgDrawGrid()
         {
-            int sqsize = 14;
+            int sqsize = 128;
             GL.PushMatrix();
             GL.Scale(Game.Track.Zoom, Game.Track.Zoom, 0);
             GL.Translate(new Vector3d(Game.ScreenTranslation));
@@ -341,7 +342,7 @@ namespace linerider.Drawing
                 for (var y = -sqsize; y < (Game.RenderSize.Height / Game.Track.Zoom); y += sqsize)
                 {
                     var yv = new Vector2d(x + (Game.ScreenPosition.X - (Game.ScreenPosition.X % sqsize)), y + (Game.ScreenPosition.Y - (Game.ScreenPosition.Y % sqsize)));
-                    if (Game.Track.GridCheck(yv.X, yv.Y))
+                    if (Game.Track.FastGridCheck(yv.X, yv.Y))
                     {
                         GL.Color3(Color.Yellow);
                         GL.Vertex2(yv);

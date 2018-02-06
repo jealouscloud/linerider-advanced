@@ -96,13 +96,13 @@ namespace linerider.Tools
             var lines =
                 trk.GetLinesInRect(new FloatRect((Vector2)position - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
                     false);
-            for (int i = 0; i < lines.Count; i++)
+            foreach (var line in lines)
             {
-                double lnradius = Line.GetLineRadius(lines[i]);
-                var rect = Drawing.StaticRenderer.GenerateThickLine(lines[i].Position, lines[i].Position2, lnradius * 2);
+                double lnradius = Line.GetLineRadius(line);
+                var rect = Rendering.StaticRenderer.GenerateThickLine(line.Position, line.Position2, lnradius * 2);
                 if (Utility.PointInRectangle(rect[3], rect[2], rect[1], rect[0], position))
                 {
-                    return lines[i];
+                    return line;
                 }
             }
             return null;
@@ -118,6 +118,7 @@ namespace linerider.Tools
 
                 case LineType.Red:
                     added = new RedLine(start, end, inv) { Multiplier = game.Canvas.ColorControls.RedMultiplier };
+                    added.CalculateConstants();//multiplier needs to be recalculated
                     break;
 
                 case LineType.Scenery:
@@ -151,16 +152,16 @@ namespace linerider.Tools
             var lines =
                 trk.GetLinesInRect(new FloatRect((Vector2)position - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
                     false);
-            var evilcirc = Drawing.StaticRenderer.GenerateCircle(position.X, position.Y, rad, 10);
-            for (int i = 0; i < lines.Count; i++)
+            var evilcirc = Rendering.StaticRenderer.GenerateCircle(position.X, position.Y, rad, 10);
+            foreach(var line in lines)
             {
-                double lnradius = Line.GetLineRadius(lines[i]);
-                var rect = Drawing.StaticRenderer.GenerateThickLine(lines[i].Position, lines[i].Position2, lnradius * 2);
+                double lnradius = Line.GetLineRadius(line);
+                var rect = Rendering.StaticRenderer.GenerateThickLine(line.Position, line.Position2, lnradius * 2);
                 for (int j = 0; j < evilcirc.Length; j++)
                 {
                     if (Utility.PointInRectangle(rect[3], rect[2], rect[1], rect[0], evilcirc[j]))
                     {
-                        ret.Add(lines[i]);
+                        ret.Add(line);
                         break;
                     }
                 }
@@ -178,22 +179,22 @@ namespace linerider.Tools
                 trk.GetLinesInRect(new FloatRect((Vector2)point - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
                     false);
             SortedList<double, List<Line>> ret = new SortedList<double, List<Line>>();
-            for (int i = 0; i < lines.Count; i++)
+            foreach (var line in lines)
             {
-                var p1 = (point - lines[i].Position).Length;
-                var p2 = (point - lines[i].Position2).Length;
-                double lnradius = Line.GetLineRadius(lines[i]);
+                var p1 = (point - line.Position).Length;
+                var p2 = (point - line.Position2).Length;
+                double lnradius = Line.GetLineRadius(line);
                 var closer = Math.Min(p1, p2);
                 if (closer - lnradius < rad)
                 {
                     if (ret.ContainsKey(closer))
                     {
-                        ret[closer].Add(lines[i]);
+                        ret[closer].Add(line);
                     }
                     else
                     {
                         var l = new List<Line>();
-                        l.Add(lines[i]);
+                        l.Add(line);
                         ret[closer] = l;
                     }
                 }

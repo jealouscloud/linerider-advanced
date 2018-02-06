@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using linerider.Game;
-using linerider.Drawing;
+using linerider.Rendering;
 using linerider.Utils;
 using OpenTK;
 namespace linerider.Game

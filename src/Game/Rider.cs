@@ -29,7 +29,7 @@ namespace linerider.Game
     public struct Rider
     {
         public readonly SimulationPoint[] Body;
-        public readonly Scarf Scarf;
+        public readonly SimulationPoint[] Scarf;
         public bool Crashed;
         public bool SledBroken;
         public struct PhysicsInfo
@@ -44,7 +44,7 @@ namespace linerider.Game
             }
         }
         public PhysicsInfo PhysInfo;
-        public Rider(SimulationPoint[] body, Scarf scarf, bool dead, bool sledbroken, PhysicsInfo pi)
+        public Rider(SimulationPoint[] body, SimulationPoint[] scarf, bool dead, bool sledbroken, PhysicsInfo pi)
         {
             Body = body;
             Scarf = scarf;
@@ -55,7 +55,7 @@ namespace linerider.Game
         public static Rider Create(Vector2d start, Vector2d momentum)
         {
             var joints = new SimulationPoint[RiderConstants.DefaultRider.Length];
-            var scarf = new SimulationPoint[RiderConstants.DefaultScarf.Length];
+            var scarf = new SimulationPoint[RiderConstants.DefaultScarf.Length + 1];
             PhysicsInfo physinfo = new PhysicsInfo();
             for (int i = 0; i < joints.Length; i++)
             {
@@ -84,7 +84,13 @@ namespace linerider.Game
                 physinfo.right = Math.Max(cellx + 1, physinfo.right);
                 physinfo.bottom = Math.Max(celly + 1, physinfo.bottom);
             }
-            return new Rider(joints, new Scarf(joints[5].Location), false, false, physinfo);
+            scarf[0] = joints[RiderConstants.BodyShoulder];
+            for (int i = 0; i < RiderConstants.DefaultScarf.Length; i++)
+            {
+                var pos = scarf[0].Location + RiderConstants.DefaultScarf[i];
+                scarf[i + 1] = new SimulationPoint(pos, pos, Vector2d.Zero, 0.9);
+            }
+            return new Rider(joints, scarf, false, false, physinfo);
         }
 
 
@@ -110,18 +116,20 @@ namespace linerider.Game
             mo /= Body.Length;
             return mo;
         }
-        public Rider Lerp(Rider rider2, float percent)
+        public static Rider Lerp(Rider r1, Rider r2, float percent)
         {
-            Rider ret = this;
-            for (int i = 0; i < ret.Body.Length; i++)
+            SimulationPoint[] joints = new SimulationPoint[r1.Body.Length];
+            SimulationPoint[] scarf = new SimulationPoint[r1.Scarf.Length];
+            bool dead = r1.Crashed;
+            for (int i = 0; i < joints.Length; i++)
             {
-                ret.Body[i] = new SimulationPoint(Vector2d.Lerp(ret.Body[i].Location, rider2.Body[i].Location, percent), Vector2d.Zero, Vector2d.Zero, 0);
+                joints[i] = new SimulationPoint(Vector2d.Lerp(r1.Body[i].Location, r2.Body[i].Location, percent), Vector2d.Zero, Vector2d.Zero, 0);
             }
-            for (int i = 0; i < ret.Scarf.Anchors.Length; i++)
+            for (int i = 0; i < scarf.Length; i++)
             {
-                ret.Scarf.Anchors[i] = new SimulationPoint(Vector2d.Lerp(ret.Scarf.Anchors[i].Location, rider2.Scarf.Anchors[i].Location, percent), Vector2d.Zero, Vector2d.Zero, 0);
+                scarf[i] = new SimulationPoint(Vector2d.Lerp(r1.Scarf[i].Location, r2.Scarf[i].Location, percent), Vector2d.Zero, Vector2d.Zero, 0);
             }
-            return ret;
+            return new Rider(joints, scarf, dead, r1.SledBroken, new PhysicsInfo());
         }
         /// <summary>
         /// Processes the lines in a cell, but does not run triggers or collision checks.
@@ -180,13 +188,27 @@ namespace linerider.Game
                 }
             }
         }
-        public static List<int> ProcessBones(Bone[] bones, SimulationPoint[] joints, ref bool dead, bool diagnose = false)
+        public static void ProcessScarfBones(SimulationPoint[] joints, Bone[] bones)
         {
-            List<int> ret = diagnose ? new List<int>() : null;
-
-            for (int i = 0; i < RiderConstants.Bones.Length; i++)
+            for (int i = 0; i < bones.Length; i++)
             {
-                var bone = RiderConstants.Bones[i];
+                var bone = bones[i];
+                var j1 = joints[bone.joint1];
+                var j2 = joints[bone.joint2];
+                var d = j1.Location - j2.Location;
+                var len = d.Length;
+                if (!bone.OnlyRepel || len < bone.RestLength)
+                {
+                    double scalar = ((len - bone.RestLength) / len);
+                    joints[bone.joint2] = j2.CreateNewLocation(j2.Location + (d * scalar));
+                }
+            }
+        }
+        public static void ProcessBones(SimulationPoint[] joints, Bone[] bones, ref bool dead, bool diagnose = false, List<int> breaks = null)
+        {
+            for (int i = 0; i < bones.Length; i++)
+            {
+                var bone = bones[i];
                 var j1 = joints[bone.joint1];
                 var j2 = joints[bone.joint2];
                 var d = j1.Location - j2.Location;
@@ -203,10 +225,7 @@ namespace linerider.Game
                     if (bone.Breakable && (dead || scalar > bone.RestLength * RiderConstants.EnduranceFactor))
                     {
                         dead = true;
-                        if (diagnose)
-                        {
-                            ret.Add(i);
-                        }
+                        breaks?.Add(i);
                     }
                     else
                     {
@@ -216,11 +235,11 @@ namespace linerider.Game
                     }
                 }
             }
-            return ret;
         }
         public Rider Simulate(Track track, Dictionary<int, Line> collisions)
         {
             SimulationPoint[] joints = new SimulationPoint[Body.Length];
+            SimulationPoint[] scarf = new SimulationPoint[Scarf.Length];
             bool dead = Crashed;
             for (int i = 0; i < joints.Length; i++)
             {
@@ -231,7 +250,7 @@ namespace linerider.Game
             {
                 for (int i = 0; i < 6; i++)
                 {
-                    ProcessBones(track.Bones, joints, ref dead);
+                    ProcessBones(joints, track.Bones, ref dead);
                     ProcessLines(track.Grid, joints, ref nfo, collisions, track.ActiveTriggers);
                 }
             }
@@ -246,9 +265,13 @@ namespace linerider.Game
                 sledbroken = true;
             }
 
-            var sc = Scarf.Clone();
-            sc.Step(joints[5].Location);
-            return new Rider(joints, sc, dead, sledbroken, nfo);
+            for (int i = 0; i < scarf.Length; i++)
+            {
+                scarf[i] = Scarf[i].StepMomentumFriction();
+            }
+            scarf[0] = joints[RiderConstants.BodyShoulder];
+            ProcessScarfBones(scarf, RiderConstants.ScarfBones);
+            return new Rider(joints, scarf, dead, sledbroken, nfo);
         }
         public HashSet<int> Diagnose(Track track, int maxiteration = 6)
         {
@@ -264,14 +287,18 @@ namespace linerider.Game
             }
 
             PhysicsInfo n = new PhysicsInfo();
-            for (int i = 0; i < maxiteration; i++)
+            List<int> breaks = new List<int>();
+            using (track.Grid.Sync.AcquireRead())
             {
-                var breaks = ProcessBones(track.Bones, joints, ref dead, true);
-                if (dead)
+                for (int i = 0; i < maxiteration; i++)
                 {
-                    return new HashSet<int>(breaks);
+                    ProcessBones(joints, track.Bones, ref dead, true, breaks);
+                    if (dead)
+                    {
+                        return new HashSet<int>(breaks);
+                    }
+                    ProcessLines(track.Grid, joints, ref n);
                 }
-                ProcessLines(track.Grid, joints, ref n);
             }
             var nose = joints[RiderConstants.SledTR].Location - joints[RiderConstants.SledTL].Location;
             var tail = joints[RiderConstants.SledBL].Location - joints[RiderConstants.SledTL].Location;
@@ -290,17 +317,12 @@ namespace linerider.Game
 
             return ret;
         }
-        public void StepScarf()
+        public Line[] GetScarfLines()
         {
-            Scarf.Step(Body[5].Location);
-        }
-        public Line[] GetScarf()
-        {
-            var vecs = Scarf.GetAnchors(Body[5].Location);
-            Line[] ret = new Line[vecs.Length - 1];
+            Line[] ret = new Line[Scarf.Length - 1];
             for (int i = 0; i < ret.Length; i++)
             {
-                ret[i] = new Line(vecs[i], vecs[i + 1]);
+                ret[i] = new Line(Scarf[i].Location, Scarf[i + 1].Location);
             }
             return ret;
         }

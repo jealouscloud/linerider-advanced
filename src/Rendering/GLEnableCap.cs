@@ -1,5 +1,5 @@
 ﻿//
-//  GameDrawingMatrix.cs
+//  GLEnableCap.cs
 //
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
@@ -21,20 +21,30 @@
 
 using System;
 using OpenTK.Graphics.OpenGL;
-using OpenTK;
-namespace linerider
+namespace linerider.Rendering
 {
-	public class GameDrawingMatrix : GameService
+	public class GLEnableCap : IDisposable
 	{
-		public static void Enter()
+		private bool _was_enabled = false;
+		private EnableCap _cap;
+		public GLEnableCap(EnableCap cap)
 		{
-			GL.PushMatrix();
-			GL.Scale(game.Track.Zoom, game.Track.Zoom, 0);
-			GL.Translate(new Vector3d(game.ScreenTranslation));
+			_cap = cap;
+			_was_enabled = GL.IsEnabled(cap);
+			if (!_was_enabled)
+				GL.Enable(cap);
 		}
-		public static void Exit()
+		public void Close()
 		{
-			GL.PopMatrix();
+			Dispose();
+		}
+		public void Dispose()
+		{
+			if (_was_enabled)
+			{
+				GL.Disable(_cap);
+				_was_enabled = false;
+			}
 		}
 	}
 }

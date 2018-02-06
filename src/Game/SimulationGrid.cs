@@ -18,7 +18,7 @@
 //
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-using linerider.Drawing;
+using linerider.Rendering;
 using OpenTK;
 using System;
 using System.Collections.Concurrent;
@@ -159,6 +159,17 @@ namespace linerider
                 }
             }
         }
+        public void RemoveLine(StandardLine line)
+        {
+            var positions = GetGridPositions(line);
+            using (Sync.AcquireWrite())
+            {
+                foreach (var pos in positions)
+                {
+                    Unregister(line, pos.X, pos.Y);
+                }
+            }
+        }
         public CellLocation CellInfo(double posx, double posy)
         {
             int x = (int)Math.Floor(posx / CellSize);
@@ -179,18 +190,6 @@ namespace linerider
         public SimulationCell PointToChunk(Vector2d pos)
         {
             return GetCell((int)Math.Floor(pos.X / CellSize), (int)Math.Floor(pos.Y / CellSize));
-        }
-
-        public void RemoveLine(StandardLine line)
-        {
-            var positions = GetGridPositions(line);
-            using (Sync.AcquireWrite())
-            {
-                foreach (var pos in positions)
-                {
-                    Unregister(line, pos.X, pos.Y);
-                }
-            }
         }
 
         private bool CheckBounds(Rectangle r, int x, int y)

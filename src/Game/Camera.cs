@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using linerider.Game;
-using linerider.Drawing;
+using linerider.Rendering;
 using OpenTK;
 using linerider.Utils;
 namespace linerider.Game

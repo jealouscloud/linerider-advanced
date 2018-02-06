@@ -179,5 +179,4 @@ namespace linerider
             return new LineState() { Pos1 = Position, Pos2 = Position2, extension = Extension, Next = Next, Prev = Prev, Parent = this, Inverted = inv, Exists = ID >= 0 };
         }
     }
-
 }

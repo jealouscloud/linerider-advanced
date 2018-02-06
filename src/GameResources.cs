@@ -469,5 +469,19 @@ namespace linerider
                 return GetBitmap("gamefont_15_0.png");
             }
         }
+        internal static string simline_frag
+        {
+            get
+            {
+                return GetString("shaders.simline.frag");
+            }
+        }
+        internal static string simline_vert
+        {
+            get
+            {
+                return GetString("shaders.simline.vert");
+            }
+        }
     }
 }

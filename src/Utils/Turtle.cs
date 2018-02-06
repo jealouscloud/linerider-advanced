@@ -80,12 +80,6 @@ namespace linerider.Utils
 
         private static Vector2d CalculateLine(Vector2d position, double degrees, double length)
         {
-         //   degrees %= 360;
-            if (degrees < 0)
-            {
-          //      degrees = degrees % -360;
-       //         degrees = 360 + degrees;
-            }
             var ret = position;
             var radians = MathHelper.DegreesToRadians(degrees);
             var sin = Math.Sin(radians);

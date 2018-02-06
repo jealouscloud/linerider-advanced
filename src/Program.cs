@@ -156,7 +156,7 @@ namespace linerider
                 using (glGame = new GLWindow())
                 {
                     glGame.RenderSize = new System.Drawing.Size(1280, 720);
-                    Drawing.GameRenderer.Game = glGame;
+                    Rendering.GameRenderer.Game = glGame;
                     var ms = new MemoryStream(GameResources.icon);
                     glGame.Icon = new System.Drawing.Icon(ms);
 

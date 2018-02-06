@@ -24,13 +24,18 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenTK;
 using linerider.Utils;
-using linerider.Drawing;
+using linerider.Rendering;
 
 namespace linerider
 {
     public static class Utility
     {
 
+        public static Vector2d SnapToDegrees(Vector2d start, Vector2d end)
+        {
+            var degrees = (start - end).Length > 1 ? 15 : 45;
+            return SnapToDegrees(start,end,degrees);
+        }
         public static Vector2d SnapToDegrees(Vector2d start, Vector2d end, double degrees = 15)
         {
             var angle = Math.Round(Angle.FromLine(start, end).Degrees / degrees) * degrees;

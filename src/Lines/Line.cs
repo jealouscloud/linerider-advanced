@@ -24,10 +24,14 @@ using System;
 using linerider.Game;
 using linerider.Lines;
 using linerider.Utils;
+using System.Drawing;
 namespace linerider
 {
     public class Line : GameService
     {
+        public static readonly Color RedLineColor = Color.FromArgb(0xCC, 0, 0);
+        public static readonly Color BlueLineColor = Color.FromArgb(0, 0x66, 0xFF);
+        public static Color SceneryLineColor = Color.FromArgb(0, 0xCC, 0);
         public Vector2d Position { get; set; }
         public Vector2d Position2 { get; set; }
         public Vector2d diff;
@@ -55,6 +59,20 @@ namespace linerider
 
         public virtual void CalculateConstants()
         {
+        }
+        public Color GetColor()
+        {
+            switch (GetLineType())
+            {
+                case LineType.Blue:
+                    return BlueLineColor;
+                case LineType.Red:
+                    return RedLineColor;
+                case LineType.Scenery:
+                    return SceneryLineColor;
+                default:
+                    throw new Exception("Unable to get the color for this line, its type is unknown");
+            }
         }
         public virtual LineState GetState()
         {

@@ -29,7 +29,7 @@ using System.Threading;
 using System.Diagnostics;
 using System.Collections.Generic;
 using linerider.Tools;
-using linerider.Drawing;
+using linerider.Rendering;
 using linerider.Game;
 using linerider.Utils;
 namespace linerider
@@ -76,7 +76,7 @@ namespace linerider
             return Track.Lines[0];
         }
         //todo this function does not prevent Line data from being written to
-        public List<Line> GetLinesInRect(FloatRect rect, bool precise)
+        public IEnumerable<Line> GetLinesInRect(FloatRect rect, bool precise)
         {
             return Track.GetLinesInRect(rect, precise);
         }
