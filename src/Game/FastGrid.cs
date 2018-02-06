@@ -32,11 +32,10 @@ namespace linerider.Game
 {
     public class FastGrid
     {
-        #region Fields
-
-        private SortedList<int, SortedList<int, Chunk>> Chunks = new SortedList<int, SortedList<int, Chunk>>();
+        private readonly ResourceSync Sync = new ResourceSync();
+        private readonly Dictionary<int, SimulationCell<Line>> Cells = new Dictionary<int, SimulationCell<Line>>(4096);
         private object _syncRoot = new object();
-        private const int SquareSize = 128;
+        private const int CellSize = 128;
         private FastGrid _bluegrid;
         public FastGrid()
         {
@@ -45,66 +44,64 @@ namespace linerider.Game
         protected FastGrid(bool bluegrid)
         {
         }
-        #endregion Fields
+        private int GetCellKey(int x, int y)
+        {
+            unchecked
+            {
+                int hash = 27;
+                hash = hash * 486187739 + x;
+                hash = hash * 486187739 + y;
+                return hash;
+            }
+        }
 
-        #region Methods
+        public SimulationCell<Line> GetCell(int x, int y)
+        {
+            SimulationCell<Line> cell;
+            var pos = GetCellKey(x, y);
+            if (!Cells.TryGetValue(pos, out cell))
+                return null;
+            return cell;
+
+        }
+
+        public SimulationCell<Line> PointToChunk(Vector2d pos)
+        {
+            return GetCell((int)Math.Floor(pos.X / CellSize), (int)Math.Floor(pos.Y / CellSize));
+        }
         private void Register(Line l, int x, int y)
         {
-            SortedList<int, Chunk> xrow;
-            lock (_syncRoot)
+            var key = GetCellKey(x, y);
+            SimulationCell<Line> cell;
+            if (!Cells.TryGetValue(key, out cell))
             {
-                if (!Chunks.ContainsKey(x))
-                {
-                    xrow = new SortedList<int, Chunk>();
-                    Chunks[x] = xrow;
-                }
-                else
-                {
-                    xrow = Chunks[x];
-                }
-                Chunk yrow;
-                if (!xrow.ContainsKey(y))
-                {
-                    yrow = new Chunk();
-                    xrow[y] = yrow;
-                }
-                else
-                {
-                    yrow = xrow[y];
-                }
-                yrow[l.ID] = l;
+                cell = new SimulationCell<Line>();
+                Cells[key] = cell;
             }
+            cell.AddLine(l);
         }
 
         private void Unregister(Line l, int x, int y)
         {
-            lock (_syncRoot)
-            {
-                if (!Chunks.ContainsKey(x))
-                {
-                    return;
-                }
-                var xrow = Chunks[x];
-                if (xrow.ContainsKey(y))
-                {
-                    xrow[y].Remove(l.ID);
-                }
-            }
+            SimulationCell<Line> cell;
+            var pos = GetCellKey(x, y);
+            if (!Cells.TryGetValue(pos, out cell))
+                return;
+            cell.RemoveLine(l);
         }
         public void AddLine(Line line)
         {
             if (_bluegrid != null && line is StandardLine)
                 _bluegrid.AddLine(line);
-            var pts = GetPointsOnLine(line.Position.X / SquareSize,
-                line.Position.Y / SquareSize,
-                line.Position2.X / SquareSize,
-                line.Position2.Y / SquareSize);
-
-            lock (_syncRoot)
+            var pts = GetPointsOnLine(line.Position.X / CellSize,
+                line.Position.Y / CellSize,
+                line.Position2.X / CellSize,
+                line.Position2.Y / CellSize);
+            using (Sync.AcquireWrite())
             {
-                foreach (var pt in pts)
+                foreach (var pos in pts)
                 {
-                    Register(line, pt.X, pt.Y);
+                    Register(line, pos.X, pos.Y);
                 }
             }
         }
@@ -113,12 +110,12 @@ namespace linerider.Game
             if (_bluegrid != null && line is StandardLine)
                 _bluegrid.RemoveLine(line);
 
-            var pts = GetPointsOnLine(line.Position.X / SquareSize,
-                line.Position.Y / SquareSize,
-                line.Position2.X / SquareSize,
-                line.Position2.Y / SquareSize);
+            var pts = GetPointsOnLine(line.Position.X / CellSize,
+                line.Position.Y / CellSize,
+                line.Position2.X / CellSize,
+                line.Position2.Y / CellSize);
 
-            lock (_syncRoot)
+            using (Sync.AcquireWrite())
             {
                 foreach (var pt in pts)
                 {
@@ -126,107 +123,28 @@ namespace linerider.Game
                 }
             }
         }
-
-        public Chunk PointToChunk(Vector2d point)
+        public SimulationCell<Line> LinesInRect(FloatRect rect)
         {
-            var x = (int)Math.Floor(point.X / SquareSize);
-            var y = (int)Math.Floor(point.Y / SquareSize);
-            SortedList<int, Chunk> row;
-            lock (_syncRoot)
+            int starty = (int)Math.Floor(rect.Top / CellSize);
+            int startx = (int)Math.Floor(rect.Left / CellSize);
+            int endy = (int)Math.Floor((rect.Top + rect.Height) / CellSize);
+            int endx = (int)Math.Floor((rect.Left + rect.Width) / CellSize);
+            SimulationCell<Line> ret = new SimulationCell<Line>();
+            using (Sync.AcquireWrite())
             {
-                if (Chunks.TryGetValue(x, out row))
+                for (int x = startx; x <= endx; x++)
                 {
-                    Chunk chunk;
-                    if (row.TryGetValue(y, out chunk))
+                    for (int y = starty; y <= endy; y++)
                     {
-                        return chunk;
-                    }
-                }
-            }
-
-            return null;
-        }
-        public List<Chunk> UsedSolidChunksInRect(FloatRect rect)
-        {
-            return _bluegrid.UsedChunksInRect(rect);
-        }
-        public List<Chunk> UsedChunksInRect(FloatRect rect)
-        {
-            int yfirst = (int)Math.Floor(rect.Top / SquareSize);
-            int xfirst = (int)Math.Floor(rect.Left / SquareSize);
-            int ylast = (int)Math.Floor((rect.Top + rect.Height) / SquareSize);
-            int xlast = (int)Math.Floor((rect.Left + rect.Width) / SquareSize);
-            var ret = new List<Chunk>(((xlast - xfirst) * (ylast - yfirst)) / 2);
-            int start = 0;
-
-            lock (_syncRoot)
-            {
-                for (int i = 0; i < Chunks.Keys.Count; i++)
-                {
-                    if (Chunks.Keys[i] >= xfirst)
-                    {
-                        if (Chunks.Keys[i] > xlast)
-                            return ret;
-                        start = i;
-                        break;
-                    }
-                }
-                for (int i = start; i < Chunks.Keys.Count; i++)
-                {
-                    if (Chunks.Keys[i] > xlast)
-                    {
-                        return ret;
-                    }
-                    var row = Chunks.Values[i];
-                    var ixstart = row.Keys.Count;
-                    for (int ix = 0; ix < row.Keys.Count; ix++)
-                    {
-                        if (row.Keys[ix] >= yfirst)
+                        var cell = GetCell(x, y);
+                        if (cell != null)
                         {
-                            if (row.Keys[ix] > ylast)
-                                break;
-                            ixstart = ix;
-                            break;
+                            ret.Combine(cell);
                         }
                     }
-                    for (int ix = ixstart; ix < row.Keys.Count; ix++)
-                    {
-                        if (row.Keys[ix] > ylast)
-                            break;
-                        ret.Add(row.Values[ix]);
-                    }
                 }
             }
             return ret;
-        }
-        public List<Line> LinesInChunks(List<Chunk> c)
-        {
-            var hs = new HashSet<Line>(new Linecomparer());
-            foreach (var chunk in c)
-            {
-                hs.UnionWith(chunk.Values);
-            }
-            List<Line> ret = new List<Line>();
-            ret.AddRange(hs);
-            return ret;
-        }
-        public List<Line> SortedLinesInChunks(List<Chunk> c)
-        {
-            var ss = new SortedSet<Line>(new Linecomparer() { reverse = false });
-            foreach (var chunk in c)
-            {
-                ss.UnionWith(chunk.Values);
-            }
-            List<Line> ret = new List<Line>();
-            ret.AddRange(ss);
-            return ret;
-        }
-        private static Vector2d AngleLock(Vector2d pt, Vector2d pos, Vector2d diff)
-        {
-            var angle = Math.Atan2(diff.Y, diff.X);
-            var delta = pt - pos;
-            var ret = new Vector2d(Math.Cos(angle), Math.Sin(angle));
-            return (new Vector2d(ret.X, ret.Y) * Vector2d.Dot(delta, ret)) + pos;
         }
         /// <summary>
         /// Raytrace the specified x0, y0, x1 and y1.
@@ -307,71 +225,5 @@ namespace linerider.Game
         {
             return raytrace(x0, y0, x1, y1);
         }
-        #endregion Methods
-
-        #region Classes
-        public class Linecomparer : IComparer<Line>, IEqualityComparer<Line>
-        {
-            #region Methods
-            public bool reverse = true;
-            public int Compare(Line x, Line y)
-            {
-                return reverse ? y.ID - x.ID : x.ID - y.ID;
-            }
-
-            public bool Equals(Line x, Line y)
-            {
-                return x.ID == y.ID;
-            }
-
-            public int GetHashCode(Line x)
-            {
-                return x.ID;
-            }
-
-            #endregion Methods
-        }
-        public class Chunk : SortedList<int, Line>
-        {
-
-            #region Properties
-
-            public SortedList<int, Line> Lines
-            {
-                get { return this; }
-            }
-
-            #endregion Properties
-
-            #region Constructors
-
-            public Chunk()
-                            : base(new descintcomparer())
-            {
-            }
-
-            #endregion Constructors
-
-            #region Classes
-
-            public class descintcomparer : IComparer<int>
-            {
-
-                #region Methods
-
-                public int Compare(int x, int y)
-                {
-                    return y - x;
-                }
-
-                #endregion Methods
-
-            }
-
-            #endregion Classes
-
-        }
-
-        #endregion Classes
     }
 }

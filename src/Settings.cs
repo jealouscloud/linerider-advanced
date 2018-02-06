@@ -105,7 +105,8 @@ namespace linerider
             CreateKeybind(Hotkey.ToolLengthLock, new Keybinding(Key.L));
             CreateKeybind(Hotkey.ToolXYSnap, new Keybinding(Key.X));
             CreateKeybind(Hotkey.ToolDisableSnap, new Keybinding(Key.S));
-            CreateKeybind(Hotkey.ToolSelectBothJoints, new Keybinding(MouseButton.Left, KeyModifiers.Control));
+            CreateKeybind(Hotkey.ToolSelectBothJoints, new Keybinding(Key.ControlLeft));
+            CreateKeybind(Hotkey.ToolSelectBothJoints, new Keybinding(Key.ControlRight));
             CreateKeybind(Hotkey.LineToolFlipLine, new Keybinding(Key.ShiftLeft));
             CreateKeybind(Hotkey.LineToolFlipLine, new Keybinding(Key.ShiftRight));
             CreateKeybind(Hotkey.EditorUndo, new Keybinding(Key.Z, KeyModifiers.Control));

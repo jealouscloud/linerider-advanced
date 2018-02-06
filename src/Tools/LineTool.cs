@@ -19,7 +19,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-using linerider.Drawing;
+using linerider.Rendering;
 using OpenTK;
 using System;
 using Color = System.Drawing.Color;

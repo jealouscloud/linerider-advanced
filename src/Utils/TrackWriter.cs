@@ -28,7 +28,7 @@ using System.IO;
 using System.Threading;
 using System.Diagnostics;
 using linerider.Tools;
-using linerider.Drawing;
+using linerider.Rendering;
 using linerider.Lines;
 using linerider.Utils;
 namespace linerider

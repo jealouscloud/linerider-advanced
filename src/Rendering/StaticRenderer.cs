@@ -29,8 +29,8 @@ using Color = System.Drawing.Color;
 using linerider.Tools;
 using linerider.UI;
 using linerider.Utils;
-
-namespace linerider.Drawing
+using linerider.Drawing;
+namespace linerider.Rendering
 {
     public static class StaticRenderer
     {
@@ -161,31 +161,31 @@ namespace linerider.Drawing
             var bl = new Vector2d(rect.Left, rect.Bottom);
             var br = new Vector2d(rect.Right, rect.Bottom);
             var c = Color.FromArgb((int)Math.Min(255, (alpha * 255)), 255, 255, 255);
-            buf.AddVertex(new Vertex((Vector2)tl, c, u1, v1));
-            buf.AddVertex(new Vertex((Vector2)tr, c, u2, v1));
-            buf.AddVertex(new Vertex((Vector2)br, c, u2, v2));
-            buf.AddVertex(new Vertex((Vector2)bl, c, u1, v2));
+            buf.AddVertex(new GenericVertex((Vector2)tl, c, u1, v1));
+            buf.AddVertex(new GenericVertex((Vector2)tr, c, u2, v1));
+            buf.AddVertex(new GenericVertex((Vector2)br, c, u2, v2));
+            buf.AddVertex(new GenericVertex((Vector2)bl, c, u1, v2));
             buf.Draw(PrimitiveType.Quads);
         }
         public static void DrawTexture(int tex, RectangleF rect, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
         {
             DrawTexture(tex, new DoubleRect(rect.Left, rect.Top, rect.Width, rect.Height), 1, u1, v1, u2, v2);
         }
-        public static List<Vertex> FastCircle(Vector2d p, float radius, Color co)
+        public static List<GenericVertex> FastCircle(Vector2d p, float radius, Color co)
         {
             return FastCircle((Vector2)p, radius, co);
         }
 
-        public static List<Vertex> FastCircle(Vector2 p, float radius, Color co)
+        public static List<GenericVertex> FastCircle(Vector2 p, float radius, Color co)
         {
-            List<Vertex> ret = new List<Vertex>();
-            ret.Add(new Vertex(p.X - radius, p.Y - radius, co, 0, 1));
-            ret.Add(new Vertex(p.X + radius, p.Y - radius, co, 1, 1));
-            ret.Add(new Vertex(p.X + radius, p.Y + radius, co, 1, 0));
+            List<GenericVertex> ret = new List<GenericVertex>();
+            ret.Add(new GenericVertex(p.X - radius, p.Y - radius, co, 0, 1));
+            ret.Add(new GenericVertex(p.X + radius, p.Y - radius, co, 1, 1));
+            ret.Add(new GenericVertex(p.X + radius, p.Y + radius, co, 1, 0));
 
-            ret.Add(new Vertex(p.X - radius, p.Y + radius, co, 0, 0));
-            ret.Add(new Vertex(p.X - radius, p.Y - radius, co, 0, 1));
-            ret.Add(new Vertex(p.X + radius, p.Y + radius, co, 1, 0));
+            ret.Add(new GenericVertex(p.X - radius, p.Y + radius, co, 0, 0));
+            ret.Add(new GenericVertex(p.X - radius, p.Y - radius, co, 0, 1));
+            ret.Add(new GenericVertex(p.X + radius, p.Y + radius, co, 1, 0));
             return ret;
         }
 
@@ -302,17 +302,17 @@ namespace linerider.Drawing
             ret[3] = p - t;//tl
             return ret;
         }
-        public static List<Vertex> GenerateRoundedLine(Vector2 p, Vector2 p1, float width, Color c)
+        public static List<GenericVertex> GenerateRoundedLine(Vector2 p, Vector2 p1, float width, Color c)
         {
-            List<Vertex> ret = new List<Vertex>();
+            List<GenericVertex> ret = new List<GenericVertex>();
             ret.AddRange(FastCircle(p, width / 2, c));
             ret.AddRange(FastCircle(p1, width / 2, c));
             var thickline = GenerateThickLine(p, p1, width);
 
-            var v1 = new Vertex(thickline[0].X, thickline[0].Y, c);
-            var v2 = new Vertex(thickline[1].X, thickline[1].Y, c);
-            var v3 = new Vertex(thickline[2].X, thickline[2].Y, c);
-            var v4 = new Vertex(thickline[3].X, thickline[3].Y, c);
+            var v1 = new GenericVertex(thickline[0].X, thickline[0].Y, c);
+            var v2 = new GenericVertex(thickline[1].X, thickline[1].Y, c);
+            var v3 = new GenericVertex(thickline[2].X, thickline[2].Y, c);
+            var v4 = new GenericVertex(thickline[3].X, thickline[3].Y, c);
             ret.Add(v1);
             ret.Add(v2);
             ret.Add(v3);

@@ -7,7 +7,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>linerider</RootNamespace>
     <AssemblyName>linerider</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
@@ -35,80 +35,86 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
-    <Compile Include="GameService.cs" />
     <Compile Include="ErrorLog.cs" />
-    <Compile Include="Settings.cs" />
+    <Compile Include="GameResources.cs" />
+    <Compile Include="GameService.cs" />
     <Compile Include="Models.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="Track.cs" />
     <Compile Include="UndoManager.cs" />
-    <Compile Include="GameResources.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Audio\AudioDevice.cs" />
     <Compile Include="Audio\AudioService.cs" />
-    <Compile Include="Audio\Song.cs" />
-    <Compile Include="Audio\AudioStreamer.cs" />
     <Compile Include="Audio\AudioSource.cs" />
+    <Compile Include="Audio\AudioStreamer.cs" />
+    <Compile Include="Audio\Song.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controls\GameCanvas.cs" />
-    <Compile Include="Controls\TrackService.cs" />
     <Compile Include="Controls\GLWindow.cs" />
+    <Compile Include="Controls\TrackService.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Drawing\GameDrawingMatrix.cs" />
-    <Compile Include="Drawing\GameRenderer.cs" />
-    <Compile Include="Drawing\GLEnableCap.cs" />
+    <Compile Include="Drawing\DrawOptions.cs" />
+    <Compile Include="Drawing\GenericVBO.cs" />
+    <Compile Include="Drawing\GenericVertex.cs" />
+    <Compile Include="Drawing\KnobState.cs" />
+    <Compile Include="Drawing\LineVertex.cs" />
+    <Compile Include="Drawing\MsaaFbo.cs" />
     <Compile Include="Drawing\SafeFrameBuffer.cs" />
-    <Compile Include="Drawing\SceneryRenderer.cs" />
-    <Compile Include="Drawing\SceneryVBO.cs" />
-    <Compile Include="Drawing\StaticRenderer.cs" />
-    <Compile Include="Drawing\SimulationRenderer.cs" />
-    <Compile Include="Drawing\TrackRenderer.cs" />
+    <Compile Include="Drawing\Shader.cs" />
+    <Compile Include="Drawing\TrackVBO.cs" />
     <Compile Include="Drawing\VAO.cs" />
     <Compile Include="Drawing\VBO.cs" />
-    <Compile Include="Drawing\Vertex.cs" />
-    <Compile Include="Drawing\MsaaFbo.cs" />
-    <Compile Include="Drawing\Shader.cs" />
+    <Compile Include="Drawing\VertexManager.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Rendering\GameDrawingMatrix.cs" />
+    <Compile Include="Rendering\GameRenderer.cs" />
+    <Compile Include="Rendering\GLEnableCap.cs" />
+    <Compile Include="Rendering\LineDecorator.cs" />
+    <Compile Include="Rendering\SimulationRenderer.cs" />
+    <Compile Include="Rendering\StaticRenderer.cs" />
+    <Compile Include="Rendering\TrackRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ffmpeg\FFMPEG.cs" />
     <Compile Include="ffmpeg\FFMPEGParameters.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Lines\InteractionTestLine.cs" />
     <Compile Include="Lines\Line.cs" />
+    <Compile Include="Lines\LineState.cs" />
     <Compile Include="Lines\LineTrigger.cs" />
     <Compile Include="Lines\LineType.cs" />
     <Compile Include="Lines\RedLine.cs" />
     <Compile Include="Lines\SceneryLine.cs" />
     <Compile Include="Lines\StandardLine.cs" />
-    <Compile Include="Lines\InteractionTestLine.cs" />
-    <Compile Include="Lines\LineState.cs" />
-    <Compile Include="Lines\Scarf.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Game\RiderConstants.cs" />
     <Compile Include="Game\Bone.cs" />
-    <Compile Include="Game\SimulationPoint.cs" />
     <Compile Include="Game\Camera.cs" />
+    <Compile Include="Game\CameraBoundingBox.cs" />
+    <Compile Include="Game\CameraLocation.cs" />
     <Compile Include="Game\CellLocation.cs" />
     <Compile Include="Game\FastGrid.cs" />
     <Compile Include="Game\FPSCounter.cs" />
     <Compile Include="Game\GameScheduler.cs" />
     <Compile Include="Game\GridPoint.cs" />
     <Compile Include="Game\Rider.cs" />
-    <Compile Include="Game\SimulationGrid.cs" />
+    <Compile Include="Game\RiderConstants.cs" />
     <Compile Include="Game\SimulationCell.cs" />
-    <Compile Include="Game\CameraBoundingBox.cs" />
-    <Compile Include="Game\CameraLocation.cs" />
+    <Compile Include="Game\SimulationGrid.cs" />
+    <Compile Include="Game\SimulationPoint.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Tools\EraserTool.cs" />
     <Compile Include="Tools\HandTool.cs" />
-    <Compile Include="Tools\MoveTool.cs" />
     <Compile Include="Tools\LineTool.cs" />
+    <Compile Include="Tools\MoveTool.cs" />
     <Compile Include="Tools\PencilTool.cs" />
     <Compile Include="Tools\Tool.cs" />
   </ItemGroup>
@@ -122,33 +128,32 @@
     <Compile Include="TrackFiles\TrackRecorder.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="UI\ExportVideoWindow.cs" />
-    <Compile Include="UI\Hotkey.cs" />
     <Compile Include="UI\ColorControls.cs" />
     <Compile Include="UI\CursorImpl.cs" />
+    <Compile Include="UI\ExportVideoWindow.cs" />
+    <Compile Include="UI\Hotkey.cs" />
+    <Compile Include="UI\ImageButton.cs" />
+    <Compile Include="UI\InputUtils.cs" />
     <Compile Include="UI\Keybinding.cs" />
     <Compile Include="UI\LoadWindow.cs" />
-    <Compile Include="UI\InputUtils.cs" />
     <Compile Include="UI\NumberProperty.cs" />
     <Compile Include="UI\PopupWindow.cs" />
     <Compile Include="UI\PreferencesWindow.cs" />
     <Compile Include="UI\SaveWindow.cs" />
     <Compile Include="UI\SongWindow.cs" />
-    <Compile Include="UI\ImageButton.cs" />
     <Compile Include="UI\Sprite.cs" />
     <Compile Include="UI\Window.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Utils\ResourceSync.cs" />
-    <Compile Include="Utils\IncrementalWait.cs" />
-    <Compile Include="Utils\PlaybackBufferManager.cs" />
-    <Compile Include="Utils\TrackWriter.cs" />
-    <Compile Include="Utils\TrackReader.cs" />
     <Compile Include="Utils\Angle.cs" />
-    <Compile Include="Utils\Utility.cs" />
-    <Compile Include="Utils\FloatRect.cs" />
     <Compile Include="Utils\DoubleRect.cs" />
+    <Compile Include="Utils\FloatRect.cs" />
+    <Compile Include="Utils\PlaybackBufferManager.cs" />
+    <Compile Include="Utils\ResourceSync.cs" />
+    <Compile Include="Utils\TrackReader.cs" />
+    <Compile Include="Utils\TrackWriter.cs" />
     <Compile Include="Utils\Turtle.cs" />
+    <Compile Include="Utils\Utility.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="NVorbis, Version=0.8.5.0, Culture=neutral, processorArchitecture=MSIL">
@@ -221,6 +226,10 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\gamefont_15_0.png" />
     <EmbeddedResource Include="Resources\gamefont_15.fnt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\shaders\simline.vert" />
+    <EmbeddedResource Include="Resources\shaders\simline.frag" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.manifest" />

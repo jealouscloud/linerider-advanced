@@ -23,7 +23,7 @@ using System;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using Color = System.Drawing.Color;
-using linerider.Drawing;
+using linerider.Rendering;
 
 namespace linerider.Tools
 {

@@ -128,10 +128,17 @@ namespace linerider.Tools
                     {
                         _selection.start = gamepos;
                         _selection.line = line;
-                        _selection.leftjoint = line.Position == point;
-                        if (!_selection.leftjoint /* todo test if we wanna drag line*/)
+                        if (InputUtils.Check(Hotkey.ToolSelectBothJoints))
                         {
-                            _selection.rightjoint = line.Position2 == point;
+                            _selection.leftjoint = _selection.rightjoint = true;
+                        }
+                        else
+                        {
+                            _selection.leftjoint = line.Position == point;
+                            if (!_selection.leftjoint)
+                            {
+                                _selection.rightjoint = line.Position2 == point;
+                            }
                         }
                     }
                     else

@@ -1,4 +1,4 @@
-﻿#define debuggrid
+﻿//#define debuggrid
 //
 //  GLWindow.cs
 //
@@ -30,6 +30,7 @@ using Gwen;
 using Gwen.Controls;
 using linerider.Audio;
 using linerider.Drawing;
+using linerider.Rendering;
 using linerider.TrackFiles;
 using linerider.Tools;
 using linerider.UI;
@@ -118,7 +119,8 @@ namespace linerider
             _movetool = new MoveTool();
             SelectedTool = _penciltool;
             Track = new TrackService();
-            VSync = VSyncMode.On;
+            //todo reenable
+            VSync = VSyncMode.Off;
             Context.ErrorChecking = true;
             WindowBorder = WindowBorder.Resizable;
             RenderFrame += (o, e) => { Render(); };
@@ -172,7 +174,7 @@ namespace linerider
             Track.RequiresUpdate ||
             SelectedTool.NeedsRender;
 
-            if (true)
+            if (shouldrender)
             {
                 Track.SimulationNeedsDraw = false;
 
@@ -190,6 +192,7 @@ namespace linerider
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
                 GL.Clear(ClearBufferMask.ColorBufferBit);
                 GL.Enable(EnableCap.Blend);
+                
 #if debuggrid
                 GameRenderer.DbgDrawGrid();
 #endif
@@ -228,10 +231,14 @@ namespace linerider
                         Zoom(Math.Min(Track.Zoom, 12) * (-0.08f));
                 }
             }
-            var qp = (!Track.PlaybackMode) ? InputUtils.Check(Hotkey.EditorQuickPan) : false;
+            var qp = (!Track.PlaybackMode) ? InputUtils.Check(Hotkey.EditorQuickPan, false) : false;
             if (qp != _handToolOverride)
             {
                 _handToolOverride = qp;
+                if (_handToolOverride == false)
+                {
+                    _handtool.Stop();
+                }
                 Invalidate();
                 UpdateCursor();
             }
@@ -302,7 +309,6 @@ namespace linerider
                 AudioService.Pause();
             }
         }
-
         public void UpdateCursor()
         {
             if ((Track.PlaybackMode && !Track.Paused) || _dragRider)

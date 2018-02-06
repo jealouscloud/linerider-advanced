@@ -8,7 +8,7 @@ namespace linerider.UI
     {
         public static List<Key> KeysDown { get; private set; } = new List<Key>();
         private static KeyboardState _last_kb_state;
-        public static List<MouseButton> MouseButtonsDown { get; private set; }
+        public static List<MouseButton> MouseButtonsDown { get; private set; } = new List<MouseButton>();
         private static MouseState _last_mouse_state;
         private static ResourceSync _lock = new ResourceSync();
         public static void UpdateKeysDown(KeyboardState ks)
@@ -58,7 +58,8 @@ namespace linerider.UI
                     using (_lock.AcquireRead())
                     {
                         int allowedkeys = bind.KeysDown;
-                        if ((allowedkeys > 0 && (KeysDown.Count != allowedkeys && exclusivekeys)) || bind.IsEmpty)
+                        var keysdown = KeysDown.Count;
+                        if ((allowedkeys > 0 && (keysdown != allowedkeys && exclusivekeys)) || bind.IsEmpty)
                             continue;
                         if (bind.Key != (Key)(-1))
                         {

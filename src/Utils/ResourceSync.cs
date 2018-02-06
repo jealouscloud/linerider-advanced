@@ -1,5 +1,5 @@
 //
-//  GLWindow.cs
+//  ResourceSync.cs
 //
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
@@ -59,7 +59,7 @@ namespace linerider.Utils
                 _disposed = true;
             }
         }
-        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         public ResourceLock TryAcquireRead()
         {
             if (_lock.TryEnterReadLock(0))

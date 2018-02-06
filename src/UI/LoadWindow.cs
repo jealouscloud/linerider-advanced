@@ -229,8 +229,10 @@ namespace linerider.UI
                         Settings.Local.EnableSong = false;
                         game.Track.ChangeTrack(TrackLoader.LoadTrack(data));
                     }
-                    catch
+                    catch (Exception e)
                     {
+                        if (Program.IsDebugged)
+                            throw e;
                         window.Close();
                         PopupWindow.Error("An error occured loading the track.", "Error");
                         return;
@@ -265,8 +267,10 @@ namespace linerider.UI
                                     return;
                                 }
                             }
-                            catch
+                            catch (Exception e)
                             {
+                                if (Program.IsDebugged)
+                                    throw e;
                                 PopupWindow.Error("An error occured loading the .sol", "Error!");
                             }
                         }
@@ -289,8 +293,10 @@ namespace linerider.UI
                             game.Track.ChangeTrack(TrackLoader.LoadTrackTRK(data, trackname));
                         }
                     }
-                    catch
+                    catch (Exception e)
                     {
+                        if (Program.IsDebugged)
+                            throw e;
                         window.Close();
                         PopupWindow.Error("An error occured loading the track. \nIt might be from a newer version.");
                         return;

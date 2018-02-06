@@ -1,5 +1,5 @@
-﻿//
-//  SceneryLine.cs
+//
+//  Vertex.cs
 //
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
@@ -19,19 +19,23 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+using OpenTK.Graphics.OpenGL;
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using OpenTK;
-
-namespace linerider
+using System.Drawing;
+namespace linerider.Drawing
 {
-    public class SceneryLine : Line
+    /// <summary>
+    /// A vertex meant for the simulation line shader
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct LineVertex
     {
-        public float Width = 1;
-
-        public SceneryLine(Vector2d p1, Vector2d p2)
-        {
-            Position = p1;
-            Position2 = p2;
-            diff = Position2 - Position;
-        }
+        public static readonly int Size = Marshal.SizeOf(typeof(LineVertex));
+        public Vector2 Position;
+        public Vector2 circle_uv;
+        public float ratio;
     }
 }

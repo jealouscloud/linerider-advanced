@@ -1,5 +1,5 @@
 //
-//  GLWindow.cs
+//  PlaybackBufferManager.cs
 //
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
@@ -27,7 +27,7 @@ using System.IO;
 using System.Threading;
 using System.Collections.Generic;
 using linerider.Tools;
-using linerider.Drawing;
+using linerider.Rendering;
 using linerider.Game;
 using linerider.Lines;
 using linerider.UI;
@@ -198,7 +198,7 @@ namespace linerider.Utils
             {
                 for (int iteration = 0; iteration < 6; iteration++)
                 {
-                    Rider.ProcessBones(track.Bones, joints, ref dead);
+                    Rider.ProcessBones(joints,track.Bones, ref dead);
                     for (int i = 0; i < joints.Length; i++)
                     {
                         var cellx = (int)Math.Floor(joints[i].Location.X / 14);

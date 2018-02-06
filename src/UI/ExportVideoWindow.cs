@@ -25,6 +25,7 @@ using System.Linq;
 using System.Text;
 using Gwen;
 using Gwen.Controls;
+using linerider.Drawing;
 namespace linerider.UI
 {
     static class ExportVideoWindow
@@ -38,7 +39,7 @@ namespace linerider.UI
             "After recording, a console window will open to encode the video. " +
             "Closing it will cancel the process and all progress will be lost.";
 
-            if (!Drawing.SafeFrameBuffer.CanRecord)
+            if (!SafeFrameBuffer.CanRecord)
             {
                 howto = "Video export is not supported on this machine.\n\nSorry.";
             }
@@ -55,7 +56,7 @@ namespace linerider.UI
             radio.Name = "qualityselector";
             radio.AddOption("720p").Select();
             radio.AddOption("1080p");
-            if (!Drawing.SafeFrameBuffer.CanRecord)
+            if (!SafeFrameBuffer.CanRecord)
             {
                 radio.IsHidden = true;
             }

@@ -29,6 +29,7 @@ using Gwen;
 using Gwen.Controls;
 using linerider.Audio;
 using linerider.Drawing;
+using linerider.Rendering;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;

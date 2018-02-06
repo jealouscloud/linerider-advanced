@@ -19,7 +19,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-using linerider.Drawing;
+using linerider.Rendering;
 using OpenTK;
 using System;
 using System.Collections.Concurrent;
@@ -33,8 +33,6 @@ namespace linerider
 {
     public class Track
     {
-        #region Fields
-
         public HashSet<int> AllCollidedLines = new HashSet<int>();
 
         public SimulationGrid Grid = new SimulationGrid();
@@ -71,11 +69,6 @@ namespace linerider
         internal int _idcounter;
 
         private int _sceneryidcounter = -1;
-
-        #endregion Fields
-
-        #region Properties
-
         public FloatRect RiderRect
         {
             get
@@ -87,11 +80,6 @@ namespace linerider
                 return ret;
             }
         }
-
-        #endregion Properties
-
-        #region Methods
-
         public Track()
         {
             GenerateBones();
@@ -144,52 +132,25 @@ namespace linerider
             //todo collision states are completely unprogrammed
         }
 
-        public int CalculateUpdateStart()
-        {
-            return 0;
-        }
-
-        public void ClearTrack()
-        {
-            _idcounter = 0;
-            _sceneryidcounter = -1;
-            Lines.Clear();
-            Grid = new SimulationGrid();
-            RenderCells = new FastGrid();
-            GC.Collect();
-        }
-
         public HashSet<int> Diagnose(Rider state, int maxiteration = 6)
         {
             return state.Diagnose(this, maxiteration);
         }
 
-        public List<Line> GetLinesInRect(FloatRect rect, bool precise, bool standardlinesonly = false)
+        public IEnumerable<Line> GetLinesInRect(FloatRect rect, bool precise, bool standardlinesonly = false)
         {
-            List<FastGrid.Chunk> chunks;
-            List<Line> ret;
-            if (standardlinesonly)
-            {
-                chunks = RenderCells.UsedSolidChunksInRect(rect);
-                ret = RenderCells.SortedLinesInChunks(chunks);
-            }
-            else
-            {
-                chunks = RenderCells.UsedChunksInRect(rect);
-                ret = RenderCells.LinesInChunks(chunks);
-            }
+            var ret = RenderCells.LinesInRect(rect);
             if (precise)
             {
                 var newret = new List<Line>(ret.Count);
-                for (var i = 0; i < ret.Count; i++)
+                foreach(var line in ret)
                 {
-                    var line = ret[i];
                     if (Line.DoesLineIntersectRect(line, rect))
                     {
                         newret.Add(line);
                     }
                 }
-                ret = newret;
+                return newret;
             }
             return ret;
         }
@@ -247,7 +208,5 @@ namespace linerider
         {
             return state.Simulate(this, collisions);
         }
-
-        #endregion Methods
     }
 }

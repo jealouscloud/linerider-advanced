@@ -24,6 +24,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using linerider.Drawing;
+using linerider.Rendering;
 using linerider.Game;
 using OpenTK;
 using System.IO;
@@ -159,7 +160,10 @@ namespace linerider
         {
             if (_renderrider.Iteration < 6 && _renderrider.Frame > 0)
             {
-                _renderrider.State = _track.Tick(_track.RiderStates[_renderrider.Frame], _renderrider.Iteration);
+                using (_tracksync.AcquireRead())
+                {
+                    _renderrider.State = _track.Tick(_track.RiderStates[_renderrider.Frame], _renderrider.Iteration);
+                }
             }
             else
             {
@@ -172,8 +176,11 @@ namespace linerider
         }
         public void Reset()
         {
-            _track.Reset();
-            SetFrame(0);
+            using (EnterPlayback())
+            {
+                _track.Reset();
+                SetFrame(0);
+            }
         }
         public bool FastGridCheck(double x, double y)
         {
@@ -208,13 +215,14 @@ namespace linerider
         SimulationRenderer renderer = new SimulationRenderer();
         public void Render(float blend)
         {
-            SimulationRenderer.DrawOptions drawOptions = new SimulationRenderer.DrawOptions();
+            DrawOptions drawOptions = new DrawOptions();
             drawOptions.Blend = blend;
+            drawOptions.NightMode = Settings.NightMode;
             drawOptions.GravityWells = Settings.Local.RenderGravityWells;
-            drawOptions.KnobState = 0;
+            drawOptions.KnobState = KnobState.Hidden;
             if (game.SelectedTool is MoveTool)
             {
-                drawOptions.KnobState = ((MoveTool)game.SelectedTool).CanLifelock ? 2 : 1;
+                drawOptions.KnobState = ((MoveTool)game.SelectedTool).CanLifelock ? KnobState.LifeLock : KnobState.Shown;
             }
             drawOptions.LineColors = Settings.Local.PreviewMode || !Playing || Settings.Local.ColorPlayback;
             drawOptions.Paused = Paused;
@@ -222,10 +230,11 @@ namespace linerider
             drawOptions.Rider = RenderRider;
             drawOptions.ShowContactLines = Settings.Local.DrawContactPoints;
             drawOptions.ShowMomentumVectors = Settings.Local.MomentumVectors;
+            drawOptions.Zoom = Zoom;
             if (Settings.SmoothPlayback && Playing && Offset > 0 && blend < 1)
             {
                 //interpolate between last frame and current one
-                drawOptions.Rider = _track.RiderStates[Offset - 1].Lerp(RenderRider, blend);
+                drawOptions.Rider = Rider.Lerp(_track.RiderStates[Offset - 1], _track.RiderStates[Offset], blend);
             }
             renderer.Render(_track, Camera, drawOptions);
         }
@@ -335,8 +344,8 @@ namespace linerider
                 Fpswatch.Restart();
                 PlaybackMode = true;
                 Paused = false;
-				_startFrame = 0;
-				Offset = 0;
+                _startFrame = 0;
+                Offset = 0;
                 if (_flag == null || ignoreflag)
                 {
                     _track.Reset();
@@ -378,13 +387,16 @@ namespace linerider
                     ActiveTriggers.Clear();
                     using (CreateTrackReader())
                     {
-                        _track.Reset();
-                        Offset = 0;
-                        for (int i = 0; i < _flag.Frame; i++)
+                        using (EnterPlayback())
                         {
-                            _track.AddFrame();
+                            _track.Reset();
+                            Offset = 0;
+                            for (int i = 0; i < _flag.Frame; i++)
+                            {
+                                _track.AddFrame();
+                            }
+                            SetFrame(EndFrameID);
                         }
-                        SetFrame(EndFrameID);
                     }
                     for (var i = 0; i < _track.RiderStates[Offset].Body.Length; i++)
                     {
@@ -524,6 +536,7 @@ namespace linerider
             RefreshTrack();
             Reset();
             Camera.SetFrame(trk.StartOffset, false);
+            GC.Collect();//this is the safest place to collect
         }
 
         internal Tracklocation GetFlag()
