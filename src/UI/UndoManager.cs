@@ -55,11 +55,7 @@ namespace linerider
                 }
                 else if (parent.Position != afteract.Pos1 || parent.Position2 != afteract.Pos2)//adjust act
                 {
-                    track.Track.RemoveLineFromGrid(parent);
-                    parent.Position = afteract.Pos1;
-                    parent.Position2 = afteract.Pos2;
-                    parent.CalculateConstants();
-                    track.Track.AddLineToGrid(parent);
+                    track.MoveLine(parent,afteract.Pos1,afteract.Pos2);
                 }
                 var std = parent as StandardLine;
                 //do extensions
@@ -128,6 +124,7 @@ namespace linerider
         private int pos;
         private List<act> _actions = new List<act>();
         private act _currentaction;
+        const int MaximumBufferSize = 10000;
         public UndoManager()
         {
         }
@@ -156,6 +153,10 @@ namespace linerider
                 if (pos < 0)
                     pos = 0;
                 _actions.RemoveRange(pos, _actions.Count - pos);
+            }
+            if (_actions.Count > MaximumBufferSize)
+            {
+                _actions.RemoveRange(0,_actions.Count - (MaximumBufferSize / 2));
             }
             _actions.Add(_currentaction);
             pos = _actions.Count;

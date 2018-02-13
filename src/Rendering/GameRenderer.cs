@@ -36,7 +36,7 @@ namespace linerider.Rendering
     {
         #region Fields
 
-        public static GLWindow Game;
+        public static MainWindow Game;
         private static readonly VAO _roundlinevao = new VAO(false, true);
 
         #endregion Fields
@@ -96,70 +96,69 @@ namespace linerider.Rendering
             DrawTexture(Models.ArmTexture, Models.ArmRect,
             points[RiderConstants.BodyShoulder].Location,
             points[RiderConstants.BodyHandLeft].Location, opacity);
-            List<GenericVertex> vertices = new List<GenericVertex>(300);
-            if (momentumvectors)
+        }
+        public static void DrawMomentum(Rider rider, List<GenericVertex> vertices)
+        {
+            for(int i = 0; i < rider.Body.Length; i++)
             {
-                foreach (var anchor in rider.Body)
-                {
-                    var vec1 = anchor.Location;
-                    var vec2 = vec1 + (anchor.Momentum);
-                    vertices.AddRange(GenRoundedLine(vec1, vec2, Color.Red, 1f / 2, false));
-                }
-            }
-            if (drawcontactpoints)
-            {
-                DrawContactPoints(rider, iteration, vertices);
-            }
-            if (vertices.Count != 0)
-            {
-                VAO vao = new VAO(false, false);
-                vao.Texture = StaticRenderer.CircleTex;
-                vao.AddVerticies(vertices);
-                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-                vao.Draw(PrimitiveType.Triangles);
+                var anchor = rider.Body[i];
+                var vec1 = anchor.Location;
+                var vec2 = vec1 + (anchor.Momentum);
+                vertices.AddRange(GenRoundedLine(vec1, vec2, Color.Red, 1f / 2, false));
             }
         }
-        private static void DrawContactPoints(Rider rider, int iteration, List<GenericVertex> vertices)
+        public static void DrawContactPoints(Rider rider, List<int> diagnosis, List<GenericVertex> vertices)
         {
-            using (var trk = Game.Track.CreateTrackReader())
+            if (diagnosis == null)
+                diagnosis = new List<int>();
+            for (var i = 0; i < RiderConstants.Bones.Length; i++)
             {
-                var brokenpoints = trk.Diagnose(rider, iteration);
-                for (var i = 0; i < RiderConstants.Bones.Length; i++)
+                var c = Color.FromArgb(unchecked((int)0xFFCC72B7));
+                if (RiderConstants.Bones[i].Breakable)
                 {
-                    var c = Color.FromArgb(255, Color.FromArgb(0xCC72B7));
-                    if (RiderConstants.Bones[i].Breakable)
-                    {
-                        continue;
-                    }
-                    else if (RiderConstants.Bones[i].OnlyRepel)
-                    {
-                        c = Color.CornflowerBlue;
-                        vertices.AddRange(GenRoundedLine(rider.Body[RiderConstants.Bones[i].joint1].Location, rider.Body[RiderConstants.Bones[i].joint2].Location, c, 1f / 4, false));
-                    }
-                    else if (i <= 3)
-                    {
-                        vertices.AddRange(GenRoundedLine(rider.Body[RiderConstants.Bones[i].joint1].Location, rider.Body[RiderConstants.Bones[i].joint2].Location, c, 1f / 4, false));
-                    }
+                    continue;
                 }
-                for (var i = 0; i < RiderConstants.Bones.Length; i++)
+                else if (RiderConstants.Bones[i].OnlyRepel)
                 {
-                    if (RiderConstants.Bones[i].Breakable)
-                    {
-                        if (rider.Crashed)
-                            continue;
-                        if (brokenpoints.Contains(i))
-                            vertices.AddRange(GenRoundedLine(rider.Body[RiderConstants.Bones[i].joint1].Location, rider.Body[RiderConstants.Bones[i].joint2].Location, Color.DarkOrange, 1f / 4, false));
-                    }
-                }
-                for (var i = 0; i < RiderConstants.Bones.Length; i++)
-                {
-                    Color c = Color.Cyan;
-                    if (((i == 0 || i == 1) && brokenpoints.Contains(-1)) || ((i == 4 || i == 5) && brokenpoints.Contains(-2)))
-                    {
-                        c = Color.Blue;
-                    }
+                    c = Color.CornflowerBlue;
                     vertices.AddRange(GenRoundedLine(rider.Body[RiderConstants.Bones[i].joint1].Location, rider.Body[RiderConstants.Bones[i].joint2].Location, c, 1f / 4, false));
                 }
+                else if (i <= 3)
+                {
+                    vertices.AddRange(GenRoundedLine(rider.Body[RiderConstants.Bones[i].joint1].Location, rider.Body[RiderConstants.Bones[i].joint2].Location, c, 1f / 4, false));
+                }
+            }
+            if (!rider.Crashed && diagnosis.Count != 0)
+            {
+                Color firstbreakcolor = Color.FromArgb(unchecked((int)0xFFFF8C00));
+                Color breakcolor = Color.FromArgb(unchecked((int)0xff909090)); ;
+
+                for (int i = 1; i < diagnosis.Count; i++)
+                {
+                    var broken = diagnosis[i];
+                    vertices.AddRange(GenRoundedLine(
+                    rider.Body[RiderConstants.Bones[broken].joint1].Location,
+                    rider.Body[RiderConstants.Bones[broken].joint2].Location, breakcolor, 1f / 4, false));
+                }
+                //the first break is most important so we give it a better color, assuming its not just a fakie death
+                if (diagnosis[0] > 0)
+                {
+                    vertices.AddRange(GenRoundedLine(
+                    rider.Body[RiderConstants.Bones[diagnosis[0]].joint1].Location,
+                    rider.Body[RiderConstants.Bones[diagnosis[0]].joint2].Location,
+                    firstbreakcolor, 1f / 4, false));
+                }
+            }
+            for (var i = 0; i < RiderConstants.Bones.Length; i++)
+            {
+                Color c = Color.Cyan;
+                if (
+                    ((i == RiderConstants.SledTL || i == RiderConstants.SledBL) && diagnosis.Contains(-1)) ||
+                    ((i == RiderConstants.BodyButt || i == RiderConstants.BodyShoulder) && diagnosis.Contains(-2)))
+                {
+                    c = Color.Blue;
+                }
+                vertices.AddRange(GenRoundedLine(rider.Body[RiderConstants.Bones[i].joint1].Location, rider.Body[RiderConstants.Bones[i].joint1].Location, c, 1f / 4, false));
             }
         }
         public static void DrawScarf(Line[] lines, float opacity)
@@ -332,7 +331,8 @@ namespace linerider.Rendering
         }
         public static void DbgDrawGrid()
         {
-            int sqsize = 128;
+            bool fastgrid = false;
+            int sqsize = fastgrid ? FastGrid.CellSize : SimulationGrid.CellSize;
             GL.PushMatrix();
             GL.Scale(Game.Track.Zoom, Game.Track.Zoom, 0);
             GL.Translate(new Vector3d(Game.ScreenTranslation));
@@ -342,7 +342,34 @@ namespace linerider.Rendering
                 for (var y = -sqsize; y < (Game.RenderSize.Height / Game.Track.Zoom); y += sqsize)
                 {
                     var yv = new Vector2d(x + (Game.ScreenPosition.X - (Game.ScreenPosition.X % sqsize)), y + (Game.ScreenPosition.Y - (Game.ScreenPosition.Y % sqsize)));
-                    if (Game.Track.FastGridCheck(yv.X, yv.Y))
+
+                    if (!fastgrid)
+                    {
+                        var gridpos = new GridPoint((int)Math.Floor(yv.X / sqsize), (int)Math.Floor(yv.Y / sqsize));
+                        if (Game.Track.RenderRider.PhysicsBounds.ContainsPoint(gridpos))
+                        {
+                            GL.Color3(Color.Lime);
+                            GL.Vertex2(yv);
+                            yv.Y += sqsize;
+                            GL.Vertex2(yv);
+                            yv.X += sqsize;
+                            GL.Vertex2(yv);
+                            yv.Y -= sqsize;
+                            GL.Vertex2(yv);
+                        }
+                        else if (Game.Track.GridCheck(yv.X, yv.Y))
+                        {
+                            GL.Color3(Color.Yellow);
+                            GL.Vertex2(yv);
+                            yv.Y += sqsize;
+                            GL.Vertex2(yv);
+                            yv.X += sqsize;
+                            GL.Vertex2(yv);
+                            yv.Y -= sqsize;
+                            GL.Vertex2(yv);
+                        }
+                    }
+                    else if (Game.Track.FastGridCheck(yv.X, yv.Y))
                     {
                         GL.Color3(Color.Yellow);
                         GL.Vertex2(yv);

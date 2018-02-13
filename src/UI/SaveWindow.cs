@@ -33,8 +33,8 @@ namespace linerider.UI
 {
     class SaveWindow : WindowControl
     {
-        private GLWindow game;
-        public SaveWindow(Gwen.Controls.ControlBase parent, GLWindow glgame) : base(parent, "Save Track")
+        private MainWindow game;
+        public SaveWindow(Gwen.Controls.ControlBase parent, MainWindow glgame) : base(parent, "Save Track")
         {
             game = glgame;
             game.Track.Stop();

@@ -33,8 +33,8 @@ namespace linerider.UI
 {
     class PreferencesWindow : WindowControl
     {
-        private GLWindow game;
-        public PreferencesWindow(Gwen.Controls.ControlBase parent, GLWindow pgame) : base(parent, "Preferences")
+        private MainWindow game;
+        public PreferencesWindow(Gwen.Controls.ControlBase parent, MainWindow pgame) : base(parent, "Preferences")
         {
             game = pgame;
             Width = 400;
@@ -368,7 +368,6 @@ shoe the lines as black instead");
                 Settings.NightMode = ((LabeledCheckBox)o).IsChecked;
                 Settings.Save();
                 game.Canvas.ButtonsToggleNightmode();
-                game.Track.RefreshTrack();
             };
             lcb.Dock = Pos.Top;
             lcb = new LabeledCheckBox(gb);

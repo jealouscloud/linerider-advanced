@@ -24,8 +24,8 @@ namespace linerider.UI
     public class CursorImpl : Gwen.Platform.Neutral.CursorImplementation
     {
 
-        private GLWindow game;
-        public CursorImpl(GLWindow game)
+        private MainWindow game;
+        public CursorImpl(MainWindow game)
         {
             this.game = game;
         }

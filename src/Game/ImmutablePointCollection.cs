@@ -1,5 +1,5 @@
-﻿//
-//  GameService.cs
+//
+//  Rider.cs
 //
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
@@ -20,20 +20,31 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using linerider.Utils;
 
-namespace linerider
+namespace linerider.Game
 {
-    public class GameService
+    public struct ImmutablePointCollection
     {
-        protected static MainWindow game;
-
-        public static void Initialize(MainWindow wnd)
+        public SimulationPoint this[int index]
         {
-            if (game == null)
-                game = wnd;
+            get
+            {
+                return _points[index];
+            }
+        }
+        public int Length
+        {
+            get
+            {
+                return _points.Length;
+            }
+        }
+        private readonly SimulationPoint[] _points;
+        public ImmutablePointCollection(SimulationPoint[] points)
+        {
+            _points = points;
         }
     }
 }

@@ -120,11 +120,11 @@ namespace linerider
         /// <summary>
         ///     For moving lines
         /// </summary>
-        public void AddLineToGrid(Line sl)
+        public void AddLineToGrid(Line line)
         {
-            if (sl is StandardLine)
-                Grid.AddLine((StandardLine)sl);
-            RenderCells.AddLine(sl);
+            if (line is StandardLine sl)
+                Grid.AddLine(sl);
+            RenderCells.AddLine(line);
         }
 
         public void CalculateAllCollidedLines()
@@ -132,12 +132,7 @@ namespace linerider
             //todo collision states are completely unprogrammed
         }
 
-        public HashSet<int> Diagnose(Rider state, int maxiteration = 6)
-        {
-            return state.Diagnose(this, maxiteration);
-        }
-
-        public IEnumerable<Line> GetLinesInRect(FloatRect rect, bool precise, bool standardlinesonly = false)
+        public IEnumerable<Line> GetLinesInRect(FloatRect rect, bool precise)
         {
             var ret = RenderCells.LinesInRect(rect);
             if (precise)
@@ -201,12 +196,8 @@ namespace linerider
 
         public void AddFrame()
         {
-            RiderStates.Add(Tick(RiderStates[RiderStates.Count - 1]));
-        }
-
-        public Rider Tick(Rider state, int maxiterations = 6, Dictionary<int, Line> collisions = null)
-        {
-            return state.Simulate(this, collisions);
+            //todo collision
+            RiderStates.Add(RiderStates[RiderStates.Count - 1].Simulate(this,null));
         }
     }
 }

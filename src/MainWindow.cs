@@ -46,8 +46,7 @@ using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
 namespace linerider
 {
-    // ReSharper disable once InconsistentNaming
-    public class GLWindow : OpenTK.GameWindow
+    public class MainWindow : OpenTK.GameWindow
     {
         private enum Tools
         {
@@ -106,7 +105,7 @@ namespace linerider
 
         public Vector2d ScreenTranslation => -ScreenPosition;
         public TrackService Track { get; }
-        public GLWindow()
+        public MainWindow()
             : base(1280, 720, new GraphicsMode(new ColorFormat(32), 0, 0, 0, ColorFormat.Empty),
                    "Line Rider: Advanced", GameWindowFlags.Default, DisplayDevice.Default)
         {
@@ -119,8 +118,7 @@ namespace linerider
             _movetool = new MoveTool();
             SelectedTool = _penciltool;
             Track = new TrackService();
-            //todo reenable
-            VSync = VSyncMode.Off;
+            VSync = VSyncMode.Off;//todo change back before rls
             Context.ErrorChecking = true;
             WindowBorder = WindowBorder.Resizable;
             RenderFrame += (o, e) => { Render(); };
@@ -192,7 +190,7 @@ namespace linerider
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
                 GL.Clear(ClearBufferMask.ColorBufferBit);
                 GL.Enable(EnableCap.Blend);
-                
+
 #if debuggrid
                 GameRenderer.DbgDrawGrid();
 #endif
@@ -296,13 +294,19 @@ namespace linerider
 
         public void UpdateSongPosition(float seconds, bool reverse = false)
         {
-            if (Settings.Local.EnableSong && (!Track.Paused || TemporaryPlayback) && Track.PlaybackMode &&
-                !((HorizontalIntSlider)Canvas.FindChildByName("timeslider")).Held)
+            if (Settings.Local.EnableSong && 
+            (!Track.Paused || TemporaryPlayback) && 
+            Track.PlaybackMode &&
+            !((HorizontalIntSlider)Canvas.FindChildByName("timeslider")).Held)
             {
                 if (TemporaryPlayback && ReversePlayback)
-                    AudioService.Resume(Settings.Local.CurrentSong.Offset + seconds, -(Scheduler.UpdatesPerSecond / 40f));
+                    AudioService.Resume(
+                        Settings.Local.CurrentSong.Offset + seconds, 
+                        -(Scheduler.UpdatesPerSecond / 40f));
                 else
-                    AudioService.Resume(Settings.Local.CurrentSong.Offset + seconds, (Scheduler.UpdatesPerSecond / 40f));
+                    AudioService.Resume(
+                        Settings.Local.CurrentSong.Offset + seconds, 
+                        (Scheduler.UpdatesPerSecond / 40f));
             }
             else
             {
@@ -325,12 +329,30 @@ namespace linerider
             var renderer = new Gwen.Renderer.OpenTK();
 
             var skinpng = new Texture(renderer);
-            Gwen.Renderer.OpenTK.LoadTextureInternal(skinpng, GameResources.DefaultSkin);
+            Gwen.Renderer.OpenTK.LoadTextureInternal(
+                skinpng, 
+                GameResources.DefaultSkin);
+
             var fontpng = new Texture(renderer);
-            Gwen.Renderer.OpenTK.LoadTextureInternal(fontpng, GameResources.gamefont_15_png);
-            var gamefont_15 = new Gwen.Renderer.BitmapFont(renderer, GameResources.gamefont_15_fnt, fontpng);
-            var skin = new Gwen.Skin.TexturedBase(renderer, skinpng, GameResources.DefaultColors) { DefaultFont = gamefont_15 };
-            Canvas = new GameCanvas(skin, this, renderer);
+            Gwen.Renderer.OpenTK.LoadTextureInternal(
+                fontpng, 
+                GameResources.gamefont_15_png);
+
+            var gamefont_15 = new Gwen.Renderer.BitmapFont(
+                renderer, 
+                GameResources.gamefont_15_fnt, 
+                fontpng);
+
+            var skin = new Gwen.Skin.TexturedBase(renderer, 
+            skinpng, 
+            GameResources.DefaultColors
+            ) 
+            { DefaultFont = gamefont_15 };
+
+            Canvas = new GameCanvas(skin, 
+            this, 
+            renderer);
+
             _input = new Gwen.Input.OpenTK(this);
             _input.Initialize(Canvas);
             Canvas.ShouldDrawBackground = false;
@@ -460,7 +482,7 @@ namespace linerider
                 var gamepos = ScreenPosition + (pos / Track.Zoom);
                 using (var trk = Track.CreateTrackWriter())
                 {
-                    using (Track.EnterPlayback())
+                    using (Track.CreatePlaybackReader())
                     {
                         trk.Track.StartOffset = gamepos;
                         Track.Reset();
@@ -502,24 +524,24 @@ namespace linerider
             bool animating = Track.Playing;
             bool recording = Settings.Local.RecordingMode;
 
-            if (InputUtils.Check(Hotkey.PlaybackStartSlowmo))
+            if (InputUtils.Check(Hotkey.PlaybackStartSlowmo, true))
             {
                 Track.Start(false, true, false);
                 Scheduler.UpdatesPerSecond = Settings.Local.SlowmoSpeed;
                 UpdateSongPosition(Track.CurrentFrame / 40f);
                 return true;
             }
-            if (InputUtils.Check(Hotkey.PlaybackStartIgnoreFlag))
+            if (InputUtils.Check(Hotkey.PlaybackStartIgnoreFlag, true))
             {
                 Track.Start(true);
                 return true;
             }
-            if (InputUtils.Check(Hotkey.PlaybackStartGhostFlag))
+            if (InputUtils.Check(Hotkey.PlaybackStartGhostFlag, true))
             {
                 Track.Start(true, true, true, true);
                 return true;
             }
-            if (InputUtils.Check(Hotkey.PlaybackStart))
+            if (InputUtils.Check(Hotkey.PlaybackStart, true))
             {
                 Track.Start();
                 return true;
@@ -535,17 +557,17 @@ namespace linerider
                 return true;
             }
 
-            if (InputUtils.Check(Hotkey.LoadWindow))
+            if (InputUtils.Check(Hotkey.LoadWindow, true))
             {
                 Canvas.ShowLoadWindow();
                 return true;
             }
-            else if (InputUtils.Check(Hotkey.PreferencesWindow))
+            else if (InputUtils.Check(Hotkey.PreferencesWindow, true))
             {
                 Canvas.ShowPreferences();
                 return true;
             }
-            else if (InputUtils.Check(Hotkey.PreferenceOnionSkinning))
+            else if (InputUtils.Check(Hotkey.PreferenceOnionSkinning, true))
             {
                 Settings.Local.OnionSkinning = !Settings.Local.OnionSkinning;
                 return true;
@@ -557,7 +579,7 @@ namespace linerider
                 {
                     if (!Track.PlaybackMode)
                     {
-                        Track.Start();
+                        Track.Start(false, true, false);
                     }
                     if (!Track.Paused)
                         Track.TogglePause();
@@ -573,7 +595,7 @@ namespace linerider
                 {
                     if (!Track.PlaybackMode)
                     {
-                        Track.Start();
+                        Track.Start(false, true, false);
                     }
                     if (!Track.Paused)
                         Track.TogglePause();
@@ -615,11 +637,14 @@ namespace linerider
                     }
                     return true;
                 }
-                //todo these functions evaluate functionality
                 if (InputUtils.Check(Hotkey.PlaybackForward))
                 {
-                    if (!TemporaryPlayback && !Track.Playing && !e.IsRepeat)
+                    if (!TemporaryPlayback && !e.IsRepeat)
                     {
+                        if (animating)
+                        {
+                            Track.TogglePause();
+                        }
                         ReversePlayback = false;
                         TemporaryPlayback = true;
                         if (!Track.PlaybackMode)
@@ -633,7 +658,7 @@ namespace linerider
                 }
                 if (InputUtils.Check(Hotkey.PlaybackBackward))
                 {
-                    if (!TemporaryPlayback)
+                    if (!TemporaryPlayback && !e.IsRepeat)
                     {
                         if (Track.PlaybackMode)
                         {
@@ -645,52 +670,57 @@ namespace linerider
                     }
                     return true;
                 }
-                //end todo
 
                 if (InputUtils.Check(Hotkey.PlaybackTogglePause))
                 {
                     Track.TogglePause();
                     return true;
                 }
-                //todo evaluate track.offset != 0
-                if (Track.Paused && Track.Offset != 0)
+            }
+            if (!animating)
+            {
+                if (InputUtils.Check(Hotkey.PlaybackIterationNext))
                 {
-                    if (InputUtils.Check(Hotkey.PlaybackIterationNext))
+                    if (!Track.PlaybackMode)
                     {
-                        if (Track.IterationsOffset < 6)
-                        {
-                            Track.IterationsOffset++;
-                            Canvas.UpdateIterationUI();
-                        }
-                        else
-                        {
-                            Track.NextFrame();
-                            Invalidate();
-                            Canvas.UpdateIterationUI();
-                            Track.Camera.SetFrame(Track.RenderRider.CalculateCenter(), false);
-                        }
-                        return true;
+                        Track.Start(false, true, false);
                     }
-                    if (InputUtils.Check(Hotkey.PlaybackIterationPrev))
+                    if (!Track.Paused)
+                        Track.TogglePause();
+                    if (Track.IterationsOffset != 6)
+                    {
+                        Track.IterationsOffset++;
+                    }
+                    else
+                    {
+                        Track.NextFrame();
+                        Track.IterationsOffset = 0;
+                        Invalidate();
+                        Track.Camera.SetFrame(Track.RenderRider.CalculateCenter(), false);
+                    }
+                    Track.UpdateRenderRider();
+                    Canvas.UpdateIterationUI();
+                    return true;
+                }
+                if (InputUtils.Check(Hotkey.PlaybackIterationPrev))
+                {
+                    if (Track.Offset != 0)
                     {
                         if (Track.IterationsOffset > 0)
                         {
                             Track.IterationsOffset--;
-                            Canvas.UpdateIterationUI();
                         }
                         else
                         {
                             Track.PreviousFrame();
                             Invalidate();
-                            Canvas.UpdateIterationUI();
                             Track.Camera.SetFrame(Track.RenderRider.CalculateCenter(), false);
                         }
-                        return true;
+                        Canvas.UpdateIterationUI();
                     }
+                    return true;
                 }
-            }
-            if (!animating)
-            {
+
                 if (InputUtils.Check(Hotkey.EditorPencilTool))
                 {
                     SetTool(Tools.PencilTool);
@@ -744,7 +774,7 @@ namespace linerider
                     {
                         using (var trk = Track.CreateTrackWriter())
                         {
-                            SelectedTool?.Stop(); //BUGFIX SLAGwell removal.
+                            SelectedTool?.Stop();
                             var l = trk.GetLastLine();
                             if (l != null)
                             {
@@ -752,6 +782,7 @@ namespace linerider
                                 trk.RemoveLine(l);
                                 Track.UndoManager.EndAction();
                             }
+
                             Track.NotifyTrackChanged();
                             Invalidate();
                         }
@@ -909,14 +940,11 @@ namespace linerider
             if (_input.ProcessKeyUp(e) || Canvas.GetOpenWindows()?.Count > 1)
                 return;
 
-            if (e.Key == Key.Right || e.Key == Key.Left)
+            if (TemporaryPlayback && !InputUtils.Check(Hotkey.PlaybackForward) && !InputUtils.Check(Hotkey.PlaybackBackward))
             {
-                if (TemporaryPlayback)
-                {
-                    TemporaryPlayback = false;
-                    Scheduler.Reset();
-                    AudioService.Pause();
-                }
+                TemporaryPlayback = false;
+                Scheduler.Reset();
+                AudioService.Pause();
             }
         }
 

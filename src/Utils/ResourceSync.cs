@@ -35,14 +35,44 @@ namespace linerider.Utils
         public sealed class ResourceLock : IDisposable
         {
             private bool _disposed = false;
+            private bool _upgradableread = false;
             private bool _read;
             private bool _write;
             private ResourceSync _parent;
-            public ResourceLock(bool read, bool write, ResourceSync parent)
+            public ResourceLock(bool read, bool write, bool upgradableread, ResourceSync parent)
             {
                 _read = read;
                 _write = write;
                 _parent = parent;
+                _upgradableread = upgradableread;
+            }
+            public static ResourceLock Reader(ResourceSync parent)
+            {
+                return new ResourceLock(true, false, false, parent);
+            }
+            public static ResourceLock Writer(ResourceSync parent)
+            {
+                return new ResourceLock(false, true, false, parent);
+            }
+            public static ResourceLock UpgradableReader(ResourceSync parent)
+            {
+                return new ResourceLock(false, false, true, parent);
+            }
+            public void UpgradeToWriter()
+            {
+                if (_disposed)
+                    return;
+                if (!_upgradableread)
+                {
+                    throw new InvalidOperationException("Attempt to upgrade a non upgradable resource reader");
+                }
+                if (_write)
+                {
+                    throw new InvalidOperationException("Attempt to upgrade an already upgraded resource reader");
+                }
+                _parent.UnsafeEnterWrite();
+                _write = true;
+
             }
             public void Dispose()
             {
@@ -56,6 +86,10 @@ namespace linerider.Utils
                 {
                     _parent.UnsafeExitWrite();
                 }
+                if (_upgradableread)
+                {
+                    _parent.UnsafeExitUpgradableRead();
+                }
                 _disposed = true;
             }
         }
@@ -64,19 +98,24 @@ namespace linerider.Utils
         {
             if (_lock.TryEnterReadLock(0))
             {
-                return new ResourceLock(true, false, this);
+                return ResourceLock.Reader(this);
             }
             return null;
         }
         public ResourceLock AcquireRead()
         {
             UnsafeEnterRead();
-            return new ResourceLock(true, false, this);
+            return ResourceLock.Reader(this);
+        }
+        public ResourceLock AcquireUpgradableRead()
+        {
+            UnsafeEnterUpgradableRead();
+            return ResourceLock.UpgradableReader(this);
         }
         public ResourceLock AcquireWrite()
         {
             UnsafeEnterWrite();
-            return new ResourceLock(false, true, this);
+            return ResourceLock.Writer(this);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -89,6 +128,7 @@ namespace linerider.Utils
         {
             _lock.ExitReadLock();
         }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void UnsafeEnterWrite()
         {
@@ -98,6 +138,17 @@ namespace linerider.Utils
         public void UnsafeExitWrite()
         {
             _lock.ExitWriteLock();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void UnsafeEnterUpgradableRead()
+        {
+            _lock.EnterUpgradeableReadLock();
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void UnsafeExitUpgradableRead()
+        {
+            _lock.ExitUpgradeableReadLock();
         }
     }
 }

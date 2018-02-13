@@ -18,7 +18,7 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>6</LangVersion>
+    <LangVersion>7</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -26,7 +26,7 @@
     <WarningLevel>4</WarningLevel>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>6</LangVersion>
+    <LangVersion>7</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -35,15 +35,12 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="ErrorLog.cs" />
+    <Compile Include="MainWindow.cs" />
     <Compile Include="GameResources.cs" />
     <Compile Include="GameService.cs" />
-    <Compile Include="Models.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="Track.cs" />
-    <Compile Include="UndoManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Audio\AudioDevice.cs" />
@@ -53,28 +50,28 @@
     <Compile Include="Audio\Song.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controls\GameCanvas.cs" />
-    <Compile Include="Controls\GLWindow.cs" />
-    <Compile Include="Controls\TrackService.cs" />
+    <Compile Include="Frontend\GameCanvas.cs" />
+    <Compile Include="Frontend\TrackService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Drawing\DrawOptions.cs" />
-    <Compile Include="Drawing\GenericVBO.cs" />
     <Compile Include="Drawing\GenericVertex.cs" />
+    <Compile Include="Drawing\GLBuffer.cs" />
+    <Compile Include="Drawing\GLEnableCap.cs" />
     <Compile Include="Drawing\KnobState.cs" />
+    <Compile Include="Drawing\Models.cs" />
     <Compile Include="Drawing\LineVertex.cs" />
     <Compile Include="Drawing\MsaaFbo.cs" />
     <Compile Include="Drawing\SafeFrameBuffer.cs" />
     <Compile Include="Drawing\Shader.cs" />
-    <Compile Include="Drawing\TrackVBO.cs" />
     <Compile Include="Drawing\VAO.cs" />
-    <Compile Include="Drawing\VBO.cs" />
-    <Compile Include="Drawing\VertexManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Rendering\GameDrawingMatrix.cs" />
     <Compile Include="Rendering\GameRenderer.cs" />
-    <Compile Include="Rendering\GLEnableCap.cs" />
+    <Compile Include="Rendering\LineColorRenderer.cs" />
+    <Compile Include="Rendering\WellRenderer.cs" />
+    <Compile Include="Rendering\LineRenderer.cs" />
     <Compile Include="Rendering\LineDecorator.cs" />
     <Compile Include="Rendering\SimulationRenderer.cs" />
     <Compile Include="Rendering\StaticRenderer.cs" />
@@ -104,11 +101,15 @@
     <Compile Include="Game\FPSCounter.cs" />
     <Compile Include="Game\GameScheduler.cs" />
     <Compile Include="Game\GridPoint.cs" />
+    <Compile Include="Game\ImmutablePointCollection.cs" />
     <Compile Include="Game\Rider.cs" />
+    <Compile Include="Game\SimulationGridOverlay.cs" />
     <Compile Include="Game\RiderConstants.cs" />
     <Compile Include="Game\SimulationCell.cs" />
     <Compile Include="Game\SimulationGrid.cs" />
+    <Compile Include="Game\SimulationGridStatic.cs" />
     <Compile Include="Game\SimulationPoint.cs" />
+    <Compile Include="Game\Track.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Tools\EraserTool.cs" />
@@ -142,10 +143,12 @@
     <Compile Include="UI\SaveWindow.cs" />
     <Compile Include="UI\SongWindow.cs" />
     <Compile Include="UI\Sprite.cs" />
+    <Compile Include="UI\UndoManager.cs" />
     <Compile Include="UI\Window.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Utils\Angle.cs" />
+    <Compile Include="Utils\ArrayWrapper.cs" />
     <Compile Include="Utils\DoubleRect.cs" />
     <Compile Include="Utils\FloatRect.cs" />
     <Compile Include="Utils\PlaybackBufferManager.cs" />
@@ -154,6 +157,8 @@
     <Compile Include="Utils\TrackWriter.cs" />
     <Compile Include="Utils\Turtle.cs" />
     <Compile Include="Utils\Utility.cs" />
+    <Compile Include="Utils\RectLRTB.cs" />
+    <Compile Include="Utils\ErrorLog.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="NVorbis, Version=0.8.5.0, Culture=neutral, processorArchitecture=MSIL">
@@ -166,6 +171,9 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Runtime.CompilerServices.Unsafe">
+      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.4.4.0\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\beep.wav" />

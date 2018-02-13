@@ -15,7 +15,7 @@ void main()
     gl_Position = gl_ModelViewProjectionMatrix * vec4(in_vertex,0.0,1.0);
     v_circle = in_circle;
     v_ratio = in_ratio;
-    if (u_color.w == 0)
+    if (u_color.a < in_color.a)
         v_color = in_color;
     else
         v_color = u_color;

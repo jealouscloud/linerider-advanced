@@ -6,7 +6,11 @@ namespace linerider.Game
     {
         public Vector2d Remainder;
         public GridPoint Point; 
-
+        public CellLocation(GridPoint point, Vector2d remainder)
+        {
+            Point = point;
+            Remainder = remainder;
+        }
         public int X 
         {
             get

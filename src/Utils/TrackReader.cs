@@ -75,21 +75,22 @@ namespace linerider
                 return null;
             return Track.Lines[0];
         }
-        //todo this function does not prevent Line data from being written to
         public IEnumerable<Line> GetLinesInRect(FloatRect rect, bool precise)
         {
             return Track.GetLinesInRect(rect, precise);
         }
 
-        public Rider Tick(Rider state)
+        /// <summary>
+        /// Ticks the rider in the simulation without updating triggers, collisions, etc
+        /// </summary>
+        public Rider TickBasic(Rider state, int maxiteration = 6)
         {
-            var ret = Track.Tick(state);
-            return ret;
+            return state.Simulate(_track.Grid, _track.Bones, null, null, maxiteration);
         }
 
-        public HashSet<int> Diagnose(Rider state, int maxiteration = 6)
+        public List<int> Diagnose(Rider state, int maxiteration = 6)
         {
-            return Track.Diagnose(state, maxiteration);
+            return state.Diagnose(Track, null, maxiteration);
         }
         public void SaveTrackAsSol()
         {

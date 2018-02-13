@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Diagnostics;
 using linerider.Utils;
 using linerider.Drawing;
 
@@ -32,219 +33,282 @@ namespace linerider.Rendering
 {
     internal class TrackRenderer
     {
+        private enum LineActionType
+        {
+            Add,
+            Change,
+            Remove
+        }
         public static Shader LineShader;
         public bool RequiresUpdate = true;
 
         private LineDecorator _decorator;
-        private TrackVBO _simvbo;
-        private TrackVBO _sceneryvbo;
-        private VertexManager<LineVertex> _sceneryvertman;
+        private LineRenderer _physvbo;
+        private LineRenderer _sceneryvbo;
         /// <summary>
         /// A dictionary of [line id] -> [index of first vertex]
         /// </summary>
-        private Dictionary<int, int> _lines = new Dictionary<int, int>();
+        private Dictionary<int, int> _physlines;
 
-        // We have a seperate scenery vbo for explicitly rendering it under the sim one.
         /// <summary>
         /// A dictionary of [line id] -> [index of first IBO index]
         /// </summary>
-        private Dictionary<int, int> _scenerylines = new Dictionary<int, int>();
+        /// <remarks>
+        /// We have a seperate scenery vbo for rendering it under the sim one.
+        /// </remarks>
+        private Dictionary<int, int> _scenerylines;
+
+        /// <summary>
+        /// We use an action queue system instead of instantly adding to the renderer
+        /// for the sake of multithreading safety
+        /// </summary>
+        private Queue<Tuple<LineActionType, Line>> _lineactions;
         private ResourceSync _sync;
         public TrackRenderer()
         {
             _sync = new ResourceSync();
+            _lineactions = new Queue<Tuple<LineActionType, Line>>();
+            _physlines = new Dictionary<int, int>();
+            _scenerylines = new Dictionary<int, int>();
             if (LineShader == null)
             {
-                LineShader = new Shader(GameResources.simline_vert, GameResources.simline_frag);
+                LineShader = new Shader(
+                    GameResources.simline_vert,
+                    GameResources.simline_frag);
             }
-            _simvbo = new TrackVBO(LineShader, false);
-            _simvbo.LineColor = Color.Black;
             _decorator = new LineDecorator();
+            _physvbo = new LineRenderer(LineShader);
+            _physvbo.LineColor = Color.Black;
 
-            _sceneryvbo = new TrackVBO(LineShader, true);
+            _sceneryvbo = new LineRenderer(LineShader);
             _sceneryvbo.LineColor = Color.Black;
-            _sceneryvertman = new VertexManager<LineVertex>(_sceneryvbo);
         }
         public void Render(Track track, DrawOptions options)
         {
             using (new GLEnableCap(EnableCap.Texture2D))
             {
-                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+                UpdateBuffers();
+                GL.BlendFunc(
+                    BlendingFactorSrc.SrcAlpha,
+                    BlendingFactorDest.OneMinusSrcAlpha);
                 GameDrawingMatrix.Enter();
-                _simvbo.Scale = options.Zoom;
-                _simvbo.KnobState = options.KnobState;
+                _physvbo.Scale = options.Zoom;
+                _physvbo.KnobState = options.KnobState;
 
                 _sceneryvbo.Scale = options.Zoom;
-                _sceneryvbo.KnobState = options.KnobState == KnobState.LifeLock ? KnobState.Shown : options.KnobState;//green lines dont get lifelock
-
+                //green lines dont get lifelock
+                if (options.KnobState != KnobState.Hidden)
+                    _sceneryvbo.KnobState = KnobState.Shown;
+                else
+                    _sceneryvbo.KnobState = KnobState.Hidden;
+                    
                 if (options.NightMode)
                 {
                     _sceneryvbo.LineColor = Color.White;
-                    _simvbo.LineColor = Color.White;
+                    _physvbo.LineColor = Color.White;
                 }
                 else
                 {
                     _sceneryvbo.LineColor = Color.Black;
-                    _simvbo.LineColor = Color.Black;
+                    _physvbo.LineColor = Color.Black;
                 }
                 if (options.LineColors)
                 {
                     _sceneryvbo.LineColor = Line.SceneryLineColor;
                 }
-                else
-                {
-                }
-                _sceneryvbo.Draw(PrimitiveType.Triangles);
+                _sceneryvbo.Draw();
                 _decorator.Draw(options);
-                _simvbo.Draw(PrimitiveType.Triangles);
+                _physvbo.Draw();
                 GameDrawingMatrix.Exit();
             }
         }
-
         /// <summary>
-        /// Updates viewport.
+        /// Clears the renderer and initializes it with new lines.
         /// </summary>
-        /// <param name="lfines">Lines in current viewport, in the following order</param>
-        /// <param name="colors"></param>
-        /// <param name="knobstate"></param>
-        public void InitializeTrack(IEnumerable<Line> vpu)
+        public void InitializeTrack(IList<Line> vpu)
         {
-            _simvbo.Clear();
-            _decorator.Clear();
-            _lines.Clear();
-            _scenerylines.Clear();
-            _lines.Clear();
-            _sceneryvertman = new VertexManager<LineVertex>(_sceneryvbo);
+            using (_sync.AcquireWrite())
+            {
+                _lineactions.Clear();
+                _physvbo.Clear();
+                _sceneryvbo.Clear();
+                _decorator.Clear();
+                _physlines.Clear();
+                _scenerylines.Clear();
+                _physlines.Clear();
+            }
             if (vpu != null)
             {
+                List<Line> scenery = new List<Line>(vpu.Count);
+                List<Line> phys = new List<Line>(vpu.Count);
                 foreach (var v in vpu)
                 {
-                    AddLine(v);
+                    if (v.GetLineType() == LineType.Scenery)
+                    {
+                        scenery.Add(v);
+                    }
+                    else
+                    {
+                        phys.Add(v);
+                        _decorator.AddLine((StandardLine)v);
+                    }
+                }
+                if (scenery.Count != 0)
+                {
+                    _scenerylines = _sceneryvbo.AddLines(
+                        scenery,
+                        Color.FromArgb(0));
+                }
+                if (phys.Count != 0)
+                {
+                    _physlines = _physvbo.AddLines(
+                        phys,
+                        Color.FromArgb(0));
                 }
             }
         }
-
         public void AddLine(Line line)
         {
-            var type = line.GetLineType();
-            switch (type)
+            RequiresUpdate = true;
+            using (_sync.AcquireWrite())
             {
-                case LineType.Blue:
-                case LineType.Red:
-                    AddSimLine((StandardLine)line);
-                    break;
-                case LineType.Scenery:
-                    AddSceneryLine((SceneryLine)line);
-                    break;
-            }
-        }
-        public void RemoveLine(Line line)
-        {
-            var type = line.GetLineType();
-            switch (type)
-            {
-                case LineType.Blue:
-                case LineType.Red:
-                    RemoveSimLine((StandardLine)line);
-                    break;
-                case LineType.Scenery:
-                    RemoveSceneryLine((SceneryLine)line);
-                    break;
+                _lineactions.Enqueue(
+                    new Tuple<LineActionType, Line>(
+                        LineActionType.Add,
+                        line));
             }
         }
         public void LineChanged(Line line)
         {
-            var type = line.GetLineType();
-            switch (type)
+            RequiresUpdate = true;
+            using (_sync.AcquireWrite())
             {
-                case LineType.Blue:
-                case LineType.Red:
-                    SimLineChanged((StandardLine)line);
-                    break;
-                case LineType.Scenery:
-                    SceneryLineChanged((SceneryLine)line);
-                    break;
+                _lineactions.Enqueue(
+                    new Tuple<LineActionType, Line>(
+                        LineActionType.Change,
+                        line));
             }
         }
-        #region scenery
-        private void AddSceneryLine(SceneryLine line)
+        public void RemoveLine(Line line)
         {
-            if (_scenerylines.ContainsKey(line.ID))
+            RequiresUpdate = true;
+            using (_sync.AcquireWrite())
             {
-                System.Diagnostics.Debug.WriteLine("Line ID collision in scenery renderer");
-                SceneryLineChanged(line);
-                return;
-            }
-            var lineverts = TrackVBO.CreateTrackLine(line.Position, line.Position2, 2 * line.Width);
-            int start = -1;
-            for (int i = 0; i < lineverts.Length; i++)
-            {
-                var idx = _sceneryvbo.AddIndex(_sceneryvertman.AddVertex(lineverts[i]));
-                if (start == -1)
-                    start = idx;
-            }
-            _scenerylines.Add(line.ID, start);
-        }
-        private void SceneryLineChanged(SceneryLine line)
-        {
-            var lineverts = TrackVBO.CreateTrackLine(line.Position, line.Position2, 2);
-            int start = _scenerylines[line.ID];
-            for (int i = 0; i < lineverts.Length; i++)
-            {
-                _sceneryvbo.SetVertex(_sceneryvbo.GetIndex(start + i), lineverts[i]);
+                _lineactions.Enqueue(
+                    new Tuple<LineActionType, Line>(
+                        LineActionType.Remove,
+                        line));
             }
         }
-        private void RemoveSceneryLine(SceneryLine line)
+        private void UpdateBuffers()
         {
-            var start = _scenerylines[line.ID];
-            _sceneryvertman.FreeVertices(_sceneryvbo.GetIndex(start), 6);
-            _sceneryvertman.FreeIndices(start, 6);
-            _scenerylines.Remove(line.ID);
-        }
-        #endregion
-        #region simulation
-        private void AddSimLine(StandardLine line)
-        {
-            if (_lines.ContainsKey(line.ID))
+            using (_sync.AcquireWrite())
             {
-                System.Diagnostics.Debug.WriteLine("Line ID collision in sim renderer");
-                LineChanged(line);
-                return;
-            }
-            var lineverts = TrackVBO.CreateTrackLine(line.Position, line.Position2, 2);
-            int start = -1;
-            for (int i = 0; i < lineverts.Length; i++)
-            {
-                var index = _simvbo.AddVertex(lineverts[i], Color.Black);
-                if (start == -1)
-                    start = index;
-            }
-            _lines.Add(line.ID, start);
-            _decorator.AddLine(line);
-        }
-        private void SimLineChanged(StandardLine line)
-        {
-            var lineverts = TrackVBO.CreateTrackLine(line.Position, line.Position2, 2);
-            int start = _lines[line.ID];
-            for (int i = 0; i < lineverts.Length; i++)
-            {
-                _simvbo.SetVertex(start + i, lineverts[i], Color.Black);
-            }
-            _decorator.LineChanged(line);
-        }
-        private void RemoveSimLine(StandardLine line)
-        {
-            var l = _lines[line.ID];
-            var empty = new LineVertex();
-            if (!_simvbo.TryFreeVertices(l, 6))
-            {
-                for (int i = 0; i < 6; i++)
+                while (_lineactions.Count != 0)
                 {
-                    _simvbo.SetVertex(l + i, empty);
+                    var dequeued = _lineactions.Dequeue();
+                    var line = dequeued.Item2;
+                    var type = line.GetLineType();
+                    switch (dequeued.Item1)
+                    {
+                        case LineActionType.Add:
+                            if (type == LineType.Scenery)
+                            {
+                                AddLine(
+                                    line,
+                                    _sceneryvbo,
+                                    _scenerylines);
+                            }
+                            else
+                            {
+                                AddLine(
+                                    line,
+                                    _physvbo,
+                                    _physlines);
+                                _decorator.AddLine((StandardLine)line);
+                            }
+                            break;
+                        case LineActionType.Remove:
+                            if (type == LineType.Scenery)
+                            {
+                                RemoveLine(
+                                    line,
+                                    _sceneryvbo,
+                                    _scenerylines);
+                            }
+                            else
+                            {
+                                RemoveLine(
+                                    line,
+                                    _physvbo,
+                                    _physlines);
+                                _decorator.RemoveLine((StandardLine)line);
+                            }
+                            break;
+                        case LineActionType.Change:
+                            if (type == LineType.Scenery)
+                            {
+                                LineChanged(
+                                    line,
+                                    _sceneryvbo,
+                                    _scenerylines);
+                            }
+                            else
+                            {
+                                LineChanged(
+                                    line,
+                                    _physvbo,
+                                    _physlines);
+                                _decorator.LineChanged((StandardLine)line);
+                            }
+                            break;
+                    }
                 }
+                _lineactions.Clear();
             }
-            _decorator.RemoveLine(line);
         }
-        #endregion
+        private void AddLine(
+            Line line,
+            LineRenderer renderer,
+            Dictionary<int, int> lookup)
+        {
+            if (lookup.ContainsKey(line.ID))
+            {
+                Debug.WriteLine("Line ID collision in sim renderer");
+                LineChanged(line, renderer, lookup);
+                return;
+            }
+            var lineverts = LineRenderer.CreateTrackLine(
+                line.Position,
+                line.Position2,
+                2,
+                0);
+            int start = renderer.AddLine(lineverts);
+            lookup.Add(line.ID, start);
+        }
+        private void LineChanged(
+            Line line,
+            LineRenderer renderer,
+            Dictionary<int, int> lookup)
+        {
+            float width = 2;
+            if (line is SceneryLine scenery)
+                width *= scenery.Width;
+            var lineverts = LineRenderer.CreateTrackLine(
+                line.Position,
+                line.Position2,
+                width,
+                0);
+            renderer.ChangeLine(lookup[line.ID], lineverts);
+        }
+        private void RemoveLine(
+            Line line,
+            LineRenderer renderer,
+            Dictionary<int, int> lookup)
+        {
+            int start = lookup[line.ID];
+            renderer.RemoveLine(start);
+            // preserve the id in the lookup in event of undo
+        }
     }
 }

@@ -65,18 +65,28 @@ namespace linerider
             return new TrackWriter(sync.AcquireWrite(), track) { _undo = undo, _renderer = renderer, _buffermanager = manager };
         }
         /// <summary>
-        /// state a change to the undo and buffer managers.
+        /// state a change to the undo manager
         /// always needs to be in PAIRS with a before and after
         /// </summary>
-        private void StateChange(Line line, bool exists)
+        private void SaveStateForUndo(Line line, bool exists)
         {
-            if (_undo != null || _buffermanager != null)
+            if (_undo != null)
             {
                 var state = line.GetState();
                 state.Exists = exists;
                 _undo?.AddChange(state);
-                _buffermanager?.AddChange(state);
             }
+        }
+        /// <summary>
+        /// State a change to the buffer manager
+        /// call this before making the change, as the buffer manager
+        /// backs up cells and compares their output to the new cells
+        /// </summary>
+        /// <param name="linestart">line.Position</param>
+        /// <param name="lineend">line.Position2</param>
+        private void SaveCells(Vector2d linestart, Vector2d lineend)
+        {
+            _buffermanager?.SaveCells(linestart, lineend);
         }
         /// <summary>
         /// Moves the line in the track, grid, and renderer. Is naive to extensions, and notifies the undo/buffer managers
@@ -86,13 +96,20 @@ namespace linerider
         {
             if (line.Position != pos1 || line.Position2 != pos2)
             {
-                StateChange(line, true);
+                SaveStateForUndo(line, true);
+
+                if (line is StandardLine)
+                {
+                    SaveCells(line.Position, line.Position2);
+                    SaveCells(pos1, pos2);
+                }
+
                 Track.RemoveLineFromGrid(line);
                 line.Position = pos1;
                 line.Position2 = pos2;
                 line.CalculateConstants();
                 Track.AddLineToGrid(line);
-                StateChange(line, true);
+                SaveStateForUndo(line, true);
                 _renderer.RedrawLine(line);
             }
         }
@@ -100,35 +117,39 @@ namespace linerider
         /// Adds the line to the track, grid, and renderer. Is naive to extensions, and notifies the undo/buffer managers
         /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
         /// </summary>
-        public void AddLine(Line l)
+        public void AddLine(Line line)
         {
             //give a "before" state
-            StateChange(l, false);
+            SaveStateForUndo(line, false);
 
-            Track.AddLine(l);
+            if (line is StandardLine)
+                SaveCells(line.Position, line.Position2);
+
+            Track.AddLine(line);
             //"after" state.
-            StateChange(l, true);
-            _renderer.AddLine(l);
+            SaveStateForUndo(line, true);
+            _renderer.AddLine(line);
         }
         /// <summary>
         /// Removes the line from the track, grid, and renderer, updates extensions, and notifies undo/buffer managers.
         /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
         /// </summary>
-        public void RemoveLine(Line l)
+        public void RemoveLine(Line line)
         {
             //give a "before" state
-            StateChange(l, true);
+            SaveStateForUndo(line, true);
 
-            if (l is StandardLine)
+            if (line is StandardLine)
             {
-                var st = l as StandardLine;
+                SaveCells(line.Position, line.Position2);
+                var st = line as StandardLine;
                 TryDisconnectLines(st, st.Next);
                 TryDisconnectLines(st, st.Prev);
             }
-            Track.RemoveLine(l);
+            Track.RemoveLine(line);
             //"after" state
-            StateChange(l, false);
-            _renderer.RemoveLine(l);
+            SaveStateForUndo(line, false);
+            _renderer.RemoveLine(line);
         }
         /// <summary>
         /// Tries to disconnect two lines that are currently on the grid, updating extensions
@@ -144,21 +165,30 @@ namespace linerider
                 joint = l1.Position2;
             else
                 return;
+
+            if (l1 is StandardLine)
+                SaveCells(l1.Position, l1.Position2);
+            if (l2 is StandardLine)
+                SaveCells(l2.Position, l2.Position2);
+
             var rightlink = (l1.End == joint && l2.Start == joint);
-            StateChange(l1, true);
+            SaveStateForUndo(l1, true);
             if (rightlink)
             {
                 l1.Next = null;
                 l1.RemoveExtension(StandardLine.ExtensionDirection.Right);
-                StateChange(l1, true);
+                SaveStateForUndo(l1, true);
                 l2.Prev = null;
                 l2.RemoveExtension(StandardLine.ExtensionDirection.Left);
+                // we currently do not save state for undo for l2 because
+                // when l1 is undone it understands that l1.next could only be
+                // set if l2.prev is set as well.
             }
             else
             {
                 l1.Prev = null;
                 l1.RemoveExtension(StandardLine.ExtensionDirection.Left);
-                StateChange(l1, true);
+                SaveStateForUndo(l1, true);
 
                 l2.Next = null;
                 l2.RemoveExtension(StandardLine.ExtensionDirection.Right);
@@ -197,7 +227,11 @@ namespace linerider
             bool cmp2 = anglediff2 > 0 && anglediff2 <= 180;
             if ((rightlink) ? cmp2 : cmp1)
             {
-                StateChange(l1, true);
+                if (l1 is StandardLine)
+                    SaveCells(l1.Position, l1.Position2);
+                if (l2 is StandardLine)
+                    SaveCells(l2.Position, l2.Position2);
+                SaveStateForUndo(l1, true);
                 if (rightlink)
                 {
                     l1.Next = l2;
@@ -212,7 +246,7 @@ namespace linerider
                     l2.Next = l1;
                     l2.AddExtension(StandardLine.ExtensionDirection.Right);
                 }
-                StateChange(l1, true);
+                SaveStateForUndo(l1, true);
             }
         }
     }

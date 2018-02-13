@@ -11,6 +11,15 @@ namespace linerider
 {
     public class SimulationCell : SimulationCell<StandardLine>
     {
+        public SimulationCell FullClone()
+        {
+            var ret = new SimulationCell();
+            foreach (var l in this)
+            {
+                ret.AddLine(l.Clone());
+            }
+            return ret;
+        }
     }
     /// <summary>
     /// A grid cell for the line rider simulation that puts lines with larger IDs first
@@ -35,8 +44,7 @@ namespace linerider
             var node = _list.First;
             foreach (var line in cell)
             {
-                // scenery line ids dont matter
-                if (node != null && line.ID >= 0)
+                if (node != null)
                 {
                     while (line.ID < node.Value.ID)
                     {
@@ -47,20 +55,14 @@ namespace linerider
                         }
                     }
                     if (node == null)
-                        _list.AddLast(line);
+                        node = _list.AddLast(line);
                     else if (node.Value != line) // no redundant lines
                         _list.AddBefore(node, line);
                 }
                 else
                 {
-                    _list.AddLast(line);
+                    node = _list.AddFirst(line);
                 }
-            }
-            int last = 0;
-            foreach (var v in this)
-            {
-                if (v.ID < last && v.ID >= 0)
-                    throw new Exception("Unacceptable combine [ remove this check before release ]");
             }
         }
         public void AddLine(T line)
