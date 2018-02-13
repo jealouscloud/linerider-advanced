@@ -217,12 +217,12 @@ namespace linerider.Rendering
                 blend.Dispose();
         }
 
-        public static void DrawTrackLine(StandardLine l, Color color, bool drawwell, bool drawcolor, bool drawknobs, bool redknobs = false)
+        public static void DrawTrackLine(StandardLine line, Color color, bool drawwell, bool drawcolor, bool drawknobs, bool redknobs = false)
         {
             color = Color.FromArgb(255, color);
             var thickness = 2;
             Color color2;
-            var type = l.GetLineType();
+            var type = line.Type;
             switch (type)
             {
                 case LineType.Blue:
@@ -238,35 +238,35 @@ namespace linerider.Rendering
             }
             if (drawcolor)
             {
-                var loc3 = l.DiffNormal.X > 0 ? (Math.Ceiling(l.DiffNormal.X)) : (Math.Floor(l.DiffNormal.X));
-                var loc4 = l.DiffNormal.Y > 0 ? (Math.Ceiling(l.DiffNormal.Y)) : (Math.Floor(l.DiffNormal.Y));
+                var loc3 = line.DiffNormal.X > 0 ? (Math.Ceiling(line.DiffNormal.X)) : (Math.Floor(line.DiffNormal.X));
+                var loc4 = line.DiffNormal.Y > 0 ? (Math.Ceiling(line.DiffNormal.Y)) : (Math.Floor(line.DiffNormal.Y));
                 if (type == LineType.Red)
                 {
-                    var redline = l as RedLine;
+                    var redline = line as RedLine;
                     GameDrawingMatrix.Enter();
                     GL.Color3(color2);
                     GL.Begin(PrimitiveType.Triangles);
-                    var basepos = l.Position2;
+                    var basepos = line.Position2;
                     for (int ix = 0; ix < redline.Multiplier; ix++)
                     {
-                        var angle = MathHelper.RadiansToDegrees(Math.Atan2(l.diff.Y, l.diff.X));
-                        Turtle t = new Turtle(l.Position2);
+                        var angle = MathHelper.RadiansToDegrees(Math.Atan2(line.Difference.Y, line.Difference.X));
+                        Turtle t = new Turtle(line.Position2);
                         var basex = 8 + (ix * 2);
                         t.Move(angle, -basex);
                         GL.Vertex2(new Vector2((float)t.X, (float)t.Y));
-                        t.Move(90, l.inv ? -8 : 8);
+                        t.Move(90, line.inv ? -8 : 8);
                         GL.Vertex2(new Vector2((float)t.X, (float)t.Y));
-                        t.Point = l.Position2;
+                        t.Point = line.Position2;
                         t.Move(angle, -(ix * 2));
                         GL.Vertex2(new Vector2((float)t.X, (float)t.Y));
                     }
                     GL.End();
                     GameDrawingMatrix.Exit();
                 }
-                RenderRoundedLine(new Vector2d(l.Position.X + loc3, l.Position.Y + loc4),
-                    new Vector2d(l.Position2.X + loc3, l.Position2.Y + loc4), color2, thickness);
+                RenderRoundedLine(new Vector2d(line.Position.X + loc3, line.Position.Y + loc4),
+                    new Vector2d(line.Position2.X + loc3, line.Position2.Y + loc4), color2, thickness);
             }
-            RenderRoundedLine(l.Position, l.Position2, color, thickness, drawknobs, redknobs);
+            RenderRoundedLine(line.Position, line.Position2, color, thickness, drawknobs, redknobs);
             if (drawwell)
             {
                 using (new GLEnableCap(EnableCap.Blend))
@@ -275,12 +275,12 @@ namespace linerider.Rendering
                     GameDrawingMatrix.Enter();
                     GL.Begin(PrimitiveType.Quads);
                     GL.Color4(new Color4(150, 150, 150, 150));
-                    var rect = StaticRenderer.GenerateThickLine((Vector2)l.Position, (Vector2)l.Position2, (float)(StandardLine.Zone * 2));
+                    var rect = StaticRenderer.GenerateThickLine((Vector2)line.Position, (Vector2)line.Position2, (float)(StandardLine.Zone * 2));
 
-                    GL.Vertex2(l.Position);
-                    GL.Vertex2(l.Position2);
-                    GL.Vertex2(rect[l.inv ? 2 : 1]);
-                    GL.Vertex2(rect[l.inv ? 3 : 0]);
+                    GL.Vertex2(line.Position);
+                    GL.Vertex2(line.Position2);
+                    GL.Vertex2(rect[line.inv ? 2 : 1]);
+                    GL.Vertex2(rect[line.inv ? 3 : 0]);
                     GL.End();
                     GL.PopMatrix();
                 }

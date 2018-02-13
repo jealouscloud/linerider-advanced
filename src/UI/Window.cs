@@ -62,70 +62,11 @@ namespace linerider.UI
             // ive written similar code to this over and over again and i'm so fucking tired of it
             // i rewrote fucking gwen's layout engine and cant actually commit it to master because
             // i can't afford the time it takes to maintain that project too
-            string idontcareanymore = "";
-            string remaining = "";
-            for (int i = 0; i < Text.Length; i++)
+            var f = (Gwen.Renderer.BitmapFont)font;
+            var wrapped = f.fontdata.WordWrap(Text,maxwidth);
+            foreach(var line in wrapped)
             {
-                var idx = Text.IndexOfAny(new char[] { ' ', '\n' }, i);
-                if (idx != -1)
-                {
-                    var substr = Text.Substring(i, idx - i);
-                    var sz = Skin.Renderer.MeasureText(font, idontcareanymore + substr);
-                    var subsz = Skin.Renderer.MeasureText(font, substr);
-
-                    if (Text[idx] == '\n')
-                    {
-                        AddLine(idontcareanymore + substr);
-                        idontcareanymore = "";
-                        i = idx;//skip the newline
-                    }
-                    else if (subsz.X > maxwidth)
-                    {
-                        var remain = BreakString(idontcareanymore + substr, maxwidth);
-                        i = idx - remain;//start again on what does fit...
-                    }
-                    else if (sz.X > maxwidth)
-                    {
-                        AddLine(idontcareanymore);
-                        idontcareanymore = "";
-                        if (Skin.Renderer.MeasureText(font, substr).X < maxwidth)
-                        {
-                            i--;//repeat this word with a newline
-                        }
-                    }
-                    else
-                    {
-                        idontcareanymore += substr + " ";
-                        i = idx;//for loop will inc
-                    }
-                }
-                else
-                {
-                    remaining = Text.Substring(i, Text.Length - i);
-                    break;
-                }
-            }
-            if (idontcareanymore.Length != 0 || remaining.Length != 0)
-            {
-                var sz = Skin.Renderer.MeasureText(font, idontcareanymore + remaining);
-                if (sz.X > maxwidth)
-                {
-                    if (Skin.Renderer.MeasureText(font,remaining).X > maxwidth)
-                    {
-                        var remain = BreakString(idontcareanymore + remaining, maxwidth);
-                        if (remain != 0)
-                            AddLine(Text.Substring(Text.Length - remain, remain));
-                    }
-                    else
-                    {
-                        AddLine(idontcareanymore);
-                        AddLine(remaining);
-                    }
-                }
-                else
-                {
-                    AddLine(idontcareanymore + remaining);
-                }
+                AddLine(line);
             }
             Container.BringToFront();
             m_InnerPanel.Layout();

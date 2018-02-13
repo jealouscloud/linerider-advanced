@@ -68,7 +68,10 @@ namespace linerider.UI
             foreach (var folder in folders)
             {
                 var trackname = Path.GetFileName(folder);
-                cb.AddItem(trackname);
+                if (trackname != Utils.Constants.DefaultTrackName)
+                {
+                    cb.AddItem(trackname);
+                }
             }
             cb.SelectByText(game.Track.Name);
             var btn = new Button(bottom) { Name = "savebtn" };
@@ -91,12 +94,12 @@ namespace linerider.UI
                 if (txt == "<create new track>")
                 {
                     txt = tb.Text;
-                    if (txt.Length == 0)
-                        return;
                 }
-                if (!TrackLoader.CheckValidFilename(txt + tb.Text))
+                if (!TrackLoader.CheckValidFilename(txt + tb.Text) ||
+                tb.Text == Utils.Constants.DefaultTrackName ||
+                tb.Text.Length == 0)
                 {
-                    sender.SetToolTipText("Attempted to save with an invalid name");
+                    game.Canvas.SetTooltip(sender,"Attempted to save with an invalid name");
                     return;
                 }
                 using (var trk = game.Track.CreateTrackWriter())
@@ -108,7 +111,7 @@ namespace linerider.UI
                     }
                     catch
                     {
-                        sender.SetToolTipText("An error occured trying to save");
+                        game.Canvas.SetTooltip(sender, "An error occured trying to save");
                         return;
                     }
                 }

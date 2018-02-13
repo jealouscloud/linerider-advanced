@@ -90,7 +90,7 @@ namespace linerider.Tools
         public virtual void OnChangingTool()
         {
         }
-        public Line SelectLine(TrackWriter trk, Vector2d position)
+        public GameLine SelectLine(TrackWriter trk, Vector2d position)
         {
             var ends = LineEndsInRadius(trk, position, 0);
             if (ends.Length > 0)
@@ -102,7 +102,7 @@ namespace linerider.Tools
                     false);
             foreach (var line in lines)
             {
-                double lnradius = Line.GetLineRadius(line);
+                double lnradius = line.Width;
                 var rect = Rendering.StaticRenderer.GenerateThickLine(
                     line.Position,
                     line.Position2,
@@ -118,9 +118,9 @@ namespace linerider.Tools
             }
             return null;
         }
-        public Line CreateLine(TrackWriter trk, Vector2d start, Vector2d end, bool inv, bool snapstart, bool snapend)
+        public GameLine CreateLine(TrackWriter trk, Vector2d start, Vector2d end, bool inv, bool snapstart, bool snapend)
         {
-            Line added = null;
+            GameLine added = null;
             switch (game.Canvas.ColorControls.Selected)
             {
                 case LineType.Blue:
@@ -128,9 +128,10 @@ namespace linerider.Tools
                     break;
 
                 case LineType.Red:
-                    added = new RedLine(start, end, inv)
+                    var red = new RedLine(start, end, inv)
                     { Multiplier = game.Canvas.ColorControls.RedMultiplier };
-                    added.CalculateConstants();//multiplier needs to be recalculated
+                    red.CalculateConstants();//multiplier needs to be recalculated
+                    added = red;
                     break;
 
                 case LineType.Scenery:
@@ -157,17 +158,16 @@ namespace linerider.Tools
         /// does not support large distances as it only gets a small number of grid cells
         /// </summary>
         /// <returns>a sorted array of lines where 0 is the </returns>
-        public Line[] LinesInRadius(TrackWriter trk, Vector2d position, double rad)
+        public GameLine[] LinesInRadius(TrackWriter trk, Vector2d position, double rad)
         {
-            SortedList<int, Line> lines = new SortedList<int, Line>();
+            SortedList<int, GameLine> lines = new SortedList<int, GameLine>();
             var inrect =
                 trk.GetLinesInRect(new FloatRect((Vector2)position - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
                     false);
             var octagon = Rendering.StaticRenderer.GenerateCircle(position.X, position.Y, rad, 8);
             foreach (var line in inrect)
             {
-                double lnradius = Line.GetLineRadius(line);
-                var rect = Rendering.StaticRenderer.GenerateThickLine(line.Position, line.Position2, lnradius * 2);
+                var rect = Rendering.StaticRenderer.GenerateThickLine(line.Position, line.Position2, line.Width * 2);
                 for (int i = 0; i < octagon.Length; i++)
                 {
                     if (Utility.PointInRectangle(rect[3], rect[2], rect[1], rect[0], octagon[i]))
@@ -182,7 +182,7 @@ namespace linerider.Tools
             {
                 lines[line.ID] = line;
             }
-            Line[] ret = new Line[lines.Count];
+            GameLine[] ret = new GameLine[lines.Count];
             for (int i = 0; i < ret.Length; i++)
             {
                 ret[i] = lines.Values[(lines.Count - 1) - i];
@@ -194,19 +194,18 @@ namespace linerider.Tools
         /// does not support large distances as it only gets a small number of grid cells
         /// </summary>
         /// <returns>a sorted array of lines where 0 is the closest point within the radius</returns>
-        protected Line[] LineEndsInRadius(TrackReader trk, Vector2d point, double rad)
+        protected GameLine[] LineEndsInRadius(TrackReader trk, Vector2d point, double rad)
         {
             var lines =
                 trk.GetLinesInRect(new FloatRect((Vector2)point - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
                     false);
-            SortedList<double, List<Line>> ret = new SortedList<double, List<Line>>();
+            SortedList<double, List<GameLine>> ret = new SortedList<double, List<GameLine>>();
             foreach (var line in lines)
             {
                 var p1 = (point - line.Position).Length;
                 var p2 = (point - line.Position2).Length;
-                double lnradius = Line.GetLineRadius(line);
                 var closer = Math.Min(p1, p2);
-                if (closer - lnradius < rad)
+                if (closer - line.Width < rad)
                 {
                     if (ret.ContainsKey(closer))
                     {
@@ -214,13 +213,13 @@ namespace linerider.Tools
                     }
                     else
                     {
-                        var l = new List<Line>();
+                        var l = new List<GameLine>();
                         l.Add(line);
                         ret[closer] = l;
                     }
                 }
             }
-            List<Line> retn = new List<Line>();
+            List<GameLine> retn = new List<GameLine>();
             for (int i = 0; i < ret.Values.Count; i++)
             {
                 retn.AddRange(ret.Values[i]);
@@ -229,7 +228,7 @@ namespace linerider.Tools
         }
         protected bool LifeLock(TrackWriter writer, StandardLine line)
         {
-            Dictionary<int, Line> collisions = new Dictionary<int, Line>();
+            Dictionary<int, GameLine> collisions = new Dictionary<int, GameLine>();
             Rider current;
             Rider prev;
 
@@ -271,7 +270,7 @@ namespace linerider.Tools
         /// <summary>
         /// Snaps the point specified in endpoint of line to another line if within snapradius
         /// </summary>
-        protected void SnapLineEnd(TrackWriter trk, Line line, Vector2d endpoint)
+        protected void SnapLineEnd(TrackWriter trk, GameLine line, Vector2d endpoint)
         {
             var lines = LineEndsInRadius(trk, endpoint, SnapRadius);
             for (int i = 0; i < lines.Length; i++)

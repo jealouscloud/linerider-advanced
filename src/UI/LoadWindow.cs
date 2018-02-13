@@ -293,12 +293,22 @@ namespace linerider.UI
                             game.Track.ChangeTrack(TrackLoader.LoadTrackTRK(data, trackname));
                         }
                     }
+                    catch (TrackLoader.TrackLoadException e)
+                    {
+                        window.Close();
+                        PopupWindow.Error(
+                            "Failed to load the track:" +
+                            Environment.NewLine +
+                            e.Message);
+                        return;
+                    }
                     catch (Exception e)
                     {
-                        if (Program.IsDebugged)
-                            throw e;
                         window.Close();
-                        PopupWindow.Error("An error occured loading the track. \nIt might be from a newer version.");
+                        PopupWindow.Error(
+                            "An unknown error occured while loading the track." +
+                            Environment.NewLine+
+                            e.Message);
                         return;
                     }
                 }

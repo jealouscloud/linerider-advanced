@@ -33,6 +33,12 @@ namespace linerider
 {
     internal class TrackLoader : GameService
     {
+        public class TrackLoadException : Exception
+        {
+            public TrackLoadException(string message) : base(message)
+            {
+            }
+        }
         private static string[] supported_features = {
     "REDMULTIPLIER",
     "SCENERYWIDTH",
@@ -100,7 +106,7 @@ namespace linerider
             {
                 ret["ZEROSTART"] = true;
             }
-            foreach (Line l in trk.LineLookup.Values)
+            foreach (GameLine l in trk.LineLookup.Values)
             {
                 var scenery = l as SceneryLine;
                 if (scenery != null)
@@ -135,8 +141,25 @@ namespace linerider
         /// Checks a relative filename for validity
         public static bool CheckValidFilename(string relativefilename)
         {
-            if (Path.IsPathRooted(relativefilename))
+            if (Path.GetFileName(relativefilename) != relativefilename ||
+                Path.IsPathRooted(relativefilename) ||
+                relativefilename.Length == 0)
                 return false;
+            try
+            {
+                //the ctor checks validity pretty well
+                //it also does not have the requirement of the file existing
+                var info = new FileInfo(relativefilename);
+                var attr = info.Attributes;
+                if (attr != (FileAttributes)(-1) &&
+                attr.HasFlag(FileAttributes.Directory))
+                    throw new ArgumentException();
+
+            }
+            catch
+            {
+                return false;
+            }
             var invalidchars = Path.GetInvalidFileNameChars();
             for (var i = 0; i < relativefilename.Length; i++)
             {
@@ -145,6 +168,7 @@ namespace linerider
                     return false;
                 }
             }
+
             return true;
         }
         private static string GetTrackDirectory(Track track)
@@ -237,7 +261,7 @@ namespace linerider
                     saved_features[ZEROSTART_INDEX] = true;
                 }
                 var lines = trk.GetSortedLines();
-                foreach (Line l in lines)
+                foreach (GameLine l in lines)
                 {
                     var scenery = l as SceneryLine;
                     if (scenery != null)
@@ -285,7 +309,7 @@ namespace linerider
                 bw.Write(lines.Length);
                 foreach (var line in lines)
                 {
-                    byte type = (byte)line.GetLineType();
+                    byte type = (byte)line.Type;
                     if (line is StandardLine l)
                     {
                         if (l.inv)
@@ -426,7 +450,7 @@ namespace linerider
             var addedlines = new Dictionary<int, StandardLine>();
             var extensions = new List<Extensionentry>();
             var location = trackfile;
-                var bytes = File.ReadAllBytes(location);
+            var bytes = File.ReadAllBytes(location);
             using (var file =
                     new MemoryStream(bytes))
             {
@@ -437,7 +461,7 @@ namespace linerider
                     byte version = br.ReadByte();
                     string[] features = Encoding.ASCII.GetString(br.ReadBytes(br.ReadInt16())).Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
                     if (version != 1)
-                        throw new Exception("Unsupported version");
+                        throw new TrackLoadException("Unsupported version");
                     bool redmultipier = false;
                     bool scenerywidth = false;
                     bool supports61 = false;
@@ -471,7 +495,7 @@ namespace linerider
                                 ret.ZeroStart = true;
                                 break;
                             default:
-                                throw new Exception("Unsupported feature");
+                                throw new TrackLoadException("Unsupported feature");
                         }
                     }
                     if (supports61)
@@ -514,7 +538,7 @@ namespace linerider
                     var lines = br.ReadInt32();
                     for (var i = 0; i < lines; i++)
                     {
-                        Line l;
+                        GameLine l;
                         byte ltype = br.ReadByte();
                         var lt = (LineType)(ltype & 0x1F);//we get 5 bits
                         var inv = (ltype >> 7) != 0;
@@ -605,7 +629,7 @@ namespace linerider
                                 break;
 
                             default:
-                                throw new Exception("Invalid line type");
+                                throw new TrackLoadException("Invalid line type at ID " +ID);
                         }
                         if (l is StandardLine)
                         {
@@ -662,13 +686,13 @@ namespace linerider
                 case LineType.Scenery:
                     return 2;
                 default:
-                    throw new Exception("Unsupported Linetype");
+                    throw new TrackLoadException("Unsupported Linetype");
             }
         }
         public static Track LoadTrack(sol_track trackdata)
         {
             var ret = new Track { Name = trackdata.name };
-            List<Line> lineslist = new List<Line>();
+            List<GameLine> lineslist = new List<GameLine>();
             var buffer = (List<Amf0Object>)trackdata.get_property("data");
             var addedlines = new Dictionary<int, StandardLine>();
             var version = trackdata.data.First(x => x.name == "version").data as string;
@@ -779,7 +803,7 @@ namespace linerider
                         break;
 
                     default:
-                        throw new Exception("Unknown line type");
+                        throw new TrackLoadException("Unknown line type");
                 }
             }
             foreach (var v in extensions)

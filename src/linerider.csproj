@@ -82,7 +82,7 @@
     <Compile Include="ffmpeg\FFMPEGParameters.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Lines\Line.cs" />
+    <Compile Include="Lines\GameLine.cs" />
     <Compile Include="Lines\LineTrigger.cs" />
     <Compile Include="Lines\LineType.cs" />
     <Compile Include="Lines\RedLine.cs" />
@@ -148,11 +148,13 @@
     <Compile Include="Utils\Angle.cs" />
     <Compile Include="Utils\ArrayWrapper.cs" />
     <Compile Include="Utils\DoubleRect.cs" />
+    <Compile Include="Utils\Constants.cs" />
     <Compile Include="Utils\FloatRect.cs" />
     <Compile Include="Utils\PlaybackBufferManager.cs" />
     <Compile Include="Utils\ResourceSync.cs" />
     <Compile Include="Utils\TrackReader.cs" />
     <Compile Include="Utils\TrackWriter.cs" />
+    <Compile Include="Utils\Line.cs" />
     <Compile Include="Utils\Turtle.cs" />
     <Compile Include="Utils\Utility.cs" />
     <Compile Include="Utils\RectLRTB.cs" />

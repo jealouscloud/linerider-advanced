@@ -28,8 +28,9 @@ using System.Runtime.InteropServices;
 
 namespace linerider.Lines
 {
-    public class StandardLine : Line
+    public class StandardLine : GameLine
     {
+        public const double Zone = 10;
         public enum ExtensionDirection
         {
             //imperative to trk format this does not exceed 2 bits
@@ -39,19 +40,19 @@ namespace linerider.Lines
             Both = 3
         }
 
-        public LineTrigger Trigger = null;
-        public const double Zone = 10;
         public Vector2d DiffNormal;
+        protected double ExtensionRatio;
         protected double DotScalar;
         public double Distance;
         public ExtensionDirection Extension;
-        protected double ExtensionRatio;
-        protected double limit_left => Extension.HasFlag(ExtensionDirection.Left) ? -ExtensionRatio : 0.0;
-        protected double limit_right => Extension.HasFlag(ExtensionDirection.Right) ? 1.0 + ExtensionRatio : 1.0;
-
-        public bool inv = false;
         public StandardLine Next;
         public StandardLine Prev;
+        public LineTrigger Trigger = null;
+        public Vector2d Difference;
+        public bool inv = false;
+
+        protected double limit_left => Extension.HasFlag(ExtensionDirection.Left) ? -ExtensionRatio : 0.0;
+        protected double limit_right => Extension.HasFlag(ExtensionDirection.Right) ? 1.0 + ExtensionRatio : 1.0;
 
         /// <summary>
         /// Gets/sets the property Position and complies to the inv field.
@@ -81,12 +82,21 @@ namespace linerider.Lines
                     Position2 = value;
             }
         }
+        public override LineType Type
+        {
+            get
+            {
+                return LineType.Blue;
+            }
+        }
 
-        protected StandardLine() : base()
+        protected StandardLine()
         {
         }
-        public StandardLine(Vector2d p1, Vector2d p2, bool inv = false) : base(p1, p2)
+        public StandardLine(Vector2d p1, Vector2d p2, bool inv = false)
         {
+            Position = p1;
+            Position2 = p2;
             this.inv = inv;
             CalculateConstants();
             SetExtension(0);
@@ -143,19 +153,19 @@ namespace linerider.Lines
         /// <summary>
         /// Calculates the line constants, needs called if a point changes.
         /// </summary>
-        public override void CalculateConstants()
+        public virtual void CalculateConstants()
         {
-            diff = Position2 - Position;
-            var sqrDistance = diff.LengthSquared;
+            Difference = Position2 - Position;
+            var sqrDistance = Difference.LengthSquared;
             DotScalar = (1 / sqrDistance);
             Distance = Math.Sqrt(sqrDistance);
 
-            DiffNormal = diff * (1 / Distance);//normalize
+            DiffNormal = Difference * (1 / Distance);//normalize
             //flip to be the angle towards the top of the line
             DiffNormal = inv ? DiffNormal.PerpendicularRight : DiffNormal.PerpendicularLeft;
             ExtensionRatio = Math.Min(0.25, Zone / Distance);
         }
-        public override bool Interact(ref SimulationPoint p)
+        public virtual bool Interact(ref SimulationPoint p)
         {
             if (Vector2d.Dot(p.Momentum, DiffNormal) > 0)
             {
@@ -163,7 +173,7 @@ namespace linerider.Lines
                 var doty = Vector2d.Dot(DiffNormal, startDelta);
                 if (doty > 0 && doty < Zone)
                 {
-                    var dotx = Vector2d.Dot(startDelta, diff) * DotScalar;
+                    var dotx = Vector2d.Dot(startDelta, Difference) * DotScalar;
                     if (dotx <= limit_right && dotx >= limit_left)
                     {
                         var pos = p.Location - doty * DiffNormal;
@@ -179,14 +189,14 @@ namespace linerider.Lines
             }
             return false;
         }
-        public override Line Clone()
+        public override GameLine Clone()
         {
             return new StandardLine() 
             { 
                 ID = ID, 
                 Prev = Prev,
                 Next = Next,
-                diff = diff,
+                Difference = Difference,
                 DiffNormal = DiffNormal,
                 Distance = Distance,
                 DotScalar = DotScalar,

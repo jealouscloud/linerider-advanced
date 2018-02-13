@@ -63,20 +63,20 @@ namespace linerider
             return new TrackReader(sync.AcquireRead(), track);
         }
 
-        public Line GetNewestLine()
+        public GameLine GetNewestLine()
         {
             if (Track.Lines.Count == 0)
                 return null;
             return Track.LineLookup[Track.Lines.First.Value];
         }
 
-        public Line GetOldestLine()
+        public GameLine GetOldestLine()
         {
             if (Track.Lines.Count == 0)
                 return null;
             return Track.LineLookup[Track.Lines.Last.Value];
         }
-        public IEnumerable<Line> GetLinesInRect(FloatRect rect, bool precise)
+        public IEnumerable<GameLine> GetLinesInRect(FloatRect rect, bool precise)
         {
             return Track.GetLinesInRect(rect, precise);
         }

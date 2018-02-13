@@ -84,7 +84,7 @@ namespace linerider.Rendering
             EnsureVBOSize(_vertexcount);
             return ret;
         }
-        public Dictionary<int, int> AddLines(List<Line> lines, Color color)
+        public Dictionary<int, int> AddLines(List<GameLine> lines, Color color)
         {
             Dictionary<int, int> ret = new Dictionary<int, int>(lines.Count);
             LineVertex[] vertices = new LineVertex[lines.Count * linesize];
@@ -95,9 +95,7 @@ namespace linerider.Rendering
             {
                 var baseoffset = (ix * linesize);
                 var line = lines[ix];
-                float width = 2;
-                if (line is SceneryLine s)
-                    width *= s.Width;
+                float width = 2 * line.Width;
 
                 var lineverts = CreateTrackLine(
                     line.Position,

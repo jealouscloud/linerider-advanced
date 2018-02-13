@@ -93,7 +93,7 @@ namespace linerider
             trackdata.Add(sl);
             trackdata.Add(dataobj);
 
-            SortedList<int, Line> list = new SortedList<int, Line>();
+            SortedList<int, GameLine> list = new SortedList<int, GameLine>();
             var lines = trk.GetSortedLines();
             for (int i = lines.Length - 1; i >= 0; i--)
             {
@@ -120,7 +120,7 @@ namespace linerider
                 linedata.Add(new Amf0Object(6, stl?.Prev?.ID));
                 linedata.Add(new Amf0Object(7, stl?.Next?.ID));
                 linedata.Add(new Amf0Object(8, list.Keys[i]));
-                linedata.Add(new Amf0Object(9, TrackLoader.LineTypeForSOL(line.GetLineType())));
+                linedata.Add(new Amf0Object(9, TrackLoader.LineTypeForSOL(line.Type)));
 
                 lineobj.type = Amf0Object.Amf0Type.AMF0_ECMA_ARRAY;
                 lineobj.data = linedata;

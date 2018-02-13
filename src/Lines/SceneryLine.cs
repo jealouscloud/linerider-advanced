@@ -23,15 +23,27 @@ using OpenTK;
 
 namespace linerider.Lines
 {
-    public class SceneryLine : Line
+    public class SceneryLine : GameLine
     {
-        public float Width = 1;
-
-        public SceneryLine(Vector2d p1, Vector2d p2)
+        public override LineType Type
+        {
+            get
+            {
+                return LineType.Scenery;
+            }
+        }
+        public SceneryLine(Vector2d p1, Vector2d p2) 
         {
             Position = p1;
             Position2 = p2;
-            diff = Position2 - Position;
+        }
+        public override GameLine Clone()
+        {
+            return new SceneryLine(Position, Position2)
+            {
+                ID = ID,
+                Width = Width
+            };
         }
     }
 }

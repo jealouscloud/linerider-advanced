@@ -1,7 +1,9 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Gwen.Renderer
 {
@@ -225,6 +227,91 @@ namespace Gwen.Renderer
         {
             FontGlyph ret = new FontGlyph();
             ret.id = id;
+            return ret;
+        }
+        private int MeasureWordSplit(string input, int start, int px)
+        {
+            int width = 0;
+            if (start == input.Length)
+                return 0;
+            for (int i = start; i < input.Length; i++)
+            {
+                var currentchar = input[i];
+                var glyph = _glyphs[currentchar];
+                int glyphwidth = glyph.xadvance;
+                if (i > 0)
+                {
+                    var prev = _glyphs[input[i - 1]];
+                    if (prev.kerning != null &&
+                        currentchar < prev.kerning.Length)
+                    {
+                        var ker = prev.kerning[currentchar];
+                        glyphwidth += ker;
+                    }
+                }
+                if (width + glyphwidth >= px)
+                {
+                    return Math.Max(1, (i - start));
+                }
+                width += glyphwidth;
+            }
+            return input.Length - start;
+        }
+        public List<string> WordWrap(string input, int maxpx)
+        {
+            // this function isnt 100% for performance but i think thats okay.
+            string[] originallines = input.Replace("\r\n", "\n").
+            Split('\n');
+
+            List<string> ret = new List<string>();
+            foreach (var line in originallines)
+            {
+                var wordarr = line.Split(' ');
+                List<string> words = new List<string>(wordarr.Length);
+                foreach (var word in wordarr)
+                {
+                    if (MeasureText(word).Width >= maxpx)
+                    {
+                        int index = 0;
+                        do
+                        {
+                            var linewidth = MeasureWordSplit(word, index, maxpx);
+                            Debug.Assert(
+                                linewidth != 0,
+                                "word wrap split line width is zero");
+                            words.Add(word.Substring(index, linewidth));
+                            index += linewidth;
+                        }
+                        while (index != word.Length);
+                    }
+                    else
+                    {
+                        words.Add(word);
+                    }
+                }
+                string seperator = string.Empty;
+                StringBuilder linebuilder = new StringBuilder();
+                for (int i = 0; i < words.Count; i++)
+                {
+                    var word = words[i];
+                    var str = linebuilder.ToString();
+                    var add = str + seperator + word;
+                    if (MeasureText(add).Width < maxpx)
+                    {
+                        linebuilder.Append(seperator + word);
+                    }
+                    else
+                    {
+                        ret.Add(str);
+                        linebuilder.Clear();
+                        linebuilder.Append(word);
+                        continue;
+                    }
+                    seperator = " ";
+                }
+                if (linebuilder.Length > 0)
+                    ret.Add(linebuilder.ToString());
+            }
             return ret;
         }
         private Vertex[] GetGlyphVerts(FontGlyph glyph, int x, int y)

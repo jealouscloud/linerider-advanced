@@ -245,10 +245,6 @@ namespace linerider
         {
             return _playbacksync;
         }
-        public void RedrawLine(Line l)
-        {
-            _renderer.RedrawLine(l);
-        }
 
         /// <summary>
         /// Function for indicating the physics of the track have changed, so inform buffermanager
@@ -256,7 +252,10 @@ namespace linerider
         public void NotifyTrackChanged()
         {
             if (PlaybackMode)
+            {
                 BufferManager.Update();
+            }
+            game.Canvas.DisableFlagTooltip();
         }
         internal void RestoreFlag(Tracklocation flag)
         {

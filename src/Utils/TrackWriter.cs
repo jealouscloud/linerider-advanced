@@ -68,7 +68,7 @@ namespace linerider
         /// state a change to the undo manager
         /// always needs to be in PAIRS with a before and after
         /// </summary>
-        private void RegisterUndoAction(Line before, Line after)
+        private void RegisterUndoAction(GameLine before, GameLine after)
         {
             _undo?.AddChange(before, after);
         }
@@ -87,7 +87,7 @@ namespace linerider
         /// Adds the line to the track, grid, and renderer. Is naive to extensions, and notifies the undo/buffer managers
         /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
         /// </summary>
-        public void AddLine(Line line)
+        public void AddLine(GameLine line)
         {
             if (line is StandardLine)
                 SaveCells(line.Position, line.Position2);
@@ -100,7 +100,7 @@ namespace linerider
         /// Moves the line in the track, grid, and renderer. Is naive to extensions, and notifies the undo/buffer managers
         /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
         /// </summary>
-        public void MoveLine(Line line, Vector2d pos1, Vector2d pos2)
+        public void MoveLine(GameLine line, Vector2d pos1, Vector2d pos2)
         {
             if (line.Position != pos1 || line.Position2 != pos2)
             {
@@ -115,13 +115,13 @@ namespace linerider
                 Track.RemoveLineFromGrid(line);
                 line.Position = pos1;
                 line.Position2 = pos2;
-                line.CalculateConstants();
+                (line as StandardLine).CalculateConstants();
                 Track.AddLineToGrid(line);
                 RegisterUndoAction(clone, line);
                 _renderer.RedrawLine(line);
             }
         }
-        public void ReplaceLine(Line oldline, Line newline)
+        public void ReplaceLine(GameLine oldline, GameLine newline)
         {
             if (oldline.ID != newline.ID)
                 throw new Exception("can only replace lines with the same id");
@@ -142,7 +142,7 @@ namespace linerider
         /// Removes the line from the track, grid, and renderer, updates extensions, and notifies undo/buffer managers.
         /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
         /// </summary>
-        public void RemoveLine(Line line)
+        public void RemoveLine(GameLine line)
         {
             RegisterUndoAction(line, null);
 
