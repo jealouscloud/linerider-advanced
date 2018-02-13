@@ -33,6 +33,7 @@ using Gwen.Controls;
 using linerider.Tools;
 using linerider.Audio;
 using linerider.Utils;
+using linerider.Lines;
 
 namespace linerider
 {
@@ -90,7 +91,6 @@ namespace linerider
             set { _track.ZeroStart = value; }
         }
 
-        public FloatRect RiderRect => _track.RiderRect;
         private Tracklocation _renderrider = null;
         public Rider RenderRider
         {

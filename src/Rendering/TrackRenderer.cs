@@ -28,6 +28,7 @@ using System.Linq;
 using System.Diagnostics;
 using linerider.Utils;
 using linerider.Drawing;
+using linerider.Lines;
 
 namespace linerider.Rendering
 {
@@ -101,7 +102,7 @@ namespace linerider.Rendering
                     _sceneryvbo.KnobState = KnobState.Shown;
                 else
                     _sceneryvbo.KnobState = KnobState.Hidden;
-                    
+
                 if (options.NightMode)
                 {
                     _sceneryvbo.LineColor = Color.White;
@@ -125,7 +126,7 @@ namespace linerider.Rendering
         /// <summary>
         /// Clears the renderer and initializes it with new lines.
         /// </summary>
-        public void InitializeTrack(IList<Line> vpu)
+        public void InitializeTrack(Track track)
         {
             using (_sync.AcquireWrite())
             {
@@ -137,35 +138,38 @@ namespace linerider.Rendering
                 _scenerylines.Clear();
                 _physlines.Clear();
             }
-            if (vpu != null)
+            List<Line> scenery = new List<Line>(track.SceneryLines);
+            List<Line> phys = new List<Line>(track.BlueLines + track.RedLines);
+            var sorted = track.GetSortedLines();
+
+            // iterate backwards for render order on top.
+            // list is returned by id 3 2 1, we want 3 on top.
+            for(int i = sorted.Length - 1; i >= 0; i--)
             {
-                List<Line> scenery = new List<Line>(vpu.Count);
-                List<Line> phys = new List<Line>(vpu.Count);
-                foreach (var v in vpu)
+                var line = sorted[i];
+                if (line.GetLineType() == LineType.Scenery)
                 {
-                    if (v.GetLineType() == LineType.Scenery)
-                    {
-                        scenery.Add(v);
-                    }
-                    else
-                    {
-                        phys.Add(v);
-                        _decorator.AddLine((StandardLine)v);
-                    }
+                    scenery.Add(line);
                 }
-                if (scenery.Count != 0)
+                else
                 {
-                    _scenerylines = _sceneryvbo.AddLines(
-                        scenery,
-                        Color.FromArgb(0));
-                }
-                if (phys.Count != 0)
-                {
-                    _physlines = _physvbo.AddLines(
-                        phys,
-                        Color.FromArgb(0));
+                    phys.Add(line);
+                    _decorator.AddLine((StandardLine)line);
                 }
             }
+            if (scenery.Count != 0)
+            {
+                _scenerylines = _sceneryvbo.AddLines(
+                    scenery,
+                    Color.FromArgb(0));
+            }
+            if (phys.Count != 0)
+            {
+                _physlines = _physvbo.AddLines(
+                    phys,
+                    Color.FromArgb(0));
+            }
+
         }
         public void AddLine(Line line)
         {

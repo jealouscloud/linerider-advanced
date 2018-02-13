@@ -25,6 +25,7 @@ using System.Linq;
 using OpenTK;
 using linerider.Utils;
 using linerider.Game;
+using linerider.Lines;
 
 namespace linerider.Tools
 {
@@ -96,20 +97,20 @@ namespace linerider.Tools
                 return ends[0];
             var lines =
                 trk.GetLinesInRect(
-                    new FloatRect((Vector2)position - new Vector2(24, 24), 
+                    new FloatRect((Vector2)position - new Vector2(24, 24),
                     new Vector2(24 * 2, 24 * 2)),
                     false);
             foreach (var line in lines)
             {
                 double lnradius = Line.GetLineRadius(line);
                 var rect = Rendering.StaticRenderer.GenerateThickLine(
-                    line.Position, 
-                    line.Position2, 
+                    line.Position,
+                    line.Position2,
                     lnradius * 2);
-                if (Utility.PointInRectangle(rect[3], 
-                rect[2], 
-                rect[1], 
-                rect[0], 
+                if (Utility.PointInRectangle(rect[3],
+                rect[2],
+                rect[1],
+                rect[0],
                 position))
                 {
                     return line;
@@ -127,23 +128,26 @@ namespace linerider.Tools
                     break;
 
                 case LineType.Red:
-                    added = new RedLine(start, end, inv) 
-                        { Multiplier = game.Canvas.ColorControls.RedMultiplier };
+                    added = new RedLine(start, end, inv)
+                    { Multiplier = game.Canvas.ColorControls.RedMultiplier };
                     added.CalculateConstants();//multiplier needs to be recalculated
                     break;
 
                 case LineType.Scenery:
-                    added = new SceneryLine(start, end) 
-                        { Width = game.Canvas.ColorControls.GreenMultiplier };
+                    added = new SceneryLine(start, end)
+                    { Width = game.Canvas.ColorControls.GreenMultiplier };
                     break;
             }
-            trk.AddLine(added);
-            if (game.Canvas.ColorControls.Selected != LineType.Scenery)
+            using (trk.AcquireBufferUpdateSync())
             {
-                if (snapstart)
-                    SnapLineEnd(trk, added, added.Position);
-                if (snapend)
-                    SnapLineEnd(trk, added, added.Position2);
+                trk.AddLine(added);
+                if (game.Canvas.ColorControls.Selected != LineType.Scenery)
+                {
+                    if (snapstart)
+                        SnapLineEnd(trk, added, added.Position);
+                    if (snapend)
+                        SnapLineEnd(trk, added, added.Position2);
+                }
             }
             game.Track.RequiresUpdate = true;
             return added;

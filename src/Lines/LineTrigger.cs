@@ -21,7 +21,7 @@
 
 using System;
 
-namespace linerider
+namespace linerider.Lines
 {
     public class LineTrigger : GameService
     {

@@ -397,7 +397,10 @@ namespace linerider
                 {
                     var pos = new Vector2d(e.X, e.Y) / Track.Zoom;
                     var gamepos = (ScreenPosition + pos);
-                    _dragRider = Track.RiderRect.Contains((float)gamepos.X, (float)gamepos.Y);
+                    _dragRider = Game.Rider.GetBounds(
+                        Track.GetStart()).Contains(
+                            gamepos.X, 
+                            gamepos.Y);
                 }
                 if (!_dragRider)
                 {
@@ -775,7 +778,7 @@ namespace linerider
                         using (var trk = Track.CreateTrackWriter())
                         {
                             SelectedTool?.Stop();
-                            var l = trk.GetLastLine();
+                            var l = trk.GetNewestLine();
                             if (l != null)
                             {
                                 Track.UndoManager.BeginAction();
@@ -793,7 +796,7 @@ namespace linerider
                 {
                     using (var trk = Track.CreateTrackReader())
                     {
-                        var l = trk.GetFirstLine();
+                        var l = trk.GetOldestLine();
                         if (l != null)
                         {
                             Track.Camera.SetFrame(l.Position, false);
@@ -806,7 +809,7 @@ namespace linerider
                 {
                     using (var trk = Track.CreateTrackReader())
                     {
-                        var l = trk.GetLastLine();
+                        var l = trk.GetNewestLine();
                         if (l != null)
                         {
                             Track.Camera.SetFrame(l.Position, false);

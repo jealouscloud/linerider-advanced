@@ -21,7 +21,7 @@
 
 using OpenTK;
 
-namespace linerider
+namespace linerider.Lines
 {
     public class SceneryLine : Line
     {

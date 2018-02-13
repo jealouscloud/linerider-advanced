@@ -12,6 +12,7 @@ using Gwen.Controls;
 using linerider.Tools;
 using linerider.Audio;
 using linerider.Utils;
+using linerider.Lines;
 
 namespace linerider.Rendering
 {
@@ -78,7 +79,7 @@ namespace linerider.Rendering
         }
         public void RefreshTrack(Track track)
         {
-            _renderer.InitializeTrack(track.Lines);
+            _renderer.InitializeTrack(track);
             _renderer.RequiresUpdate = true;
         }
     }

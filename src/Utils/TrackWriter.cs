@@ -60,7 +60,7 @@ namespace linerider
         {
             _undo = null;
         }
-        public static TrackWriter AcquireWrite(ResourceSync sync, Track track, SimulationRenderer renderer, UndoManager undo = null, PlaybackBufferManager manager = null)
+        public static TrackWriter AcquireWrite(ResourceSync sync, Track track, SimulationRenderer renderer, UndoManager undo, PlaybackBufferManager manager)
         {
             return new TrackWriter(sync.AcquireWrite(), track) { _undo = undo, _renderer = renderer, _buffermanager = manager };
         }
@@ -68,14 +68,9 @@ namespace linerider
         /// state a change to the undo manager
         /// always needs to be in PAIRS with a before and after
         /// </summary>
-        private void SaveStateForUndo(Line line, bool exists)
+        private void RegisterUndoAction(Line before, Line after)
         {
-            if (_undo != null)
-            {
-                var state = line.GetState();
-                state.Exists = exists;
-                _undo?.AddChange(state);
-            }
+                _undo?.AddChange(before, after);
         }
         /// <summary>
         /// State a change to the buffer manager
@@ -86,7 +81,18 @@ namespace linerider
         /// <param name="lineend">line.Position2</param>
         private void SaveCells(Vector2d linestart, Vector2d lineend)
         {
-            _buffermanager?.SaveCells(linestart, lineend);
+            _buffermanager.SaveCells(linestart, lineend);
+        }
+        /// <summary>
+        /// Tells the buffer manager to halt updating
+        /// until the resource is disposed.
+        /// 
+        /// for example:
+        /// call this when you need to change a line and then extensions
+        /// </summary>
+        public ResourceSync.ResourceLock AcquireBufferUpdateSync()
+        {
+            return _buffermanager.BeginTransaction();
         }
         /// <summary>
         /// Moves the line in the track, grid, and renderer. Is naive to extensions, and notifies the undo/buffer managers
@@ -96,7 +102,7 @@ namespace linerider
         {
             if (line.Position != pos1 || line.Position2 != pos2)
             {
-                SaveStateForUndo(line, true);
+                var clone = line.Clone();
 
                 if (line is StandardLine)
                 {
@@ -109,9 +115,24 @@ namespace linerider
                 line.Position2 = pos2;
                 line.CalculateConstants();
                 Track.AddLineToGrid(line);
-                SaveStateForUndo(line, true);
+                RegisterUndoAction(clone, line);
                 _renderer.RedrawLine(line);
             }
+        }
+        public void ReplaceLine(Line oldline, Line newline)
+        {
+            if (oldline.ID != newline.ID)
+                throw new Exception("can only replace lines with the same id");
+            RegisterUndoAction(oldline, newline);
+
+            if (oldline is StandardLine)
+            {
+                SaveCells(oldline.Position, oldline.Position2);
+                SaveCells(newline.Position, newline.Position2);
+            }
+            Track.RemoveLineFromGrid(oldline);
+            Track.AddLineToGrid(newline);
+            _renderer.RedrawLine(newline);
         }
         /// <summary>
         /// Adds the line to the track, grid, and renderer. Is naive to extensions, and notifies the undo/buffer managers
@@ -119,16 +140,12 @@ namespace linerider
         /// </summary>
         public void AddLine(Line line)
         {
-            //give a "before" state
-            SaveStateForUndo(line, false);
-
             if (line is StandardLine)
                 SaveCells(line.Position, line.Position2);
 
             Track.AddLine(line);
-            //"after" state.
-            SaveStateForUndo(line, true);
             _renderer.AddLine(line);
+            RegisterUndoAction(null, line);
         }
         /// <summary>
         /// Removes the line from the track, grid, and renderer, updates extensions, and notifies undo/buffer managers.
@@ -136,19 +153,19 @@ namespace linerider
         /// </summary>
         public void RemoveLine(Line line)
         {
-            //give a "before" state
-            SaveStateForUndo(line, true);
+            RegisterUndoAction(line, null);
 
             if (line is StandardLine)
             {
-                SaveCells(line.Position, line.Position2);
-                var st = line as StandardLine;
-                TryDisconnectLines(st, st.Next);
-                TryDisconnectLines(st, st.Prev);
+                using (AcquireBufferUpdateSync())
+                {
+                    SaveCells(line.Position, line.Position2);
+                    var st = line as StandardLine;
+                    TryDisconnectLines(st, st.Next);
+                    TryDisconnectLines(st, st.Prev);
+                }
             }
             Track.RemoveLine(line);
-            //"after" state
-            SaveStateForUndo(line, false);
             _renderer.RemoveLine(line);
         }
         /// <summary>
@@ -172,27 +189,26 @@ namespace linerider
                 SaveCells(l2.Position, l2.Position2);
 
             var rightlink = (l1.End == joint && l2.Start == joint);
-            SaveStateForUndo(l1, true);
+            var l1clone = l1.Clone();
+            var l2clone = l2.Clone();
             if (rightlink)
             {
                 l1.Next = null;
                 l1.RemoveExtension(StandardLine.ExtensionDirection.Right);
-                SaveStateForUndo(l1, true);
+                
                 l2.Prev = null;
                 l2.RemoveExtension(StandardLine.ExtensionDirection.Left);
-                // we currently do not save state for undo for l2 because
-                // when l1 is undone it understands that l1.next could only be
-                // set if l2.prev is set as well.
             }
             else
             {
                 l1.Prev = null;
                 l1.RemoveExtension(StandardLine.ExtensionDirection.Left);
-                SaveStateForUndo(l1, true);
 
                 l2.Next = null;
                 l2.RemoveExtension(StandardLine.ExtensionDirection.Right);
             }
+            RegisterUndoAction(l1clone, l1);
+            RegisterUndoAction(l2clone, l2);
         }
 
         /// <summary>
@@ -231,7 +247,8 @@ namespace linerider
                     SaveCells(l1.Position, l1.Position2);
                 if (l2 is StandardLine)
                     SaveCells(l2.Position, l2.Position2);
-                SaveStateForUndo(l1, true);
+                var l1clone = l1.Clone();
+                var l2clone = l2.Clone();
                 if (rightlink)
                 {
                     l1.Next = l2;
@@ -246,7 +263,8 @@ namespace linerider
                     l2.Next = l1;
                     l2.AddExtension(StandardLine.ExtensionDirection.Right);
                 }
-                SaveStateForUndo(l1, true);
+                RegisterUndoAction(l1clone, l1);
+                RegisterUndoAction(l2clone, l2);
             }
         }
     }

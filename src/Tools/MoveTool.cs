@@ -43,7 +43,7 @@ namespace linerider.Tools
         public bool CanLifelock => UI.InputUtils.Check(Hotkey.ToolLifeLock);
         private SelectInfo _selection;
         private bool _started = false;
-        private LineState _before;
+        private Line _before;
         //   private LineState _before_snap;
         public override MouseCursor Cursor
         {
@@ -76,8 +76,8 @@ namespace linerider.Tools
                 using (var trk = game.Track.CreateTrackWriter())
                 {
                     trk.DisableUndo();
-                    var left = _selection.leftjoint ? _before.Pos1 + (pos - _selection.start) : line.Position;
-                    var right = _selection.rightjoint ? _before.Pos2 + (pos - _selection.start) : line.Position2;
+                    var left = _selection.leftjoint ? _before.Position + (pos - _selection.start) : line.Position;
+                    var right = _selection.rightjoint ? _before.Position2 + (pos - _selection.start) : line.Position2;
                     if (_selection.leftjoint != _selection.rightjoint)
                     {
                         var start = _selection.leftjoint ? right : left;
@@ -133,7 +133,7 @@ namespace linerider.Tools
                 var line = SelectLine(trk, gamepos);
                 if (line != null)
                 {
-                    _before = line.GetState();
+                    _before = line.Clone();
                     var linerad = Line.GetLineRadius(line);
                     var point = Utility.CloserPoint(gamepos, line.Position, line.Position2);//TrySnapPoint(trk, gamepos);
                     //is it a knob?
@@ -192,7 +192,7 @@ namespace linerider.Tools
             {
                 game.Track.UndoManager.BeginAction();
                 game.Track.UndoManager.AddChange(_before);
-                game.Track.UndoManager.AddChange(_selection.line.GetState());
+                game.Track.UndoManager.AddChange(_selection.line);
                 game.Track.UndoManager.EndAction();
             }
             _selection.line = null;

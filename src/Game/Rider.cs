@@ -228,6 +228,22 @@ namespace linerider.Game
                 }
             }
         }
+        public static DoubleRect GetBounds(Rider r)
+        {
+            double left, right, top, bottom;
+            right = left = r.Body[0].Location.X;
+            top = bottom = r.Body[0].Location.Y;
+            for(int i = 0; i < r.Body.Length; i++)
+            {
+                var pos = r.Body[i].Location;
+                right = Math.Max(pos.X, right);
+                left = Math.Min(pos.X, left);
+                top = Math.Min(pos.Y, top);
+                bottom = Math.Max(pos.Y, bottom);
+            }
+            DoubleRect ret = new DoubleRect(left,top,right - left,bottom - top);
+            return ret;
+        }
         public Rider Simulate(Track track, Dictionary<int, Line> collisions, int maxiteration = 6)
         {
             return Simulate(track.Grid, track.Bones, track.ActiveTriggers, collisions, maxiteration);

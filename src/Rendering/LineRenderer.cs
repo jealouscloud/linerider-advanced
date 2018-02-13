@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using OpenTK;
 using linerider.Drawing;
 using linerider.Utils;
+using linerider.Lines;
 namespace linerider.Rendering
 {
     public class LineRenderer : IDisposable

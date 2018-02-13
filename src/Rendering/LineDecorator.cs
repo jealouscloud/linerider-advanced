@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using linerider.Utils;
 using linerider.Drawing;
+using linerider.Lines;
 namespace linerider.Rendering
 {
     internal class LineDecorator : IDisposable

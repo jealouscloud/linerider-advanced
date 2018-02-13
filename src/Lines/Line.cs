@@ -22,18 +22,17 @@
 using OpenTK;
 using System;
 using linerider.Game;
-using linerider.Lines;
 using linerider.Utils;
 using System.Drawing;
-namespace linerider
+namespace linerider.Lines
 {
     public class Line : GameService
     {
         public static readonly Color RedLineColor = Color.FromArgb(0xCC, 0, 0);
         public static readonly Color BlueLineColor = Color.FromArgb(0, 0x66, 0xFF);
-        public static Color SceneryLineColor = Color.FromArgb(0, 0xCC, 0);
-        public Vector2d Position { get; set; }
-        public Vector2d Position2 { get; set; }
+        public static readonly Color SceneryLineColor = Color.FromArgb(0, 0xCC, 0);
+        public Vector2d Position;
+        public Vector2d Position2;
         public Vector2d diff;
         public int ID = -1;
 
@@ -57,6 +56,10 @@ namespace linerider
             Position2 = p2;
         }
 
+        public virtual Line Clone()
+        {
+            return new Line(Position, Position2) { ID = ID, diff = diff};
+        }
         public virtual void CalculateConstants()
         {
         }
@@ -73,10 +76,6 @@ namespace linerider
                 default:
                     throw new Exception("Unable to get the color for this line, its type is unknown");
             }
-        }
-        public virtual LineState GetState()
-        {
-            return new LineState() { Pos1 = Position, Pos2 = Position2, Parent = this, Inverted = false };
         }
         public virtual bool Interact(ref SimulationPoint p)
         {

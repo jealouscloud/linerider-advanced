@@ -313,7 +313,7 @@ namespace linerider
         {
             using (var trk = game.Track.CreateTrackReader())
             {
-                if (trk.GetFirstLine() != null)
+                if (trk.GetOldestLine() != null)
                 {
                     var features = trk.GetFeatures();
                     bool six_one;
