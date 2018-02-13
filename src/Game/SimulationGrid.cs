@@ -27,6 +27,8 @@ using System.Drawing;
 using System.Threading;
 using linerider.Game;
 using linerider.Utils;
+using linerider.Lines;
+
 namespace linerider
 {
 
@@ -108,7 +110,7 @@ namespace linerider
             var pos = GetCellKey(x, y);
             if (!Cells.TryGetValue(pos, out cell))
                 return;
-            cell.RemoveLine(l);
+            cell.RemoveLine(l.ID);
         }
     }
 }

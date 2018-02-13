@@ -32,6 +32,7 @@ using linerider.Tools;
 using linerider.Rendering;
 using linerider.Game;
 using linerider.Utils;
+using linerider.Lines;
 namespace linerider
 {
     public class TrackReader : IDisposable
@@ -62,18 +63,18 @@ namespace linerider
             return new TrackReader(sync.AcquireRead(), track);
         }
 
-        public Line GetLastLine()
+        public Line GetNewestLine()
         {
             if (Track.Lines.Count == 0)
                 return null;
-            return Track.Lines[Track.Lines.Count - 1];
+            return Track.LineLookup[Track.Lines.First.Value];
         }
 
-        public Line GetFirstLine()
+        public Line GetOldestLine()
         {
             if (Track.Lines.Count == 0)
                 return null;
-            return Track.Lines[0];
+            return Track.LineLookup[Track.Lines.Last.Value];
         }
         public IEnumerable<Line> GetLinesInRect(FloatRect rect, bool precise)
         {

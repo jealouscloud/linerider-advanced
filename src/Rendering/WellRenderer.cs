@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using OpenTK;
 using linerider.Drawing;
+using linerider.Lines;
 using linerider.Utils;
 namespace linerider.Rendering
 {

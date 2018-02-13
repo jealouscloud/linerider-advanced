@@ -16,15 +16,16 @@ namespace linerider
             var ret = new SimulationCell();
             foreach (var l in this)
             {
-                ret.AddLine(l.Clone());
+                ret.AddLine((StandardLine)l.Clone());
             }
             return ret;
         }
     }
     /// <summary>
-    /// A grid cell for the line rider simulation that puts lines with larger IDs first
+    /// A grid cell for the line rider simulation that puts lines
+    /// with greater ids first. Newer = higher id, unless it's a scenery id
     /// </summary>
-    public class SimulationCell<T> : IEnumerable<T>
+    public class SimulationCell<T> : IEnumerable<T>, ICollection<T>
     where T : Line
     {
         LinkedList<T> _list = new LinkedList<T>();
@@ -35,6 +36,7 @@ namespace linerider
                 return _list.Count;
             }
         }
+        bool ICollection<T>.IsReadOnly => false;
         /// <summary>
         /// Combines all unique lines in a cell in order
         /// </summary>
@@ -86,10 +88,19 @@ namespace linerider
                 _list.AddFirst(line);
             }
         }
-        public void RemoveLine(T line)
+        public void RemoveLine(int lineid)
         {
-            if (!_list.Remove(line))
-                throw new Exception("Line was not found in the chunk");
+            var node = _list.First;
+            while (node != null)
+            {
+                if (node.Value.ID == lineid)
+                {
+                    _list.Remove(node);
+                    return;
+                }
+                node = node.Next;
+            }
+            throw new Exception("Line was not found in the chunk");
         }
         public SimulationCell<T> Clone()
         {
@@ -108,6 +119,31 @@ namespace linerider
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _list.GetEnumerator();
+        }
+
+        void ICollection<T>.Add(T item)
+        {
+            throw new NotImplementedException();
+            //AddLine(item);
+        }
+        void ICollection<T>.Clear()
+        {
+            _list.Clear();
+        }
+        bool ICollection<T>.Contains(T item)
+        {
+            throw new NotImplementedException();
+           // return _list.Contains(item);
+        }
+        void ICollection<T>.CopyTo(T[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+      //      _list.CopyTo(array, arrayIndex);
+        }
+        bool ICollection<T>.Remove(T item)
+        {
+            throw new NotImplementedException();
+      //      return _list.Remove(item);
         }
     }
 }

@@ -29,73 +29,32 @@ namespace linerider
     {
         private class act : GameService
         {
-            public List<LineState> States;
+            public List<Line> States;
             public act()
             {
-                States = new List<LineState>();
+                States = new List<Line>();
             }
-            private bool DoAction(TrackWriter track, LineState beforeact, LineState afteract)
+            private bool DoAction(TrackWriter track, Line beforeact, Line afteract)
             {
-                var parent = beforeact.Parent;
-
-
+                if (beforeact == null && afteract == null)
+                    throw new ArgumentNullException(
+                        "undo action with no values");
                 // remove line
-                if (beforeact.Exists && !afteract.Exists)
+                if (afteract == null)
                 {
-                    track.RemoveLine(parent);
-                    parent.Position = afteract.Pos1;
-                    parent.Position2 = afteract.Pos2;
+                    track.RemoveLine(beforeact);
                 }
                 // add line
-                else if (afteract.Exists && !beforeact.Exists)
+                else if (beforeact == null)
                 {
-                    parent.Position = afteract.Pos1;
-                    parent.Position2 = afteract.Pos2;
-                    track.AddLine(parent);
+                    track.AddLine(afteract);
                 }
-                else if (parent.Position != afteract.Pos1 || parent.Position2 != afteract.Pos2)//adjust act
+                //move action
+                else
                 {
-                    track.MoveLine(parent,afteract.Pos1,afteract.Pos2);
+                    track.ReplaceLine(beforeact, afteract);
                 }
-                var std = parent as StandardLine;
-                //do extensions
-                if (std != null)
-                {
-                    if (beforeact.Prev != afteract.Prev)
-                    {
-                        var oldprev = beforeact.Prev as StandardLine;
-                        var newprev = afteract.Prev as StandardLine;
-                        if (oldprev != null)
-                        {
-                            oldprev.RemoveExtension(StandardLine.ExtensionDirection.Right);
-                            oldprev.Next = null;
-                        }
-                        if (newprev != null)
-                        {
-                            newprev.AddExtension(StandardLine.ExtensionDirection.Right);
-                            newprev.Next = std;
-                        }
-                        std.Prev = newprev;
-                    }
-                    if (beforeact.Next != afteract.Next)
-                    {
-                        var oldnext = beforeact.Next as StandardLine;
-                        var newnext = afteract.Next as StandardLine;
-                        if (oldnext != null)
-                        {
-                            oldnext.RemoveExtension(StandardLine.ExtensionDirection.Left);
-                            oldnext.Prev = null;
-                        }
-                        if (newnext != null)
-                        {
-                            newnext.AddExtension(StandardLine.ExtensionDirection.Left);
-                            newnext.Prev = std;
-                        }
-                        std.Next = newnext;
-                    }
-                    std.SetExtension(afteract.extension);
-                }
-                return !(parent is SceneryLine);
+                return !(beforeact is SceneryLine);
 
             }
             /// <summary>
@@ -104,9 +63,12 @@ namespace linerider
             public virtual bool Undo(TrackWriter track)
             {
                 bool ret = false;
-                for (int i = States.Count - 1; i > 0; i -= 2)
+                using (track.AcquireBufferUpdateSync())
                 {
-                    ret |= DoAction(track, States[i], States[i - 1]);
+                    for (int i = States.Count - 1; i > 0; i -= 2)
+                    {
+                        ret |= DoAction(track, States[i], States[i - 1]);
+                    }
                 }
                 return ret;
             }
@@ -114,9 +76,12 @@ namespace linerider
             public virtual bool Redo(TrackWriter track)
             {
                 bool ret = false;
-                for (int i = 0; i < States.Count - 1; i += 2)
+                using (track.AcquireBufferUpdateSync())
                 {
-                    ret |= DoAction(track, States[i], States[i + 1]);
+                    for (int i = 0; i < States.Count - 1; i += 2)
+                    {
+                        ret |= DoAction(track, States[i], States[i + 1]);
+                    }
                 }
                 return ret;
             }
@@ -132,11 +97,21 @@ namespace linerider
         /// After calling beginaction the current state will be added tothe action
         /// </summary>
         /// <param name="state">the new state of the line</param>
-        public void AddChange(LineState state)
+        public void AddChange(Line line)
         {
             if (_currentaction == null)
                 throw new Exception("UndoManager current action null");
-            _currentaction.States.Add(state);
+            line = line?.Clone();
+            _currentaction.States.Add(line);
+        }
+        /// <summary>
+        /// After calling beginaction the current state will be added tothe action
+        /// </summary>
+        /// <param name="state">the new state of the line</param>
+        public void AddChange(Line before, Line after)
+        {
+            AddChange(before);
+            AddChange(after);
         }
         public void BeginAction()
         {
@@ -156,7 +131,7 @@ namespace linerider
             }
             if (_actions.Count > MaximumBufferSize)
             {
-                _actions.RemoveRange(0,_actions.Count - (MaximumBufferSize / 2));
+                _actions.RemoveRange(0, _actions.Count - (MaximumBufferSize / 2));
             }
             _actions.Add(_currentaction);
             pos = _actions.Count;

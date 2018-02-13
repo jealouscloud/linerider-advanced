@@ -28,6 +28,7 @@ using System.Text;
 using System.Drawing;
 using OpenTK;
 using linerider.Utils;
+using linerider.Lines;
 namespace linerider.Game
 {
     public class FastGrid
@@ -79,7 +80,7 @@ namespace linerider.Game
             var pos = GetCellKey(x, y);
             if (!Cells.TryGetValue(pos, out cell))
                 return;
-            cell.RemoveLine(l);
+            cell.RemoveLine(l.ID);
         }
         public void AddLine(Line line)
         {

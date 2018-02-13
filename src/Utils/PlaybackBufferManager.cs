@@ -49,6 +49,7 @@ namespace linerider.Utils
         private SimulationGrid _grid;
         private ResourceSync _statesync;
         private ManualResetEvent _updatesync = new ManualResetEvent(true);
+        private ResourceSync _restartsync = new ResourceSync();
         private bool _restart = false;
         private bool _running = false;
         private const int Aborted = -2;
@@ -56,6 +57,10 @@ namespace linerider.Utils
         {
             _statesync = new ResourceSync();
             Reset(grid);
+        }
+        public ResourceSync.ResourceLock BeginTransaction()
+        {
+            return _restartsync.AcquireWrite();
         }
         public void SaveCells(Vector2d start, Vector2d end)
         {
@@ -117,6 +122,9 @@ namespace linerider.Utils
             {
                 while (_restart)
                 {
+                    //if someone wants us to wait, we will wait.
+                    _restartsync.UnsafeEnterWrite();
+                    _restartsync.UnsafeExitWrite();
                     using (_statesync.AcquireWrite())
                     {
                         _restart = false;
@@ -241,7 +249,6 @@ namespace linerider.Utils
         }
         private int FindUpdateStart(Track track)
         {
-            List<InteractionTestLine> lines = new List<InteractionTestLine>();
             RectLRTB changebounds = new RectLRTB();
             bool hassetfirst = false;
             using (_statesync.AcquireRead())

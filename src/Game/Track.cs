@@ -28,6 +28,8 @@ using System.Drawing;
 using System.Threading;
 using linerider.Game;
 using linerider.Utils;
+using linerider.Lines;
+using System.Diagnostics;
 
 namespace linerider
 {
@@ -42,7 +44,8 @@ namespace linerider
 
         public FastGrid RenderCells = new FastGrid();
 
-        public List<Line> Lines = new List<Line>();
+        public LinkedList<int> Lines = new LinkedList<int>();
+        public Dictionary<int, Line> LineLookup = new Dictionary<int, Line>();
 
         public string Name = "untitled";
 
@@ -63,27 +66,34 @@ namespace linerider
                 GenerateBones();
             }
         }
-
+        public int SceneryLines { get; private set; }
+        public int BlueLines { get; private set; }
+        public int RedLines { get; private set; }
         public bool ZeroStart = false;
 
         internal int _idcounter;
 
         private int _sceneryidcounter = -1;
-        public FloatRect RiderRect
-        {
-            get
-            {
-                var ret = new FloatRect((Vector2)StartOffset, new Vector2(0, 0));
-                ret.Width = 35;
-                ret.Height = 22;
-                ret.Top -= 11;
-                return ret;
-            }
-        }
         public Track()
         {
             GenerateBones();
             Reset();
+        }
+        public Line[] GetSortedLines()
+        {
+            Line[] ret = new Line[LineLookup.Count];
+            SortedSet<int> temp = new SortedSet<int>();
+            foreach (var id in Lines)
+            {
+                temp.Add(id);
+            }
+            int index = 0;
+            // sorted as -2 -1 0 1 2, we want the reverse.
+            foreach (var line in temp.Reverse())
+            {
+                ret[index++] = LineLookup[line];
+            }
+            return ret;
         }
         private void GenerateBones()
         {
@@ -101,20 +111,58 @@ namespace linerider
         }
         public void AddLine(Line line, bool isloading = false)
         {
-            Lines.Add(line);
-            var scenery = line is SceneryLine;
-            if (scenery)
+            var ltype = line.GetLineType();
+            if (ltype == LineType.Scenery)
             {
                 line.ID = _sceneryidcounter--;
             }
-            else if (line.ID == -1)
-                line.ID = _idcounter++;
-            else if (line.ID >= _idcounter)
+            else
             {
-                _idcounter = line.ID + 1;
+                if (line.ID == -1)
+                    line.ID = _idcounter++;
+                else if (line.ID >= _idcounter)
+                {
+                    _idcounter = line.ID + 1;
+                }
             }
+            switch (ltype)
+            {
+                case LineType.Blue:
+                    BlueLines++;
+                    break;
+                case LineType.Red:
+                    RedLines++;
+                    break;
+                case LineType.Scenery:
+                    SceneryLines++;
+                    break;
+            }
+            Debug.Assert(
+                !LineLookup.ContainsKey(line.ID),
+                "Lines occupying the same ID -- really bad");
+            LineLookup.Add(line.ID, line);
+            Lines.AddFirst(line.ID);
             AddLineToGrid(line);
 
+        }
+        public void RemoveLine(Line line)
+        {
+            switch (line.GetLineType())
+            {
+                case LineType.Blue:
+                    BlueLines--;
+                    break;
+                case LineType.Red:
+                    RedLines--;
+                    break;
+                case LineType.Scenery:
+                    SceneryLines--;
+                    break;
+            }
+            LineLookup.Remove(line.ID);
+            Lines.Remove(line.ID);
+
+            RemoveLineFromGrid(line);
         }
 
         /// <summary>
@@ -138,7 +186,7 @@ namespace linerider
             if (precise)
             {
                 var newret = new List<Line>(ret.Count);
-                foreach(var line in ret)
+                foreach (var line in ret)
                 {
                     if (Line.DoesLineIntersectRect(line, rect))
                     {
@@ -158,11 +206,6 @@ namespace linerider
         public bool IsLineCollided(int id)
         {
             return false;
-        }
-        public void RemoveLine(Line l)
-        {
-            Lines.Remove(l);
-            RemoveLineFromGrid(l);
         }
 
         /// <summary>
@@ -197,7 +240,7 @@ namespace linerider
         public void AddFrame()
         {
             //todo collision
-            RiderStates.Add(RiderStates[RiderStates.Count - 1].Simulate(this,null));
+            RiderStates.Add(RiderStates[RiderStates.Count - 1].Simulate(this, null));
         }
     }
 }

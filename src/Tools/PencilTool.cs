@@ -24,6 +24,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using Color = System.Drawing.Color;
 using linerider.Rendering;
+using linerider.Lines;
 
 namespace linerider.Tools
 {

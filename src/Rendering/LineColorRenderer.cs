@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using OpenTK;
 using linerider.Drawing;
 using linerider.Utils;
+using linerider.Lines;
 namespace linerider.Rendering
 {
     public class LineColorRenderer : IDisposable

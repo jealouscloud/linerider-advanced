@@ -27,6 +27,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using linerider.Audio;
+using linerider.Lines;
 
 namespace linerider
 {
@@ -99,7 +100,7 @@ namespace linerider
             {
                 ret["ZEROSTART"] = true;
             }
-            foreach (Line l in trk.Lines)
+            foreach (Line l in trk.LineLookup.Values)
             {
                 var scenery = l as SceneryLine;
                 if (scenery != null)
@@ -235,7 +236,8 @@ namespace linerider
                 {
                     saved_features[ZEROSTART_INDEX] = true;
                 }
-                foreach (Line l in trk.Lines)
+                var lines = trk.GetSortedLines();
+                foreach (Line l in lines)
                 {
                     var scenery = l as SceneryLine;
                     if (scenery != null)
@@ -280,23 +282,22 @@ namespace linerider
                 }
                 bw.Write(trk.StartOffset.X);
                 bw.Write(trk.StartOffset.Y);
-                bw.Write(trk.Lines.Count);
-                for (var i = 0; i < trk.Lines.Count; i++)
+                bw.Write(lines.Length);
+                foreach (var line in lines)
                 {
-                    byte type = (byte)trk.Lines[i].GetLineType();
-                    if (trk.Lines[i] is StandardLine)
+                    byte type = (byte)line.GetLineType();
+                    if (line is StandardLine l)
                     {
-                        var l = ((StandardLine)trk.Lines[i]);
                         if (l.inv)
                             type |= 1 << 7;
-                        type |= (byte)((((byte)((StandardLine)trk.Lines[i]).Extension)) << 5); //bits: 2
-
+                        var ext = (byte)l.Extension;
+                        type |= (byte)((ext & 0x03) << 5); //bits: 2
                         bw.Write(type);
                         if (saved_features[REDMULTIPLIER_INDEX])
                         {
-                            if (trk.Lines[i] is RedLine)
+                            if (line is RedLine red)
                             {
-                                bw.Write((byte)(trk.Lines[i] as RedLine).Multiplier);
+                                bw.Write((byte)red.Multiplier);
                             }
                         }
                         if (saved_features[IGNORABLE_TRIGGER_INDEX])
@@ -348,8 +349,7 @@ namespace linerider
                         bw.Write(type);
                         if (saved_features[SCENERYWIDTH_INDEX])
                         {
-                            var scenery = trk.Lines[i] as SceneryLine;
-                            if (scenery != null)
+                            if (line is SceneryLine scenery)
                             {
                                 byte b = (byte)(Math.Round(scenery.Width, 1) * 10);
                                 bw.Write(b);
@@ -357,10 +357,10 @@ namespace linerider
                         }
                     }
 
-                    bw.Write(trk.Lines[i].Position.X);
-                    bw.Write(trk.Lines[i].Position.Y);
-                    bw.Write(trk.Lines[i].Position2.X);
-                    bw.Write(trk.Lines[i].Position2.Y);
+                    bw.Write(line.Position.X);
+                    bw.Write(line.Position.Y);
+                    bw.Write(line.Position2.X);
+                    bw.Write(line.Position2.Y);
                 }
             }
             return filename;
@@ -426,8 +426,9 @@ namespace linerider
             var addedlines = new Dictionary<int, StandardLine>();
             var extensions = new List<Extensionentry>();
             var location = trackfile;
+                var bytes = File.ReadAllBytes(location);
             using (var file =
-                    File.Open(location, FileMode.Open))
+                    new MemoryStream(bytes))
             {
                 var br = new BinaryReader(file);
                 int magic = br.ReadInt32();
@@ -667,6 +668,7 @@ namespace linerider
         public static Track LoadTrack(sol_track trackdata)
         {
             var ret = new Track { Name = trackdata.name };
+            List<Line> lineslist = new List<Line>();
             var buffer = (List<Amf0Object>)trackdata.get_property("data");
             var addedlines = new Dictionary<int, StandardLine>();
             var version = trackdata.data.First(x => x.name == "version").data as string;
@@ -730,7 +732,7 @@ namespace linerider
                             }
                             if (!addedlines.ContainsKey(l.ID))
                             {
-                                ret.AddLine(l, true);
+                                lineslist.Add(l);
                                 addedlines[l.ID] = l;
                             }
                         }
@@ -761,19 +763,19 @@ namespace linerider
                             }
                             if (!addedlines.ContainsKey(l.ID))
                             {
-                                ret.AddLine(l, true);
+                                lineslist.Add(l);
                                 addedlines[l.ID] = l;
                             }
                         }
                         break;
 
                     case 2:
-                        ret.AddLine(
+                        lineslist.Add(
                             new SceneryLine(
                                 new Vector2d(Convert.ToDouble(line[0].data, CultureInfo.InvariantCulture),
                                     Convert.ToDouble(line[1].data, CultureInfo.InvariantCulture)),
                                 new Vector2d(Convert.ToDouble(line[2].data, CultureInfo.InvariantCulture),
-                                    Convert.ToDouble(line[3].data, CultureInfo.InvariantCulture))), true);
+                                    Convert.ToDouble(line[3].data, CultureInfo.InvariantCulture))));
                         break;
 
                     default:
@@ -817,11 +819,16 @@ namespace linerider
             {
                 var conv = Convert.ToInt32(startlineprop, CultureInfo.InvariantCulture);
                 startline = new List<Amf0Object>();
-                startline.Add(new Amf0Object { data = ret.Lines[conv].Position.X });
-                startline.Add(new Amf0Object { data = ret.Lines[conv].Position.Y - 50 * 0.5 });
+                startline.Add(new Amf0Object { data = lineslist[conv].Position.X });
+                startline.Add(new Amf0Object { data = lineslist[conv].Position.Y - 50 * 0.5 });
             }
-            ret.StartOffset = new Vector2d(Convert.ToDouble(startline[0].data, CultureInfo.InvariantCulture),
-            Convert.ToDouble(startline[1].data, CultureInfo.InvariantCulture));
+            ret.StartOffset = new Vector2d(
+                Convert.ToDouble(startline[0].data, CultureInfo.InvariantCulture),
+                Convert.ToDouble(startline[1].data, CultureInfo.InvariantCulture));
+            foreach (var line in lineslist)
+            {
+                ret.AddLine(line, true);
+            }
             return ret;
         }
     }

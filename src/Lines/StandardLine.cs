@@ -22,9 +22,11 @@
 using System;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using linerider.Lines;
 using linerider.Game;
-namespace linerider
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
+namespace linerider.Lines
 {
     public class StandardLine : Line
     {
@@ -80,17 +82,8 @@ namespace linerider
             }
         }
 
-        protected StandardLine(StandardLine sl) : base(sl.Position, sl.Position2)
+        protected StandardLine() : base()
         {
-            ExtensionRatio = sl.ExtensionRatio;
-            Extension = sl.Extension;
-            Distance = sl.Distance;
-            DotScalar = sl.DotScalar;
-            DiffNormal = sl.DiffNormal;
-            Trigger = sl.Trigger;
-            inv = sl.inv;
-            Next = sl.Next;
-            Prev = sl.Prev;
         }
         public StandardLine(Vector2d p1, Vector2d p2, bool inv = false) : base(p1, p2)
         {
@@ -186,13 +179,24 @@ namespace linerider
             }
             return false;
         }
-        public override LineState GetState()
+        public override Line Clone()
         {
-            return new LineState() { Pos1 = Position, Pos2 = Position2, extension = Extension, Next = Next, Prev = Prev, Parent = this, Inverted = inv, Exists = ID >= 0 };
-        }
-        public virtual StandardLine Clone()
-        {
-            return new StandardLine(this);
+            return new StandardLine() 
+            { 
+                ID = ID, 
+                Prev = Prev,
+                Next = Next,
+                diff = diff,
+                DiffNormal = DiffNormal,
+                Distance = Distance,
+                DotScalar = DotScalar,
+                Extension = Extension,
+                ExtensionRatio = ExtensionRatio,
+                inv = inv,
+                Position = Position,
+                Position2 = Position2,
+                Trigger = Trigger
+            };
         }
     }
 }

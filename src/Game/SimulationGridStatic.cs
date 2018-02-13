@@ -18,7 +18,6 @@
 //
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-using linerider.Rendering;
 using OpenTK;
 using System;
 using System.Collections.Concurrent;
@@ -27,6 +26,9 @@ using System.Drawing;
 using System.Threading;
 using linerider.Game;
 using linerider.Utils;
+using linerider.Lines;
+using linerider.Rendering;
+
 namespace linerider
 {
 

@@ -21,7 +21,7 @@
 
 using OpenTK;
 using linerider.Game;
-namespace linerider
+namespace linerider.Lines
 {
     public class RedLine : StandardLine
     {
@@ -40,10 +40,8 @@ namespace linerider
                 CalculateConstants();
             }
         }
-        protected RedLine(RedLine rl) : base(rl)
+        protected RedLine() : base()
         {
-            _multiplier = rl._multiplier;
-            _acc = rl._acc;
         }
         public RedLine(Vector2d p1, Vector2d p2, bool inv = false) : base(p1, p2, inv) { }
         public override void CalculateConstants()
@@ -76,9 +74,26 @@ namespace linerider
             }
             return false;
         }
-        public override StandardLine Clone()
+        public override Line Clone()
         {
-            return new RedLine(this);
+            return new RedLine()
+            {
+                ID = ID,
+                Prev = Prev,
+                Next = Next,
+                diff = diff,
+                DiffNormal = DiffNormal,
+                Distance = Distance,
+                DotScalar = DotScalar,
+                Extension = Extension,
+                ExtensionRatio = ExtensionRatio,
+                inv = inv,
+                Position = Position,
+                Position2 = Position2,
+                Trigger = Trigger,
+                _acc = _acc,
+                _multiplier = _multiplier
+            };
         }
     }
 }
