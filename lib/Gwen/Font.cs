@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Gwen
 {
@@ -74,8 +75,8 @@ namespace Gwen
 #if DEBUG
         ~Font()
         {
-            throw new InvalidOperationException(String.Format("IDisposable object finalized: {0}", GetType()));
-            //Debug.Print(String.Format("IDisposable object finalized: {0}", GetType()));
+            //throw new InvalidOperationException(String.Format("IDisposable object finalized: {0}", GetType()));
+            Debug.WriteLine(String.Format("IDisposable object finalized: {0}", GetType()));
         }
 #endif
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Gwen
@@ -88,8 +89,8 @@ namespace Gwen
 
         ~Texture()
         {
-            throw new InvalidOperationException(String.Format("IDisposable object finalized: {0}", GetType()));
-            //Debug.Print(String.Format("IDisposable object finalized: {0}", GetType()));
+            //throw new InvalidOperationException(String.Format("IDisposable object finalized: {0}", GetType()));
+            Debug.WriteLine(String.Format("IDisposable object finalized: {0}", GetType()));
         }
 
 #endif

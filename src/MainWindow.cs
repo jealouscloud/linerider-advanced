@@ -131,8 +131,8 @@ namespace linerider
             if (Canvas != null)
             {
                 Canvas.Dispose();
-                Canvas.Skin.DefaultFont.Dispose();
                 Canvas.Skin.Dispose();
+                Canvas.Skin.DefaultFont.Dispose();
                 Canvas.Renderer.Dispose();
                 Canvas = null;
             }
