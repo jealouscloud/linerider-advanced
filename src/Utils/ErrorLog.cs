@@ -1,5 +1,5 @@
 ﻿//
-//  GLEnableCap.cs
+//  ErrorLog.cs
 //
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
@@ -19,32 +19,22 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using OpenTK.Graphics.OpenGL;
-namespace linerider.Rendering
+using System.IO;
+namespace linerider.Utils
 {
-	public class GLEnableCap : IDisposable
-	{
-		private bool _was_enabled = false;
-		private EnableCap _cap;
-		public GLEnableCap(EnableCap cap)
-		{
-			_cap = cap;
-			_was_enabled = GL.IsEnabled(cap);
-			if (!_was_enabled)
-				GL.Enable(cap);
-		}
-		public void Close()
-		{
-			Dispose();
-		}
-		public void Dispose()
-		{
-			if (_was_enabled)
-			{
-				GL.Disable(_cap);
-				_was_enabled = false;
-			}
-		}
-	}
+    public static class ErrorLog
+    {
+        public static void WriteLine(string log)
+        {
+            try
+            {
+                var fs = File.AppendText(Program.UserDirectory + "errors.txt");
+                fs.WriteLine(log);
+                fs.Dispose();
+            }
+            catch
+            {
+            }
+        }
+    }
 }

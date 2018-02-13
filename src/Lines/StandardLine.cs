@@ -80,6 +80,18 @@ namespace linerider
             }
         }
 
+        protected StandardLine(StandardLine sl) : base(sl.Position, sl.Position2)
+        {
+            ExtensionRatio = sl.ExtensionRatio;
+            Extension = sl.Extension;
+            Distance = sl.Distance;
+            DotScalar = sl.DotScalar;
+            DiffNormal = sl.DiffNormal;
+            Trigger = sl.Trigger;
+            inv = sl.inv;
+            Next = sl.Next;
+            Prev = sl.Prev;
+        }
         public StandardLine(Vector2d p1, Vector2d p2, bool inv = false) : base(p1, p2)
         {
             this.inv = inv;
@@ -167,7 +179,7 @@ namespace linerider
                             friction.X = -friction.X;
                         if (p.Previous.Y >= pos.Y)
                             friction.Y = -friction.Y;
-                        p = new SimulationPoint(pos, p.Previous + friction, p.Momentum, p.Friction);
+                        p = p.Replace(pos,p.Previous + friction);
                         return true;
                     }
                 }
@@ -177,6 +189,10 @@ namespace linerider
         public override LineState GetState()
         {
             return new LineState() { Pos1 = Position, Pos2 = Position2, extension = Extension, Next = Next, Prev = Prev, Parent = this, Inverted = inv, Exists = ID >= 0 };
+        }
+        public virtual StandardLine Clone()
+        {
+            return new StandardLine(this);
         }
     }
 }

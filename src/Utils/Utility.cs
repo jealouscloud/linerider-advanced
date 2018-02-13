@@ -20,6 +20,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using OpenTK;
@@ -34,7 +35,7 @@ namespace linerider
         public static Vector2d SnapToDegrees(Vector2d start, Vector2d end)
         {
             var degrees = (start - end).Length > 1 ? 15 : 45;
-            return SnapToDegrees(start,end,degrees);
+            return SnapToDegrees(start, end, degrees);
         }
         public static Vector2d SnapToDegrees(Vector2d start, Vector2d end, double degrees = 15)
         {
@@ -43,9 +44,9 @@ namespace linerider
         }
         public static Vector2d AngleLock(Vector2d start, Vector2d end, Angle a)
         {
-            Turtle tort = new Turtle(start);
-            tort.Move(a.Degrees, (end - start).Length);
-            return tort.Point;
+            var rad = a.Radians;
+            Vector2d scalar = new Vector2d(Math.Cos(rad),Math.Sin(rad));
+            return start + (scalar * Vector2d.Dot(end - start,scalar));
         }
 
         public static Vector2d LengthLock(Vector2d start, Vector2d end, double length)
@@ -69,34 +70,24 @@ namespace linerider
             var b = Math.Abs(input.LengthSquared - p2.LengthSquared);
             return a < b ? p1 : p2;
         }
-        public static bool PointInTriangle(Vector2d A, Vector2d B, Vector2d C, Vector2d P)
+        public static bool isLeft(Vector2d a, Vector2d b, Vector2d point)
         {
-            // Compute vectors        
-            Vector2d v0 = C - A;
-            Vector2d v1 = B - A;
-            Vector2d v2 = P - A;
-
-            // Compute dot products
-            double dot00 = Vector2d.Dot(v0, v0);
-            double dot01 = Vector2d.Dot(v0, v1);
-            double dot02 = Vector2d.Dot(v0, v2);
-            double dot11 = Vector2d.Dot(v1, v1);
-            double dot12 = Vector2d.Dot(v1, v2);
-
-            // Compute barycentric coordinates
-            double invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-            double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-            double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-            // Check if point is in triangle
-            if (u >= 0 && v >= 0 && (u + v) < 1)
-            { return true; }
-            else { return false; }
+            return ((b.X - a.X) * (point.Y - a.Y) - (b.Y - a.Y) * (point.X - a.X)) > 0;
         }
-        //https://gamedev.stackexchange.com/questions/110229/how-do-i-efficiently-check-if-a-point-is-inside-a-rotated-rectangle
+        public static bool isLeft(Vector2 a, Vector2 b, Vector2 point)
+        {
+            return ((b.X - a.X) * (point.Y - a.Y) - (b.Y - a.Y) * (point.X - a.X)) > 0;
+        }
         public static bool PointInRectangle(Vector2d tl, Vector2d tr, Vector2d br, Vector2d bl, Vector2d p)
         {
-            return (PointInTriangle(tl, tr, bl, p) || PointInTriangle(tr, bl, br, p));
+            return !(isLeft(tl, bl, p) || isLeft(bl, br, p) || isLeft(br, tr, p) || isLeft(tr, tl, p));
+        }
+        /// <summary>
+        /// Converts the color to a little endian rgba integer
+        /// </summary>
+        public static int ColorToRGBA_LE(Color color)
+        {
+            return (color.A << 24) | (color.B << 16) | (color.G << 8) | color.R;
         }
     }
 }

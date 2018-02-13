@@ -31,8 +31,8 @@ namespace linerider.UI
 {
     class SongWindow : WindowControl
     {
-        private GLWindow game;
-        public SongWindow(Gwen.Controls.ControlBase parent, GLWindow glgame) : base(parent, "Song Sync")
+        private MainWindow game;
+        public SongWindow(Gwen.Controls.ControlBase parent, MainWindow glgame) : base(parent, "Song Sync")
         {
             game = glgame;
             this.MakeModal(true);

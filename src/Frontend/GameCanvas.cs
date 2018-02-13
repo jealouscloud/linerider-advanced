@@ -42,7 +42,7 @@ namespace linerider
         public Gwen.Renderer.OpenTK Renderer;
         public ColorControls ColorControls;
         public ImageButton FlagTool;
-        private GLWindow game;
+        private MainWindow game;
         private bool _draggingSlider = false;
         int _lastfpsupdate = 0;
 
@@ -51,7 +51,7 @@ namespace linerider
             get { return Children.FirstOrDefault(x => x is Gwen.ControlInternal.Modal) != null; }
         }
 
-        public GameCanvas(SkinBase skin, GLWindow Game, Gwen.Renderer.OpenTK renderer) : base(skin)
+        public GameCanvas(SkinBase skin, MainWindow Game, Gwen.Renderer.OpenTK renderer) : base(skin)
         {
             game = Game;
             this.Renderer = renderer;
@@ -230,7 +230,6 @@ namespace linerider
 
         public void UpdateIterationUI()
         {
-            //todo update renderrider
             var l = (Label)FindChildByName("labeliterations");
             l.IsHidden = !(game.Track.PlaybackMode && game.Track.Paused);
             if (!l.IsHidden)
@@ -502,6 +501,7 @@ namespace linerider
 
         internal void CalculateFlag(TrackService.Tracklocation loc)
         {
+            //todo flagtooltip != null?
             if (loc?.State == null || FlagTool.Tooltip != null) return;
             var invalid = false;
 
@@ -522,13 +522,12 @@ namespace linerider
 
                 for (var i = 0; i < frame; i++) //tick the exact number of frames that the flag should be on.
                 {
-                    state = trk.Tick(state);
+                    state = trk.TickBasic(state);
                 }
             }
             for (var i = 0; i < state.Body.Length; i++)
             {
-                if (state.Body[i].Location != loc.State.Body[i].Location ||
-                    state.Body[i].Previous != loc.State.Body[i].Previous)
+                if (state.Body[i] != loc.State.Body[i])
                 {
                     invalid = true;
                     break;

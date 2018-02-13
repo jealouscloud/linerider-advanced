@@ -37,5 +37,9 @@ namespace linerider.Drawing
         public Vector2 Position;
         public Vector2 circle_uv;
         public float ratio;
+        /// <summary>
+        /// do not set manually, handled by line renderer
+        /// </summary>
+        public int color;
     }
 }

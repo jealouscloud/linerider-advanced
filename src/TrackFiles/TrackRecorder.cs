@@ -42,7 +42,7 @@ namespace linerider.TrackFiles
     internal static class TrackRecorder
     {
         private static byte[] _screenshotbuffer;
-        public static byte[] GrabScreenshot(GLWindow game, int frontbuffer)
+        public static byte[] GrabScreenshot(MainWindow game, int frontbuffer)
         {
             if (GraphicsContext.CurrentContext == null)
                 throw new GraphicsContextMissingException();
@@ -74,7 +74,7 @@ namespace linerider.TrackFiles
 
         public static bool Recording;
         public static bool Recording1080p;
-        public static void RecordTrack(GLWindow game, bool is1080P, bool smooth)
+        public static void RecordTrack(MainWindow game, bool is1080P, bool smooth)
         {
             Settings.Local.SmoothRecording = smooth;
             var flag = game.Track.GetFlag();
@@ -104,7 +104,7 @@ namespace linerider.TrackFiles
                 }
                 for (var i = 0; i < frame; i++)
                 {
-                    state = trk.Tick(state);
+                    state = trk.TickBasic(state);
                 }
                 for (var i = 0; i < state.Body.Length; i++)
                 {

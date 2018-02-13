@@ -40,6 +40,11 @@ namespace linerider
                 CalculateConstants();
             }
         }
+        protected RedLine(RedLine rl) : base(rl)
+        {
+            _multiplier = rl._multiplier;
+            _acc = rl._acc;
+        }
         public RedLine(Vector2d p1, Vector2d p2, bool inv = false) : base(p1, p2, inv) { }
         public override void CalculateConstants()
         {
@@ -64,12 +69,16 @@ namespace linerider
                             friction.X = -friction.X;
                         if (p.Previous.Y >= pos.Y)
                             friction.Y = -friction.Y;
-                        p = new SimulationPoint(pos, p.Previous + friction + _acc, p.Momentum, p.Friction);
+                        p = p.Replace(pos, p.Previous + friction + _acc);
                         return true;
                     }
                 }
             }
             return false;
+        }
+        public override StandardLine Clone()
+        {
+            return new RedLine(this);
         }
     }
 }

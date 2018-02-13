@@ -40,8 +40,7 @@ namespace linerider.Tools
             public bool rightjoint;
 
         }
-        public bool LifeLock = false;
-        public bool CanLifelock = false;
+        public bool CanLifelock => UI.InputUtils.Check(Hotkey.ToolLifeLock);
         private SelectInfo _selection;
         private bool _started = false;
         private LineState _before;
@@ -104,6 +103,20 @@ namespace linerider.Tools
                     trk.MoveLine(line,
                     left,
                     right);
+                }
+                if (line is StandardLine && CanLifelock)
+                {
+                    game.Track.BufferManager.UpdateOnThisThread();
+                    using (var trk = game.Track.CreateTrackWriter())
+                    {
+                        if (LifeLock(trk, (StandardLine)line))
+                        {
+                            Stop();
+                        }
+                    }
+                }
+                else
+                {
                     game.Track.NotifyTrackChanged();
                 }
             }

@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenTK;
 using linerider.Utils;
+using linerider.Game;
 
 namespace linerider.Tools
 {
@@ -94,13 +95,22 @@ namespace linerider.Tools
             if (ends.Length > 0)
                 return ends[0];
             var lines =
-                trk.GetLinesInRect(new FloatRect((Vector2)position - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
+                trk.GetLinesInRect(
+                    new FloatRect((Vector2)position - new Vector2(24, 24), 
+                    new Vector2(24 * 2, 24 * 2)),
                     false);
             foreach (var line in lines)
             {
                 double lnradius = Line.GetLineRadius(line);
-                var rect = Rendering.StaticRenderer.GenerateThickLine(line.Position, line.Position2, lnradius * 2);
-                if (Utility.PointInRectangle(rect[3], rect[2], rect[1], rect[0], position))
+                var rect = Rendering.StaticRenderer.GenerateThickLine(
+                    line.Position, 
+                    line.Position2, 
+                    lnradius * 2);
+                if (Utility.PointInRectangle(rect[3], 
+                rect[2], 
+                rect[1], 
+                rect[0], 
+                position))
                 {
                     return line;
                 }
@@ -117,12 +127,14 @@ namespace linerider.Tools
                     break;
 
                 case LineType.Red:
-                    added = new RedLine(start, end, inv) { Multiplier = game.Canvas.ColorControls.RedMultiplier };
+                    added = new RedLine(start, end, inv) 
+                        { Multiplier = game.Canvas.ColorControls.RedMultiplier };
                     added.CalculateConstants();//multiplier needs to be recalculated
                     break;
 
                 case LineType.Scenery:
-                    added = new SceneryLine(start, end) { Width = game.Canvas.ColorControls.GreenMultiplier };
+                    added = new SceneryLine(start, end) 
+                        { Width = game.Canvas.ColorControls.GreenMultiplier };
                     break;
             }
             trk.AddLine(added);
@@ -140,33 +152,38 @@ namespace linerider.Tools
         /// Gets lines near the point by radius.
         /// does not support large distances as it only gets a small number of grid cells
         /// </summary>
-        /// <returns>a sorted array of lines where 0 is the closest point within the radius</returns>
-        public List<Line> LinesInRadius(TrackWriter trk, Vector2d position, double rad)
+        /// <returns>a sorted array of lines where 0 is the </returns>
+        public Line[] LinesInRadius(TrackWriter trk, Vector2d position, double rad)
         {
-            HashSet<Line> ret = new HashSet<Line>();
-            var ends = LineEndsInRadius(trk, position, rad);
-            foreach (var line in ends)
-            {
-                ret.Add(line);
-            }
-            var lines =
+            SortedList<int, Line> lines = new SortedList<int, Line>();
+            var inrect =
                 trk.GetLinesInRect(new FloatRect((Vector2)position - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
                     false);
-            var evilcirc = Rendering.StaticRenderer.GenerateCircle(position.X, position.Y, rad, 10);
-            foreach(var line in lines)
+            var octagon = Rendering.StaticRenderer.GenerateCircle(position.X, position.Y, rad, 8);
+            foreach (var line in inrect)
             {
                 double lnradius = Line.GetLineRadius(line);
                 var rect = Rendering.StaticRenderer.GenerateThickLine(line.Position, line.Position2, lnradius * 2);
-                for (int j = 0; j < evilcirc.Length; j++)
+                for (int i = 0; i < octagon.Length; i++)
                 {
-                    if (Utility.PointInRectangle(rect[3], rect[2], rect[1], rect[0], evilcirc[j]))
+                    if (Utility.PointInRectangle(rect[3], rect[2], rect[1], rect[0], octagon[i]))
                     {
-                        ret.Add(line);
+                        lines.Add(line.ID, line);
                         break;
                     }
                 }
             }
-            return ret.ToList();
+            var ends = LineEndsInRadius(trk, position, rad);
+            foreach (var line in ends)
+            {
+                lines[line.ID] = line;
+            }
+            Line[] ret = new Line[lines.Count];
+            for (int i = 0; i < ret.Length; i++)
+            {
+                ret[i] = lines.Values[(lines.Count - 1) - i];
+            }
+            return lines.Values.ToArray();
         }
         /// <summary>
         /// Gets line ends near the point by radius.
@@ -205,6 +222,38 @@ namespace linerider.Tools
                 retn.AddRange(ret.Values[i]);
             }
             return retn.ToArray();
+        }
+        protected bool LifeLock(TrackWriter writer, StandardLine line)
+        {
+            Dictionary<int, Line> collisions = new Dictionary<int, Line>();
+            Rider current;
+            Rider prev;
+
+            using (game.Track.CreatePlaybackReader())
+            {
+                current = writer.Track.RiderStates[game.Track.Offset];
+                if (game.Track.Offset == 0)
+                    return false;
+                prev = writer.Track.RiderStates[game.Track.Offset - 1];
+
+            }
+            var next = prev.Simulate(writer.Track, collisions);
+            if (!next.Crashed)
+            {
+                if (Settings.PinkLifelock)
+                {
+                    var diagnosis = next.Diagnose(writer.Track, null, 6);
+                    foreach (var v in diagnosis)
+                    {
+                        //the next frame dies on something that isnt a fakie, so we cant stop here
+                        if (v >= 0)
+                            return false;
+                    }
+                }
+                if (collisions.ContainsKey(line.ID))
+                    return true;
+            }
+            return false;
         }
         protected Vector2d TrySnapPoint(TrackReader track, Vector2d point)
         {

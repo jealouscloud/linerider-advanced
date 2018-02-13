@@ -25,7 +25,37 @@ namespace linerider.UI
                 return ret;
             }
         }
-
+        public bool UsesModifiers
+        {
+            get
+            {
+                switch(Key)
+                {
+                    case Key.AltLeft:
+                    case Key.AltRight:
+                    case Key.ShiftLeft:
+                    case Key.ShiftRight:
+                    case Key.ControlLeft:
+                    case Key.ControlRight:
+                    return true;
+                }
+                return Modifiers != (KeyModifiers)(0);
+            }
+        }
+        public bool UsesKeys
+        {
+            get
+            {
+                return Key != (Key)(-1);
+            }
+        }
+        public bool UsesMouse
+        {
+            get
+            {
+                return MouseButton != (MouseButton)(-1);
+            }
+        }
         public Keybinding()
         {
         }

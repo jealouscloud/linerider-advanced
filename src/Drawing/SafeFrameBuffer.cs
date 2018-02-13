@@ -21,6 +21,7 @@
 
 using System;
 using OpenTK.Graphics.OpenGL;
+using linerider.Utils;
 
 namespace linerider.Drawing
 {

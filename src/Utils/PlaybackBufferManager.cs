@@ -25,12 +25,16 @@ using System.Text;
 using OpenTK;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using linerider.Tools;
 using linerider.Rendering;
 using linerider.Game;
 using linerider.Lines;
 using linerider.UI;
+using System.Diagnostics;
+
 namespace linerider.Utils
 {
     /// <summary>
@@ -41,219 +45,225 @@ namespace linerider.Utils
     /// </summary>
     public class PlaybackBufferManager : GameService
     {
-        private List<LineState> _changes = new List<LineState>();
-        private ResourceSync _sync;
+        private SimulationGridOverlay _overlay = new SimulationGridOverlay();
+        private SimulationGrid _grid;
+        private ResourceSync _statesync;
+        private ManualResetEvent _updatesync = new ManualResetEvent(true);
         private bool _restart = false;
         private bool _running = false;
-        private const int MaxLinesBeforeCellAutoPasses = 10;
-        private const int DummyID = -1;
         private const int Aborted = -2;
-        public PlaybackBufferManager()
+        public PlaybackBufferManager(SimulationGrid grid)
         {
-            _sync = new ResourceSync();
+            _statesync = new ResourceSync();
+            Reset(grid);
         }
-        public void AddChange(LineState state)
+        public void SaveCells(Vector2d start, Vector2d end)
         {
-            using (_sync.AcquireWrite())
+            using (_statesync.AcquireWrite())
             {
-                _changes.Add(state);
-                _restart = true;
+                var positions = SimulationGrid.GetGridPositions(start, end, _grid.GridVersion);
+                using (_grid.Sync.AcquireRead())
+                {
+                    foreach (var cellpos in positions)
+                    {
+                        var cell = _grid.GetCell(cellpos.X, cellpos.Y);
+                        //cell can be null, we back that up too
+                        _overlay.BackupCell(cellpos.Point, cell);
+                    }
+                    _restart = true;
+                }
             }
         }
-        public void RemoveChange(LineState state)
+        public void UpdateOnThisThread()
         {
-            using (_sync.AcquireWrite())
-            {
-                _changes.Remove(state);
-                _restart = true;
-            }
-        }
-        public void Update()
-        {
-            using (_sync.AcquireWrite())
+            using (_statesync.AcquireWrite())
             {
                 if (!_running)
                 {
+                    _updatesync.Reset();
+                    _running = true;
+                    RunUpdate(null);
+                    return;
+                }
+            }
+            _updatesync.WaitOne();
+        }
+        public void Update()
+        {
+            using (_statesync.AcquireWrite())
+            {
+                if (!_running)
+                {
+                    _updatesync.Reset();
                     _running = true;
                     ThreadPool.QueueUserWorkItem(RunUpdate);
                 }
             }
         }
-        public void Reset()
+        public void Reset(SimulationGrid grid)
         {
-            using (_sync.AcquireWrite())
+            using (_statesync.AcquireWrite())
             {
                 _restart = true;
-                _changes.Clear();
+                _grid = grid;
+                _overlay.BaseGrid = grid;
+                _overlay.Clear();
             }
         }
         private void RunUpdate(Object callerstate)
         {
             game.Title = Program.WindowTitle;
-            while (_restart)
+            try
             {
-                LineState[] changes;
-                using (_sync.AcquireWrite())
+                while (_restart)
                 {
-                    _restart = false;
-                    if (_changes.Count == 0 || game.Track.EndFrameID == 0)
-                        continue;
-                    changes = _changes.ToArray();
-                }
-                Track track;
-                using (var trk = game.Track.CreateTrackWriter())
-                {
-                    track = trk.Track;//hacky way to grab onto the track
-                    //have to be careful here about thread safety
-                }
-                int start = FindUpdateStart(track, changes);
-                if (start == Aborted)
-                    continue;
-                if (start > 0)
-                {
-                    Rider[] states = new Rider[track.RiderStates.Count - start];
-                    Rider state = track.RiderStates[start - 1];
-                    for (int i = 0; i < states.Length; i++)
+                    using (_statesync.AcquireWrite())
                     {
-                        if (_restart)
-                            break;
-                        //todo hit test
-                        state = state.Simulate(track, null);
-                        states[i] = state;
+                        _restart = false;
+                        if (_overlay.Overlay.Count == 0 || game.Track.EndFrameID == 0)
+
+                        {
+                            _running = false;
+                            return;
+                        }
                     }
-                    using (_sync.AcquireWrite())
+                    Track track;
+                    using (var trk = game.Track.CreateTrackWriter())
+                    {
+                        track = trk.Track;//hacky way to grab onto the track
+                                          //have to be careful here about thread safety
+                    }
+                    int start = FindUpdateStart(track);
+                    if (start == Aborted)
+                        continue;
+                    if (start != -1)
+                    {
+                        var playbacksync = game.Track.GetPlaybackSync();
+
+                        using (var rw = playbacksync.AcquireUpgradableRead())
+                        {
+                            Rider[] states = SimulateChanges(track, start);
+                            using (_statesync.AcquireWrite())
+                            {
+                                if (_restart)
+                                    continue;
+                                rw.UpgradeToWriter();
+                                UpdateBuffer(track, start, states);
+                                _overlay.Clear();
+                            }
+                            game.Track.UpdateRenderRider();
+                        }
+                        game.Title = "Updated frames " + start + "-" + track.RiderStates.Count;
+                        game.InvalidateTrack();
+                    }
+                    using (_statesync.AcquireWrite())
                     {
                         if (_restart)
                             continue;
-                        for (int i = 0; i < states.Length; i++)
-                        {
-                            track.RiderStates[start + i] = states[i];
-                        }
-                        _changes.Clear();
+                        _running = false;
+                        _overlay.Clear();
+                        return;
                     }
-                    game.Title = "Updated frames " + start + "-" + track.RiderStates.Count;
-                    game.Track.UpdateRenderRider();
-                    game.InvalidateTrack();
-                }
-                using (_sync.AcquireWrite())
-                {
-                    _running = false;
                 }
             }
+            finally
+            {
+                _updatesync.Set();
+            }
         }
-        private int FindUpdateStart(Track track, LineState[] changes)
+        private void UpdateBuffer(Track track, int start, Rider[] changes)
         {
-            Dictionary<GridPoint, SimulationCell> points = new Dictionary<GridPoint, SimulationCell>();
-            List<InteractionTestLine> lines = new List<InteractionTestLine>();
             for (int i = 0; i < changes.Length; i++)
             {
-                var change = changes[i];
-                InteractionTestLine sl = new InteractionTestLine(change.Pos1, change.Pos2, change.Inverted) { Extension = change.extension, ID = DummyID };
-                var positions = track.Grid.GetGridPositions(sl);
-                foreach (var p in positions)
-                {
-                    SimulationCell cell;
-                    if (!points.TryGetValue(p.Point, out cell))
-                    {
-                        cell = new SimulationCell();
-                        points[p.Point] = cell;
-                    }
-
-                    cell.AddLine(sl);
-                }
+                track.RiderStates[start + i] = changes[i];
             }
-            return CalculateFirstInteraction(track, 0, track.RiderStates.Count - 1, points);
         }
-
-        public int CalculateFirstInteraction(Track track, int start, int end, Dictionary<GridPoint, SimulationCell> cells)
+        private Rider[] SimulateChanges(Track track, int start)
         {
-            var gridpoints = cells.Keys.ToArray();
-            Dictionary<int, Line> collisions = new Dictionary<int, Line>();
-            int idx = start;
-            for (; idx <= end; idx++)
+            Rider[] states = new Rider[track.RiderStates.Count - start];
+            // we have to regenerate the frame at start using the frame before it
+            Rider state = track.RiderStates[start - 1];
+
+            for (int i = 0; i < states.Length; i++)
             {
                 if (_restart)
-                    return Aborted;
-                var state = track.RiderStates[idx];
-                for (int icx = 0; icx < gridpoints.Length; icx++)
-                {
-                    if (state.PhysInfo.ContainsCell(gridpoints[icx]))
-                    {
-                        if (CheckInteraction(track, state, cells))
-                            return idx + 1;//the next frame will be different. this one stays the same.
-                    }
-                }
+                    return null;
+                //todo hit test
+                state = state.Simulate(track, null);
+                states[i] = state;
             }
-            return -1;
+            return states;
         }
-        private bool CheckInteraction(Track track, Rider state, Dictionary<GridPoint, SimulationCell> changedcells)
+        private bool CheckInteraction(Track track, int frame)
         {
-            SimulationPoint[] joints = new SimulationPoint[state.Body.Length];
-            bool dead = state.Crashed;
-            for (int r = 0; r < joints.Length; r++)
+            // even though its this frame that may need changing, we have to regenerate it using
+            // the previous frame.
+            var prev = track.RiderStates[frame - 1];
+            var overlaysimulated = prev.Simulate(_overlay, track.Bones, null, null);
+            var newsimulated = prev.Simulate(track.Grid, track.Bones, null, null);
+            for (int i = 0; i < overlaysimulated.Body.Length; i++)
             {
-                joints[r] = state.Body[r].StepMomentum();
-            }
-            using (var reader = game.Track.CreateTrackReader())
-            {
-                for (int iteration = 0; iteration < 6; iteration++)
-                {
-                    Rider.ProcessBones(joints,track.Bones, ref dead);
-                    for (int i = 0; i < joints.Length; i++)
-                    {
-                        var cellx = (int)Math.Floor(joints[i].Location.X / 14);
-                        var celly = (int)Math.Floor(joints[i].Location.Y / 14);
-                        for (var x = -1; x <= 1; x++)
-                        {
-                            for (var y = -1; y <= 1; y++)
-                            {
-                                SimulationCell changelines;
-                                var lines = track.Grid.GetCell(cellx + x, celly + y);
-                                if (changedcells.TryGetValue(new GridPoint(cellx + x, celly + y), out changelines))
-                                {
-                                    if (TestCell(ref joints[i], changelines, lines))
-                                        return true;
-                                }
-                                else
-                                {
-                                    if (lines != null)
-                                        joints[i] = Rider.ProcessCell(lines, joints[i]);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-        private bool TestCell(ref SimulationPoint joint, SimulationCell changelines, SimulationCell tracklines)
-        {
-            if (tracklines != null)
-            {
-                if (tracklines.Count + changelines.Count > MaxLinesBeforeCellAutoPasses)
-                {
-                    return true;//unreasonable to test this
-                }
-                foreach (var line in tracklines)
-                {
-                    foreach (var test in changelines)
-                    {
-                        if (test.Interact(ref joint))
-                        {
-                            return true;
-                        }
-                    }
-                    line.Interact(ref joint);
-                }
-            }
-            foreach (var test in changelines)
-            {
-                if (test.Interact(ref joint))
+                if (overlaysimulated.Body[i] != newsimulated.Body[i])
                 {
                     return true;
                 }
             }
             return false;
+        }
+
+
+        private int CalculateFirstInteraction(Track track, RectLRTB changebounds)
+        {
+            RectLRTB riderbounds;
+            int statecount = track.RiderStates.Count;
+            for (int frame = 1; frame < statecount; frame++)
+            {
+                using (_statesync.AcquireRead())
+                {
+                    if (_restart)
+                        return Aborted;
+                    riderbounds = track.RiderStates[frame].PhysicsBounds;
+                    if (!changebounds.Intersects(riderbounds))
+                        continue;
+                    foreach (var change in _overlay.Overlay)
+                    {
+                        if (riderbounds.ContainsPoint(change.Key))
+                        {
+                            if (CheckInteraction(track, frame))
+                                return frame;
+                            // we dont have to check this rider more than once!
+                            break;
+                        }
+                    }
+                }
+            }
+            return -1;
+        }
+        private int FindUpdateStart(Track track)
+        {
+            List<InteractionTestLine> lines = new List<InteractionTestLine>();
+            RectLRTB changebounds = new RectLRTB();
+            bool hassetfirst = false;
+            using (_statesync.AcquireRead())
+            {
+                foreach (var cell in _overlay.Overlay)
+                {
+                    if (!hassetfirst)
+                    {
+                        changebounds = new RectLRTB(cell.Key);
+                        hassetfirst = true;
+                        continue;
+                    }
+                    changebounds.left = Math.Min(cell.Key.X, changebounds.left);
+                    changebounds.top = Math.Min(cell.Key.Y, changebounds.top);
+                    changebounds.right = Math.Max(cell.Key.X, changebounds.right);
+                    changebounds.bottom = Math.Max(cell.Key.Y, changebounds.bottom);
+                }
+            }
+            using (game.Track.CreatePlaybackReader())
+            {
+                return CalculateFirstInteraction(track, changebounds);
+            }
         }
     }
 }

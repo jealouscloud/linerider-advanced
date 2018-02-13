@@ -278,6 +278,18 @@ namespace linerider.Rendering
             return ret;
         }
 
+        public static Vector2[] GenerateThickLine(Vector2 p, Vector2 p1, float radians, float width)
+        {
+            Vector2[] ret = new Vector2[4];
+            var angle = Angle.FromRadians(radians);
+            angle.Radians += 1.5708f; //90 degrees as const, radians so no conversion between degrees for a radians only calculation
+            var t = CalculateLine(Vector2.Zero, angle, width / 2);
+            ret[0] = p + t;
+            ret[1] = p1 + t;
+            ret[2] = p1 - t;
+            ret[3] = p - t;
+            return ret;
+        }
         public static Vector2[] GenerateThickLine(Vector2 p, Vector2 p1, float width)
         {
             Vector2[] ret = new Vector2[4];

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using linerider.Game;
 
 namespace linerider.Drawing
@@ -13,6 +14,7 @@ namespace linerider.Drawing
         public KnobState KnobState = 0;
         public float Blend = 1;
         public Rider Rider;
+        public List<int> RiderDiagnosis = null;
         public bool ShowContactLines = false;
         public bool ShowMomentumVectors = false;
         public int Iteration = 6;

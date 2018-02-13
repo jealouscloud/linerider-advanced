@@ -11,6 +11,7 @@ namespace linerider.UI
         public static List<MouseButton> MouseButtonsDown { get; private set; } = new List<MouseButton>();
         private static MouseState _last_mouse_state;
         private static ResourceSync _lock = new ResourceSync();
+        private static int _modifiersdown = 0;
         public static void UpdateKeysDown(KeyboardState ks)
         {
             var ret = new List<Key>();
@@ -19,6 +20,7 @@ namespace linerider.UI
             using (_lock.AcquireWrite())
             {
                 _last_kb_state = ks;
+                _modifiersdown = 0;
                 if (ks.IsAnyKeyDown)
                 {
                     //skip key.unknown
@@ -26,7 +28,11 @@ namespace linerider.UI
                     for (Key key = 0; key < Key.LastKey; key++)
                     {
                         if (ks.IsKeyDown(key))
+                        {
                             ret.Add(key);
+                            if (IsModifier(key))
+                                _modifiersdown++;
+                        }
                     }
                 }
                 KeysDown = ret;
@@ -48,7 +54,38 @@ namespace linerider.UI
                 MouseButtonsDown = ret;
             }
         }
-        public static bool Check(Hotkey hotkey, bool exclusivekeys = true)
+        private static bool IsModifier(Key key)
+        {
+            switch (key)
+            {
+                case Key.AltLeft:
+                case Key.AltRight:
+                case Key.ShiftLeft:
+                case Key.ShiftRight:
+                case Key.ControlLeft:
+                case Key.ControlRight:
+                    return true;
+            }
+            return false;
+        }
+        private static bool RegularExclusiveCHeck(Keybinding bind)
+        {
+            int allowedkeys = bind.KeysDown;
+            var keysdown = KeysDown.Count;
+            if (allowedkeys > 0)
+            {
+                if ((bind.UsesModifiers && keysdown != allowedkeys) || 
+                (!bind.UsesModifiers && _modifiersdown!=0))
+                return false;
+            }
+            if (bind.UsesMouse)
+            {
+                if (MouseButtonsDown.Count > 1)
+                    return false;
+            }
+            return true;
+        }
+        public static bool Check(Hotkey hotkey, bool trulyexclusive = false)
         {
             List<Keybinding> keybindings;
             if (Settings.Keybinds.TryGetValue(hotkey, out keybindings))
@@ -57,10 +94,17 @@ namespace linerider.UI
                 {
                     using (_lock.AcquireRead())
                     {
-                        int allowedkeys = bind.KeysDown;
-                        var keysdown = KeysDown.Count;
-                        if ((allowedkeys > 0 && (keysdown != allowedkeys && exclusivekeys)) || bind.IsEmpty)
+                        if (trulyexclusive)
+                        {
+                            int allowedkeys = bind.KeysDown;
+                            var keysdown = KeysDown.Count;
+                            if (allowedkeys > 0 && keysdown != allowedkeys)
+                                continue;
+                        }
+                        if (!RegularExclusiveCHeck(bind) || bind.IsEmpty)
+                        {
                             continue;
+                        }
                         if (bind.Key != (Key)(-1))
                         {
                             if (!_last_kb_state.IsKeyDown(bind.Key))
@@ -73,7 +117,7 @@ namespace linerider.UI
                         }
                         if (bind.Modifiers != (KeyModifiers)(0))
                         {
-                            if ((bind.Modifiers.HasFlag(KeyModifiers.Alt) && !_last_kb_state.IsKeyDown(Key.AltLeft) && !_last_kb_state.IsKeyDown(Key.AltRight))||
+                            if ((bind.Modifiers.HasFlag(KeyModifiers.Alt) && !_last_kb_state.IsKeyDown(Key.AltLeft) && !_last_kb_state.IsKeyDown(Key.AltRight)) ||
                             (bind.Modifiers.HasFlag(KeyModifiers.Shift) && !_last_kb_state.IsKeyDown(Key.ShiftRight) && !_last_kb_state.IsKeyDown(Key.ShiftLeft)) ||
                             (bind.Modifiers.HasFlag(KeyModifiers.Control) && !_last_kb_state.IsKeyDown(Key.ControlLeft) && !_last_kb_state.IsKeyDown(Key.ControlRight)))
                                 continue;

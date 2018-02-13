@@ -110,11 +110,6 @@ namespace linerider
                 Intersects(ps1, pe1, bl, br);
         }
 
-        public static bool DoLinesIntersect(Line l1, Line l2)
-        {
-            return Intersects(l1.Position, l1.Position2, l2.Position, l2.Position2);
-        }
-
         public static bool Intersects(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2)
         {
             Vector2 p;

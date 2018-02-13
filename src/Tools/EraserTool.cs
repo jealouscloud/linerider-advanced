@@ -70,9 +70,9 @@ namespace linerider.Tools
             using (var trk = game.Track.CreateTrackWriter())
             {
                 var lines = LinesInRadius(trk, pos, 5 / game.Track.Zoom);
-                if (lines.Count != 0)
+                if (lines.Length != 0)
                 {
-                    for (int i = 0; i < lines.Count; i++)
+                    for (int i = 0; i < lines.Length; i++)
                     {
                         game.Track.UndoManager.BeginAction();
                         trk.RemoveLine(lines[i]);

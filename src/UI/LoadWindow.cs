@@ -37,8 +37,8 @@ namespace linerider.UI
             {
             }
         }
-        private GLWindow game;
-        public LoadWindow(Gwen.Controls.ControlBase parent, GLWindow glgame) : base(parent, "Load Track")
+        private MainWindow game;
+        public LoadWindow(Gwen.Controls.ControlBase parent, MainWindow glgame) : base(parent, "Load Track")
         {
             game = glgame;
             game.Track.Stop();

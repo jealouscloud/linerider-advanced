@@ -5,6 +5,7 @@ using System.Diagnostics;
 using linerider.Drawing;
 using linerider.Game;
 using OpenTK;
+using OpenTK.Graphics.OpenGL;
 using System.IO;
 using System.Threading;
 using Gwen.Controls;
@@ -14,7 +15,7 @@ using linerider.Utils;
 
 namespace linerider.Rendering
 {
-    public class SimulationRenderer
+    public class SimulationRenderer : GameService
     {
         private TrackRenderer _renderer;
 
@@ -42,6 +43,23 @@ namespace linerider.Rendering
             _renderer.Render(track, options);
             //todo contact lines, onion skinning
             GameRenderer.DrawRider(options.ShowContactLines ? 0.4f : 1, options.Rider, true, options.ShowContactLines, options.ShowMomentumVectors, options.Iteration);
+            List<GenericVertex> verts = new List<GenericVertex>(300);
+            if (options.ShowMomentumVectors)
+            {
+                GameRenderer.DrawMomentum(options.Rider, verts);
+            }
+            if (options.ShowContactLines)
+            {
+                GameRenderer.DrawContactPoints(options.Rider, options.RiderDiagnosis, verts);
+            }
+            if (verts.Count > 0)
+            {
+                VAO vao = new VAO(false, false);
+                vao.Texture = StaticRenderer.CircleTex;
+                vao.AddVerticies(verts);
+                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+                vao.Draw(PrimitiveType.Triangles);
+            }
         }
         public void AddLine(Line l)
         {

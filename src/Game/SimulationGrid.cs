@@ -30,128 +30,22 @@ using linerider.Utils;
 namespace linerider
 {
 
-    public class SimulationGrid
+    public partial class SimulationGrid : ISimulationGrid
     {
         public const int CellSize = 14;
         public int GridVersion = 62;
-        public readonly ResourceSync Sync = new ResourceSync();
+        public ResourceSync Sync
+        {
+            get { return _sync; }
+        }
         private readonly Dictionary<int, SimulationCell> Cells = new Dictionary<int, SimulationCell>(4096);
-        public List<CellLocation> GetGridPositions(StandardLine line)
-        {
-            var ret = new List<CellLocation>();
-            var cell = CellInfo(line.Position.X, line.Position.Y);
-            var gridend = CellInfo(line.Position2.X, line.Position2.Y);
+        private readonly ResourceSync _sync = new ResourceSync();
 
-            ret.Add(cell);
-            if ((line.diff.X == 0 && line.diff.Y == 0) || (cell.X == gridend.X && cell.Y == gridend.Y))
-                return ret;
 
-            int p1X = Math.Min(cell.X, gridend.X),
-                p2X = Math.Max(cell.X, gridend.X),
-                p1Y = Math.Min(cell.Y, gridend.Y),
-                p2Y = Math.Max(cell.Y, gridend.Y);
-            var box = Rectangle.FromLTRB(p1X, p1Y, p2X, p2Y);
-            var current = line.Position;
-            if (GridVersion == 62)
-            {
-                while (true)
-                {
-                    double maxstepx, maxstepy;
-                    if (cell.X < 0)
-                        maxstepy = line.diff.X > 0 ? (CellSize + cell.Remainder.X) : (-CellSize - cell.Remainder.X);
-                    else
-                        maxstepy = line.diff.X > 0 ? (CellSize - cell.Remainder.X) : (-(cell.Remainder.X + 1));
-
-                    if (cell.Y < 0)
-                        maxstepx = line.diff.Y > 0 ? (CellSize + cell.Remainder.Y) : (-CellSize - cell.Remainder.Y);
-                    else
-                        maxstepx = line.diff.Y > 0 ? (CellSize - cell.Remainder.Y) : (-(cell.Remainder.Y + 1));
-                    var stepx = line.diff.X * maxstepx * (1 / line.diff.Y);
-                    var stepy = line.diff.Y * maxstepy * (1 / line.diff.X);
-                    current.X += (Math.Abs(stepx) < Math.Abs(maxstepy)) ? stepx : maxstepy;
-                    current.Y += (Math.Abs(stepy) < Math.Abs(maxstepx)) ? stepy : maxstepx;
-                    cell = CellInfo(current.X, current.Y);
-                    if (!CheckBounds(box, cell.X, cell.Y))
-                        return ret;
-                    ret.Add(cell);
-                }
-            }
-            if (GridVersion == 61) //eh
-            {
-                ret = GetGridPositions61(line);
-            }
-            return ret;
-        }
-        private List<CellLocation> GetGridPositions61(Line line)
-        {
-            var ret = new List<CellLocation>();
-            var cell = CellInfo(line.Position.X, line.Position.Y);
-            var gridend = CellInfo(line.Position2.X, line.Position2.Y);
-
-            ret.Add(cell);
-            if ((line.diff.X == 0 && line.diff.Y == 0) || (cell.X == gridend.X && cell.Y == gridend.Y))
-                return ret;
-
-            int p1X = Math.Min(cell.X, gridend.X),
-                p2X = Math.Max(cell.X, gridend.X),
-                p1Y = Math.Min(cell.Y, gridend.Y),
-                p2Y = Math.Max(cell.Y, gridend.Y);
-            var box = Rectangle.FromLTRB(p1X, p1Y, p2X, p2Y);
-            var current = line.Position;
-            double slope = 0;
-            double _loc13 = 0;
-            double isbelowactualY = 0;
-            if (line.diff.X != 0 && line.diff.Y != 0)
-            {
-                slope = line.diff.Y / line.diff.X;
-                _loc13 = 1.0 / slope;
-                isbelowactualY = line.Position.Y - slope * line.Position.X;
-            } // end if
-            while (true)
-            {
-                double difY, difX;
-                difX = -cell.Remainder.X + (line.diff.X > 0 ? CellSize : -1);
-                difY = -cell.Remainder.Y + (line.diff.Y > 0 ? CellSize : -1);
-                if (line.diff.X == 0)
-                {
-                    current.Y = current.Y + difY;
-                }
-                else if (line.diff.Y == 0)
-                {
-                    current.X = current.X + difX;
-                }
-                else
-                {
-                    var whyyy = Math.Round(slope * (current.X + difX) + isbelowactualY);
-                    if (Math.Abs(whyyy - current.Y) < Math.Abs(difY))
-                    {
-                        current.X = current.X + difX;
-                        current.Y = whyyy;
-                    }
-                    else if (Math.Abs(whyyy - current.Y) == Math.Abs(difY))
-                    {
-                        current.X = current.X + difX;
-                        current.Y = current.Y + difY;
-                    }
-                    else
-                    {
-                        current.X = Math.Round((current.Y + difY - isbelowactualY) * _loc13);
-                        current.Y = current.Y + difY;
-                    }
-                }
-                cell = CellInfo(current.X, current.Y);
-                if (CheckBounds(box, cell.X, cell.Y))
-                {
-                    ret.Add(cell);
-                    continue;
-                }
-                return ret;
-            }
-        }
         public void AddLine(StandardLine line)
         {
-            var positions = GetGridPositions(line);
-            using (Sync.AcquireWrite())
+            var positions = GetGridPositions(line,GridVersion);
+            using (_sync.AcquireWrite())
             {
                 foreach (var pos in positions)
                 {
@@ -161,8 +55,8 @@ namespace linerider
         }
         public void RemoveLine(StandardLine line)
         {
-            var positions = GetGridPositions(line);
-            using (Sync.AcquireWrite())
+            var positions = GetGridPositions(line,GridVersion);
+            using (_sync.AcquireWrite())
             {
                 foreach (var pos in positions)
                 {
@@ -170,14 +64,8 @@ namespace linerider
                 }
             }
         }
-        public CellLocation CellInfo(double posx, double posy)
-        {
-            int x = (int)Math.Floor(posx / CellSize);
-            int y = (int)Math.Floor(posy / CellSize);
-            return new CellLocation() { X = x, Y = y, Remainder = new Vector2d(posx - (CellSize * x), posy - (CellSize * y)) };
-        }
 
-        public SimulationCell GetCell(int x, int y)
+        public virtual SimulationCell GetCell(int x, int y)
         {
             SimulationCell cell;
             var pos = GetCellKey(x, y);
@@ -192,11 +80,16 @@ namespace linerider
             return GetCell((int)Math.Floor(pos.X / CellSize), (int)Math.Floor(pos.Y / CellSize));
         }
 
-        private bool CheckBounds(Rectangle r, int x, int y)
+        protected int GetCellKey(int x, int y)
         {
-            return x >= r.Left && x <= r.Right && y >= r.Top && y <= r.Bottom;
+            unchecked
+            {
+                int hash = 27;
+                hash = hash * 486187739 + x;
+                hash = hash * 486187739 + y;
+                return hash;
+            }
         }
-
         private void Register(StandardLine l, int x, int y)
         {
             var key = GetCellKey(x, y);
@@ -216,16 +109,6 @@ namespace linerider
             if (!Cells.TryGetValue(pos, out cell))
                 return;
             cell.RemoveLine(l);
-        }
-        private int GetCellKey(int x, int y)
-        {
-            unchecked
-            {
-                int hash = 27;
-                hash = hash * 486187739 + x;
-                hash = hash * 486187739 + y;
-                return hash;
-            }
         }
     }
 }

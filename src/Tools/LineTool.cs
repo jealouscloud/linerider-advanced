@@ -87,14 +87,15 @@ namespace linerider.Tools
                 }
                 if (game.EnableSnap)
                 {
-                using (var trk = game.Track.CreateTrackReader())
-                {
-                    var snap = TrySnapPoint(trk, _end);
-                    if (snap != _end)
+                    using (var trk = game.Track.CreateTrackReader())
                     {
-                        _end = snap;
+                        var snap = TrySnapPoint(trk, _end);
+                        if (snap != _start)
+                        {
+                            _end = snap;
+                        }
                     }
-                }}
+                }
                 game.Invalidate();
             }
             base.OnMouseMoved(pos);
@@ -120,7 +121,7 @@ namespace linerider.Tools
                     using (var trk = game.Track.CreateTrackWriter())
                     {
                         var snap = TrySnapPoint(trk, _end);
-                        if (snap != _end)
+                        if (snap != _start)
                         {
                             _end = snap;
                         }

@@ -35,15 +35,7 @@ namespace linerider.Game
         private readonly ResourceSync Sync = new ResourceSync();
         private readonly Dictionary<int, SimulationCell<Line>> Cells = new Dictionary<int, SimulationCell<Line>>(4096);
         private object _syncRoot = new object();
-        private const int CellSize = 128;
-        private FastGrid _bluegrid;
-        public FastGrid()
-        {
-            _bluegrid = new FastGrid(true);
-        }
-        protected FastGrid(bool bluegrid)
-        {
-        }
+        public const int CellSize = 128;
         private int GetCellKey(int x, int y)
         {
             unchecked
@@ -91,8 +83,6 @@ namespace linerider.Game
         }
         public void AddLine(Line line)
         {
-            if (_bluegrid != null && line is StandardLine)
-                _bluegrid.AddLine(line);
             var pts = GetPointsOnLine(line.Position.X / CellSize,
                 line.Position.Y / CellSize,
                 line.Position2.X / CellSize,
@@ -107,9 +97,6 @@ namespace linerider.Game
         }
         public void RemoveLine(Line line)
         {
-            if (_bluegrid != null && line is StandardLine)
-                _bluegrid.RemoveLine(line);
-
             var pts = GetPointsOnLine(line.Position.X / CellSize,
                 line.Position.Y / CellSize,
                 line.Position2.X / CellSize,
