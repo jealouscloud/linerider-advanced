@@ -96,22 +96,12 @@ namespace linerider
         /// <summary>
         /// After calling beginaction the current state will be added tothe action
         /// </summary>
-        /// <param name="state">the new state of the line</param>
-        public void AddChange(Line line)
+        public void AddChange(Line before, Line after)
         {
             if (_currentaction == null)
                 throw new Exception("UndoManager current action null");
-            line = line?.Clone();
-            _currentaction.States.Add(line);
-        }
-        /// <summary>
-        /// After calling beginaction the current state will be added tothe action
-        /// </summary>
-        /// <param name="state">the new state of the line</param>
-        public void AddChange(Line before, Line after)
-        {
-            AddChange(before);
-            AddChange(after);
+            _currentaction.States.Add(before?.Clone());
+            _currentaction.States.Add(after?.Clone());
         }
         public void BeginAction()
         {

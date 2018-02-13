@@ -278,7 +278,6 @@ namespace linerider.Rendering
         {
             if (lookup.ContainsKey(line.ID))
             {
-                Debug.WriteLine("Line ID collision in sim renderer");
                 LineChanged(line, renderer, lookup);
                 return;
             }
