@@ -70,7 +70,7 @@ namespace linerider
         /// </summary>
         private void RegisterUndoAction(Line before, Line after)
         {
-                _undo?.AddChange(before, after);
+            _undo?.AddChange(before, after);
         }
         /// <summary>
         /// State a change to the buffer manager
@@ -84,15 +84,17 @@ namespace linerider
             _buffermanager.SaveCells(linestart, lineend);
         }
         /// <summary>
-        /// Tells the buffer manager to halt updating
-        /// until the resource is disposed.
-        /// 
-        /// for example:
-        /// call this when you need to change a line and then extensions
+        /// Adds the line to the track, grid, and renderer. Is naive to extensions, and notifies the undo/buffer managers
+        /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
         /// </summary>
-        public ResourceSync.ResourceLock AcquireBufferUpdateSync()
+        public void AddLine(Line line)
         {
-            return _buffermanager.BeginTransaction();
+            if (line is StandardLine)
+                SaveCells(line.Position, line.Position2);
+
+            Track.AddLine(line);
+            _renderer.AddLine(line);
+            RegisterUndoAction(null, line);
         }
         /// <summary>
         /// Moves the line in the track, grid, and renderer. Is naive to extensions, and notifies the undo/buffer managers
@@ -132,21 +134,10 @@ namespace linerider
             }
             Track.RemoveLineFromGrid(oldline);
             Track.AddLineToGrid(newline);
+            Track.LineLookup[newline.ID] = newline;
             _renderer.RedrawLine(newline);
         }
-        /// <summary>
-        /// Adds the line to the track, grid, and renderer. Is naive to extensions, and notifies the undo/buffer managers
-        /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
-        /// </summary>
-        public void AddLine(Line line)
-        {
-            if (line is StandardLine)
-                SaveCells(line.Position, line.Position2);
 
-            Track.AddLine(line);
-            _renderer.AddLine(line);
-            RegisterUndoAction(null, line);
-        }
         /// <summary>
         /// Removes the line from the track, grid, and renderer, updates extensions, and notifies undo/buffer managers.
         /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
@@ -167,6 +158,17 @@ namespace linerider
             }
             Track.RemoveLine(line);
             _renderer.RemoveLine(line);
+        }
+        /// <summary>
+        /// Tells the buffer manager to halt updating
+        /// until the resource is disposed.
+        /// 
+        /// for example:
+        /// call this when you need to change a line and then extensions
+        /// </summary>
+        public ResourceSync.ResourceLock AcquireBufferUpdateSync()
+        {
+            return _buffermanager.BeginTransaction();
         }
         /// <summary>
         /// Tries to disconnect two lines that are currently on the grid, updating extensions
@@ -195,7 +197,7 @@ namespace linerider
             {
                 l1.Next = null;
                 l1.RemoveExtension(StandardLine.ExtensionDirection.Right);
-                
+
                 l2.Prev = null;
                 l2.RemoveExtension(StandardLine.ExtensionDirection.Left);
             }

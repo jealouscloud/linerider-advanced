@@ -82,9 +82,7 @@
     <Compile Include="ffmpeg\FFMPEGParameters.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Lines\InteractionTestLine.cs" />
     <Compile Include="Lines\Line.cs" />
-    <Compile Include="Lines\LineState.cs" />
     <Compile Include="Lines\LineTrigger.cs" />
     <Compile Include="Lines\LineType.cs" />
     <Compile Include="Lines\RedLine.cs" />

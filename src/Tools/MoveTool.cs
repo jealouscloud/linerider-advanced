@@ -191,8 +191,7 @@ namespace linerider.Tools
             if (_selection.line != null)
             {
                 game.Track.UndoManager.BeginAction();
-                game.Track.UndoManager.AddChange(_before);
-                game.Track.UndoManager.AddChange(_selection.line);
+                game.Track.UndoManager.AddChange(_before, _selection.line);
                 game.Track.UndoManager.EndAction();
             }
             _selection.line = null;
