@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 
 namespace Gwen.Skin
@@ -57,8 +58,8 @@ namespace Gwen.Skin
 
         ~SkinBase()
         {
-            throw new InvalidOperationException(String.Format("IDisposable object finalized: {0}", GetType()));
-            //Debug.Print(String.Format("IDisposable object finalized: {0}", GetType()));
+            //throw new InvalidOperationException(String.Format("IDisposable object finalized: {0}", GetType()));
+            Debug.WriteLine(String.Format("IDisposable object finalized: {0}", GetType()));
         }
 
 #endif
