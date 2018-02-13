@@ -45,9 +45,9 @@ namespace linerider
         public FastGrid RenderCells = new FastGrid();
 
         public LinkedList<int> Lines = new LinkedList<int>();
-        public Dictionary<int, Line> LineLookup = new Dictionary<int, Line>();
+        public Dictionary<int, GameLine> LineLookup = new Dictionary<int, GameLine>();
 
-        public string Name = "untitled";
+        public string Name = Constants.DefaultTrackName;
 
         public List<Rider> RiderStates = new List<Rider>();
         //todo probably needs to be linkedlist for performance
@@ -79,9 +79,9 @@ namespace linerider
             GenerateBones();
             Reset();
         }
-        public Line[] GetSortedLines()
+        public GameLine[] GetSortedLines()
         {
-            Line[] ret = new Line[LineLookup.Count];
+            GameLine[] ret = new GameLine[LineLookup.Count];
             SortedSet<int> temp = new SortedSet<int>();
             foreach (var id in Lines)
             {
@@ -109,23 +109,27 @@ namespace linerider
                 Bones[i] = bone;
             }
         }
-        public void AddLine(Line line, bool isloading = false)
+        public void AddLine(GameLine line, bool isloading = false)
         {
-            var ltype = line.GetLineType();
-            if (ltype == LineType.Scenery)
+            if (line.Type == LineType.Scenery)
             {
-                line.ID = _sceneryidcounter--;
+                if (line.ID == GameLine.UninitializedID)
+                    line.ID = _sceneryidcounter--;
+                else if (line.ID <= _sceneryidcounter)
+                {
+                    _sceneryidcounter = line.ID - 1;
+                }
             }
             else
             {
-                if (line.ID == -1)
+                if (line.ID == GameLine.UninitializedID)
                     line.ID = _idcounter++;
                 else if (line.ID >= _idcounter)
                 {
                     _idcounter = line.ID + 1;
                 }
             }
-            switch (ltype)
+            switch (line.Type)
             {
                 case LineType.Blue:
                     BlueLines++;
@@ -145,9 +149,9 @@ namespace linerider
             AddLineToGrid(line);
 
         }
-        public void RemoveLine(Line line)
+        public void RemoveLine(GameLine line)
         {
-            switch (line.GetLineType())
+            switch (line.Type)
             {
                 case LineType.Blue:
                     BlueLines--;
@@ -168,7 +172,7 @@ namespace linerider
         /// <summary>
         ///     For moving lines
         /// </summary>
-        public void AddLineToGrid(Line line)
+        public void AddLineToGrid(GameLine line)
         {
             if (line is StandardLine sl)
                 Grid.AddLine(sl);
@@ -180,15 +184,22 @@ namespace linerider
             //todo collision states are completely unprogrammed
         }
 
-        public IEnumerable<Line> GetLinesInRect(FloatRect rect, bool precise)
+        public IEnumerable<GameLine> GetLinesInRect(FloatRect rect, bool precise)
         {
             var ret = RenderCells.LinesInRect(rect);
             if (precise)
             {
-                var newret = new List<Line>(ret.Count);
+                var newret = new List<GameLine>(ret.Count);
                 foreach (var line in ret)
                 {
-                    if (Line.DoesLineIntersectRect(line, rect))
+                    if (GameLine.DoesLineIntersectRect(
+                        line, 
+                        new DoubleRect(
+                            rect.Left,
+                            rect.Top,
+                            rect.Width,
+                            rect.Height))
+                            )
                     {
                         newret.Add(line);
                     }
@@ -211,7 +222,7 @@ namespace linerider
         /// <summary>
         ///     For moving lines
         /// </summary>
-        public void RemoveLineFromGrid(Line sl)
+        public void RemoveLineFromGrid(GameLine sl)
         {
             if (sl is StandardLine)
                 Grid.RemoveLine((StandardLine)sl);

@@ -234,7 +234,6 @@ namespace linerider.Rendering
         }
         private LineVertex[] CreateDecorationLine(StandardLine line, Color color)
         {
-            var ltype = line.GetLineType();
             var slant = new Vector2d(
                 line.DiffNormal.X > 0 ? Math.Ceiling(line.DiffNormal.X) : Math.Floor(line.DiffNormal.X),
                 line.DiffNormal.Y > 0 ? Math.Ceiling(line.DiffNormal.Y) : Math.Floor(line.DiffNormal.Y));
@@ -242,12 +241,12 @@ namespace linerider.Rendering
         }
         private GenericVertex[] GetAccelDecor(RedLine line)
         {
-            var linecolor = Line.RedLineColor;
+            var linecolor = Constants.RedLineColor;
             var multiplier = ((RedLine)line).Multiplier;
             GenericVertex[] ret = new GenericVertex[3 * multiplier];
             for (int ix = 0; ix < multiplier; ix++)
             {
-                var angle = MathHelper.RadiansToDegrees(Math.Atan2((double)line.diff.Y, (double)line.diff.X));
+                var angle = MathHelper.RadiansToDegrees(Math.Atan2((double)line.Difference.Y, (double)line.Difference.X));
                 Turtle tort = new Turtle(line.Position2);
                 var basex = 8 + (ix * 2);
                 tort.Move(angle, -basex);

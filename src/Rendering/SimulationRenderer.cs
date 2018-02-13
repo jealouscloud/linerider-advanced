@@ -62,17 +62,17 @@ namespace linerider.Rendering
                 vao.Draw(PrimitiveType.Triangles);
             }
         }
-        public void AddLine(Line l)
+        public void AddLine(GameLine l)
         {
             _renderer.AddLine(l);
             RequiresUpdate = true;
         }
-        public void RedrawLine(Line l)
+        public void RedrawLine(GameLine l)
         {
             _renderer.LineChanged(l);
             RequiresUpdate = true;
         }
-        public void RemoveLine(Line l)
+        public void RemoveLine(GameLine l)
         {
             _renderer.RemoveLine(l);
             RequiresUpdate = true;

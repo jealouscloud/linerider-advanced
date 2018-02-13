@@ -40,6 +40,13 @@ namespace linerider.Lines
                 CalculateConstants();
             }
         }
+        public override LineType Type
+        {
+            get
+            {
+                return LineType.Red;
+            }
+        }
         protected RedLine() : base()
         {
         }
@@ -58,7 +65,7 @@ namespace linerider.Lines
                 var doty = Vector2d.Dot(DiffNormal, startDelta);
                 if (doty > 0 && doty < Zone)
                 {
-                    var dotx = Vector2d.Dot(startDelta, diff) * DotScalar;
+                    var dotx = Vector2d.Dot(startDelta, Difference) * DotScalar;
                     if (dotx <= limit_right && dotx >= limit_left)
                     {
                         var pos = p.Location - doty * DiffNormal;
@@ -74,14 +81,14 @@ namespace linerider.Lines
             }
             return false;
         }
-        public override Line Clone()
+        public override GameLine Clone()
         {
             return new RedLine()
             {
                 ID = ID,
                 Prev = Prev,
                 Next = Next,
-                diff = diff,
+                Difference = Difference,
                 DiffNormal = DiffNormal,
                 Distance = Distance,
                 DotScalar = DotScalar,

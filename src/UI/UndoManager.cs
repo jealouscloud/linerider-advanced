@@ -29,12 +29,12 @@ namespace linerider
     {
         private class act : GameService
         {
-            public List<Line> States;
+            public List<GameLine> States;
             public act()
             {
-                States = new List<Line>();
+                States = new List<GameLine>();
             }
-            private bool DoAction(TrackWriter track, Line beforeact, Line afteract)
+            private bool DoAction(TrackWriter track, GameLine beforeact, GameLine afteract)
             {
                 if (beforeact == null && afteract == null)
                     throw new ArgumentNullException(
@@ -96,7 +96,7 @@ namespace linerider
         /// <summary>
         /// After calling beginaction the current state will be added tothe action
         /// </summary>
-        public void AddChange(Line before, Line after)
+        public void AddChange(GameLine before, GameLine after)
         {
             if (_currentaction == null)
                 throw new Exception("UndoManager current action null");

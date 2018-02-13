@@ -490,6 +490,7 @@ namespace linerider
         {
             if (control == null)
                 control = this;
+                
             ToolTip.Disable(control);
             control.Tooltip = null;
         }
@@ -501,8 +502,8 @@ namespace linerider
 
         internal void CalculateFlag(TrackService.Tracklocation loc)
         {
-            //todo flagtooltip != null?
-            if (loc?.State == null || FlagTool.Tooltip != null) return;
+            if (loc?.State == null) return;
+            DisableFlagTooltip();
             var invalid = false;
 
             var state = game.Track.GetStart();

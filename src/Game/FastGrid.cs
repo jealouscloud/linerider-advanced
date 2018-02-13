@@ -34,7 +34,7 @@ namespace linerider.Game
     public class FastGrid
     {
         private readonly ResourceSync Sync = new ResourceSync();
-        private readonly Dictionary<int, SimulationCell<Line>> Cells = new Dictionary<int, SimulationCell<Line>>(4096);
+        private readonly Dictionary<int, SimulationCell<GameLine>> Cells = new Dictionary<int, SimulationCell<GameLine>>(4096);
         private object _syncRoot = new object();
         public const int CellSize = 128;
         private int GetCellKey(int x, int y)
@@ -48,9 +48,9 @@ namespace linerider.Game
             }
         }
 
-        public SimulationCell<Line> GetCell(int x, int y)
+        public SimulationCell<GameLine> GetCell(int x, int y)
         {
-            SimulationCell<Line> cell;
+            SimulationCell<GameLine> cell;
             var pos = GetCellKey(x, y);
             if (!Cells.TryGetValue(pos, out cell))
                 return null;
@@ -58,31 +58,31 @@ namespace linerider.Game
 
         }
 
-        public SimulationCell<Line> PointToChunk(Vector2d pos)
+        public SimulationCell<GameLine> PointToChunk(Vector2d pos)
         {
             return GetCell((int)Math.Floor(pos.X / CellSize), (int)Math.Floor(pos.Y / CellSize));
         }
-        private void Register(Line l, int x, int y)
+        private void Register(GameLine l, int x, int y)
         {
             var key = GetCellKey(x, y);
-            SimulationCell<Line> cell;
+            SimulationCell<GameLine> cell;
             if (!Cells.TryGetValue(key, out cell))
             {
-                cell = new SimulationCell<Line>();
+                cell = new SimulationCell<GameLine>();
                 Cells[key] = cell;
             }
             cell.AddLine(l);
         }
 
-        private void Unregister(Line l, int x, int y)
+        private void Unregister(GameLine l, int x, int y)
         {
-            SimulationCell<Line> cell;
+            SimulationCell<GameLine> cell;
             var pos = GetCellKey(x, y);
             if (!Cells.TryGetValue(pos, out cell))
                 return;
             cell.RemoveLine(l.ID);
         }
-        public void AddLine(Line line)
+        public void AddLine(GameLine line)
         {
             var pts = GetPointsOnLine(line.Position.X / CellSize,
                 line.Position.Y / CellSize,
@@ -96,7 +96,7 @@ namespace linerider.Game
                 }
             }
         }
-        public void RemoveLine(Line line)
+        public void RemoveLine(GameLine line)
         {
             var pts = GetPointsOnLine(line.Position.X / CellSize,
                 line.Position.Y / CellSize,
@@ -111,13 +111,13 @@ namespace linerider.Game
                 }
             }
         }
-        public SimulationCell<Line> LinesInRect(FloatRect rect)
+        public SimulationCell<GameLine> LinesInRect(FloatRect rect)
         {
             int starty = (int)Math.Floor(rect.Top / CellSize);
             int startx = (int)Math.Floor(rect.Left / CellSize);
             int endy = (int)Math.Floor((rect.Top + rect.Height) / CellSize);
             int endx = (int)Math.Floor((rect.Left + rect.Width) / CellSize);
-            SimulationCell<Line> ret = new SimulationCell<Line>();
+            SimulationCell<GameLine> ret = new SimulationCell<GameLine>();
             using (Sync.AcquireWrite())
             {
                 for (int x = startx; x <= endx; x++)

@@ -63,12 +63,12 @@ namespace linerider.Rendering
         /// We use an action queue system instead of instantly adding to the renderer
         /// for the sake of multithreading safety
         /// </summary>
-        private Queue<Tuple<LineActionType, Line>> _lineactions;
+        private Queue<Tuple<LineActionType, GameLine>> _lineactions;
         private ResourceSync _sync;
         public TrackRenderer()
         {
             _sync = new ResourceSync();
-            _lineactions = new Queue<Tuple<LineActionType, Line>>();
+            _lineactions = new Queue<Tuple<LineActionType, GameLine>>();
             _physlines = new Dictionary<int, int>();
             _scenerylines = new Dictionary<int, int>();
             if (LineShader == null)
@@ -115,7 +115,7 @@ namespace linerider.Rendering
                 }
                 if (options.LineColors)
                 {
-                    _sceneryvbo.LineColor = Line.SceneryLineColor;
+                    _sceneryvbo.LineColor = Constants.SceneryLineColor;
                 }
                 _sceneryvbo.Draw();
                 _decorator.Draw(options);
@@ -138,8 +138,8 @@ namespace linerider.Rendering
                 _scenerylines.Clear();
                 _physlines.Clear();
             }
-            List<Line> scenery = new List<Line>(track.SceneryLines);
-            List<Line> phys = new List<Line>(track.BlueLines + track.RedLines);
+            List<GameLine> scenery = new List<GameLine>(track.SceneryLines);
+            List<GameLine> phys = new List<GameLine>(track.BlueLines + track.RedLines);
             var sorted = track.GetSortedLines();
 
             // iterate backwards for render order on top.
@@ -147,7 +147,7 @@ namespace linerider.Rendering
             for(int i = sorted.Length - 1; i >= 0; i--)
             {
                 var line = sorted[i];
-                if (line.GetLineType() == LineType.Scenery)
+                if (line.Type == LineType.Scenery)
                 {
                     scenery.Add(line);
                 }
@@ -171,35 +171,35 @@ namespace linerider.Rendering
             }
 
         }
-        public void AddLine(Line line)
+        public void AddLine(GameLine line)
         {
             RequiresUpdate = true;
             using (_sync.AcquireWrite())
             {
                 _lineactions.Enqueue(
-                    new Tuple<LineActionType, Line>(
+                    new Tuple<LineActionType, GameLine>(
                         LineActionType.Add,
                         line));
             }
         }
-        public void LineChanged(Line line)
+        public void LineChanged(GameLine line)
         {
             RequiresUpdate = true;
             using (_sync.AcquireWrite())
             {
                 _lineactions.Enqueue(
-                    new Tuple<LineActionType, Line>(
+                    new Tuple<LineActionType, GameLine>(
                         LineActionType.Change,
                         line));
             }
         }
-        public void RemoveLine(Line line)
+        public void RemoveLine(GameLine line)
         {
             RequiresUpdate = true;
             using (_sync.AcquireWrite())
             {
                 _lineactions.Enqueue(
-                    new Tuple<LineActionType, Line>(
+                    new Tuple<LineActionType, GameLine>(
                         LineActionType.Remove,
                         line));
             }
@@ -212,11 +212,10 @@ namespace linerider.Rendering
                 {
                     var dequeued = _lineactions.Dequeue();
                     var line = dequeued.Item2;
-                    var type = line.GetLineType();
                     switch (dequeued.Item1)
                     {
                         case LineActionType.Add:
-                            if (type == LineType.Scenery)
+                            if (line.Type == LineType.Scenery)
                             {
                                 AddLine(
                                     line,
@@ -233,7 +232,7 @@ namespace linerider.Rendering
                             }
                             break;
                         case LineActionType.Remove:
-                            if (type == LineType.Scenery)
+                            if (line.Type == LineType.Scenery)
                             {
                                 RemoveLine(
                                     line,
@@ -250,7 +249,7 @@ namespace linerider.Rendering
                             }
                             break;
                         case LineActionType.Change:
-                            if (type == LineType.Scenery)
+                            if (line.Type == LineType.Scenery)
                             {
                                 LineChanged(
                                     line,
@@ -272,7 +271,7 @@ namespace linerider.Rendering
             }
         }
         private void AddLine(
-            Line line,
+            GameLine line,
             LineRenderer renderer,
             Dictionary<int, int> lookup)
         {
@@ -290,13 +289,11 @@ namespace linerider.Rendering
             lookup.Add(line.ID, start);
         }
         private void LineChanged(
-            Line line,
+            GameLine line,
             LineRenderer renderer,
             Dictionary<int, int> lookup)
         {
-            float width = 2;
-            if (line is SceneryLine scenery)
-                width *= scenery.Width;
+            float width = 2 * line.Width;
             var lineverts = LineRenderer.CreateTrackLine(
                 line.Position,
                 line.Position2,
@@ -305,7 +302,7 @@ namespace linerider.Rendering
             renderer.ChangeLine(lookup[line.ID], lineverts);
         }
         private void RemoveLine(
-            Line line,
+            GameLine line,
             LineRenderer renderer,
             Dictionary<int, int> lookup)
         {

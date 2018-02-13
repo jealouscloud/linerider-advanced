@@ -136,7 +136,7 @@ namespace linerider.Game
             return new Rider(joints, scarf, r1.PhysicsBounds, dead, r1.SledBroken);
         }
         private unsafe static void ProcessLines(ISimulationGrid grid, SimulationPoint[] body, ref RectLRTB physinfo,
-        Dictionary<int, Line> collisions = null, List<LineTrigger> activetriggers = null)
+        Dictionary<int, GameLine> collisions = null, List<LineTrigger> activetriggers = null)
         {
             int bodylen = body.Length;
             for (int i = 0; i < bodylen; i++)
@@ -244,11 +244,11 @@ namespace linerider.Game
             DoubleRect ret = new DoubleRect(left,top,right - left,bottom - top);
             return ret;
         }
-        public Rider Simulate(Track track, Dictionary<int, Line> collisions, int maxiteration = 6)
+        public Rider Simulate(Track track, Dictionary<int, GameLine> collisions, int maxiteration = 6)
         {
             return Simulate(track.Grid, track.Bones, track.ActiveTriggers, collisions, maxiteration);
         }
-        public Rider Simulate(ISimulationGrid grid, Bone[] bones, List<LineTrigger> activetriggers, Dictionary<int, Line> collisions, int maxiteration = 6)
+        public Rider Simulate(ISimulationGrid grid, Bone[] bones, List<LineTrigger> activetriggers, Dictionary<int, GameLine> collisions, int maxiteration = 6)
         {
             SimulationPoint[] body = new SimulationPoint[Body.Length];
             SimulationPoint[] scarf = new SimulationPoint[Scarf.Length];
@@ -286,7 +286,7 @@ namespace linerider.Game
             ProcessScarfBones(RiderConstants.ScarfBones, scarf);
             return new Rider(body, scarf, phys, dead, sledbroken);
         }
-        public List<int> Diagnose(Track track, Dictionary<int, Line> collisions = null, int maxiteration = 6)
+        public List<int> Diagnose(Track track, Dictionary<int, GameLine> collisions = null, int maxiteration = 6)
         {
             var ret = new List<int>();
             if (Crashed)

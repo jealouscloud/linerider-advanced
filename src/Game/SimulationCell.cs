@@ -26,7 +26,7 @@ namespace linerider
     /// with greater ids first. Newer = higher id, unless it's a scenery id
     /// </summary>
     public class SimulationCell<T> : IEnumerable<T>, ICollection<T>
-    where T : Line
+    where T : GameLine
     {
         LinkedList<T> _list = new LinkedList<T>();
         public int Count

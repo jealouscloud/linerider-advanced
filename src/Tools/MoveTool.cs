@@ -34,7 +34,7 @@ namespace linerider.Tools
         struct SelectInfo
         {
             public Vector2d start;
-            public Line line;
+            public GameLine line;
             //     public Line snap;
             public bool leftjoint;
             public bool rightjoint;
@@ -43,7 +43,7 @@ namespace linerider.Tools
         public bool CanLifelock => UI.InputUtils.Check(Hotkey.ToolLifeLock);
         private SelectInfo _selection;
         private bool _started = false;
-        private Line _before;
+        private GameLine _before;
         //   private LineState _before_snap;
         public override MouseCursor Cursor
         {
@@ -134,10 +134,9 @@ namespace linerider.Tools
                 if (line != null)
                 {
                     _before = line.Clone();
-                    var linerad = Line.GetLineRadius(line);
                     var point = Utility.CloserPoint(gamepos, line.Position, line.Position2);//TrySnapPoint(trk, gamepos);
                     //is it a knob?
-                    if ((gamepos - point).Length <= linerad)
+                    if ((gamepos - point).Length <= line.Width)
                     {
                         _selection.start = gamepos;
                         _selection.line = line;
