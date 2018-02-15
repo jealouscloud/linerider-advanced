@@ -55,7 +55,7 @@ namespace linerider.Tools
             started = true;
             startposition = pos;
             lastposition = startposition;
-            CameraStart = game.Track.Camera.Location.GetPosition();
+            CameraStart = game.Track.Camera.GetCameraCenter();
             CameraTarget = MouseCoordsToGame(pos);
             game.Invalidate();
             game.UpdateCursor();
@@ -66,7 +66,7 @@ namespace linerider.Tools
             zoom = false;
             started = true;
             startposition = pos;// / game.Track.Zoom;
-            CameraStart = game.Track.Camera.Location.GetPosition();
+            CameraStart = game.Track.Camera.GetCameraCenter();
             game.Invalidate();
             base.OnMouseDown(pos);
         }
@@ -82,7 +82,11 @@ namespace linerider.Tools
                 }
                 else
                 {
-                    game.Track.Camera.SetFrame(CameraStart - ((pos / game.Track.Zoom) - (startposition / game.Track.Zoom)), false);
+                    var newcenter = 
+                        CameraStart - 
+                        ((pos / game.Track.Zoom) - 
+                        (startposition / game.Track.Zoom));
+                    game.Track.Camera.SetFrameCenter(newcenter);
                 }
                 game.Invalidate();
             }

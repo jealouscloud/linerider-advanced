@@ -32,6 +32,7 @@ namespace linerider.Lines
                 return LineType.Scenery;
             }
         }
+        public override System.Drawing.Color Color => Utils.Constants.SceneryLineColor;
         public SceneryLine(Vector2d p1, Vector2d p2) 
         {
             Position = p1;

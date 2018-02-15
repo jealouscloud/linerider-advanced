@@ -46,5 +46,40 @@ namespace linerider.Game
         {
             _points = points;
         }
+        /// <summary>
+        /// fast compare method for two collections so we can bypass
+        /// struct copies
+        /// </summary>
+        public bool CompareTo(ImmutablePointCollection comparand)
+        {
+            int len = _points.Length;
+            if (comparand.Length != len)
+                throw new ArgumentException("Mismatched point collections");
+            for (int i = 0; i < len; i++)
+            {
+                if (!SimulationPoint.FastEquals(
+                    ref _points[i],
+                    ref comparand._points[i]))
+                    return false;
+            }
+            return true;
+        }
+        public SimulationPoint[] Step(bool friction = false)
+        {
+            int len = _points.Length;
+            SimulationPoint[] ret = new SimulationPoint[len];
+            for (int i = 0; i < len; i++)
+            {
+                if (!friction)
+                {
+                    ret[i] = _points[i].Step();
+                }
+                else
+                {
+                    ret[i] = _points[i].StepFriction();
+                }
+            }
+            return ret;
+        }
     }
 }

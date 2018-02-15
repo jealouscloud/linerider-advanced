@@ -37,7 +37,7 @@ namespace linerider.Utils
         /// Creates a 3x3 physicsinfo around the point on the simulation grid
         /// </summary>
         /// <param name="start"></param>
-        public RectLRTB(SimulationPoint start)
+        public RectLRTB(ref SimulationPoint start)
         {
             var gp = SimulationGrid.GetGridPoint(start.Location.X, start.Location.Y);
             top = gp.Y - 1;

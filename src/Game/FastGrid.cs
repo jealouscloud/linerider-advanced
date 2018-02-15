@@ -31,12 +31,17 @@ using linerider.Utils;
 using linerider.Lines;
 namespace linerider.Game
 {
+    /// <summary>
+    /// a grid class specifically for tool operations etc
+    /// this grid accurately places lines in cells, compared to the sparse
+    /// placement in the simulation grid.
+    /// </summary>
     public class FastGrid
     {
         private readonly ResourceSync Sync = new ResourceSync();
         private readonly Dictionary<int, SimulationCell<GameLine>> Cells = new Dictionary<int, SimulationCell<GameLine>>(4096);
         private object _syncRoot = new object();
-        public const int CellSize = 128;
+        public const int CellSize = 32;
         private int GetCellKey(int x, int y)
         {
             unchecked
@@ -58,7 +63,7 @@ namespace linerider.Game
 
         }
 
-        public SimulationCell<GameLine> PointToChunk(Vector2d pos)
+        public SimulationCell<GameLine> GetCellFromPoint(Vector2d pos)
         {
             return GetCell((int)Math.Floor(pos.X / CellSize), (int)Math.Floor(pos.Y / CellSize));
         }
@@ -111,7 +116,7 @@ namespace linerider.Game
                 }
             }
         }
-        public SimulationCell<GameLine> LinesInRect(FloatRect rect)
+        public SimulationCell<GameLine> LinesInRect(DoubleRect rect)
         {
             int starty = (int)Math.Floor(rect.Top / CellSize);
             int startx = (int)Math.Floor(rect.Left / CellSize);

@@ -75,7 +75,7 @@ namespace linerider.Game
                 }
                 if (i == 0)
                 {
-                    pbounds = new RectLRTB(joints[0]);
+                    pbounds = new RectLRTB(ref joints[0]);
                 }
                 else
                 {
@@ -184,14 +184,14 @@ namespace linerider.Game
             for (int i = 0; i < bones.Length; i++)
             {
                 var bone = bones[i];
-                var j1 = scarf[bone.joint1];
-                var j2 = scarf[bone.joint2];
-                var d = j1.Location - j2.Location;
+                int j1 = bone.joint1;
+                int j2 = bone.joint2;
+                var d = scarf[j1].Location - scarf[j2].Location;
                 var len = d.Length;
                 if (!bone.OnlyRepel || len < bone.RestLength)
                 {
                     double scalar = ((len - bone.RestLength) / len);
-                    scarf[bone.joint2] = j2.Replace(j2.Location + (d * scalar));
+                    scarf[j2] = scarf[j2].AddPosition(d * scalar);
                 }
             }
         }
@@ -201,10 +201,11 @@ namespace linerider.Game
             for (int i = 0; i < bonelen; i++)
             {
                 var bone = bones[i];
-                var j1 = body[bone.joint1];
-                var j2 = body[bone.joint2];
-                var d = j1.Location - j2.Location;
+                int j1 = bone.joint1;
+                int j2 = bone.joint2;
+                var d = body[j1].Location - body[j2].Location;
                 var len = d.Length;
+
                 if (!bone.OnlyRepel || len < bone.RestLength)
                 {
                     var scalar = (len - bone.RestLength) / len * 0.5;
@@ -222,8 +223,8 @@ namespace linerider.Game
                     else
                     {
                         d *= scalar;
-                        body[bone.joint1] = j1.Replace(j1.Location - d);
-                        body[bone.joint2] = j2.Replace(j2.Location + d);
+                        body[j1] = body[j1].AddPosition(-d);
+                        body[j2] = body[j2].AddPosition(d);
                     }
                 }
             }
@@ -233,7 +234,7 @@ namespace linerider.Game
             double left, right, top, bottom;
             right = left = r.Body[0].Location.X;
             top = bottom = r.Body[0].Location.Y;
-            for(int i = 0; i < r.Body.Length; i++)
+            for (int i = 0; i < r.Body.Length; i++)
             {
                 var pos = r.Body[i].Location;
                 right = Math.Max(pos.X, right);
@@ -241,26 +242,26 @@ namespace linerider.Game
                 top = Math.Min(pos.Y, top);
                 bottom = Math.Max(pos.Y, bottom);
             }
-            DoubleRect ret = new DoubleRect(left,top,right - left,bottom - top);
+            DoubleRect ret = new DoubleRect(left, top, right - left, bottom - top);
             return ret;
         }
         public Rider Simulate(Track track, Dictionary<int, GameLine> collisions, int maxiteration = 6)
         {
             return Simulate(track.Grid, track.Bones, track.ActiveTriggers, collisions, maxiteration);
         }
-        public Rider Simulate(ISimulationGrid grid, Bone[] bones, List<LineTrigger> activetriggers, Dictionary<int, GameLine> collisions, int maxiteration = 6)
+        public Rider Simulate(
+            ISimulationGrid grid,
+            Bone[] bones,
+            List<LineTrigger> activetriggers,
+            Dictionary<int, GameLine> collisions,
+            int maxiteration = 6,
+            bool stepscarf = true)
         {
-            SimulationPoint[] body = new SimulationPoint[Body.Length];
-            SimulationPoint[] scarf = new SimulationPoint[Scarf.Length];
-            int scarflen = Scarf.Length;
+            SimulationPoint[] body = Body.Step();
             int bodylen = Body.Length;
             bool dead = Crashed;
-            bool sledbroken = false;
-            for (int i = 0; i < bodylen; i++)
-            {
-                body[i] = Body[i].Step();
-            }
-            RectLRTB phys = new RectLRTB(body[0]);
+            bool sledbroken = SledBroken;
+            RectLRTB phys = new RectLRTB(ref body[0]);
             using (grid.Sync.AcquireRead())
             {
                 for (int i = 0; i < maxiteration; i++)
@@ -278,12 +279,17 @@ namespace linerider.Game
                 dead = true;
                 sledbroken = true;
             }
-            for (int i = 1; i < scarflen; i++)
+            SimulationPoint[] scarf;
+            if (stepscarf)
             {
-                scarf[i] = Scarf[i].StepFriction();
+                scarf = Scarf.Step(friction:true);
+                scarf[0] = body[RiderConstants.BodyShoulder];
+                ProcessScarfBones(RiderConstants.ScarfBones, scarf);
             }
-            scarf[0] = body[RiderConstants.BodyShoulder];
-            ProcessScarfBones(RiderConstants.ScarfBones, scarf);
+            else
+            {
+                scarf = new SimulationPoint[Scarf.Length];
+            }
             return new Rider(body, scarf, phys, dead, sledbroken);
         }
         public List<int> Diagnose(Track track, Dictionary<int, GameLine> collisions = null, int maxiteration = 6)
@@ -291,15 +297,13 @@ namespace linerider.Game
             var ret = new List<int>();
             if (Crashed)
                 return ret;
+            if (maxiteration == 0)//momentum tick but we want to still see
+                maxiteration = 1;
 
-            SimulationPoint[] body = new SimulationPoint[Body.Length];
+            SimulationPoint[] body = Body.Step();
             int bodylen = Body.Length;
             bool dead = Crashed;
-            for (int i = 0; i < bodylen; i++)
-            {
-                body[i] = Body[i].Step();
-            }
-            RectLRTB phys = new RectLRTB(body[0]);
+            RectLRTB phys = new RectLRTB(ref body[0]);
             List<int> breaks = new List<int>();
             using (track.Grid.Sync.AcquireRead())
             {

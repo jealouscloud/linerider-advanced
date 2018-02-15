@@ -12,11 +12,11 @@ namespace linerider.Game
 {
     public class CameraBoundingBox : GameService
     {
-        public const float roundness = 0.8f;
-        public const float legacyratio = 0.125f;
-        public const float maxcamratio = 0.3f;
+        public const double roundness = 0.8f;
+        public const double legacyratio = 0.125f;
+        public const double maxcamratio = 0.3f;
         public Vector2d RiderPosition;
-        public DoubleRect GetBox(float scale)
+        public DoubleRect GetBox(double scale)
         {
             var width = (double)game.RenderSize.Width;
             var height = width * (9.0 / 16.0);//16:9 camera
@@ -31,19 +31,19 @@ namespace linerider.Game
             var bounds = GetBox(legacyratio);
             return CameraLocation.FromNewPosition(RiderPosition, bounds.Clamp(camera));
         }
-        public CameraLocation SmoothClamp(Vector2d camera, float ppf)
+        public CameraLocation SmoothClamp(Vector2d camera, double ppf)
         {
             var bounds = GetBox(GetSmoothCamRatio(ppf));
             var oval = bounds.EllipseClamp(camera);
             var square = bounds.Clamp(camera);
             return CameraLocation.FromNewPosition(RiderPosition, (Vector2d.Lerp(square, oval, roundness)));
         }
-        public bool SmoothIntersects(Vector2d camera, float ppf)
+        public bool SmoothIntersects(Vector2d camera, double ppf)
         {
             var bounds = GetBox(GetSmoothCamRatio(ppf));
             return bounds.Clamp(camera) == camera && bounds.EllipseClamp(camera) == camera;
         }
-        public float GetSmoothCamRatio(float ppf)
+        public double GetSmoothCamRatio(double ppf)
         {
             if (!Camera.ScaleCamera)
                 return maxcamratio;
@@ -52,7 +52,7 @@ namespace linerider.Game
 
             ppf = Math.Max(0, ppf - floor);
             var scale1 = (Math.Min(ceil, ppf) / ceil);
-            return (float)(maxcamratio - ((maxcamratio * 0.4) * scale1));
+            return (double)(maxcamratio - ((maxcamratio * 0.4) * scale1));
         }
     }
 }

@@ -90,15 +90,15 @@ namespace linerider.Tools
         public virtual void OnChangingTool()
         {
         }
-        public GameLine SelectLine(TrackWriter trk, Vector2d position)
+        protected GameLine SelectLine(TrackWriter trk, Vector2d position)
         {
             var ends = LineEndsInRadius(trk, position, 0);
             if (ends.Length > 0)
                 return ends[0];
             var lines =
                 trk.GetLinesInRect(
-                    new FloatRect((Vector2)position - new Vector2(24, 24),
-                    new Vector2(24 * 2, 24 * 2)),
+                    new DoubleRect((Vector2d)position - new Vector2d(24, 24),
+                    new Vector2d(24 * 2, 24 * 2)),
                     false);
             foreach (var line in lines)
             {
@@ -118,7 +118,13 @@ namespace linerider.Tools
             }
             return null;
         }
-        public GameLine CreateLine(TrackWriter trk, Vector2d start, Vector2d end, bool inv, bool snapstart, bool snapend)
+        protected GameLine CreateLine(
+            TrackWriter trk,
+            Vector2d start,
+            Vector2d end,
+            bool inv,
+            bool snapstart,
+            bool snapend)
         {
             GameLine added = null;
             switch (game.Canvas.ColorControls.Selected)
@@ -139,16 +145,13 @@ namespace linerider.Tools
                     { Width = game.Canvas.ColorControls.GreenMultiplier };
                     break;
             }
-            using (trk.AcquireBufferUpdateSync())
+            trk.AddLine(added);
+            if (game.Canvas.ColorControls.Selected != LineType.Scenery)
             {
-                trk.AddLine(added);
-                if (game.Canvas.ColorControls.Selected != LineType.Scenery)
-                {
-                    if (snapstart)
-                        SnapLineEnd(trk, added, added.Position);
-                    if (snapend)
-                        SnapLineEnd(trk, added, added.Position2);
-                }
+                if (snapstart)
+                    SnapLineEnd(trk, added, added.Position);
+                if (snapend)
+                    SnapLineEnd(trk, added, added.Position2);
             }
             game.Track.RequiresUpdate = true;
             return added;
@@ -157,12 +160,12 @@ namespace linerider.Tools
         /// Gets lines near the point by radius.
         /// does not support large distances as it only gets a small number of grid cells
         /// </summary>
-        /// <returns>a sorted array of lines where 0 is the </returns>
+        /// <returns>a sorted array of lines where 0 is the closest point</returns>
         public GameLine[] LinesInRadius(TrackWriter trk, Vector2d position, double rad)
         {
             SortedList<int, GameLine> lines = new SortedList<int, GameLine>();
             var inrect =
-                trk.GetLinesInRect(new FloatRect((Vector2)position - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
+                trk.GetLinesInRect(new DoubleRect(position - new Vector2d(24, 24), new Vector2d(24 * 2, 24 * 2)),
                     false);
             var octagon = Rendering.StaticRenderer.GenerateCircle(position.X, position.Y, rad, 8);
             foreach (var line in inrect)
@@ -197,7 +200,7 @@ namespace linerider.Tools
         protected GameLine[] LineEndsInRadius(TrackReader trk, Vector2d point, double rad)
         {
             var lines =
-                trk.GetLinesInRect(new FloatRect((Vector2)point - new Vector2(24, 24), new Vector2(24 * 2, 24 * 2)),
+                trk.GetLinesInRect(new DoubleRect(point - new Vector2d(24, 24), new Vector2d(24 * 2, 24 * 2)),
                     false);
             SortedList<double, List<GameLine>> ret = new SortedList<double, List<GameLine>>();
             foreach (var line in lines)
@@ -258,13 +261,16 @@ namespace linerider.Tools
             }
             return false;
         }
-        protected Vector2d TrySnapPoint(TrackReader track, Vector2d point)
+        protected Vector2d TrySnapPoint(TrackReader track, Vector2d point, out bool snapped)
         {
             var lines = this.LineEndsInRadius(track, point, SnapRadius);
             if (lines.Length == 0)
+            {
+                snapped = false;
                 return point;
-
+            }
             var snap = lines[0];
+            snapped = true;
             return Utility.CloserPoint(point, snap.Position, snap.Position2);
         }
         /// <summary>
@@ -294,9 +300,6 @@ namespace linerider.Tools
                     {
                         throw new Exception("Endpoint does not match line position in snap. It's not one of the ends of the line.");
                     }
-                    if (line is StandardLine)
-                        trk.TryConnectLines((StandardLine)line, (StandardLine)curr);
-
                     break;
                 }
             }

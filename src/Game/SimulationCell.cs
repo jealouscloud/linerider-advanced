@@ -43,6 +43,8 @@ namespace linerider
         /// <param name="cell"></param>
         public void Combine(SimulationCell<T> cell)
         {
+            if (this == cell)
+                return;
             var node = _list.First;
             foreach (var line in cell)
             {
@@ -58,7 +60,7 @@ namespace linerider
                     }
                     if (node == null)
                         node = _list.AddLast(line);
-                    else if (node.Value != line) // no redundant lines
+                    else if (node.Value.ID != line.ID) // no redundant lines
                         _list.AddBefore(node, line);
                 }
                 else
@@ -133,17 +135,17 @@ namespace linerider
         bool ICollection<T>.Contains(T item)
         {
             throw new NotImplementedException();
-           // return _list.Contains(item);
+            // return _list.Contains(item);
         }
         void ICollection<T>.CopyTo(T[] array, int arrayIndex)
         {
             throw new NotImplementedException();
-      //      _list.CopyTo(array, arrayIndex);
+            //      _list.CopyTo(array, arrayIndex);
         }
         bool ICollection<T>.Remove(T item)
         {
             throw new NotImplementedException();
-      //      return _list.Remove(item);
+            //      return _list.Remove(item);
         }
     }
 }

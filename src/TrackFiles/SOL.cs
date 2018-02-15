@@ -117,8 +117,8 @@ namespace linerider
                 linedata.Add(new Amf0Object(3, line.Position2.Y));
                 linedata.Add(new Amf0Object(4, stl != null ? (int)((StandardLine)line).Extension : 0));
                 linedata.Add(new Amf0Object(5, stl != null ? (bool)((StandardLine)line).inv : false));
-                linedata.Add(new Amf0Object(6, stl?.Prev?.ID));
-                linedata.Add(new Amf0Object(7, stl?.Next?.ID));
+                linedata.Add(new Amf0Object(6, 0));//stl?.Prev?.ID
+                linedata.Add(new Amf0Object(7, 0));//tl?.Next?.ID
                 linedata.Add(new Amf0Object(8, list.Keys[i]));
                 linedata.Add(new Amf0Object(9, TrackLoader.LineTypeForSOL(line.Type)));
 

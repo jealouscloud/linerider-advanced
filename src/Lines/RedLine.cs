@@ -47,6 +47,7 @@ namespace linerider.Lines
                 return LineType.Red;
             }
         }
+        public override System.Drawing.Color Color => Utils.Constants.RedLineColor;
         protected RedLine() : base()
         {
         }
@@ -59,25 +60,10 @@ namespace linerider.Lines
         }
         public override bool Interact(ref SimulationPoint p)
         {
-            if (Vector2d.Dot(p.Momentum, DiffNormal) > 0)
+            if (base.Interact(ref p))
             {
-                var startDelta = p.Location - this.Position;
-                var doty = Vector2d.Dot(DiffNormal, startDelta);
-                if (doty > 0 && doty < Zone)
-                {
-                    var dotx = Vector2d.Dot(startDelta, Difference) * DotScalar;
-                    if (dotx <= limit_right && dotx >= limit_left)
-                    {
-                        var pos = p.Location - doty * DiffNormal;
-                        var friction = DiffNormal.Yx * p.Friction * doty;
-                        if (p.Previous.X >= pos.X)
-                            friction.X = -friction.X;
-                        if (p.Previous.Y >= pos.Y)
-                            friction.Y = -friction.Y;
-                        p = p.Replace(pos, p.Previous + friction + _acc);
-                        return true;
-                    }
-                }
+                p = p.Replace(p.Location,p.Previous + _acc);
+                return true;
             }
             return false;
         }
@@ -86,8 +72,6 @@ namespace linerider.Lines
             return new RedLine()
             {
                 ID = ID,
-                Prev = Prev,
-                Next = Next,
                 Difference = Difference,
                 DiffNormal = DiffNormal,
                 Distance = Distance,

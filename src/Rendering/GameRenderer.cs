@@ -64,9 +64,25 @@ namespace linerider.Rendering
 
             if (rider.SledBroken)
             {
-                DrawTexture(Models.BrokenSledTexture, Models.SledRect,
-                points[RiderConstants.SledTL].Location,
-                points[RiderConstants.SledTR].Location, opacity);
+                var nose = points[RiderConstants.SledTR].Location - points[RiderConstants.SledTL].Location;
+                var tail = points[RiderConstants.SledBL].Location - points[RiderConstants.SledTL].Location;
+                if ((nose.X * tail.Y) - (nose.Y * tail.X) < 0)
+                {
+                    DrawTexture(
+                        Models.BrokenSledTexture, 
+                        Models.BrokenSledRect,
+                        points[RiderConstants.SledBL].Location,
+                        points[RiderConstants.SledBR].Location, opacity,
+                        0,1,1,0);//we're upside down!
+                }
+                else
+                {
+                    DrawTexture(
+                        Models.BrokenSledTexture, 
+                        Models.BrokenSledRect,
+                        points[RiderConstants.SledTL].Location,
+                        points[RiderConstants.SledTR].Location, opacity);
+                }
             }
             else
             {
@@ -100,7 +116,7 @@ namespace linerider.Rendering
         }
         public static void DrawMomentum(Rider rider, List<GenericVertex> vertices)
         {
-            for(int i = 0; i < rider.Body.Length; i++)
+            for (int i = 0; i < rider.Body.Length; i++)
             {
                 var anchor = rider.Body[i];
                 var vec1 = anchor.Location;
@@ -332,7 +348,8 @@ namespace linerider.Rendering
         }
         public static void DbgDrawGrid()
         {
-            bool fastgrid = false;
+            bool fastgrid = true;
+            bool renderext = true;
             int sqsize = fastgrid ? FastGrid.CellSize : SimulationGrid.CellSize;
             GL.PushMatrix();
             GL.Scale(Game.Track.Zoom, Game.Track.Zoom, 0);
@@ -347,7 +364,7 @@ namespace linerider.Rendering
                     if (!fastgrid)
                     {
                         var gridpos = new GridPoint((int)Math.Floor(yv.X / sqsize), (int)Math.Floor(yv.Y / sqsize));
-                        if (Game.Track.RenderRider.PhysicsBounds.ContainsPoint(gridpos))
+                        /*if (Game.Track.RenderRider.PhysicsBounds.ContainsPoint(gridpos))
                         {
                             GL.Color3(Color.Lime);
                             GL.Vertex2(yv);
@@ -358,7 +375,8 @@ namespace linerider.Rendering
                             yv.Y -= sqsize;
                             GL.Vertex2(yv);
                         }
-                        else if (Game.Track.GridCheck(yv.X, yv.Y))
+                        else */
+                        if (Game.Track.GridCheck(yv.X, yv.Y))
                         {
                             GL.Color3(Color.Yellow);
                             GL.Vertex2(yv);
@@ -403,9 +421,41 @@ namespace linerider.Rendering
             }
             GL.End();
             GL.PopMatrix();
+            if (renderext)
+            {
+                using (var trk = Game.Track.CreateTrackReader())
+                {
+                    foreach (var v in trk.GetLinesInRect(Game.Track.Camera.GetViewport(), false))
+                    {
+                        if (v is StandardLine std)
+                        {
+                            if (std.Extension != StandardLine.Ext.None)
+                            {
+                                var d = std.Difference * std.ExtensionRatio;
+                                if (std.Extension.HasFlag(StandardLine.Ext.Left))
+                                {
+                                    RenderRoundedLine(std.Position - d, std.Position, Color.Red, 1);
+                                }
+                                if (std.Extension.HasFlag(StandardLine.Ext.Right))
+                                {
+                                    RenderRoundedLine(std.Position2 + d, std.Position2, Color.Red, 1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        private static void DrawTexture(int tex, DoubleRect rect, Vector2d p1, Vector2d rotationAnchor, float opacity)
+        private static void DrawTexture(int tex,
+        DoubleRect rect,
+        Vector2d p1,
+        Vector2d rotationAnchor,
+        float opacity,
+        float u1 = 0,
+        float v1 = 0,
+        float u2 = 1,
+        float v2 = 1)
         {
             var angle = Angle.FromLine(p1, rotationAnchor);
             var offset = -(Game.ScreenPosition - p1);
@@ -415,7 +465,7 @@ namespace linerider.Rendering
             GL.Rotate(angle.Degrees, 0, 0, 1);
             GL.Scale(0.5, 0.5, 0);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            StaticRenderer.DrawTexture(tex, rect, opacity);
+            StaticRenderer.DrawTexture(tex, rect, opacity, u1, v1, u2, v2);
             GL.PopMatrix();
         }
         #endregion Methods

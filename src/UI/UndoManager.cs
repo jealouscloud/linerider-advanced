@@ -42,17 +42,17 @@ namespace linerider
                 // remove line
                 if (afteract == null)
                 {
-                    track.RemoveLine(beforeact);
+                    track.RemoveLine(beforeact,false);
                 }
                 // add line
                 else if (beforeact == null)
                 {
-                    track.AddLine(afteract);
+                    track.AddLine(afteract,false);
                 }
                 //move action
                 else
                 {
-                    track.ReplaceLine(beforeact, afteract);
+                    track.ReplaceLine(beforeact, afteract,false);
                 }
                 return !(beforeact is SceneryLine);
 
@@ -60,30 +60,27 @@ namespace linerider
             /// <summary>
             /// undo previous action, returns true if physics are changed
             /// </summary>
-            public virtual bool Undo(TrackWriter track)
+            public void Undo(TrackWriter track)
             {
-                bool ret = false;
-                using (track.AcquireBufferUpdateSync())
+                bool physchanged = false;
+                for (int i = States.Count - 1; i > 0; i -= 2)
                 {
-                    for (int i = States.Count - 1; i > 0; i -= 2)
-                    {
-                        ret |= DoAction(track, States[i], States[i - 1]);
-                    }
+                    physchanged |= DoAction(track, States[i], States[i - 1]);
                 }
-                return ret;
+
+                if (physchanged)
+                    track.NotifyTrackChanged();
             }
 
-            public virtual bool Redo(TrackWriter track)
+            public void Redo(TrackWriter track)
             {
-                bool ret = false;
-                using (track.AcquireBufferUpdateSync())
+                bool physchanged = false;
+                for (int i = 0; i < States.Count - 1; i += 2)
                 {
-                    for (int i = 0; i < States.Count - 1; i += 2)
-                    {
-                        ret |= DoAction(track, States[i], States[i + 1]);
-                    }
+                    physchanged |= DoAction(track, States[i], States[i + 1]);
                 }
-                return ret;
+                if (physchanged)
+                    track.NotifyTrackChanged();
             }
         }
         private int pos;
@@ -128,9 +125,8 @@ namespace linerider
             _currentaction = null;
         }
 
-        public bool Undo()
+        public void Undo()
         {
-            var needsupdate = false;
             if (_actions.Count > 0 && pos > 0)
             {
                 pos--;
@@ -138,16 +134,15 @@ namespace linerider
                 using (var trk = game.Track.CreateTrackWriter())
                 {
                     trk.DisableUndo();
-                    needsupdate = action.Undo(trk);
+                    action.Undo(trk);
                 }
+                game.Track.NotifyTrackChanged();
                 game.InvalidateTrack();
             }
-            return needsupdate;
         }
 
-        public bool Redo()
+        public void Redo()
         {
-            var needsupdate = false;
             if (_actions.Count > 0 && pos < _actions.Count)
             {
                 if (pos < 0)
@@ -157,11 +152,10 @@ namespace linerider
                 using (var trk = game.Track.CreateTrackWriter())
                 {
                     trk.DisableUndo();
-                    needsupdate = action.Redo(trk);
+                    action.Redo(trk);
                 }
                 game.InvalidateTrack();
             }
-            return needsupdate;
         }
     }
 }

@@ -51,14 +51,6 @@ namespace linerider.Game
             return cell;
         }
         /// <summary>
-        /// adds an overlay backup if it does not already exist for that point
-        /// </summary>
-        /// <returns>true if the overlay was added</returns>
-        public bool BackupCell(GridPoint point, SimulationCell cell)
-        {
-            return AddOverlay(point,cell?.FullClone());
-        }
-        /// <summary>
         /// adds an overlay if it does not already exist for that point
         /// </summary>
         /// <returns>true if the overlay was added</returns>

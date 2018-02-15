@@ -43,10 +43,13 @@ namespace linerider
         private readonly Dictionary<int, SimulationCell> Cells = new Dictionary<int, SimulationCell>(4096);
         private readonly ResourceSync _sync = new ResourceSync();
 
-
+        public List<CellLocation> GetGridPositions(StandardLine line)
+        {
+            return GetGridPositions(line, GridVersion);
+        }
         public void AddLine(StandardLine line)
         {
-            var positions = GetGridPositions(line,GridVersion);
+            var positions = GetGridPositions(line);
             using (_sync.AcquireWrite())
             {
                 foreach (var pos in positions)
@@ -57,7 +60,7 @@ namespace linerider
         }
         public void RemoveLine(StandardLine line)
         {
-            var positions = GetGridPositions(line,GridVersion);
+            var positions = GetGridPositions(line);
             using (_sync.AcquireWrite())
             {
                 foreach (var pos in positions)
@@ -66,7 +69,32 @@ namespace linerider
                 }
             }
         }
-
+        public void MoveLine(Vector2d p1, Vector2d p2, StandardLine line)
+        {
+            var oldpos = GetGridPositions(p1, p2, GridVersion);
+            var newpos = GetGridPositions(line);
+           // foreach (var v in oldpos)
+            {
+         //       if (!newhash.Contains(v))
+       //             remove.Add(v);
+            }
+         //   foreach (var v in newpos)
+         //   {
+         //       if (!oldhash.Contains(v))
+             //       add.Add(v);
+           // }
+            using (_sync.AcquireWrite())
+            {
+                foreach (var v in oldpos)
+                {
+                    Unregister(line, v.X, v.Y);
+                }
+                foreach (var v in newpos)
+                {
+                    Register(line, v.X, v.Y);
+                }
+            }
+        }
         public virtual SimulationCell GetCell(int x, int y)
         {
             SimulationCell cell;
