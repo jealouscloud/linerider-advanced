@@ -42,7 +42,7 @@ namespace linerider
         public List<ConcurrentDictionary<int, StandardLine>> Collisions =
             new List<ConcurrentDictionary<int, StandardLine>>();
 
-        public FastGrid RenderCells = new FastGrid();
+        public FastGrid QuickGrid = new FastGrid();
 
         public LinkedList<int> Lines = new LinkedList<int>();
         public Dictionary<int, GameLine> LineLookup = new Dictionary<int, GameLine>();
@@ -103,10 +103,15 @@ namespace linerider
             for (int i = 0; i < RiderConstants.Bones.Length; i++)
             {
                 var bone = RiderConstants.Bones[i];
-                bone.RestLength = (joints[bone.joint1].Location - joints[bone.joint2].Location).Length;
+                var rest = (joints[bone.joint1].Location - joints[bone.joint2].Location).Length;
                 if (bone.OnlyRepel)
-                    bone.RestLength *= 0.5;
-                Bones[i] = bone;
+                    rest *= 0.5;
+                Bones[i] = new Bone(
+                    bone.joint1,
+                    bone.joint2,
+                    rest,
+                    bone.Breakable,
+                    bone.OnlyRepel);
             }
         }
         public void AddLine(GameLine line, bool isloading = false)
@@ -169,44 +174,10 @@ namespace linerider
             RemoveLineFromGrid(line);
         }
 
-        /// <summary>
-        ///     For moving lines
-        /// </summary>
-        public void AddLineToGrid(GameLine line)
-        {
-            if (line is StandardLine sl)
-                Grid.AddLine(sl);
-            RenderCells.AddLine(line);
-        }
 
         public void CalculateAllCollidedLines()
         {
             //todo collision states are completely unprogrammed
-        }
-
-        public IEnumerable<GameLine> GetLinesInRect(FloatRect rect, bool precise)
-        {
-            var ret = RenderCells.LinesInRect(rect);
-            if (precise)
-            {
-                var newret = new List<GameLine>(ret.Count);
-                foreach (var line in ret)
-                {
-                    if (GameLine.DoesLineIntersectRect(
-                        line, 
-                        new DoubleRect(
-                            rect.Left,
-                            rect.Top,
-                            rect.Width,
-                            rect.Height))
-                            )
-                    {
-                        newret.Add(line);
-                    }
-                }
-                return newret;
-            }
-            return ret;
         }
 
         public int GetVersion()
@@ -220,13 +191,23 @@ namespace linerider
         }
 
         /// <summary>
-        ///     For moving lines
+        /// Adds the line to the physics and fast grid
         /// </summary>
-        public void RemoveLineFromGrid(GameLine sl)
+        public void AddLineToGrid(GameLine line, bool trackgrid = true)
         {
-            if (sl is StandardLine)
+            if (trackgrid && line is StandardLine sl)
+                Grid.AddLine(sl);
+            QuickGrid.AddLine(line);
+        }
+
+        /// <summary>
+        /// Removes the line from the physics and fast grid
+        /// </summary>
+        public void RemoveLineFromGrid(GameLine line, bool trackgrid = true)
+        {
+            if (trackgrid && line is StandardLine sl)
                 Grid.RemoveLine((StandardLine)sl);
-            RenderCells.RemoveLine(sl);
+            QuickGrid.RemoveLine(line);
         }
         public Rider GetStart()
         {

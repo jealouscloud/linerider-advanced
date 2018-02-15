@@ -54,13 +54,6 @@ namespace linerider
         private const int IGNORABLE_TRIGGER_INDEX = 4;
         private const int ZEROSTART_INDEX = 5;
 
-        private struct Extensionentry
-        {
-            public int Linkid;
-            public StandardLine Line;
-            public bool Next;
-        }
-
         public static List<sol_track> LoadSol(string sol_location)
         {
             var sol = new SOL(sol_location);
@@ -348,24 +341,12 @@ namespace linerider
                             }
                         }
                         bw.Write(l.ID);
-                        if (l.Extension != StandardLine.ExtensionDirection.None)
+                        if (l.Extension != StandardLine.Ext.None)
                         {
-                            //bugfix for accidental saving of incorrect next / prev
-                            if (l.Extension == StandardLine.ExtensionDirection.Both)
-                            {
-                                bw.Write(l.Next == null ? -1 : l.Next.ID);
-                                bw.Write(l.Prev == null ? -1 : l.Prev.ID);
-                            }
-                            else if (l.Extension == StandardLine.ExtensionDirection.Left)
-                            {
-                                bw.Write(-1);
-                                bw.Write(l.Prev == null ? -1 : l.Prev.ID);
-                            }
-                            else if (l.Extension == StandardLine.ExtensionDirection.Right)
-                            {
-                                bw.Write(l.Next == null ? -1 : l.Next.ID);
-                                bw.Write(-1);
-                            }
+                            // this was extension writing
+                            // but we no longer support this.
+                            bw.Write(-1);
+                            bw.Write(-1);
                         }
                     }
                     else
@@ -448,7 +429,6 @@ namespace linerider
             var ret = new Track();
             ret.Name = trackname;
             var addedlines = new Dictionary<int, StandardLine>();
-            var extensions = new List<Extensionentry>();
             var location = trackfile;
             var bytes = File.ReadAllBytes(location);
             using (var file =
@@ -577,8 +557,8 @@ namespace linerider
                             ID = br.ReadInt32();
                             if (lim != 0)
                             {
-                                prvID = br.ReadInt32();
-                                nxtID = br.ReadInt32();
+                                prvID = br.ReadInt32();//ignored
+                                nxtID = br.ReadInt32();//ignored
                             }
                         }
                         if (lt == LineType.Scenery)
@@ -598,28 +578,20 @@ namespace linerider
                             case LineType.Blue:
                                 var bl = new StandardLine(new Vector2d(x1, y1), new Vector2d(x2, y2), inv);
                                 bl.ID = ID;
-                                bl.SetExtension(lim);
+                                bl.Extension = (StandardLine.Ext)lim;
                                 l = bl;
-                                if (prvID != -1)
-                                    extensions.Add(new Extensionentry { Line = bl, Linkid = prvID, Next = false });
-                                if (nxtID != -1)
-                                    extensions.Add(new Extensionentry { Line = bl, Linkid = nxtID, Next = true });
                                 bl.Trigger = tr;
                                 break;
 
                             case LineType.Red:
                                 var rl = new RedLine(new Vector2d(x1, y1), new Vector2d(x2, y2), inv);
                                 rl.ID = ID;
-                                rl.SetExtension(lim);
+                                rl.Extension = (StandardLine.Ext)lim;
                                 if (redmultipier)
                                 {
                                     rl.Multiplier = multiplier;
                                 }
                                 l = rl;
-                                if (prvID != -1)
-                                    extensions.Add(new Extensionentry { Line = rl, Linkid = prvID, Next = false });
-                                if (nxtID != -1)
-                                    extensions.Add(new Extensionentry { Line = rl, Linkid = nxtID, Next = true });
                                 rl.Trigger = tr;
                                 break;
 
@@ -629,7 +601,7 @@ namespace linerider
                                 break;
 
                             default:
-                                throw new TrackLoadException("Invalid line type at ID " +ID);
+                                throw new TrackLoadException("Invalid line type at ID " + ID);
                         }
                         if (l is StandardLine)
                         {
@@ -642,33 +614,6 @@ namespace linerider
                         else
                         {
                             ret.AddLine(l, true);
-                        }
-                    }
-                }
-            }
-            foreach (var v in extensions)
-            {
-                if (v.Next)
-                {
-                    StandardLine sl;
-                    if (addedlines.TryGetValue(v.Linkid, out sl))
-                    {
-                        //if (sl.Extension == StandardLine.ExtensionDirection.Right || sl.Extension == StandardLine.ExtensionDirection.Both)
-                        {
-                            v.Line.Next = sl;
-                            sl.Prev = v.Line;
-                        }
-                    }
-                }
-                else //prev
-                {
-                    StandardLine sl;
-                    if (addedlines.TryGetValue(v.Linkid, out sl))
-                    {
-                        //if (sl.Extension == StandardLine.ExtensionDirection.Left || sl.Extension == StandardLine.ExtensionDirection.Both)
-                        {
-                            v.Line.Prev = sl;
-                            sl.Next = v.Line;
                         }
                     }
                 }
@@ -692,9 +637,9 @@ namespace linerider
         public static Track LoadTrack(sol_track trackdata)
         {
             var ret = new Track { Name = trackdata.name };
-            List<GameLine> lineslist = new List<GameLine>();
             var buffer = (List<Amf0Object>)trackdata.get_property("data");
-            var addedlines = new Dictionary<int, StandardLine>();
+            List<GameLine> lineslist = new List<GameLine>(buffer.Count);
+            var addedlines = new Dictionary<int, StandardLine>(buffer.Count);
             var version = trackdata.data.First(x => x.name == "version").data as string;
 
             if (version == "6.1")
@@ -724,7 +669,6 @@ namespace linerider
             {
                 //ignored
             }
-            var extensions = new List<Extensionentry>();
             for (var i = buffer.Count - 1; i >= 0; --i)
             {
                 var line = (List<Amf0Object>)buffer[i].data;
@@ -743,16 +687,17 @@ namespace linerider
                                 {
                                     ID = Convert.ToInt32(line[8].data, CultureInfo.InvariantCulture)
                                 };
-                            l.SetExtension(Convert.ToInt32(line[4].data, CultureInfo.InvariantCulture));
+                            l.Extension = (StandardLine.Ext)(
+                                Convert.ToInt32(
+                                    line[4].data,
+                                    CultureInfo.InvariantCulture));
                             if (line[6].data != null)
                             {
                                 var prev = Convert.ToInt32(line[6].data, CultureInfo.InvariantCulture);
-                                extensions.Add(new Extensionentry { Line = l, Linkid = prev, Next = false });
                             }
                             if (line[7].data != null)
                             {
                                 var next = Convert.ToInt32(line[7].data, CultureInfo.InvariantCulture);
-                                extensions.Add(new Extensionentry { Line = l, Linkid = next, Next = true });
                             }
                             if (!addedlines.ContainsKey(l.ID))
                             {
@@ -774,16 +719,17 @@ namespace linerider
                                 {
                                     ID = Convert.ToInt32(line[8].data, CultureInfo.InvariantCulture)
                                 };
-                            l.SetExtension(Convert.ToInt32(line[4].data, CultureInfo.InvariantCulture));
+                            l.Extension = (StandardLine.Ext)(
+                                Convert.ToInt32(
+                                    line[4].data,
+                                    CultureInfo.InvariantCulture));
                             if (line[6].data != null)
                             {
                                 var prev = Convert.ToInt32(line[6].data, CultureInfo.InvariantCulture);
-                                extensions.Add(new Extensionentry { Line = l, Linkid = prev, Next = false });
                             }
                             if (line[7].data != null)
                             {
                                 var next = Convert.ToInt32(line[7].data, CultureInfo.InvariantCulture);
-                                extensions.Add(new Extensionentry { Line = l, Linkid = next, Next = true });
                             }
                             if (!addedlines.ContainsKey(l.ID))
                             {
@@ -804,27 +750,6 @@ namespace linerider
 
                     default:
                         throw new TrackLoadException("Unknown line type");
-                }
-            }
-            foreach (var v in extensions)
-            {
-                if (v.Next)
-                {
-                    StandardLine sl;
-                    if (addedlines.TryGetValue(v.Linkid, out sl))
-                    {
-                        v.Line.Next = sl;
-                        sl.Prev = v.Line;
-                    }
-                }
-                else //prev
-                {
-                    StandardLine sl;
-                    if (addedlines.TryGetValue(v.Linkid, out sl))
-                    {
-                        v.Line.Prev = sl;
-                        sl.Next = v.Line;
-                    }
                 }
             }
             var startlineprop = trackdata.get_property("startLine");

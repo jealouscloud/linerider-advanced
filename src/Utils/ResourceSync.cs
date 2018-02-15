@@ -39,6 +39,13 @@ namespace linerider.Utils
             private bool _read;
             private bool _write;
             private ResourceSync _parent;
+            public bool WritersWaiting
+            {
+                get
+                {
+                    return _parent._lock.WaitingWriteCount != 0;
+                }
+            }
             public ResourceLock(bool read, bool write, bool upgradableread, ResourceSync parent)
             {
                 _read = read;

@@ -66,8 +66,8 @@ namespace linerider
         /// </summary>
         public static Vector2d CloserPoint(Vector2d input, Vector2d p1, Vector2d p2)
         {
-            var a = Math.Abs(input.LengthSquared - p1.LengthSquared);
-            var b = Math.Abs(input.LengthSquared - p2.LengthSquared);
+            var a = Math.Abs((input - p1).LengthSquared);
+            var b = Math.Abs((input - p2).LengthSquared);
             return a < b ? p1 : p2;
         }
         public static bool isLeft(Vector2d a, Vector2d b, Vector2d point)

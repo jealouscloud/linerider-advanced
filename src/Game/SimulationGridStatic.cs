@@ -28,6 +28,7 @@ using linerider.Game;
 using linerider.Utils;
 using linerider.Lines;
 using linerider.Rendering;
+using System.Runtime.CompilerServices;
 
 namespace linerider
 {
@@ -53,7 +54,7 @@ namespace linerider
         }
         public static List<CellLocation> GetGridPositions(StandardLine line, int gridversion)
         {
-            return GetGridPositions(line.Position,line.Position2,gridversion);
+            return GetGridPositions(line.Position, line.Position2, gridversion);
         }
         public static List<CellLocation> GetGridPositions(Vector2d linestart, Vector2d lineend, int gridversion)
         {
@@ -72,24 +73,22 @@ namespace linerider
                 p2Y = Math.Max(cell.Y, gridend.Y);
             var box = Rectangle.FromLTRB(p1X, p1Y, p2X, p2Y);
             var current = linestart;
+            Vector2d scalar = new Vector2d(1 / diff.Y, 1 / diff.X);
+            bool xforwards = diff.X > 0;
+            bool yforwards = diff.Y > 0;
             if (gridversion == 62)
             {
                 while (true)
                 {
-                    double maxstepx, maxstepy;
-                    if (cell.X < 0)
-                        maxstepy = diff.X > 0 ? (CellSize + cell.Remainder.X) : (-CellSize - cell.Remainder.X);
-                    else
-                        maxstepy = diff.X > 0 ? (CellSize - cell.Remainder.X) : (-(cell.Remainder.X + 1));
+                    double boundaryx = GetStep(yforwards,cell.Y, cell.Remainder.Y); 
+                    double boundaryy = GetStep(xforwards,cell.X, cell.Remainder.X);
+                        
+                    var step = new Vector2d(
+                        diff.X * boundaryx,
+                        diff.Y * boundaryy) * scalar;
 
-                    if (cell.Y < 0)
-                        maxstepx = diff.Y > 0 ? (CellSize + cell.Remainder.Y) : (-CellSize - cell.Remainder.Y);
-                    else
-                        maxstepx = diff.Y > 0 ? (CellSize - cell.Remainder.Y) : (-(cell.Remainder.Y + 1));
-                    var stepx = diff.X * maxstepx * (1 / diff.Y);
-                    var stepy = diff.Y * maxstepy * (1 / diff.X);
-                    current.X += (Math.Abs(stepx) < Math.Abs(maxstepy)) ? stepx : maxstepy;
-                    current.Y += (Math.Abs(stepy) < Math.Abs(maxstepx)) ? stepy : maxstepx;
+                    current.X += (Math.Abs(step.X) < Math.Abs(boundaryy)) ? step.X : boundaryy;
+                    current.Y += (Math.Abs(step.Y) < Math.Abs(boundaryx)) ? step.Y : boundaryx;
                     cell = CellInfo(current.X, current.Y);
                     if (!CheckBounds(box, cell.X, cell.Y))
                         return ret;
@@ -98,9 +97,21 @@ namespace linerider
             }
             else if (gridversion == 61) //eh
             {
-                ret = GetGridPositions61(linestart,lineend);
+                ret = GetGridPositions61(linestart, lineend);
             }
             return ret;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static double GetStep(bool forwards, double cellpos, double remainder)
+        {
+            if (forwards)
+                return cellpos < 0 ?
+                CellSize + remainder :
+                CellSize - remainder;
+            else
+                return cellpos < 0 ?
+                -CellSize - remainder :
+                -(remainder + 1);
         }
         private static List<CellLocation> GetGridPositions61(Vector2d start, Vector2d end)
         {

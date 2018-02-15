@@ -97,7 +97,7 @@ namespace linerider.UI
                 }
                 if (!TrackLoader.CheckValidFilename(txt + tb.Text) ||
                 tb.Text == Utils.Constants.DefaultTrackName ||
-                tb.Text.Length == 0)
+                (txt.Length == 0))
                 {
                     game.Canvas.SetTooltip(sender,"Attempted to save with an invalid name");
                     return;

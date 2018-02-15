@@ -31,18 +31,36 @@ namespace linerider.Lines
         public const int UninitializedID = int.MinValue;
         public int ID = UninitializedID;
         public float Width = 1;
-        public virtual LineType Type
+        public abstract Color Color { get; }
+        public abstract LineType Type { get; }
+        /// <summary>
+        /// "Left" 
+        /// </summary>
+        public virtual Vector2d Start
         {
-            get
-            {
-                throw new Exception("Line has no defined type");
-            }
+            get { return Position; }
         }
-
+        /// <summary>
+        /// "Right"
+        /// </summary>
+        public virtual Vector2d End
+        {
+            get { return Position2; }
+        }
 
         public override string ToString()
         {
-            return "ID: " + ID;
+            return "ID: " +
+                ID +
+                " {" +
+                Math.Round(Position.X, 1) +
+                ", " +
+                Math.Round(Position.Y, 1) +
+                "}, {" +
+                Math.Round(Position2.X) +
+                ", " +
+                Math.Round(Position2.Y) +
+                "}";
         }
 
         public override int GetHashCode()
@@ -64,10 +82,6 @@ namespace linerider.Lines
                     throw new Exception("Unable to get the color for this line, its type is unknown");
             }
         }
-        public virtual GameLine Clone()
-        {
-            throw new Exception(
-                "Unable to clone this line as it has no defined type");
-        }
+        public abstract GameLine Clone();
     }
 }

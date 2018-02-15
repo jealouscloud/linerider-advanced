@@ -20,7 +20,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using OpenTK;
@@ -53,8 +53,12 @@ namespace linerider
             _track = track;
             _sync = sync;
         }
+        public void NotifyTrackChanged()
+        {
+            game.Track.NotifyTrackChanged();
+        }
         /// <summary>
-        /// a bizarre function for the undomanager to call so we dont add more actions when undoing
+        /// Disables saving changes to the undo buffer.
         /// </summary>
         public void DisableUndo()
         {
@@ -84,10 +88,12 @@ namespace linerider
             _buffermanager.SaveCells(linestart, lineend);
         }
         /// <summary>
-        /// Adds the line to the track, grid, and renderer. Is naive to extensions, and notifies the undo/buffer managers
-        /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
+        /// Adds the line to the track, grid, and renderer. 
+        /// Updates extensions
+        /// Notifies the undo/buffer managers
+        /// Most uses should be wrapped in UndoManager.BeginAction / EndAction
         /// </summary>
-        public void AddLine(GameLine line)
+        public void AddLine(GameLine line, bool updateextensions = true)
         {
             if (line is StandardLine)
                 SaveCells(line.Position, line.Position2);
@@ -95,179 +101,197 @@ namespace linerider
             Track.AddLine(line);
             _renderer.AddLine(line);
             RegisterUndoAction(null, line);
+            if (updateextensions && line is StandardLine stl)
+                AddExtensions(stl);
         }
         /// <summary>
-        /// Moves the line in the track, grid, and renderer. Is naive to extensions, and notifies the undo/buffer managers
-        /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
+        /// Moves the line in the track, grid, and renderer. 
+        /// Updates extensions
+        /// Notifies the undo/buffer managers
+        /// Most uses should be wrapped in UndoManager.BeginAction / EndAction
         /// </summary>
-        public void MoveLine(GameLine line, Vector2d pos1, Vector2d pos2)
+        public void MoveLine(GameLine line, Vector2d pos1, Vector2d pos2, bool updateextensions = true)
         {
             if (line.Position != pos1 || line.Position2 != pos2)
             {
                 var clone = line.Clone();
-
-                if (line is StandardLine)
+                var std = line as StandardLine;
+                if (std != null)
                 {
                     SaveCells(line.Position, line.Position2);
                     SaveCells(pos1, pos2);
+                    if (updateextensions)
+                        RemoveExtensions(std);
+                    line.Position = pos1;
+                    line.Position2 = pos2;
+                    std.CalculateConstants();
+                    Track.Grid.MoveLine(clone.Position, clone.Position2, std);
+                    if (updateextensions)
+                        AddExtensions(std);
                 }
+                else
+                {
+                    line.Position = pos1;
+                    line.Position2 = pos2;
+                }
+                Track.RemoveLineFromGrid(clone, false);
+                Track.AddLineToGrid(line, false);
 
-                Track.RemoveLineFromGrid(line);
-                line.Position = pos1;
-                line.Position2 = pos2;
-                (line as StandardLine).CalculateConstants();
-                Track.AddLineToGrid(line);
                 RegisterUndoAction(clone, line);
                 _renderer.RedrawLine(line);
             }
         }
-        public void ReplaceLine(GameLine oldline, GameLine newline)
+        /// <summary>
+        /// Replaces the line in the track, grid, and renderer. 
+        /// Updates extensions
+        /// Notifies the undo/buffer managers
+        /// Most uses should be wrapped in UndoManager.BeginAction / EndAction
+        /// </summary>
+        public void ReplaceLine(GameLine oldline, GameLine newline, bool updateextensions = true)
         {
             if (oldline.ID != newline.ID)
                 throw new Exception("can only replace lines with the same id");
             RegisterUndoAction(oldline, newline);
 
-            if (oldline is StandardLine)
+            var std = oldline as StandardLine;
+            if (std != null)
             {
                 SaveCells(oldline.Position, oldline.Position2);
                 SaveCells(newline.Position, newline.Position2);
+                if (updateextensions)
+                    RemoveExtensions(std);
             }
-            Track.RemoveLineFromGrid(oldline);
-            Track.AddLineToGrid(newline);
+            using (Track.Grid.Sync.AcquireWrite())
+            {
+                Track.RemoveLineFromGrid(oldline);
+                Track.AddLineToGrid(newline);
+            }
             Track.LineLookup[newline.ID] = newline;
+            if (updateextensions && newline is StandardLine stl)
+                AddExtensions(stl);
             _renderer.RedrawLine(newline);
         }
 
         /// <summary>
-        /// Removes the line from the track, grid, and renderer, updates extensions, and notifies undo/buffer managers.
-        /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
+        /// Removes the line from the track, grid, and renderer. 
+        /// Updates extensions
+        /// Notifies the undo/buffer managers
+        /// Most uses should be wrapped in UndoManager.BeginAction / EndAction
         /// </summary>
-        public void RemoveLine(GameLine line)
+        public void RemoveLine(GameLine line, bool updateextensions = true)
         {
-            RegisterUndoAction(line, null);
-
-            if (line is StandardLine)
+            if (line is StandardLine std)
             {
-                using (AcquireBufferUpdateSync())
-                {
-                    SaveCells(line.Position, line.Position2);
-                    var st = line as StandardLine;
-                    TryDisconnectLines(st, st.Next);
-                    TryDisconnectLines(st, st.Prev);
-                }
+                SaveCells(line.Position, line.Position2);
+                if (updateextensions)
+                    RemoveExtensions(std);
             }
+            RegisterUndoAction(line, null);
             Track.RemoveLine(line);
             _renderer.RemoveLine(line);
         }
-        /// <summary>
-        /// Tells the buffer manager to halt updating
-        /// until the resource is disposed.
-        /// 
-        /// for example:
-        /// call this when you need to change a line and then extensions
-        /// </summary>
-        public ResourceSync.ResourceLock AcquireBufferUpdateSync()
+        private SimulationCell GetPairs(StandardLine input)
         {
-            return _buffermanager.BeginTransaction();
+            var list = new SimulationCell();
+            var c1 = Track.QuickGrid.GetCellFromPoint(input.Position);
+            var c2 = Track.QuickGrid.GetCellFromPoint(input.Position2);
+            var cells = new SimulationCell<GameLine>[]
+            {
+                c1,
+                c1 == c2
+                ? null
+                : c2 };
+            foreach (var cell in cells)
+            {
+                if (cell == null)
+                    continue;
+                foreach (var line in cell)
+                {
+                    if (line.Type == LineType.Scenery)
+                        continue;
+                    if (line.ID != input.ID)
+                    {
+                        if (
+                            line.End == input.Start ||
+                            line.Start == input.End)
+                        {
+                            list.AddLine((StandardLine)line);
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+        public void AddExtensions(StandardLine input)
+        {
+            UpdateExtensions(input, true);
+        }
+        public void RemoveExtensions(StandardLine input)
+        {
+            UpdateExtensions(input, false);
         }
         /// <summary>
-        /// Tries to disconnect two lines that are currently on the grid, updating extensions
-        /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
+        /// Checks every line with the input line's ends if its extensions
+        /// pair with input and adds or removes them
         /// </summary>
-        public void TryDisconnectLines(StandardLine l1, StandardLine l2)
+        /// <param name="input">the input line</param>
+        /// <param name="add">should extensions be added or removed</param>
+        private void UpdateExtensions(StandardLine input, bool add)
         {
-            if (l1 == null || l2 == null) return;
-            Vector2d joint;
-            if (l1.Position == l2.Position || l1.Position == l2.Position2)
-                joint = l1.Position;
-            else if (l1.Position2 == l2.Position || l1.Position2 == l2.Position2)
-                joint = l1.Position2;
-            else
-                return;
+            //todo this method could be faster. its now called on every moveline
+            //etc
+            Debug.Assert(
+                input != null,
+                "passed null line to update extensions");
 
-            if (l1 is StandardLine)
-                SaveCells(l1.Position, l1.Position2);
-            if (l2 is StandardLine)
-                SaveCells(l2.Position, l2.Position2);
-
-            var rightlink = (l1.End == joint && l2.Start == joint);
-            var l1clone = l1.Clone();
-            var l2clone = l2.Clone();
-            if (rightlink)
+            var list = GetPairs(input);
+            var inputangle = Angle.FromVector(input.End - input.Start).Degrees;
+            var inputclone = input.Clone();
+            bool changemade = false;
+            foreach (var connected in list)
             {
-                l1.Next = null;
-                l1.RemoveExtension(StandardLine.ExtensionDirection.Right);
-
-                l2.Prev = null;
-                l2.RemoveExtension(StandardLine.ExtensionDirection.Left);
-            }
-            else
-            {
-                l1.Prev = null;
-                l1.RemoveExtension(StandardLine.ExtensionDirection.Left);
-
-                l2.Next = null;
-                l2.RemoveExtension(StandardLine.ExtensionDirection.Right);
-            }
-            RegisterUndoAction(l1clone, l1);
-            RegisterUndoAction(l2clone, l2);
-        }
-
-        /// <summary>
-        /// Tries to connect two lines that are currently on the grid, updating extensions
-        /// All normal uses should be wrapped in UndoManager.BeginAction / EndAction
-        /// </summary>
-        public void TryConnectLines(StandardLine l1, StandardLine l2)
-        {
-            if (l1 == null || l2 == null) return;
-            Vector2d joint;
-            if (l1.Position == l2.Position || l1.Position == l2.Position2)
-                joint = l1.Position;
-            else if (l1.Position2 == l2.Position || l1.Position2 == l2.Position2)
-                joint = l1.Position2;
-            else
-                return;
-            var leftlink = (l1.Start == joint && l2.End == joint);
-            var rightlink = (l1.End == joint && l2.Start == joint);
-
-            if (!leftlink && !rightlink) return;
-
-            var diff1 = l2.End - l2.Start;
-            var diff2 = l1.End - l1.Start;
-
-            var angle1 = Angle.FromVector(diff1).Degrees;
-            var angle2 = Angle.FromVector(diff2).Degrees;
-
-            var anglediff1 = new Angle(angle1 - angle2).Degrees;
-            var anglediff2 = new Angle(angle2 - angle1).Degrees;
-
-            bool cmp1 = anglediff1 > 0 && anglediff1 <= 180;
-            bool cmp2 = anglediff2 > 0 && anglediff2 <= 180;
-            if ((rightlink) ? cmp2 : cmp1)
-            {
-                if (l1 is StandardLine)
-                    SaveCells(l1.Position, l1.Position2);
-                if (l2 is StandardLine)
-                    SaveCells(l2.Position, l2.Position2);
-                var l1clone = l1.Clone();
-                var l2clone = l2.Clone();
-                if (rightlink)
+                var angle2 = Angle.FromVector(
+                    connected.End - connected.Start)
+                    .Degrees;
+                bool startlink = input.Start == connected.End;
+                var diff = startlink
+                ? new Angle(angle2 - inputangle).Degrees
+                : new Angle(inputangle - angle2).Degrees;
+                if (diff > 0 && diff <= 180)
                 {
-                    l1.Next = l2;
-                    l1.AddExtension(StandardLine.ExtensionDirection.Right);
-                    l2.Prev = l1;
-                    l2.AddExtension(StandardLine.ExtensionDirection.Left);
+                    var clone = connected.Clone();
+                    if (!changemade)
+                    {
+                        SaveCells(input.Position, input.Position);
+                        changemade = true;
+                    }
+                    SaveCells(connected.Position, connected.Position);
+                    if (add)
+                    {
+                        input.Extension |= startlink
+                        ? StandardLine.Ext.Left
+                        : StandardLine.Ext.Right;
+
+                        connected.Extension |= startlink
+                        ? StandardLine.Ext.Right
+                        : StandardLine.Ext.Left;
+                    }
+                    else
+                    {
+                        input.Extension &= ~(startlink
+                        ? StandardLine.Ext.Left
+                        : StandardLine.Ext.Right);
+
+                        connected.Extension &= ~(startlink
+                        ? StandardLine.Ext.Right
+                        : StandardLine.Ext.Left);
+                    }
+                    RegisterUndoAction(clone, connected);
                 }
-                else
-                {
-                    l1.Prev = l2;
-                    l1.AddExtension(StandardLine.ExtensionDirection.Left);
-                    l2.Next = l1;
-                    l2.AddExtension(StandardLine.ExtensionDirection.Right);
-                }
-                RegisterUndoAction(l1clone, l1);
-                RegisterUndoAction(l2clone, l2);
             }
+            //we do this outside of loop in case we lose both extensions!
+            if (changemade)
+                RegisterUndoAction(inputclone, input);
         }
     }
 }

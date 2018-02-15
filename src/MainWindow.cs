@@ -699,7 +699,7 @@ namespace linerider
                         Track.NextFrame();
                         Track.IterationsOffset = 0;
                         Invalidate();
-                        Track.Camera.SetFrame(Track.RenderRider.CalculateCenter(), false);
+                        Track.Camera.SetFrameCenter(Track.RenderRider.CalculateCenter());
                     }
                     Track.UpdateRenderRider();
                     Canvas.UpdateIterationUI();
@@ -717,7 +717,7 @@ namespace linerider
                         {
                             Track.PreviousFrame();
                             Invalidate();
-                            Track.Camera.SetFrame(Track.RenderRider.CalculateCenter(), false);
+                            Track.Camera.SetFrameCenter(Track.RenderRider.CalculateCenter());
                         }
                         Canvas.UpdateIterationUI();
                     }
@@ -755,20 +755,16 @@ namespace linerider
                 }
                 if (InputUtils.Check(Hotkey.EditorUndo))
                 {
-                    SelectedTool?.Stop(); //BUGFIX SLAGwell removal.
-                    var u = Track.UndoManager.Undo();
+                    SelectedTool?.Stop();
+                    Track.UndoManager.Undo();
                     Invalidate();
-                    if (u)
-                        Track.NotifyTrackChanged();
                     return true;
                 }
                 if (InputUtils.Check(Hotkey.EditorRedo))
                 {
                     SelectedTool?.Stop();
-                    var r = Track.UndoManager.Redo();
+                    Track.UndoManager.Redo();
                     Invalidate();
-                    if (r)
-                        Track.NotifyTrackChanged();
                     return true;
                 }
                 if (InputUtils.Check(Hotkey.EditorRemoveLatestLine))
@@ -799,7 +795,7 @@ namespace linerider
                         var l = trk.GetOldestLine();
                         if (l != null)
                         {
-                            Track.Camera.SetFrame(l.Position, false);
+                            Track.Camera.SetFrameCenter(l.Position);
                             Invalidate();
                         }
                     }
@@ -812,7 +808,7 @@ namespace linerider
                         var l = trk.GetNewestLine();
                         if (l != null)
                         {
-                            Track.Camera.SetFrame(l.Position, false);
+                            Track.Camera.SetFrameCenter(l.Position);
                             Invalidate();
                         }
                     }
@@ -857,14 +853,14 @@ namespace linerider
                     var flag = Track.GetFlag();
                     if (flag != null)
                     {
-                        Track.Camera.SetFrame(flag.State.Body[4].Location, false);
+                        Track.Camera.SetFrameCenter(flag.State.CalculateCenter());
                         Invalidate();
                     }
                     return true;
                 }
                 if (InputUtils.Check(Hotkey.EditorFocusRider))
                 {
-                    Track.Camera.SetFrame(Track.RenderRider.Body[4].Location, false);
+                    Track.Camera.SetFrameCenter(Track.RenderRider.CalculateCenter());
                     Invalidate();
                 }
                 return true;

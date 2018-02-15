@@ -66,8 +66,8 @@ namespace linerider.Tools
                 var gamepos = MouseCoordsToGame(pos);
                 using (var trk = game.Track.CreateTrackReader())
                 {
-                    var snap = TrySnapPoint(trk, gamepos);
-                    if (snap != gamepos)
+                    var snap = TrySnapPoint(trk, gamepos, out bool snapped);
+                    if (snapped)
                     {
                         _start = snap;
                         Snapped = true;
@@ -117,6 +117,7 @@ namespace linerider.Tools
                 {
                     AddLine();
                     _start = _end;
+                    Snapped = true;//we are now connected to the newest line
                 }
                 game.Invalidate();
             }

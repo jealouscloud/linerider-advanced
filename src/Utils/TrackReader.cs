@@ -35,7 +35,7 @@ using linerider.Utils;
 using linerider.Lines;
 namespace linerider
 {
-    public class TrackReader : IDisposable
+    public class TrackReader : GameService, IDisposable
     {
         protected ResourceSync.ResourceLock _sync;
         protected Track _track;
@@ -76,9 +76,29 @@ namespace linerider
                 return null;
             return Track.LineLookup[Track.Lines.Last.Value];
         }
-        public IEnumerable<GameLine> GetLinesInRect(FloatRect rect, bool precise)
+        public IEnumerable<GameLine> GetLinesInRect(DoubleRect rect, bool precise)
         {
-            return Track.GetLinesInRect(rect, precise);
+            var ret = Track.QuickGrid.LinesInRect(rect);
+            if (precise)
+            {
+                var newret = new List<GameLine>(ret.Count);
+                foreach (var line in ret)
+                {
+                    if (GameLine.DoesLineIntersectRect(
+                        line,
+                        new DoubleRect(
+                            rect.Left,
+                            rect.Top,
+                            rect.Width,
+                            rect.Height))
+                            )
+                    {
+                        newret.Add(line);
+                    }
+                }
+                return newret;
+            }
+            return ret;
         }
 
         /// <summary>

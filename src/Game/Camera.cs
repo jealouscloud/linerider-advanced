@@ -38,27 +38,28 @@ namespace linerider.Game
         private Vector2d lastcenter;
         private Stack<CameraLocation> camerastack = new Stack<CameraLocation>();
         private DoubleRect viewport;
-
-        public void SetFrame(Vector2d newcenter, bool relative)
+        private double _riderppf;
+        public void SetFrame(Rider newcenter)
         {
             lastcenter = GetCameraCenter();
-            framebox.RiderPosition = newcenter;
-            if (!relative)
+            framebox.RiderPosition = newcenter.CalculateCenter();
+            _riderppf = newcenter.CalculateMomentum().Length;
+            if (Settings.SmoothCamera)
             {
-                Location = new CameraLocation(newcenter, Vector2d.Zero);
-                lastcenter = Vector2d.Zero;
+                Location = framebox.SmoothClamp(lastcenter, 0);
             }
             else
             {
-                if (Settings.SmoothCamera)
-                {
-                    Location = framebox.SmoothClamp(lastcenter, 0);
-                }
-                else
-                {
-                    Location = framebox.Clamp(lastcenter);
-                }
+                Location = framebox.Clamp(lastcenter);
             }
+        }
+        public void SetFrameCenter(Vector2d newcenter)
+        {
+            lastcenter = GetCameraCenter();
+            _riderppf = 0;
+            framebox.RiderPosition = newcenter;
+            Location = new CameraLocation(newcenter, Vector2d.Zero);
+            lastcenter = Vector2d.Zero;
         }
         public void SetPrediction(Vector2d nextframe)
         {
@@ -90,7 +91,7 @@ namespace linerider.Game
 
         public void Pop()
         {
-            SetFrame(camerastack.Pop().GetPosition(), false);
+            SetFrameCenter(camerastack.Pop().GetPosition());
         }
         public DoubleRect getclamp(float zoom, float width, float height)
         {
@@ -99,9 +100,13 @@ namespace linerider.Game
             var b = new CameraBoundingBox() { RiderPosition = pos };
             return b.GetBox(framebox.GetSmoothCamRatio((float)game.Track.RenderRider.CalculateMomentum().Length));
         }
-        private Vector2d GetCameraCenter()
+        public Vector2d GetCameraCenter()
         {
             var camcenter = Location.GetPosition();
+            if (lastcenter == Vector2d.Zero)
+            {
+                return camcenter;//bugfix for hand tool and
+            }
             if (game.Track.PlaybackMode)
             {
                 if (Settings.SmoothCamera)
@@ -113,8 +118,11 @@ namespace linerider.Game
                     }
                     if (ScaleCamera)
                     {
-                        var ppf = (float)game.Track.RenderRider.CalculateMomentum().Length;
-                        camcenter = framebox.SmoothClamp(camcenter, !framebox.SmoothIntersects(nextrider, 10000) ? 10000 : ppf).GetPosition();//basically, don't allow it to rubber band
+                        camcenter = framebox.SmoothClamp(
+                            camcenter, 
+                            !framebox.SmoothIntersects(nextrider, 10000) 
+                            ? 10000 
+                            : _riderppf).GetPosition();//basically, don't allow it to rubber band
                     }
                     else
                     {

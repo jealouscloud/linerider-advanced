@@ -53,10 +53,23 @@ namespace linerider
         /// <summary>
         /// indicates if we're in playbackmode
         /// </summary>
-        public bool PlaybackMode;
-        public bool Paused;
+        public bool PlaybackMode { get; private set; }
+        private bool _paused = false;
+        public bool Paused
+        {
+            get
+            {
+                return _paused;
+            }
+            private set
+            {
+                if (value == _paused)
+                    return;
+                _paused = value;
+            }
+        }
         public float Zoom = 4.0f;
-        public Camera Camera;
+        public Camera Camera { get; private set; }
         public List<LineTrigger> ActiveTriggers = new List<LineTrigger>();
         private float _oldZoom = 1.0f;
         private Tracklocation _flag;
@@ -64,6 +77,7 @@ namespace linerider
         private int _startFrame;
         private ResourceSync _tracksync = new ResourceSync();
         private ResourceSync _playbacksync = new ResourceSync();
+        private ResourceSync _renderridersync = new ResourceSync();
         private SimulationRenderer _renderer = new SimulationRenderer();
         /// <summary>
         /// The current number of frames since start (incl flag)
@@ -96,7 +110,10 @@ namespace linerider
         {
             get
             {
-                return _renderrider.State;
+                using (_renderridersync.AcquireRead())
+                {
+                    return _renderrider.State;
+                }
             }
         }
         /// <summary>
@@ -183,29 +200,39 @@ namespace linerider
         public void UpdateRenderRider()
         {
             SimulationNeedsDraw = true;
-            _renderrider.Frame = Offset;
+            Tracklocation newrider;
+            using (_renderridersync.AcquireRead())
+                newrider = _renderrider;
+
+            newrider.Frame = Offset;
             Rider rider;
-            bool isiteration = _renderrider.Iteration < 6 && _renderrider.Frame > 0;
+            bool isiteration = newrider.Iteration < 6 && newrider.Frame > 0;
             using (_playbacksync.AcquireRead())
             {
                 if (isiteration)
                 {
-                    rider = _track.RiderStates[_renderrider.Frame - 1];
+                    rider = _track.RiderStates[newrider.Frame - 1];
                 }
                 else
                 {
-                    rider = _track.RiderStates[_renderrider.Frame];
+                    rider = _track.RiderStates[newrider.Frame];
                 }
             }
             using (var trk = CreateTrackReader())
             {
-                _renderrider.diagnosis = trk.Diagnose(rider, _renderrider.Iteration);
+                newrider.diagnosis = trk.Diagnose(rider, newrider.Iteration);
                 if (isiteration)
                 {
-                    _renderrider.State = trk.TickBasic(rider, _renderrider.Iteration);
-                    return;
+                    newrider.State = trk.TickBasic(rider, newrider.Iteration);
                 }
-                _renderrider.State = rider;
+                else
+                {
+                    newrider.State = rider;
+                }
+            }
+            using (_renderridersync.AcquireWrite())
+            {
+                _renderrider = newrider;
             }
         }
         public Rider GetStart()
@@ -222,7 +249,7 @@ namespace linerider
         }
         public bool FastGridCheck(double x, double y)
         {
-            var chunk = _track.RenderCells.PointToChunk(new Vector2d(x, y));
+            var chunk = _track.QuickGrid.GetCellFromPoint(new Vector2d(x, y));
             return chunk != null && chunk.Count != 0;
         }
         public bool GridCheck(double x, double y)
@@ -238,12 +265,12 @@ namespace linerider
             return _playbacksync.AcquireRead();
         }
         /// <summary>
-        /// Gets the playback sync object for funky stuff. Only to be used with playbackbuffermanager
-        /// wish i could think of a better way
+        /// Enters a state where no other thread can modify the playback state [riderstates]
+        /// Upgradable to a writer
         /// </summary>
-        public ResourceSync GetPlaybackSync()
+        public ResourceSync.ResourceLock CreatePlaybackUpgradableReader()
         {
-            return _playbacksync;
+            return _playbacksync.AcquireUpgradableRead();
         }
 
         /// <summary>
@@ -373,7 +400,7 @@ namespace linerider
                     _track.Reset(_flag.State);
                     _startFrame = _flag.Frame;
                 }
-                Camera.SetFrame(_track.RiderStates[0].CalculateCenter(), false);
+                Camera.SetFrameCenter(_track.RiderStates[0].CalculateCenter());
                 game.UpdateCursor();
                 game.Scheduler.UpdatesPerSecond =
                     (int)(Math.Round(Settings.Local.DefaultPlayback * 40));
@@ -483,7 +510,7 @@ namespace linerider
 
         public void UpdateCamera()
         {
-            Camera.SetFrame(RenderRider.CalculateCenter(), true);
+            Camera.SetFrame(RenderRider);
             if (Settings.SmoothCamera)
             {
                 Rider prediction;
@@ -535,9 +562,10 @@ namespace linerider
             BufferManager.Reset(trk.Grid);
             _track = trk;
             _track.ActiveTriggers = ActiveTriggers;
+            UndoManager = new UndoManager();
             RefreshTrack();
             Reset();
-            Camera.SetFrame(trk.StartOffset, false);
+            Camera.SetFrameCenter(trk.StartOffset);
             GC.Collect();//this is the safest place to collect
         }
         public TrackWriter CreateTrackWriter()

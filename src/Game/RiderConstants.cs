@@ -25,9 +25,9 @@ namespace linerider.Game
                 new Vector2d(-9,-0.5),
                 new Vector2d(-11.5,-0.5),
         };
-        public const double EnduranceFactor = 0.0285;//0.057*0.05
-        public const double StartingMomentum = 0.8 * 0.5;
-        public static Vector2d Gravity = new Vector2d(0, 0.35 * 0.5);
+        public const double EnduranceFactor = 0.0285;
+        public const double StartingMomentum = 0.4;
+        public static Vector2d Gravity = new Vector2d(0, 0.175);
         public const int SledTL = 0;
         public const int SledBL = 1;
         public const int SledBR = 2;
@@ -82,15 +82,16 @@ namespace linerider.Game
         private static void AddScarfBone(List<Bone> bones, int index)
         {
             var even = index % 2 == 0;
-            bones.Add(new Bone() { joint1 = index - 1, joint2 = index, RestLength = even ? 1.5 : 2.0 });
+            bones.Add(new Bone(index - 1, index, even ? 1.5 : 2.0, false, false));
         }
         private static Bone CreateBone(int a, int b, bool breakable = false, bool repel = false)
         {
-            var ret = new Bone() { joint1 = a, joint2 = b, RestLength = (DefaultRider[a] - DefaultRider[b]).Length, Breakable = breakable, OnlyRepel = repel };
+            var rest = (DefaultRider[a] - DefaultRider[b]).Length;
             if (repel)
             {
-                ret.RestLength *= 0.5;
+                rest *= 0.5;
             }
+            var ret = new Bone(a, b, rest, breakable, repel);
             return ret;
         }
     }

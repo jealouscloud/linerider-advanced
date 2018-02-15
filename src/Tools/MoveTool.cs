@@ -27,34 +27,34 @@ using System.Collections.Generic;
 using linerider.Lines;
 using linerider.UI;
 using linerider.Utils;
+using System.Diagnostics;
+
 namespace linerider.Tools
 {
     public class MoveTool : Tool
     {
-        struct SelectInfo
+        class SelectInfo
         {
-            public Vector2d start;
             public GameLine line;
-            //     public Line snap;
-            public bool leftjoint;
-            public bool rightjoint;
+            public GameLine clone;
+            public bool joint1;
+            public bool joint2;
+            public List<SelectInfo> snapped;
 
         }
-        public bool CanLifelock => UI.InputUtils.Check(Hotkey.ToolLifeLock);
-        private SelectInfo _selection;
-        private bool _started = false;
-        private GameLine _before;
-        //   private LineState _before_snap;
         public override MouseCursor Cursor
         {
             get { return game.Cursors["adjustline"]; }
         }
+        public bool CanLifelock => UI.InputUtils.Check(Hotkey.ToolLifeLock);
+        private SelectInfo _selection=null;
+        private Vector2d _clickstart;
 
         public bool Started
         {
             get
             {
-                return _started;
+                return _selection != null;
             }
         }
 
@@ -68,57 +68,69 @@ namespace linerider.Tools
         {
         }
 
+        private void UpdatePlayback(GameLine line)
+        {
+            //todo does not handle snapped lines for lifelock
+            if (line is StandardLine && CanLifelock)
+            {
+                game.Track.BufferManager.UpdateOnThisThread();
+                using (var trk = game.Track.CreateTrackWriter())
+                {
+                    if (LifeLock(trk, (StandardLine)line))
+                    {
+                        Stop();
+                    }
+                }
+            }
+            else
+            {
+                game.Track.NotifyTrackChanged();
+            }
+        }
         public void MoveSelection(Vector2d pos)
         {
-            if (_selection.line != null)
+            if (_selection != null)
             {
                 var line = _selection.line;
                 using (var trk = game.Track.CreateTrackWriter())
                 {
                     trk.DisableUndo();
-                    var left = _selection.leftjoint ? _before.Position + (pos - _selection.start) : line.Position;
-                    var right = _selection.rightjoint ? _before.Position2 + (pos - _selection.start) : line.Position2;
-                    if (_selection.leftjoint != _selection.rightjoint)
+                    var joint1 = line.Position;
+                    var joint2 = line.Position2;
+                    if (_selection.joint1)
+                        joint1 =
+                            _selection.clone.Position + (pos - _clickstart);
+                    if (_selection.joint2)
+                        joint2 =
+                            _selection.clone.Position2 + (pos - _clickstart);
+
+                    if (_selection.joint1 != _selection.joint2)
                     {
-                        var start = _selection.leftjoint ? right : left;
-                        var end = _selection.rightjoint ? right : left;
-                        var currentdelta = _selection.line.Position2 - _selection.line.Position;
-                        if (UI.InputUtils.Check(Hotkey.ToolAngleLock))
-                        {
-                            end = Utility.AngleLock(start, end, Angle.FromVector(currentdelta));
-                        }
-                        if (UI.InputUtils.Check(Hotkey.ToolXYSnap))
-                        {
-                            end = Utility.SnapToDegrees(start, end);
-                        }
-                        if (UI.InputUtils.Check(Hotkey.ToolLengthLock))
-                        {
-                            end = Utility.LengthLock(start, end, currentdelta.Length);
-                        }
-                        if (_selection.rightjoint)
-                            right = end;
-                        else
-                            left = end;
+                        ApplyModifiers(ref joint1, ref joint2);
                     }
-                    trk.MoveLine(line,
-                    left,
-                    right);
-                }
-                if (line is StandardLine && CanLifelock)
-                {
-                    game.Track.BufferManager.UpdateOnThisThread();
-                    using (var trk = game.Track.CreateTrackWriter())
+
+                    trk.MoveLine(
+                        line,
+                        joint1,
+                        joint2);
+
+                    foreach (var sl in _selection.snapped)
                     {
-                        if (LifeLock(trk, (StandardLine)line))
-                        {
-                            Stop();
-                        }
+                        var snap = sl.line;
+                        var snapjoint1 = snap.Position;
+                        var snapjoint2 = snap.Position2;
+                        if (sl.joint1)
+                            snapjoint1 = _selection.joint1 ? joint1 : joint2;
+                        if (sl.joint2)
+                            snapjoint2 = _selection.joint1 ? joint1 : joint2;
+
+                        trk.MoveLine(
+                            snap,
+                            snapjoint1,
+                            snapjoint2);
                     }
                 }
-                else
-                {
-                    game.Track.NotifyTrackChanged();
-                }
+                UpdatePlayback(line);
             }
             game.Invalidate();
         }
@@ -129,27 +141,56 @@ namespace linerider.Tools
             var gamepos = MouseCoordsToGame(mousepos);
             using (var trk = game.Track.CreateTrackWriter())
             {
-                _selection = new SelectInfo();
                 var line = SelectLine(trk, gamepos);
                 if (line != null)
                 {
-                    _before = line.Clone();
-                    var point = Utility.CloserPoint(gamepos, line.Position, line.Position2);//TrySnapPoint(trk, gamepos);
+                    var point = Utility.CloserPoint(
+                        gamepos, 
+                        line.Position, 
+                        line.Position2);
                     //is it a knob?
                     if ((gamepos - point).Length <= line.Width)
                     {
-                        _selection.start = gamepos;
+                        _selection = new SelectInfo();
+                        _selection.snapped = new List<SelectInfo>();
                         _selection.line = line;
+                        _selection.clone = line.Clone();
+                        _clickstart = gamepos;
                         if (InputUtils.Check(Hotkey.ToolSelectBothJoints))
                         {
-                            _selection.leftjoint = _selection.rightjoint = true;
+                            _selection.joint1 = _selection.joint2 = true;
                         }
                         else
                         {
-                            _selection.leftjoint = line.Position == point;
-                            if (!_selection.leftjoint)
+
+                            if (line.Position == point)
                             {
-                                _selection.rightjoint = line.Position2 == point;
+                                _selection.joint1 = true;
+                            }
+                            else
+                            {
+                                _selection.joint2 = true;
+                                Debug.Assert(
+                                    line.Position2 == point, 
+                                    "Right joint didn't match but was assigned");
+                            }
+                            var snapcandidates = 
+                                this.LineEndsInRadius(trk, point, 1);
+
+                            foreach (var v in snapcandidates)
+                            {
+                                if (v == line)
+                                    continue;
+                                if (v.Position == point || v.Position2 == point)
+                                {
+                                    _selection.snapped.Add(new SelectInfo()
+                                    {
+                                        joint1 = v.Position == point,
+                                        joint2 = v.Position2 == point,
+                                        line = v,
+                                        clone = v.Clone()
+                                    });
+                                }
                             }
                         }
                     }
@@ -158,15 +199,18 @@ namespace linerider.Tools
                         //select whole line
                     }
                 }
-                if (_selection.leftjoint || _selection.rightjoint)
-                    _started = true;
             }
             base.OnMouseDown(gamepos);
+        }
+        public override void OnMouseUp(Vector2d pos)
+        {
+            Stop();
+            base.OnMouseUp(pos);
         }
 
         public override void OnMouseMoved(Vector2d pos)
         {
-            if (_started)
+            if (Started)
             {
                 MoveSelection(MouseCoordsToGame(pos));
             }
@@ -178,22 +222,42 @@ namespace linerider.Tools
             base.OnMouseRightDown(pos);
         }
 
-        public override void OnMouseUp(Vector2d pos)
-        {
-            Stop();
-            base.OnMouseUp(pos);
-        }
 
         public override void Stop()
         {
-            _started = false;
-            if (_selection.line != null)
+            if (_selection != null)
             {
                 game.Track.UndoManager.BeginAction();
-                game.Track.UndoManager.AddChange(_before, _selection.line);
+                game.Track.UndoManager.AddChange(_selection.clone, _selection.line);
+                foreach (var s in _selection.snapped)
+                {
+                    game.Track.UndoManager.AddChange(s.clone, s.line);
+                }
                 game.Track.UndoManager.EndAction();
             }
-            _selection.line = null;
+            _selection = null;
+        }
+        private void ApplyModifiers(ref Vector2d joint1, ref Vector2d joint2)
+        {
+            var start = _selection.joint1 ? joint2 : joint1;
+            var end = _selection.joint2 ? joint2 : joint1;
+            var currentdelta = _selection.line.Position2 - _selection.line.Position;
+            if (UI.InputUtils.Check(Hotkey.ToolAngleLock))
+            {
+                end = Utility.AngleLock(start, end, Angle.FromVector(currentdelta));
+            }
+            if (UI.InputUtils.Check(Hotkey.ToolXYSnap))
+            {
+                end = Utility.SnapToDegrees(start, end);
+            }
+            if (UI.InputUtils.Check(Hotkey.ToolLengthLock))
+            {
+                end = Utility.LengthLock(start, end, currentdelta.Length);
+            }
+            if (_selection.joint2)
+                joint2 = end;
+            else
+                joint1 = end;
         }
     }
 }

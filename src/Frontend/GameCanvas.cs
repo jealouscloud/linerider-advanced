@@ -175,19 +175,19 @@ namespace linerider
                 if (Math.Abs(Environment.TickCount - _lastfpsupdate) > 500)
                 {
                     _lastfpsupdate = Environment.TickCount;
-                    fpsorlinecount = Settings.Local.RecordingMode ? "40 FPS" : Math.Round(game.Track.FpsCounter.FPS) + " FPS";
+                    fpsorlinecount = Settings.Local.RecordingMode ? "40 FPS" : Math.Round(game.Track.FpsCounter.FPS) + " FPS ";
                 }
                 else
                 {
                     fpsorlinecount = fpslabel.Text;
                 }
-                sppf = string.Format("{0:N2}", Math.Round(ppf, 2)) + " ppf";
+                sppf = string.Format("{0:N2}", Math.Round(ppf, 2)) + " P/f ";
                 playback = currts.ToString("mm\\:ss") + ":"
-                + (game.Track.CurrentFrame % 40f) + " " + Math.Round(game.Scheduler.UpdatesPerSecond / 40f, 3) + "x";
+                + (game.Track.CurrentFrame % 40f) + " " + Math.Round(game.Scheduler.UpdatesPerSecond / 40f, 3) + "x ";
                 if (Settings.Local.RecordingMode)
                 {
                     if (Settings.Local.ShowFps)
-                        fpsorlinecount = Settings.Local.SmoothRecording ? "60 FPS" : "40 FPS";
+                        fpsorlinecount = Settings.Local.SmoothRecording ? "60 FPS " : "40 FPS ";
                     else
                         fpsorlinecount = "";
                     if (!Settings.Local.ShowPpf)
@@ -199,7 +199,7 @@ namespace linerider
             else
             {
                 _lastfpsupdate = 0;
-                fpsorlinecount = "Lines: " + game.Track.LineCount;
+                fpsorlinecount = "Lines: " + game.Track.LineCount + " ";
             }
             fpslabel.Text = fpsorlinecount;
             ppflabel.Text = sppf;
@@ -490,7 +490,7 @@ namespace linerider
         {
             if (control == null)
                 control = this;
-                
+
             ToolTip.Disable(control);
             control.Tooltip = null;
         }
@@ -526,14 +526,7 @@ namespace linerider
                     state = trk.TickBasic(state);
                 }
             }
-            for (var i = 0; i < state.Body.Length; i++)
-            {
-                if (state.Body[i] != loc.State.Body[i])
-                {
-                    invalid = true;
-                    break;
-                }
-            }
+            invalid = !state.Body.CompareTo(loc.State.Body);
             SetFlagTooltip(!invalid);
             SetTooltip(FlagTool, invalid ? "Flag is invalid" : "Flag is valid");
             if (frame > 400)
@@ -570,7 +563,8 @@ namespace linerider
                 game.Track.SetFrame(slider.Value, false);
                 if (!game.Track.Playing)
                 {
-                    game.Track.Camera.SetFrame(game.Track.RenderRider.CalculateCenter(), false);
+                    //todo maybe real camera pos? how?
+                    game.Track.Camera.SetFrameCenter(game.Track.RenderRider.CalculateCenter());
                 }
             }
             if (slider.Held)

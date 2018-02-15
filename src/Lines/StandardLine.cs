@@ -31,7 +31,10 @@ namespace linerider.Lines
     public class StandardLine : GameLine
     {
         public const double Zone = 10;
-        public enum ExtensionDirection
+        /// <summary>
+        /// Extension direction
+        /// </summary>
+        public enum Ext
         {
             //imperative to trk format this does not exceed 2 bits
             None = 0,
@@ -41,46 +44,32 @@ namespace linerider.Lines
         }
 
         public Vector2d DiffNormal;
-        protected double ExtensionRatio;
+        public double ExtensionRatio;
         protected double DotScalar;
         public double Distance;
-        public ExtensionDirection Extension;
+        public Ext Extension;
         public StandardLine Next;
         public StandardLine Prev;
         public LineTrigger Trigger = null;
         public Vector2d Difference;
         public bool inv = false;
 
-        protected double limit_left => Extension.HasFlag(ExtensionDirection.Left) ? -ExtensionRatio : 0.0;
-        protected double limit_right => Extension.HasFlag(ExtensionDirection.Right) ? 1.0 + ExtensionRatio : 1.0;
+        protected double limit_left => Extension.HasFlag(Ext.Left) ? -ExtensionRatio : 0.0;
+        protected double limit_right => Extension.HasFlag(Ext.Right) ? 1.0 + ExtensionRatio : 1.0;
 
         /// <summary>
-        /// Gets/sets the property Position and complies to the inv field.
+        /// "Left" according to the inv field
         /// </summary>
-        public Vector2d Start
+        public override Vector2d Start
         {
             get { return inv ? Position2 : Position; }
-            set
-            {
-                if (inv)
-                    Position2 = value;
-                else
-                    Position = value;
-            }
         }
         /// <summary>
-        /// Gets/sets the property Position2 and complies to the inv field.
+        /// "Right" according to the inv field
         /// </summary>
-        public Vector2d End
+        public override Vector2d End
         {
             get { return inv ? Position : Position2; }
-            set
-            {
-                if (inv)
-                    Position = value;
-                else
-                    Position2 = value;
-            }
         }
         public override LineType Type
         {
@@ -89,6 +78,7 @@ namespace linerider.Lines
                 return LineType.Blue;
             }
         }
+        public override System.Drawing.Color Color => Utils.Constants.BlueLineColor;
 
         protected StandardLine()
         {
@@ -99,57 +89,9 @@ namespace linerider.Lines
             Position2 = p2;
             this.inv = inv;
             CalculateConstants();
-            SetExtension(0);
+            Extension = Ext.None;
         }
 
-        public void SetExtension(int lim)
-        {
-            SetExtension((ExtensionDirection)lim);
-        }
-
-        public void RemoveExtension(ExtensionDirection i)
-        {
-            switch (Extension)
-            {
-                case ExtensionDirection.Left:
-                    if (i == ExtensionDirection.Left)
-                        SetExtension(ExtensionDirection.None);
-                    break;
-                case ExtensionDirection.Right:
-                    if (i == ExtensionDirection.Right)
-                        SetExtension(ExtensionDirection.None);
-                    break;
-                case ExtensionDirection.Both:
-                    if (i == ExtensionDirection.Left)
-                        SetExtension(ExtensionDirection.Right);
-                    else if (i == ExtensionDirection.Right)
-                        SetExtension(ExtensionDirection.Left);
-                    else
-                        SetExtension(ExtensionDirection.None);
-                    break;
-            }
-        }
-
-        public void AddExtension(ExtensionDirection i)
-        {
-            switch (Extension)
-            {
-                case ExtensionDirection.Left:
-                    if (i == ExtensionDirection.Right)
-                        i = ExtensionDirection.Both;
-                    break;
-                case ExtensionDirection.Right:
-                    if (i == ExtensionDirection.Left)
-                        i = ExtensionDirection.Both;
-                    break;
-            }
-            SetExtension(i);
-        }
-
-        public void SetExtension(ExtensionDirection i)
-        {
-            Extension = i;
-        }
         /// <summary>
         /// Calculates the line constants, needs called if a point changes.
         /// </summary>
@@ -170,19 +112,27 @@ namespace linerider.Lines
             if (Vector2d.Dot(p.Momentum, DiffNormal) > 0)
             {
                 var startDelta = p.Location - this.Position;
-                var doty = Vector2d.Dot(DiffNormal, startDelta);
-                if (doty > 0 && doty < Zone)
+                var disty = Vector2d.Dot(DiffNormal, startDelta);
+                if (disty > 0 && disty < Zone)
                 {
-                    var dotx = Vector2d.Dot(startDelta, Difference) * DotScalar;
-                    if (dotx <= limit_right && dotx >= limit_left)
+                    var distx = Vector2d.Dot(startDelta, Difference) * DotScalar;
+                    if (distx <= limit_right && distx >= limit_left)
                     {
-                        var pos = p.Location - doty * DiffNormal;
-                        var friction = DiffNormal.Yx * p.Friction * doty;
-                        if (p.Previous.X >= pos.X)
-                            friction.X = -friction.X;
-                        if (p.Previous.Y >= pos.Y)
-                            friction.Y = -friction.Y;
-                        p = p.Replace(pos,p.Previous + friction);
+                        var pos = p.Location - disty * DiffNormal;
+                        var prev = p.Previous;
+                        if (p.Friction != 0)
+                        {
+                            var friction = DiffNormal.Yx * p.Friction * disty;
+                            if (p.Previous.X >= pos.X)
+                                friction.X = -friction.X;
+                            if (p.Previous.Y >= pos.Y)
+                                friction.Y = -friction.Y;
+                            p = p.Replace(pos, p.Previous + friction);
+                        }
+                        else
+                        {
+                            p = p.Replace(pos);
+                        }
                         return true;
                     }
                 }
@@ -191,11 +141,9 @@ namespace linerider.Lines
         }
         public override GameLine Clone()
         {
-            return new StandardLine() 
-            { 
-                ID = ID, 
-                Prev = Prev,
-                Next = Next,
+            return new StandardLine()
+            {
+                ID = ID,
                 Difference = Difference,
                 DiffNormal = DiffNormal,
                 Distance = Distance,
