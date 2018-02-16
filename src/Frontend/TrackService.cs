@@ -173,12 +173,14 @@ namespace linerider
             drawOptions.Blend = blend;
             drawOptions.NightMode = Settings.NightMode;
             drawOptions.GravityWells = Settings.Local.RenderGravityWells;
+            drawOptions.LineColors = !Settings.Local.PreviewMode && (!Playing || Settings.Local.ColorPlayback);
             drawOptions.KnobState = KnobState.Hidden;
-            if (game.SelectedTool is MoveTool)
+            if (!Playing && game.SelectedTool is MoveTool movetool)
             {
-                drawOptions.KnobState = ((MoveTool)game.SelectedTool).CanLifelock ? KnobState.LifeLock : KnobState.Shown;
+                drawOptions.KnobState = movetool.CanLifelock 
+                ? KnobState.LifeLock 
+                : KnobState.Shown;
             }
-            drawOptions.LineColors = Settings.Local.PreviewMode || !Playing || Settings.Local.ColorPlayback;
             drawOptions.Paused = Paused;
             drawOptions.Playback = PlaybackMode;
             drawOptions.Rider = RenderRider;
@@ -258,14 +260,14 @@ namespace linerider
             return chunk != null && chunk.Count != 0;
         }
         /// <summary>
-        /// Enters a state where no other thread can modify the playback state [riderstates]
+        /// Enters a state where no other thread can modify the playback state
         /// </summary>
-        public ResourceSync.ResourceLock CreatePlaybackReader()
+        public PlaybackReader CreatePlaybackReader()
         {
-            return _playbacksync.AcquireRead();
+            return PlaybackReader.AcquireRead(_playbacksync,_track);
         }
         /// <summary>
-        /// Enters a state where no other thread can modify the playback state [riderstates]
+        /// Acquires read access to the playback state
         /// Upgradable to a writer
         /// </summary>
         public ResourceSync.ResourceLock CreatePlaybackUpgradableReader()

@@ -208,6 +208,7 @@ namespace linerider.Rendering
         {
             using (_sync.AcquireWrite())
             {
+                RequiresUpdate = false;
                 while (_lineactions.Count != 0)
                 {
                     var dequeued = _lineactions.Dequeue();

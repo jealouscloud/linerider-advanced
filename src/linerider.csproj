@@ -90,24 +90,30 @@
     <Compile Include="Lines\StandardLine.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Game\Bone.cs" />
     <Compile Include="Game\Camera.cs" />
     <Compile Include="Game\CameraBoundingBox.cs" />
     <Compile Include="Game\CameraLocation.cs" />
-    <Compile Include="Game\CellLocation.cs" />
     <Compile Include="Game\FastGrid.cs" />
     <Compile Include="Game\FPSCounter.cs" />
     <Compile Include="Game\GameScheduler.cs" />
-    <Compile Include="Game\GridPoint.cs" />
-    <Compile Include="Game\ImmutablePointCollection.cs" />
-    <Compile Include="Game\Rider.cs" />
-    <Compile Include="Game\SimulationGridOverlay.cs" />
-    <Compile Include="Game\RiderConstants.cs" />
-    <Compile Include="Game\SimulationCell.cs" />
-    <Compile Include="Game\SimulationGrid.cs" />
-    <Compile Include="Game\SimulationGridStatic.cs" />
-    <Compile Include="Game\SimulationPoint.cs" />
     <Compile Include="Game\Track.cs" />
+    <Compile Include="Game\PlaybackBufferManager.cs" />
+    <Compile Include="Game\PlaybackReader.cs" />
+    <Compile Include="Game\TrackReader.cs" />
+    <Compile Include="Game\TrackWriter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Game\Physics\Bone.cs" />
+    <Compile Include="Game\Physics\CellLocation.cs" />
+    <Compile Include="Game\Physics\GridPoint.cs" />
+    <Compile Include="Game\Physics\ImmutablePointCollection.cs" />
+    <Compile Include="Game\Physics\SimulationGridOverlay.cs" />
+    <Compile Include="Game\Physics\RiderConstants.cs" />
+    <Compile Include="Game\Physics\Rider.cs" />
+    <Compile Include="Game\Physics\SimulationCell.cs" />
+    <Compile Include="Game\Physics\SimulationGrid.cs" />
+    <Compile Include="Game\Physics\SimulationGridStatic.cs" />
+    <Compile Include="Game\Physics\SimulationPoint.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Tools\EraserTool.cs" />
@@ -150,10 +156,7 @@
     <Compile Include="Utils\DoubleRect.cs" />
     <Compile Include="Utils\Constants.cs" />
     <Compile Include="Utils\FloatRect.cs" />
-    <Compile Include="Utils\PlaybackBufferManager.cs" />
     <Compile Include="Utils\ResourceSync.cs" />
-    <Compile Include="Utils\TrackReader.cs" />
-    <Compile Include="Utils\TrackWriter.cs" />
     <Compile Include="Utils\Line.cs" />
     <Compile Include="Utils\Turtle.cs" />
     <Compile Include="Utils\Utility.cs" />
