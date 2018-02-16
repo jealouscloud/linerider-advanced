@@ -10,6 +10,7 @@ namespace linerider.UI
         private static KeyboardState _last_kb_state;
         public static List<MouseButton> MouseButtonsDown { get; private set; } = new List<MouseButton>();
         private static MouseState _last_mouse_state;
+        private static bool _hasmoved = false;
         private static ResourceSync _lock = new ResourceSync();
         private static int _modifiersdown = 0;
         public static void UpdateKeysDown(KeyboardState ks)
@@ -38,12 +39,25 @@ namespace linerider.UI
                 KeysDown = ret;
             }
         }
-        public static void UpdateMouseDown(MouseState ms)
+        public static bool HandleMouseMove(out int x, out int y)
+        {
+            using (_lock.AcquireWrite())
+            {
+                x = _last_mouse_state.X;
+                y = _last_mouse_state.Y;
+                return _hasmoved;
+            }
+        }
+        public static void UpdateMouse(MouseState ms)
         {
             if (ms == _last_mouse_state)// no thanks, we already did this one
                 return;
             using (_lock.AcquireWrite())
             {
+                if (_last_mouse_state.X != ms.X || _last_mouse_state.Y != ms.Y)
+                {
+                    _hasmoved = true;
+                }
                 _last_mouse_state = ms;
                 var ret = new List<MouseButton>();
                 for (MouseButton btn = 0; btn < MouseButton.LastButton; btn++)
@@ -72,7 +86,7 @@ namespace linerider.UI
         {
             int allowedkeys = bind.KeysDown;
             var keysdown = KeysDown.Count;
-            if (allowedkeys > 0)
+            if (allowedkeys > 0 && !IsModifier(bind.Key))
             {
                 if ((bind.UsesModifiers && keysdown != allowedkeys) || 
                 (!bind.UsesModifiers && _modifiersdown!=0))
