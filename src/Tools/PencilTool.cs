@@ -40,7 +40,6 @@ namespace linerider.Tools
         public bool Snapped = false;
         private Vector2d _start;
         private Vector2d _end;
-        private bool _started = false;
         const float MINIMUM_LINE = 0.5f;
         private bool _addflip = false;
         private Vector2d _mouseshadow;
@@ -59,7 +58,7 @@ namespace linerider.Tools
         public PencilTool() : base() { }
         public override void OnMouseDown(Vector2d pos)
         {
-            _started = true;
+            Active = true;
 
             if (game.EnableSnap)
             {
@@ -109,7 +108,7 @@ namespace linerider.Tools
         }
         public override void OnMouseMoved(Vector2d pos)
         {
-            if (_started)
+            if (Active)
             {
                 _end = MouseCoordsToGame(pos);
                 var diff = _end - _start;
@@ -128,9 +127,9 @@ namespace linerider.Tools
         public override void OnMouseUp(Vector2d pos)
         {
             game.Invalidate();
-            if (_started)
+            if (Active)
             {
-                _started = false;
+                Active = false;
                 var diff = _end - _start;
                 if (!DrawingScenery && diff.Length < MINIMUM_LINE)
                     return;
@@ -149,7 +148,7 @@ namespace linerider.Tools
         }
         public override void Stop()
         {
-            _started = false;
+            Active = false;
         }
     }
 }

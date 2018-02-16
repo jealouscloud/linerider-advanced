@@ -32,12 +32,11 @@ namespace linerider.Tools
         private Vector2d lastposition;
         private bool zoom = false;
 
-        private bool started = false;
         public override MouseCursor Cursor
         {
             get
             {
-                if (started)
+                if (Active)
                 {
                     return zoom ? game.Cursors["zoom"] : game.Cursors["closed_hand"];
                 }
@@ -52,7 +51,7 @@ namespace linerider.Tools
         public override void OnMouseRightDown(Vector2d pos)
         {
             zoom = true;
-            started = true;
+            Active = true;
             startposition = pos;
             lastposition = startposition;
             CameraStart = game.Track.Camera.GetCameraCenter();
@@ -64,7 +63,7 @@ namespace linerider.Tools
         public override void OnMouseDown(Vector2d pos)
         {
             zoom = false;
-            started = true;
+            Active = true;
             startposition = pos;// / game.Track.Zoom;
             CameraStart = game.Track.Camera.GetCameraCenter();
             game.Invalidate();
@@ -73,7 +72,7 @@ namespace linerider.Tools
 
         public override void OnMouseMoved(Vector2d pos)
         {
-            if (started)
+            if (Active)
             {
                 if (zoom)
                 {
@@ -94,19 +93,19 @@ namespace linerider.Tools
         }
         public override void OnMouseRightUp(Vector2d pos)
         {
-            started = false;
+            Active = false;
             base.OnMouseRightUp(pos);
         }
         public override void OnMouseUp(Vector2d pos)
         {
-            started = false;
+            Active = false;
             base.OnMouseUp(pos);
         }
 
         public override void Stop()
         {
+            Active = false;
             base.Stop();
-            started = false;
         }
     }
 }
