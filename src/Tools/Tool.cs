@@ -38,6 +38,7 @@ namespace linerider.Tools
                 return 2 / game.Track.Zoom;
             }
         }
+        public bool Active { get; protected set; }
         public virtual bool NeedsRender { get { return false; } }
         public abstract MouseCursor Cursor { get; }
         public Tool()
@@ -231,15 +232,17 @@ namespace linerider.Tools
         }
         protected bool LifeLock(PlaybackReader reader, StandardLine line)
         {
-            Rider current;
+            // todo
+            // currently, this feature does not handle 
+            // the target line being collided
+            // with on different frames.
             Rider prev;
 
             using (game.Track.CreatePlaybackReader())
             {
-                current = reader.GetRider(game.Track.Offset);
                 if (game.Track.Offset == 0)
                     return false;
-                prev = reader.GetRider(game.Track.Offset - 1); //reader.Track.RiderStates[game.Track.Offset - 1];
+                prev = reader.GetRider(game.Track.Offset - 1);
 
             }
             var next = reader.QuickSimulate(
@@ -252,7 +255,7 @@ namespace linerider.Tools
                 {
                     var diagnosis = reader.Diagnose(
                         next,
-                        game.Track.IterationsOffset);
+                        Math.Min(6, game.Track.IterationsOffset + 1));
                     foreach (var v in diagnosis)
                     {
                         //the next frame dies on something that isnt a fakie, so we cant stop here
