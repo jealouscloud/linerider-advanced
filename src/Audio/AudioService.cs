@@ -108,12 +108,13 @@ namespace linerider.Audio
         public static bool LoadFile(ref string file)
         {
             EnsureInitialized();
-            if (_currentsong == file)
-                return false;
-
             if (_musicplayer != null)
             {
                 Stop();
+            }
+            if (_currentsong == file)
+            {
+                return true;
             }
             game.Title = Program.WindowTitle;
             file = GetOgg(file);
