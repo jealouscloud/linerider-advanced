@@ -46,8 +46,8 @@ namespace linerider.Tools
         {
             get { return game.Cursors["adjustline"]; }
         }
-        public bool CanLifelock => UI.InputUtils.Check(Hotkey.ToolLifeLock);
-        private SelectInfo _selection=null;
+        public bool CanLifelock => UI.InputUtils.Check(Hotkey.ToolLifeLock,false);
+        private SelectInfo _selection = null;
         private Vector2d _clickstart;
 
         public bool Started
@@ -73,12 +73,16 @@ namespace linerider.Tools
             //todo does not handle snapped lines for lifelock
             if (line is StandardLine && CanLifelock)
             {
+                bool wasdead = game.Track.RenderRider.Crashed;
                 game.Track.BufferManager.UpdateOnThisThread();
-                using (var pb = game.Track.CreatePlaybackReader())
+                if (wasdead)
                 {
-                    if (LifeLock(pb, (StandardLine)line))
+                    using (var pb = game.Track.CreatePlaybackReader())
                     {
-                        Stop();
+                        if (LifeLock(pb, (StandardLine)line))
+                        {
+                            Stop();
+                        }
                     }
                 }
             }
@@ -145,8 +149,8 @@ namespace linerider.Tools
                 if (line != null)
                 {
                     var point = Utility.CloserPoint(
-                        gamepos, 
-                        line.Position, 
+                        gamepos,
+                        line.Position,
                         line.Position2);
                     //is it a knob?
                     if ((gamepos - point).Length <= line.Width)
@@ -171,10 +175,10 @@ namespace linerider.Tools
                             {
                                 _selection.joint2 = true;
                                 Debug.Assert(
-                                    line.Position2 == point, 
+                                    line.Position2 == point,
                                     "Right joint didn't match but was assigned");
                             }
-                            var snapcandidates = 
+                            var snapcandidates =
                                 this.LineEndsInRadius(trk, point, 1);
 
                             foreach (var v in snapcandidates)
@@ -193,6 +197,7 @@ namespace linerider.Tools
                                 }
                             }
                         }
+                        Active = true;
                     }
                     else
                     {
@@ -225,6 +230,7 @@ namespace linerider.Tools
 
         public override void Stop()
         {
+            Active = false;
             if (_selection != null)
             {
                 game.Track.UndoManager.BeginAction();
