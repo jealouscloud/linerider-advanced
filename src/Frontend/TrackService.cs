@@ -170,6 +170,11 @@ namespace linerider
         public void Render(float blend)
         {
             DrawOptions drawOptions = new DrawOptions();
+            drawOptions.DrawFlag = _flag != null;
+            if (drawOptions.DrawFlag)
+            {
+                drawOptions.FlagRider = _flag.State;
+            }
             drawOptions.Blend = blend;
             drawOptions.NightMode = Settings.NightMode;
             drawOptions.GravityWells = Settings.Local.RenderGravityWells;
@@ -177,8 +182,8 @@ namespace linerider
             drawOptions.KnobState = KnobState.Hidden;
             if (!Playing && game.SelectedTool is MoveTool movetool)
             {
-                drawOptions.KnobState = movetool.CanLifelock 
-                ? KnobState.LifeLock 
+                drawOptions.KnobState = movetool.CanLifelock
+                ? KnobState.LifeLock
                 : KnobState.Shown;
             }
             drawOptions.Paused = Paused;
@@ -222,7 +227,9 @@ namespace linerider
             }
             using (var trk = CreateTrackReader())
             {
-                newrider.diagnosis = trk.Diagnose(rider, newrider.Iteration);
+                newrider.diagnosis = trk.Diagnose(
+                    rider, 
+                    Math.Min(6,newrider.Iteration+1));
                 if (isiteration)
                 {
                     newrider.State = trk.TickBasic(rider, newrider.Iteration);
@@ -236,6 +243,7 @@ namespace linerider
             {
                 _renderrider = newrider;
             }
+            SimulationNeedsDraw = true;
         }
         public Rider GetStart()
         {
@@ -264,7 +272,7 @@ namespace linerider
         /// </summary>
         public PlaybackReader CreatePlaybackReader()
         {
-            return PlaybackReader.AcquireRead(_playbacksync,_track);
+            return PlaybackReader.AcquireRead(_playbacksync, _track);
         }
         /// <summary>
         /// Acquires read access to the playback state
@@ -385,7 +393,8 @@ namespace linerider
                 _oldZoom = Zoom;
                 Camera.Push();
             }
-            using (CreatePlaybackReader())
+            BufferManager.Cancel();
+            using (_playbacksync.AcquireWrite())
             {
                 FpsCounter.Reset(40);
                 Fpswatch.Restart();
@@ -429,18 +438,16 @@ namespace linerider
                         v.Reset();
                     }
                     ActiveTriggers.Clear();
+                    _track.Reset();
+                    Offset = 0;
                     using (CreateTrackReader())
                     {
-                        using (CreatePlaybackReader())
+                        for (int i = 0; i < _flag.Frame; i++)
                         {
-                            _track.Reset();
-                            Offset = 0;
-                            for (int i = 0; i < _flag.Frame; i++)
-                            {
-                                _track.AddFrame();
-                            }
-                            SetFrame(EndFrameID);
+                            _track.AddFrame();
                         }
+                        SetFrame(EndFrameID);
+
                     }
                     for (var i = 0; i < _track.RiderStates[Offset].Body.Length; i++)
                     {
