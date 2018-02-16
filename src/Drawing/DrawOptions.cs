@@ -14,6 +14,8 @@ namespace linerider.Drawing
         public KnobState KnobState = 0;
         public float Blend = 1;
         public Rider Rider;
+        public bool DrawFlag;
+        public Rider FlagRider;
         public List<int> RiderDiagnosis = null;
         public bool ShowContactLines = false;
         public bool ShowMomentumVectors = false;
