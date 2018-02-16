@@ -215,9 +215,16 @@ namespace linerider
             if (!Track.Playing && !Canvas.NeedsRedraw && !Track.RequiresUpdate)//if nothing is waiting on us we can let the os breathe
                 Thread.Sleep(1);
         }
-
         public void GameUpdate()
         {
+            if (InputUtils.HandleMouseMove(out int x, out int y))
+            {
+                if (_handToolOverride)
+                    _handtool.OnMouseMoved(new Vector2d(x,y));
+                else
+                    SelectedTool.OnMouseMoved(new Vector2d(x,y));
+            }
+
             var updates = Scheduler.UnqueueUpdates();
             if (updates > 0)
             {
@@ -294,18 +301,18 @@ namespace linerider
 
         public void UpdateSongPosition(float seconds, bool reverse = false)
         {
-            if (Settings.Local.EnableSong && 
-            (!Track.Paused || TemporaryPlayback) && 
+            if (Settings.Local.EnableSong &&
+            (!Track.Paused || TemporaryPlayback) &&
             Track.PlaybackMode &&
             !((HorizontalIntSlider)Canvas.FindChildByName("timeslider")).Held)
             {
                 if (TemporaryPlayback && ReversePlayback)
                     AudioService.Resume(
-                        Settings.Local.CurrentSong.Offset + seconds, 
+                        Settings.Local.CurrentSong.Offset + seconds,
                         -(Scheduler.UpdatesPerSecond / 40f));
                 else
                     AudioService.Resume(
-                        Settings.Local.CurrentSong.Offset + seconds, 
+                        Settings.Local.CurrentSong.Offset + seconds,
                         (Scheduler.UpdatesPerSecond / 40f));
             }
             else
@@ -330,27 +337,27 @@ namespace linerider
 
             var skinpng = new Texture(renderer);
             Gwen.Renderer.OpenTK.LoadTextureInternal(
-                skinpng, 
+                skinpng,
                 GameResources.DefaultSkin);
 
             var fontpng = new Texture(renderer);
             Gwen.Renderer.OpenTK.LoadTextureInternal(
-                fontpng, 
+                fontpng,
                 GameResources.gamefont_15_png);
 
             var gamefont_15 = new Gwen.Renderer.BitmapFont(
-                renderer, 
-                GameResources.gamefont_15_fnt, 
+                renderer,
+                GameResources.gamefont_15_fnt,
                 fontpng);
 
-            var skin = new Gwen.Skin.TexturedBase(renderer, 
-            skinpng, 
+            var skin = new Gwen.Skin.TexturedBase(renderer,
+            skinpng,
             GameResources.DefaultColors
-            ) 
+            )
             { DefaultFont = gamefont_15 };
 
-            Canvas = new GameCanvas(skin, 
-            this, 
+            Canvas = new GameCanvas(skin,
+            this,
             renderer);
 
             _input = new Gwen.Input.OpenTK(this);
@@ -386,7 +393,7 @@ namespace linerider
         protected override void OnMouseDown(MouseButtonEventArgs e)
         {
             base.OnMouseDown(e);
-            InputUtils.UpdateMouseDown(e.Mouse);
+            InputUtils.UpdateMouse(e.Mouse);
             if (linerider.TrackFiles.TrackRecorder.Recording)
                 return;
             var r = _input.ProcessMouseMessage(e);
@@ -399,7 +406,7 @@ namespace linerider
                     var gamepos = (ScreenPosition + pos);
                     _dragRider = Game.Rider.GetBounds(
                         Track.GetStart()).Contains(
-                            gamepos.X, 
+                            gamepos.X,
                             gamepos.Y);
                 }
                 if (!_dragRider)
@@ -439,7 +446,7 @@ namespace linerider
         protected override void OnMouseUp(MouseButtonEventArgs e)
         {
             base.OnMouseUp(e);
-            InputUtils.UpdateMouseDown(e.Mouse);
+            InputUtils.UpdateMouse(e.Mouse);
             if (linerider.TrackFiles.TrackRecorder.Recording)
                 return;
             _dragRider = false;
@@ -476,6 +483,7 @@ namespace linerider
             base.OnMouseMove(e);
             if (linerider.TrackFiles.TrackRecorder.Recording)
                 return;
+            InputUtils.UpdateMouse(e.Mouse);
             var r = _input.ProcessMouseMessage(e);
             if (Canvas.GetOpenWindows().Count != 0)
                 return;
@@ -494,10 +502,6 @@ namespace linerider
                 }
                 Invalidate();
             }
-            else if (_handToolOverride)
-                _handtool.OnMouseMoved(new Vector2d(e.X, e.Y));
-            else
-                SelectedTool.OnMouseMoved(new Vector2d(e.X, e.Y));
 
             if (r)
             {
@@ -511,7 +515,7 @@ namespace linerider
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
             base.OnMouseWheel(e);
-            InputUtils.UpdateMouseDown(e.Mouse);
+            InputUtils.UpdateMouse(e.Mouse);
             if (linerider.TrackFiles.TrackRecorder.Recording)
                 return;
             if (_input.ProcessMouseMessage(e))
@@ -699,7 +703,7 @@ namespace linerider
                         Track.NextFrame();
                         Track.IterationsOffset = 0;
                         Invalidate();
-                        Track.Camera.SetFrameCenter(Track.RenderRider.CalculateCenter());
+                        Track.Camera.SetFrame(Track.RenderRider);
                     }
                     Track.UpdateRenderRider();
                     Canvas.UpdateIterationUI();
@@ -716,9 +720,11 @@ namespace linerider
                         else
                         {
                             Track.PreviousFrame();
+                            Track.IterationsOffset = 6;
                             Invalidate();
-                            Track.Camera.SetFrameCenter(Track.RenderRider.CalculateCenter());
+                            Track.Camera.SetFrame(Track.RenderRider);
                         }
+                        Track.UpdateRenderRider();
                         Canvas.UpdateIterationUI();
                     }
                     return true;

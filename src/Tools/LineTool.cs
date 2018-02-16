@@ -45,7 +45,7 @@ namespace linerider.Tools
 
         public override void OnMouseDown(Vector2d pos)
         {
-            _started = true;
+            Active = true;
             var gamepos = MouseCoordsToGame(pos);
             if (game.EnableSnap)
             {
@@ -79,7 +79,7 @@ namespace linerider.Tools
 
         public override void OnMouseMoved(Vector2d pos)
         {
-            if (_started)
+            if (Active)
             {
                 _end = MouseCoordsToGame(pos);
                 if (game.ShouldXySnap())
@@ -105,9 +105,9 @@ namespace linerider.Tools
         public override void OnMouseUp(Vector2d pos)
         {
             game.Invalidate();
-            if (_started)
+            if (Active)
             {
-                _started = false;
+                Active = false;
                 var diff = _end - _start;
                 var x = diff.X;
                 var y = diff.Y;
@@ -149,7 +149,7 @@ namespace linerider.Tools
         public override void Render()
         {
             base.Render();
-            if (_started)
+            if (Active)
             {
                 var diff = _end - _start;
                 var x = diff.X;
@@ -192,13 +192,12 @@ namespace linerider.Tools
 
         public override void Stop()
         {
-            _started = false;
+            Active = false;
         }
         private const float MINIMUM_LINE = 0.01f;
         private bool _addflip;
         private Vector2d _end;
         private Vector2d _start;
-        private bool _started = false;
 
     }
 }

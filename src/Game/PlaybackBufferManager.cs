@@ -48,18 +48,20 @@ namespace linerider.Utils
         private HashSet<GridPoint> _changedcells = new HashSet<GridPoint>();
         private SimulationGrid _grid;
         private ResourceSync _statesync;
-        private ManualResetEvent _updatesync = new ManualResetEvent(false);
+        private ManualResetEvent _updatestartsync = new ManualResetEvent(false);
         private ManualResetEvent _updatefinishsync = new ManualResetEvent(false);
         private bool _restart = false;
         private bool _running = false;
         private Thread _updatethread;
-        private int _changes = 0;
         public PlaybackBufferManager(SimulationGrid grid)
         {
             _statesync = new ResourceSync();
             Reset(grid);
-            _updatethread = new Thread(UpdateRunnerThreadProc)
-            { IsBackground = true };
+            _updatethread =
+            new Thread(UpdateRunnerThreadProc)
+            {
+                IsBackground = true
+            };
             _updatethread.Start();
         }
         public void SaveCells(Vector2d start, Vector2d end)
@@ -72,7 +74,14 @@ namespace linerider.Utils
                 {
                     _changedcells.Add(cellpos.Point);
                 }
-                _changes += 1;
+            }
+        }
+        public void Cancel()
+        {
+            using (_statesync.AcquireWrite())
+            {
+                _changedcells.Clear();
+                Volatile.Write(ref _restart, true);
             }
         }
         public void UpdateOnThisThread()
@@ -88,18 +97,9 @@ namespace linerider.Utils
             }
             _updatefinishsync.WaitOne();
         }
-        private int _updatedelay = 0;
         public void Update()
         {
             Debug.Assert(_updatethread.IsAlive, "Playback buffer thread is dead!");
-            if (_changes > 10)
-            {
-                if (Interlocked.CompareExchange(ref _updatedelay, 1, 0) == 0)
-                {
-                    ThreadPool.QueueUserWorkItem(DelayedUpdate);
-                }
-                return;
-            }
             using (_statesync.AcquireWrite())
             {
                 Volatile.Write(ref _restart, true);
@@ -107,22 +107,7 @@ namespace linerider.Utils
                 {
                     Volatile.Write(ref _running, true);
                     _updatefinishsync.Reset();
-                    _updatesync.Set();
-                }
-            }
-        }
-        private void DelayedUpdate(object state)
-        {
-            Thread.Sleep(30);
-            Volatile.Write(ref _updatedelay,0);
-            using (_statesync.AcquireWrite())
-            {
-                Volatile.Write(ref _restart, true);
-                if (!Volatile.Read(ref _running))
-                {
-                    Volatile.Write(ref _running, true);
-                    _updatefinishsync.Reset();
-                    _updatesync.Set();
+                    _updatestartsync.Set();
                 }
             }
         }
@@ -141,7 +126,7 @@ namespace linerider.Utils
             {
                 while (true)
                 {
-                    _updatesync.WaitOne();
+                    _updatestartsync.WaitOne();
                     Recompute();
                 }
             }
@@ -195,8 +180,8 @@ namespace linerider.Utils
                             exit = true;
                             Volatile.Write(ref _running, false);
                             _changedcells.Clear();
-                            _updatesync.Reset();
-                            Volatile.Write(ref _changes, 0);
+                            //we have no plans on repeating, block after this.
+                            _updatestartsync.Reset();
                             // release threads waiting on us
                             _updatefinishsync.Set();
                         }

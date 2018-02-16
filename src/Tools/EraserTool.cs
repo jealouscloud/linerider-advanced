@@ -25,7 +25,6 @@ namespace linerider.Tools
 {
     public class EraserTool : Tool
     {
-        private bool started;
 
         public override MouseCursor Cursor
         {
@@ -38,7 +37,7 @@ namespace linerider.Tools
 
         public override void OnMouseDown(Vector2d pos)
         {
-            started = true;
+            Active = true;
             var p = MouseCoordsToGame(pos);
             Erase(p);
             base.OnMouseDown(pos);
@@ -46,7 +45,7 @@ namespace linerider.Tools
 
         public override void OnMouseMoved(Vector2d pos)
         {
-            if (started)
+            if (Active)
             {
                 var p = MouseCoordsToGame(pos);
                 Erase(p);
@@ -56,9 +55,9 @@ namespace linerider.Tools
 
         public override void OnMouseUp(Vector2d pos)
         {
-            if (started)
+            if (Active)
             {
-                started = false;
+                Active = false;
                 var p = MouseCoordsToGame(pos);
                 Erase(p);
             }
@@ -86,7 +85,7 @@ namespace linerider.Tools
 
         public override void Stop()
         {
-            started = false;
+            Active = false;
         }
     }
 }
