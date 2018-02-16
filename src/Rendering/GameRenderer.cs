@@ -69,16 +69,16 @@ namespace linerider.Rendering
                 if ((nose.X * tail.Y) - (nose.Y * tail.X) < 0)
                 {
                     DrawTexture(
-                        Models.BrokenSledTexture, 
+                        Models.BrokenSledTexture,
                         Models.BrokenSledRect,
                         points[RiderConstants.SledBL].Location,
                         points[RiderConstants.SledBR].Location, opacity,
-                        0,1,1,0);//we're upside down!
+                        0, 1, 1, 0);//we're upside down!
                 }
                 else
                 {
                     DrawTexture(
-                        Models.BrokenSledTexture, 
+                        Models.BrokenSledTexture,
                         Models.BrokenSledRect,
                         points[RiderConstants.SledTL].Location,
                         points[RiderConstants.SledTR].Location, opacity);
@@ -128,45 +128,61 @@ namespace linerider.Rendering
         {
             if (diagnosis == null)
                 diagnosis = new List<int>();
-            for (var i = 0; i < RiderConstants.Bones.Length; i++)
+            var bones = RiderConstants.Bones;
+            for (var i = 0; i < bones.Length; i++)
             {
                 var c = Color.FromArgb(unchecked((int)0xFFCC72B7));
-                if (RiderConstants.Bones[i].Breakable)
+                if (bones[i].Breakable)
                 {
                     continue;
                 }
-                else if (RiderConstants.Bones[i].OnlyRepel)
+                else if (bones[i].OnlyRepel)
                 {
                     c = Color.CornflowerBlue;
-                    vertices.AddRange(GenRoundedLine(rider.Body[RiderConstants.Bones[i].joint1].Location, rider.Body[RiderConstants.Bones[i].joint2].Location, c, 1f / 4, false));
+                    vertices.AddRange(GenRoundedLine(
+                        rider.Body[bones[i].joint1].Location, 
+                        rider.Body[bones[i].joint2].Location, 
+                        c, 
+                        1f / 4, 
+                        false));
                 }
                 else if (i <= 3)
                 {
-                    vertices.AddRange(GenRoundedLine(rider.Body[RiderConstants.Bones[i].joint1].Location, rider.Body[RiderConstants.Bones[i].joint2].Location, c, 1f / 4, false));
+                    vertices.AddRange(GenRoundedLine(
+                        rider.Body[bones[i].joint1].Location, 
+                        rider.Body[bones[i].joint2].Location, 
+                        c, 
+                        1f / 4, 
+                        false));
                 }
             }
             if (!rider.Crashed && diagnosis.Count != 0)
             {
                 Color firstbreakcolor = Color.FromArgb(unchecked((int)0xFFFF8C00));
                 Color breakcolor = Color.FromArgb(unchecked((int)0xff909090)); ;
-
                 for (int i = 1; i < diagnosis.Count; i++)
                 {
                     var broken = diagnosis[i];
-                    vertices.AddRange(GenRoundedLine(
-                    rider.Body[RiderConstants.Bones[broken].joint1].Location,
-                    rider.Body[RiderConstants.Bones[broken].joint2].Location, breakcolor, 1f / 4, false));
+                    if (broken >= 0)
+                    {
+                        vertices.AddRange(GenRoundedLine(
+                        rider.Body[bones[broken].joint1].Location,
+                        rider.Body[bones[broken].joint2].Location,
+                        breakcolor,
+                        1f / 4,
+                        false));
+                    }
                 }
                 //the first break is most important so we give it a better color, assuming its not just a fakie death
                 if (diagnosis[0] > 0)
                 {
                     vertices.AddRange(GenRoundedLine(
-                    rider.Body[RiderConstants.Bones[diagnosis[0]].joint1].Location,
-                    rider.Body[RiderConstants.Bones[diagnosis[0]].joint2].Location,
+                    rider.Body[bones[diagnosis[0]].joint1].Location,
+                    rider.Body[bones[diagnosis[0]].joint2].Location,
                     firstbreakcolor, 1f / 4, false));
                 }
             }
-            for (var i = 0; i < RiderConstants.Bones.Length; i++)
+            for (var i = 0; i < rider.Body.Length; i++)
             {
                 Color c = Color.Cyan;
                 if (
@@ -175,7 +191,12 @@ namespace linerider.Rendering
                 {
                     c = Color.Blue;
                 }
-                vertices.AddRange(GenRoundedLine(rider.Body[RiderConstants.Bones[i].joint1].Location, rider.Body[RiderConstants.Bones[i].joint1].Location, c, 1f / 4, false));
+                vertices.AddRange(GenRoundedLine(
+                    rider.Body[i].Location, 
+                    rider.Body[i].Location, 
+                    c, 
+                    1f / 4, 
+                    false));
             }
         }
         public static void DrawScarf(Line[] lines, float opacity)
