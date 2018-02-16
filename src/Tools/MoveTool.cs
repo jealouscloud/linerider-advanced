@@ -74,9 +74,9 @@ namespace linerider.Tools
             if (line is StandardLine && CanLifelock)
             {
                 game.Track.BufferManager.UpdateOnThisThread();
-                using (var trk = game.Track.CreateTrackWriter())
+                using (var pb = game.Track.CreatePlaybackReader())
                 {
-                    if (LifeLock(trk, (StandardLine)line))
+                    if (LifeLock(pb, (StandardLine)line))
                     {
                         Stop();
                     }

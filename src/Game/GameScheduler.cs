@@ -77,9 +77,7 @@ namespace linerider
                 {
                     elapsed -= updateperiod;
                     updates++;
-                    int cap = 3;
-                    if (UpdatesPerSecond > 120)
-                        cap = 10;
+                    int cap = 3 * (UpdatesPerSecond / 40);
                     if (updates >= cap)
                     {
                         elapsed = Math.Min(elapsed, updateperiod * cap);

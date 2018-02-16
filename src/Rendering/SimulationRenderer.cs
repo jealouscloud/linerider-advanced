@@ -65,17 +65,14 @@ namespace linerider.Rendering
         public void AddLine(GameLine l)
         {
             _renderer.AddLine(l);
-            RequiresUpdate = true;
         }
         public void RedrawLine(GameLine l)
         {
             _renderer.LineChanged(l);
-            RequiresUpdate = true;
         }
         public void RemoveLine(GameLine l)
         {
             _renderer.RemoveLine(l);
-            RequiresUpdate = true;
         }
         public void RefreshTrack(Track track)
         {

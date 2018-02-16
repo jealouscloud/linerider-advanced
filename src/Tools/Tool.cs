@@ -229,26 +229,30 @@ namespace linerider.Tools
             }
             return retn.ToArray();
         }
-        protected bool LifeLock(TrackWriter writer, StandardLine line)
+        protected bool LifeLock(PlaybackReader reader, StandardLine line)
         {
-            Dictionary<int, GameLine> collisions = new Dictionary<int, GameLine>();
             Rider current;
             Rider prev;
 
             using (game.Track.CreatePlaybackReader())
             {
-                current = writer.Track.RiderStates[game.Track.Offset];
+                current = reader.GetRider(game.Track.Offset);
                 if (game.Track.Offset == 0)
                     return false;
-                prev = writer.Track.RiderStates[game.Track.Offset - 1];
+                prev = reader.GetRider(game.Track.Offset - 1); //reader.Track.RiderStates[game.Track.Offset - 1];
 
             }
-            var next = prev.Simulate(writer.Track, collisions);
+            var next = reader.QuickSimulate(
+                prev,
+                out Dictionary<int, GameLine> collisions,
+                game.Track.IterationsOffset);
             if (!next.Crashed)
             {
                 if (Settings.PinkLifelock)
                 {
-                    var diagnosis = next.Diagnose(writer.Track, null, 6);
+                    var diagnosis = reader.Diagnose(
+                        next,
+                        game.Track.IterationsOffset);
                     foreach (var v in diagnosis)
                     {
                         //the next frame dies on something that isnt a fakie, so we cant stop here
