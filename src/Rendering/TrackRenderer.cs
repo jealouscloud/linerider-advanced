@@ -32,7 +32,7 @@ using linerider.Lines;
 
 namespace linerider.Rendering
 {
-    internal class TrackRenderer
+    internal class TrackRenderer : GameService
     {
         private enum LineActionType
         {
@@ -79,12 +79,12 @@ namespace linerider.Rendering
             }
             _decorator = new LineDecorator();
             _physvbo = new LineRenderer(LineShader);
-            _physvbo.LineColor = Color.Black;
+            _physvbo.LineColor = Constants.DefaultLineColor;
 
             _sceneryvbo = new LineRenderer(LineShader);
             _sceneryvbo.LineColor = Color.Black;
         }
-        public void Render(Track track, DrawOptions options)
+        public void Render(DrawOptions options)
         {
             using (new GLEnableCap(EnableCap.Texture2D))
             {
@@ -105,20 +105,20 @@ namespace linerider.Rendering
 
                 if (options.NightMode)
                 {
-                    _sceneryvbo.LineColor = Color.White;
-                    _physvbo.LineColor = Color.White;
+                    _sceneryvbo.LineColor = Constants.DefaultNightLineColor;
+                    _physvbo.LineColor = Constants.DefaultNightLineColor;
                 }
                 else
                 {
-                    _sceneryvbo.LineColor = Color.Black;
-                    _physvbo.LineColor = Color.Black;
+                    _sceneryvbo.LineColor = Constants.DefaultLineColor;
+                    _physvbo.LineColor = Constants.DefaultLineColor;
                 }
                 if (options.LineColors)
                 {
                     _sceneryvbo.LineColor = Constants.SceneryLineColor;
                 }
                 _sceneryvbo.Draw();
-                _decorator.Draw(options);
+                _decorator.DrawUnder(options);
                 _physvbo.Draw();
                 GameDrawingMatrix.Exit();
             }
@@ -144,7 +144,7 @@ namespace linerider.Rendering
 
             // iterate backwards for render order on top.
             // list is returned by id 3 2 1, we want 3 on top.
-            for(int i = sorted.Length - 1; i >= 0; i--)
+            for (int i = sorted.Length - 1; i >= 0; i--)
             {
                 var line = sorted[i];
                 if (line.Type == LineType.Scenery)
@@ -259,11 +259,19 @@ namespace linerider.Rendering
                             }
                             else
                             {
+                                var stl = (StandardLine)line;
+                                bool hit = Settings.Local.HitTest ?
+                                game.Track.HitTest.IsHit(stl.ID)
+                                : false;
                                 LineChanged(
-                                    line,
+                                    stl,
                                     _physvbo,
-                                    _physlines);
-                                _decorator.LineChanged((StandardLine)line);
+                                    _physlines,
+                                    hit
+                                    ? Utility.ColorToRGBA_LE(stl.Color)
+                                    : 0);
+
+                                _decorator.LineChanged(stl, hit);
                             }
                             break;
                     }
@@ -292,14 +300,15 @@ namespace linerider.Rendering
         private void LineChanged(
             GameLine line,
             LineRenderer renderer,
-            Dictionary<int, int> lookup)
+            Dictionary<int, int> lookup, 
+            int color = 0)
         {
             float width = 2 * line.Width;
             var lineverts = LineRenderer.CreateTrackLine(
                 line.Position,
                 line.Position2,
                 width,
-                0);
+                color);
             renderer.ChangeLine(lookup[line.ID], lineverts);
         }
         private void RemoveLine(

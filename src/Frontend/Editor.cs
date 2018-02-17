@@ -38,7 +38,7 @@ using linerider.Lines;
 namespace linerider
 {
     /// <summary>The interface for communicating with the game track object</summary>
-    public class TrackService : GameService
+    public class Editor : GameService
     {
         internal class Tracklocation
         {
@@ -68,7 +68,7 @@ namespace linerider
                 _paused = value;
             }
         }
-        public float Zoom = 4.0f;
+        public float Zoom = Constants.DefaultZoom;
         public Camera Camera { get; private set; }
         public List<LineTrigger> ActiveTriggers = new List<LineTrigger>();
         private float _oldZoom = 1.0f;
@@ -87,7 +87,7 @@ namespace linerider
         public int LineCount => _track.Lines.Count;
         public bool SimulationNeedsDraw = false;
         public PlaybackBufferManager BufferManager;
-
+        public HitTestManager HitTest = new HitTestManager();
         public bool RequiresUpdate
         {
             get
@@ -156,8 +156,9 @@ namespace linerider
                 _renderrider.Iteration = value;
             }
         }
+        private bool _refreshtrack = false;
 
-        public TrackService()
+        public Editor()
         {
             Camera = new Camera();
             _track = new Track();
@@ -169,6 +170,11 @@ namespace linerider
         }
         public void Render(float blend)
         {
+            if (_refreshtrack)
+            {
+                RefreshTrack();
+                _refreshtrack = false;
+            }
             DrawOptions drawOptions = new DrawOptions();
             drawOptions.DrawFlag = _flag != null;
             if (drawOptions.DrawFlag)
@@ -198,6 +204,16 @@ namespace linerider
                 //interpolate between last frame and current one
                 drawOptions.Rider = Rider.Lerp(_track.RiderStates[Offset - 1], _track.RiderStates[Offset], blend);
             }
+            var changes = HitTest.SetFrame(Offset);
+            foreach (var change in changes)
+            {
+                GameLine line;
+                if (_track.LineLookup.TryGetValue(change, out line))
+                {
+                    _renderer.RedrawLine(line);
+                }
+            }
+
             _renderer.Render(_track, Camera, drawOptions);
         }
 
@@ -228,8 +244,8 @@ namespace linerider
             using (var trk = CreateTrackReader())
             {
                 newrider.diagnosis = trk.Diagnose(
-                    rider, 
-                    Math.Min(6,newrider.Iteration+1));
+                    rider,
+                    Math.Min(6, newrider.Iteration + 1));
                 if (isiteration)
                 {
                     newrider.State = trk.TickBasic(rider, newrider.Iteration);
@@ -251,7 +267,7 @@ namespace linerider
         }
         public void Reset()
         {
-            using (CreatePlaybackReader())
+            using (_playbacksync.AcquireWrite())
             {
                 _track.Reset();
                 SetFrame(0);
@@ -338,6 +354,7 @@ namespace linerider
         {
             if (PlaybackMode)
             {
+                HitTest.Reset();
                 PlaybackMode = false;
                 Paused = false;
 
@@ -394,6 +411,7 @@ namespace linerider
                 Camera.Push();
             }
             BufferManager.Cancel();
+            HitTest.Reset();
             using (_playbacksync.AcquireWrite())
             {
                 FpsCounter.Reset(40);
@@ -422,7 +440,7 @@ namespace linerider
                         break;
 
                     case 1: //default
-                        game.Track.Zoom = 2;
+                        game.Track.Zoom = Constants.DefaultZoom;
                         break;
 
                     case 2: //specific
@@ -444,20 +462,14 @@ namespace linerider
                     {
                         for (int i = 0; i < _flag.Frame; i++)
                         {
-                            _track.AddFrame();
+                            AddFrame();
                         }
                         SetFrame(EndFrameID);
 
                     }
-                    for (var i = 0; i < _track.RiderStates[Offset].Body.Length; i++)
+                    if (!_track.RiderStates[Offset].Body.CompareTo(_flag.State.Body))
                     {
-                        if (_track.RiderStates[Offset].Body[i].Location != _flag.State.Body[i].Location ||
-                            _track.RiderStates[Offset].Body[i].Previous != _flag.State.Body[i].Previous)
-                        {
-                            game.Canvas.SetFlagTooltip(false);
-                            game.Invalidate();
-                            return;
-                        }
+                        game.Canvas.SetFlagState(false);
                     }
                     game.Canvas.UpdateScrubber();
                 }
@@ -482,10 +494,7 @@ namespace linerider
             {
                 if (frame == _track.RiderStates.Count)
                 {
-                    using (_tracksync.AcquireRead())
-                    {
-                        _track.AddFrame();
-                    }
+                    AddFrame();
                 }
                 Offset = frame;
                 IterationsOffset = 6;
@@ -497,6 +506,17 @@ namespace linerider
                 game.Canvas.UpdateScrubber();
             }
             game.Invalidate();
+        }
+        private void AddFrame()
+        {
+            using (CreatePlaybackReader())
+            {
+                using (_tracksync.AcquireRead())
+                {
+                    var collisions = _track.AddFrame(true);
+                    HitTest.AddFrame(collisions);
+                }
+            }
         }
 
         public void Update(int times)
@@ -565,17 +585,68 @@ namespace linerider
 
         public void ChangeTrack(Track trk)
         {
-            _flag = null;
-            if (_track != null && _track.ActiveTriggers == ActiveTriggers)
-                _track.ActiveTriggers = null;
+            using (_tracksync.AcquireWrite())
+            {
+                _flag = null;
+                if (_track != null && _track.ActiveTriggers == ActiveTriggers)
+                    _track.ActiveTriggers = null;
+                _track = trk;
+                _track.ActiveTriggers = ActiveTriggers;
+            }
             BufferManager.Reset(trk.Grid);
-            _track = trk;
-            _track.ActiveTriggers = ActiveTriggers;
             UndoManager = new UndoManager();
-            RefreshTrack();
+            HitTest.Reset();
+            _refreshtrack = true;
             Reset();
             Camera.SetFrameCenter(trk.StartOffset);
             GC.Collect();//this is the safest place to collect
+        }
+        public void OnLoad()
+        {
+            ThreadPool.QueueUserWorkItem((o) =>
+            {
+                try
+                {
+                    using (_tracksync.AcquireWrite())
+                    {
+                        game.Loading = true;
+                        var lasttrack = Settings.LastSelectedTrack;
+                        var trdr = Constants.TracksDirectory;
+                        if (!lasttrack.StartsWith(trdr))
+                            return;
+                        if (string.Equals(
+                            Path.GetExtension(lasttrack),
+                            ".trk",
+                            StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            string trackname = Path.GetFileNameWithoutExtension(lasttrack);
+                            var dirname = Path.GetDirectoryName(lasttrack);
+                            var dirs = Directory.GetDirectories(Constants.TracksDirectory);
+                            foreach (var dir in dirs)
+                            {
+                                if (string.Equals(
+                                    dirname,
+                                    dir,
+                                    StringComparison.InvariantCulture))
+                                {
+                                    trackname = Path.GetFileName(dirname);
+                                    break;
+                                }
+                            }
+
+                            ChangeTrack(TrackLoader.LoadTrackTRK(lasttrack, trackname));
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine("Autoload failure: " + e.ToString());
+                }
+                finally
+                {
+                    game.Loading = false;
+                }
+            });
         }
         public TrackWriter CreateTrackWriter()
         {

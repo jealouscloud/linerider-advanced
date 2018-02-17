@@ -46,7 +46,7 @@ namespace linerider.Tools
         public override void OnMouseDown(Vector2d pos)
         {
             Active = true;
-            var gamepos = MouseCoordsToGame(pos);
+            var gamepos = ScreenToGameCoords(pos);
             if (game.EnableSnap)
             {
                 using (var trk = game.Track.CreateTrackReader())
@@ -81,7 +81,7 @@ namespace linerider.Tools
         {
             if (Active)
             {
-                _end = MouseCoordsToGame(pos);
+                _end = ScreenToGameCoords(pos);
                 if (game.ShouldXySnap())
                 {
                     _end = Utility.SnapToDegrees(_start, _end);

@@ -142,7 +142,7 @@ namespace linerider.Tools
         public override void OnMouseDown(Vector2d mousepos)
         {
             Stop();//double check
-            var gamepos = MouseCoordsToGame(mousepos);
+            var gamepos = ScreenToGameCoords(mousepos);
             using (var trk = game.Track.CreateTrackWriter())
             {
                 var line = SelectLine(trk, gamepos);
@@ -217,7 +217,7 @@ namespace linerider.Tools
         {
             if (Started)
             {
-                MoveSelection(MouseCoordsToGame(pos));
+                MoveSelection(ScreenToGameCoords(pos));
             }
             base.OnMouseMoved(pos);
         }

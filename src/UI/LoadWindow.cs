@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Gwen;
 using Gwen.Controls;
 using Gwen.Controls.Property;
@@ -240,15 +241,15 @@ namespace linerider.UI
                 }
                 else if (selected.UserData is string)
                 {
-                    var data = (string)selected.UserData;
+                    var filepath = (string)selected.UserData;
                     try
                     {
-                        if (data.EndsWith(".sol", StringComparison.OrdinalIgnoreCase))//unopened sol file
+                        if (filepath.EndsWith(".sol", StringComparison.OrdinalIgnoreCase))//unopened sol file
                         {
                             List<sol_track> tracks = null;
                             try
                             {
-                                tracks = TrackLoader.LoadSol(data);
+                                tracks = TrackLoader.LoadSol(filepath);
                                 if (tracks.Count == 0)
                                     return;
                                 foreach (var track in tracks)
@@ -282,15 +283,20 @@ namespace linerider.UI
                             {
                                 // getfilenamewithoutextension interacts weird
                                 // with periods in the directory name.
-                                trackname = Path.GetFileName(data);
-                                data = (string)selected.Children[0].UserData;
+                                trackname = Path.GetFileName(filepath);
+                                filepath = (string)selected.Children[0].UserData;
                             }
                             else
                             {
-                                trackname = Path.GetFileNameWithoutExtension(data);
+                                trackname = Path.GetFileNameWithoutExtension(filepath);
                             }
                             Settings.Local.EnableSong = false;
-                            game.Track.ChangeTrack(TrackLoader.LoadTrackTRK(data, trackname));
+                            string file = filepath;
+                            string name = trackname;
+                            if (!ThreadPool.QueueUserWorkItem((o) =>LoadTRK(file, name)))
+                            {
+                                LoadTRK(file, name);
+                            }
                         }
                     }
                     catch (TrackLoader.TrackLoadException e)
@@ -307,13 +313,43 @@ namespace linerider.UI
                         window.Close();
                         PopupWindow.Error(
                             "An unknown error occured while loading the track." +
-                            Environment.NewLine+
+                            Environment.NewLine +
                             e.Message);
                         return;
                     }
                 }
                 game.Track.NotifyTrackChanged();
                 window.Close();
+            }
+        }
+        private void LoadTRK(string file, string name)
+        {
+            game.Loading = true;
+            try
+            {
+                game.Track.ChangeTrack(TrackLoader.LoadTrackTRK(file, name));
+                Settings.LastSelectedTrack = file;
+                Settings.Save();
+            }
+            catch (TrackLoader.TrackLoadException e)
+            {
+                PopupWindow.Error(
+                    "Failed to load the track:" +
+                    Environment.NewLine +
+                    e.Message);
+                return;
+            }
+            catch (Exception e)
+            {
+                PopupWindow.Error(
+                    "An unknown error occured while loading the track." +
+                    Environment.NewLine +
+                    e.Message);
+                return;
+            }
+            finally
+            {
+                game.Loading = false;
             }
         }
     }

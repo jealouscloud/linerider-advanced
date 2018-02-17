@@ -32,6 +32,9 @@ namespace linerider.UI
         public byte Alpha = 255;
         private Texture tx1;
         private Texture tx2;
+        private Texture _overridetex = null;
+        private bool _override = false;
+
 
         #endregion Fields
 
@@ -49,6 +52,8 @@ namespace linerider.UI
                 tx1.Dispose();
             if (tx2 != null)
                 tx2.Dispose();
+            if (_overridetex != null)
+                _overridetex.Dispose();
             base.Dispose();
         }
         public void Nightmode(bool on)
@@ -67,7 +72,6 @@ namespace linerider.UI
         {
             if (m_texture != null)
                 m_texture.Dispose();
-
             Texture tx = new Texture(Skin.Renderer);
 
             Gwen.Renderer.OpenTK.LoadTextureInternal(tx, bmp);
@@ -75,11 +79,29 @@ namespace linerider.UI
             tx1 = tx;
             if (bmp2 != null)
             {
+                if (tx2 != null)
+                    tx2.Dispose();
                 tx2 = new Texture(Skin.Renderer);
                 Gwen.Renderer.OpenTK.LoadTextureInternal(tx2, bmp2);
             }
         }
+        public void DisableImageOverride()
+        {
+            _override = false;
+        }
+        public void EnableImageOverride()
+        {
+            _override = true;
+        }
+        public void SetOverride(Bitmap bitmap)
+        {
+            if (_overridetex != null)
+                _overridetex.Dispose();
+            Texture tx = new Texture(Skin.Renderer);
 
+            Gwen.Renderer.OpenTK.LoadTextureInternal(tx, bitmap);
+            _overridetex = tx;
+        }
         public override void SetImage(string textureName, bool center = false)
         {
             if (m_texture != null)
@@ -91,8 +113,14 @@ namespace linerider.UI
         protected override void Render(Gwen.Skin.SkinBase skin)
         {
             skin.Renderer.DrawColor = Color.FromArgb(IsDepressed ? 64 : (IsHovered ? 128 : Alpha), 255, 255, 255);
-
-            skin.Renderer.DrawTexturedRect(m_texture, RenderBounds);
+            if (_override && _overridetex != null)
+            {
+                skin.Renderer.DrawTexturedRect(_overridetex, RenderBounds);
+            }
+            else
+            {
+                skin.Renderer.DrawTexturedRect(m_texture, RenderBounds);
+            }
         }
 
         #endregion Methods

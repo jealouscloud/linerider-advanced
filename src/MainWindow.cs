@@ -104,7 +104,7 @@ namespace linerider
             => Track.Camera.GetViewport().Vector;
 
         public Vector2d ScreenTranslation => -ScreenPosition;
-        public TrackService Track { get; }
+        public Editor Track { get; }
         public MainWindow()
             : base(1280, 720, new GraphicsMode(new ColorFormat(32), 0, 0, 0, ColorFormat.Empty),
                    "Line Rider: Advanced", GameWindowFlags.Default, DisplayDevice.Default)
@@ -117,7 +117,7 @@ namespace linerider
             _handtool = new HandTool();
             _movetool = new MoveTool();
             SelectedTool = _penciltool;
-            Track = new TrackService();
+            Track = new Editor();
             VSync = VSyncMode.Off;//todo change back before rls
             Context.ErrorChecking = true;
             WindowBorder = WindowBorder.Resizable;
@@ -184,8 +184,8 @@ namespace linerider
                 }
                 Track.Camera.BeginFrame(blend);
                 GL.ClearColor(Settings.NightMode
-                    ? Settings.Static.ColorNightMode
-                    : (Settings.WhiteBG ? Settings.Static.ColorWhite : Settings.Static.ColorOffwhite));
+                    ? Constants.ColorNightMode
+                    : (Settings.WhiteBG ? Constants.ColorWhite : Constants.ColorOffwhite));
                 MSAABuffer.Use(RenderSize.Width, RenderSize.Height);
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
                 GL.Clear(ClearBufferMask.ColorBufferBit);
@@ -367,7 +367,7 @@ namespace linerider
             Models.LoadModels();
 
             AddCursor("pencil", GameResources.cursor_pencil, 3, 28);
-            AddCursor("line", GameResources.cursor_line, 15, 15);
+            AddCursor("line", GameResources.cursor_line, 11, 11);
             AddCursor("eraser", GameResources.cursor_eraser, 5, 5);
             AddCursor("hand", GameResources.cursor_move, 16, 16);
             AddCursor("closed_hand", GameResources.cursor_dragging, 16, 16);
@@ -381,6 +381,7 @@ namespace linerider
             AddCursor("zoom", GameResources.cursor_zoom_in, 11, 10);
             Gwen.Platform.Neutral.CursorSetter = new UI.CursorImpl(this);
             Program.UpdateCheck();
+            Track.OnLoad();
         }
 
         protected override void OnResize(EventArgs e)
@@ -501,6 +502,13 @@ namespace linerider
                     }
                 }
                 Invalidate();
+            }
+            if (!_handToolOverride)
+            {
+                if (SelectedTool.RequestsMousePrecision)
+                {
+                    SelectedTool.OnMouseMoved(new Vector2d(e.X,e.Y));
+                }
             }
 
             if (r)
@@ -1010,6 +1018,7 @@ namespace linerider
             btn = createbutton(GameResources.stop_icon, GameResources.stop_icon_white, "Stop (U)", "stop");
             btn.Clicked += (o, e) => { Track.Stop(); };
             btn = createbutton(GameResources.flag_icon, GameResources.flag_icon_white, "Flag (I)", "flag");
+            btn.SetOverride(GameResources.flag_invalid_icon);
             btn.Clicked += (o, e) => { Track.Flag(); };
             btn.RightClicked += (o, e) => { Canvas.CalculateFlag(Track.GetFlag()); };
             Canvas.FlagTool = btn;
@@ -1021,9 +1030,9 @@ namespace linerider
             item = _menuEdit.AddItem("Load");
             item.AutoSizeToContents = false;
             item.Clicked += (snd, evt) => { Canvas.ShowLoadWindow(); };
-            item = _menuEdit.AddItem("Delete");
+            item = _menuEdit.AddItem("New");
             item.AutoSizeToContents = false;
-            item.Clicked += (snd, evt) => { Canvas.ShowDelete(); };
+            item.Clicked += (snd, evt) => { Canvas.ShowNewTrack(); };
             item = _menuEdit.AddItem("Preferences");
             item.AutoSizeToContents = false;
             item.Clicked += (snd, msg) => { Canvas.ShowPreferences(); };
@@ -1071,8 +1080,8 @@ namespace linerider
         {
             if (Track.PlaybackMode)
             {
-                var index = Array.IndexOf(Settings.Static.MotionArray, Scheduler.UpdatesPerSecond);
-                Scheduler.UpdatesPerSecond = Settings.Static.MotionArray[Math.Min(Settings.Static.MotionArray.Length - 1, index + 1)];
+                var index = Array.IndexOf(Constants.MotionArray, Scheduler.UpdatesPerSecond);
+                Scheduler.UpdatesPerSecond = Constants.MotionArray[Math.Min(Constants.MotionArray.Length - 1, index + 1)];
                 if (Settings.Local.EnableSong)
                 {
                     UpdateSongPosition(Track.CurrentFrame / 40f);
@@ -1084,8 +1093,8 @@ namespace linerider
         {
             if (Track.PlaybackMode)
             {
-                var index = Array.IndexOf(Settings.Static.MotionArray, Scheduler.UpdatesPerSecond);
-                Scheduler.UpdatesPerSecond = Settings.Static.MotionArray[Math.Max(0, index - 1)];
+                var index = Array.IndexOf(Constants.MotionArray, Scheduler.UpdatesPerSecond);
+                Scheduler.UpdatesPerSecond = Constants.MotionArray[Math.Max(0, index - 1)];
                 if (Settings.Local.EnableSong)
                 {
                     UpdateSongPosition(Track.CurrentFrame / 40f);

@@ -41,11 +41,18 @@ namespace linerider.Rendering
         public void Render(Track track, Camera camera, DrawOptions options)
         {
             Rider drawrider = options.Rider;
-            _renderer.Render(track, options);
-            //todo contact lines, onion skinning
+            _renderer.Render(options);
+            // todo onion skinning
             if (options.DrawFlag)
                 GameRenderer.DrawRider(0.3f, options.FlagRider, true);
-            GameRenderer.DrawRider(options.ShowContactLines ? 0.4f : 1, options.Rider, true, options.ShowContactLines, options.ShowMomentumVectors, options.Iteration);
+            GameRenderer.DrawRider(
+                options.ShowContactLines ? 0.4f : 1,
+                options.Rider, 
+                true, 
+                options.ShowContactLines, 
+                options.ShowMomentumVectors, 
+                options.Iteration);
+                
             List<GenericVertex> verts = new List<GenericVertex>(300);
             if (options.ShowMomentumVectors)
             {

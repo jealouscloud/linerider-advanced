@@ -21,6 +21,7 @@ namespace linerider.Rendering
         private Dictionary<int, accelentry> _accellines = new Dictionary<int, accelentry>();
         private Queue<int> _freeaccel = new Queue<int>();
         private int _accelcount = 0;
+        const int nullindex = 0;
 
         private LineRenderer _linebuffer;
         private GLBuffer<GenericVertex> _accelbuffer;
@@ -77,11 +78,11 @@ namespace linerider.Rendering
         {
             if (_lines.ContainsKey(line.ID))
             {
-                LineChanged(line);
+                LineChanged(line, false);
                 return;
             }
             var color = line.GetColor();
-            var lineverts = CreateDecorationLine(line,color);
+            var lineverts = CreateDecorationLine(line, color);
             int start = _linebuffer.AddLine(lineverts);
             _lines.Add(line.ID, start);
             if (line is RedLine r)
@@ -94,11 +95,11 @@ namespace linerider.Rendering
                 DrawAccel(r);
             }
         }
-        public void LineChanged(StandardLine line)
+        public void LineChanged(StandardLine line, bool hit)
         {
             var colorindex = _lines[line.ID];
             var color = line.GetColor();
-            var lineverts = CreateDecorationLine(line,color);
+            var lineverts = hit ? new LineVertex[6] : CreateDecorationLine(line, color);
             _linebuffer.ChangeLine(colorindex, lineverts);
             if (line is RedLine r)
             {
@@ -115,8 +116,12 @@ namespace linerider.Rendering
                 var accel = _accellines[line.ID];
                 for (int ix = 0; ix < accel.shapes; ix++)
                 {
-                    _freeaccel.Enqueue(
-                        _indices.Arr[accel.start + (ix * ShapeSize)]);
+                    int offset = accel.start + (ix * ShapeSize);
+                    if (IsNulled(offset))
+                    {
+                        continue;//nulled out
+                    }
+                    _freeaccel.Enqueue(_indices.Arr[offset]);
                     for (int i = 0; i < ShapeSize; i++)
                     {
                         _indices.Arr[accel.start + (ix * ShapeSize) + i] = 0;
@@ -148,9 +153,10 @@ namespace linerider.Rendering
             for (int ix = 0; ix < entry.shapes; ix++)
             {
                 int offset = entry.start + (ix * ShapeSize);
-                if (_indices.Arr[offset] == 0 &&
-                _indices.Arr[offset + 1] == 0)
+                if (IsNulled(offset))
+                {
                     continue;//nulled out
+                }
                 _freeaccel.Enqueue(_indices.Arr[offset]);
                 for (int i = 0; i < ShapeSize; i++)
                 {
@@ -232,12 +238,25 @@ namespace linerider.Rendering
                 _accelibo.SetSize(size * 2, BufferUsageHint.DynamicDraw);
             }
         }
+        /// <summary>
+        /// checks if a line in the index buffer was 'removed'
+        /// basically nulled out
+        /// </summary>
+        private bool IsNulled(int index)
+        {
+            for (int i = 0; i < ShapeSize; i++)
+            {
+                if (_indices.Arr[index + i] != nullindex)
+                    return false;
+            }
+            return true;
+        }
         private LineVertex[] CreateDecorationLine(StandardLine line, Color color)
         {
             var slant = new Vector2d(
                 line.DiffNormal.X > 0 ? Math.Ceiling(line.DiffNormal.X) : Math.Floor(line.DiffNormal.X),
                 line.DiffNormal.Y > 0 ? Math.Ceiling(line.DiffNormal.Y) : Math.Floor(line.DiffNormal.Y));
-            return LineRenderer.CreateTrackLine(line.Position + slant, line.Position2 + slant, 2,Utility.ColorToRGBA_LE(color));
+            return LineRenderer.CreateTrackLine(line.Position + slant, line.Position2 + slant, 2, Utility.ColorToRGBA_LE(color));
         }
         private GenericVertex[] GetAccelDecor(RedLine line)
         {

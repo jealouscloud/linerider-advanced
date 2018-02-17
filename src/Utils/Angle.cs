@@ -26,17 +26,19 @@ namespace linerider.Utils
 {
     public class Angle
     {
-        private float _degrees;
-        private float _radians;
+        private double _degrees;
+        private double _radians;
+        private double _coscached = double.NaN;
+        private double _sincached = float.NaN;
 
         /// <summary>
         /// Gets or sets the angle in degrees. Guaranteed between 0 and 360
         /// </summary>
-        public float Degrees
+        public double Degrees
         {
             get
             {
-                if (float.IsNaN(_degrees))
+                if (double.IsNaN(_degrees))
                 {
                     _degrees = RadiansToDegrees(_radians);
                     _degrees %= 360;
@@ -57,15 +59,17 @@ namespace linerider.Utils
                     _degrees = _degrees % -360;
                     _degrees = 360 + _degrees;
                 }
-                _radians = float.NaN;//invalidate
+                _radians = double.NaN;//invalidate
+                _coscached = double.NaN;
+                _sincached = double.NaN;
             }
         }
 
-        public float Radians
+        public double Radians
         {
             get
             {
-                if (float.IsNaN(_radians))
+                if (double.IsNaN(_radians))
                 {
                     _radians = DegreesToRadians(Degrees);
                 }
@@ -74,17 +78,42 @@ namespace linerider.Utils
             set
             {
                 _radians = value;
-                _radians %= (float)Math.PI * 2;
+                _radians %= Math.PI * 2;
                 if (_radians < 0)
                 {
-                    _radians = _radians % -((float)Math.PI * 2);
-                    _radians = ((float)Math.PI * 2) + _radians;
+                    _radians = _radians % -(Math.PI * 2);
+                    _radians = (Math.PI * 2) + _radians;
                 }
-                _degrees = float.NaN;//invalidate
+                _degrees = double.NaN;//invalidate
+                _coscached = double.NaN;
+                _sincached = double.NaN;
+            }
+        }
+        public double Cos
+        {
+            get
+            {
+                if (double.IsNaN(_coscached))
+                {
+                    _coscached = Math.Cos(Radians);
+                }
+                return _coscached;
             }
         }
 
-        public Angle(float degrees)
+        public double Sin
+        {
+            get
+            {
+                if (double.IsNaN(_sincached))
+                {
+                    _sincached = Math.Sin(Radians);
+                }
+                return _sincached;
+            }
+        }
+
+        public Angle(double degrees)
         {
             _degrees = degrees;
             _degrees %= 360;
@@ -93,19 +122,7 @@ namespace linerider.Utils
                 _degrees = _degrees % -360;
                 _degrees = 360 + _degrees;
             }
-            _radians = float.NaN;
-        }
-
-        public Angle(double degrees)
-        {
-            _degrees = (float)degrees;
-            _degrees %= 360;
-            if (_degrees < 0)
-            {
-                _degrees = _degrees % -360;
-                _degrees = 360 + _degrees;
-            }
-            _radians = float.NaN;
+            _radians = double.NaN;
         }
 
         private Angle()
@@ -113,7 +130,7 @@ namespace linerider.Utils
         }
         public static Angle FromRadians(double radians)
         {
-            return new Angle() { Radians = (float)radians };
+            return new Angle() { Radians = radians };
         }
         public static Angle FromDegrees(double Degrees)
         {
@@ -145,12 +162,12 @@ namespace linerider.Utils
             return FromVector(p2 - p1);
         }
 
-        private static float DegreesToRadians(float degrees)
+        private static double DegreesToRadians(double degrees)
         {
             return degrees * 0.0174532924f;
         }
 
-        private static float RadiansToDegrees(float radians)
+        private static double RadiansToDegrees(double radians)
         {
             return radians * 57.2957764f;
         }

@@ -51,7 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Frontend\GameCanvas.cs" />
-    <Compile Include="Frontend\TrackService.cs" />
+    <Compile Include="Frontend\Editor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Drawing\DrawOptions.cs" />
@@ -96,6 +96,7 @@
     <Compile Include="Game\FastGrid.cs" />
     <Compile Include="Game\FPSCounter.cs" />
     <Compile Include="Game\GameScheduler.cs" />
+    <Compile Include="Game\HitTestManager.cs" />
     <Compile Include="Game\Track.cs" />
     <Compile Include="Game\PlaybackBufferManager.cs" />
     <Compile Include="Game\PlaybackReader.cs" />
@@ -186,6 +187,7 @@
     <EmbeddedResource Include="Resources\eraser_icon.png" />
     <EmbeddedResource Include="Resources\fast-forward.png" />
     <EmbeddedResource Include="Resources\flag_icon.png" />
+    <EmbeddedResource Include="Resources\flag_invalid.png" />
     <EmbeddedResource Include="Resources\gwell_tool.png" />
     <EmbeddedResource Include="Resources\icon.ico" />
     <EmbeddedResource Include="Resources\line_adjust_icon.png" />

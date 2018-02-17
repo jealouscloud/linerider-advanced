@@ -135,8 +135,12 @@ namespace linerider.Game
             }
             return new Rider(joints, scarf, r1.PhysicsBounds, dead, r1.SledBroken);
         }
-        private unsafe static void ProcessLines(ISimulationGrid grid, SimulationPoint[] body, ref RectLRTB physinfo,
-        Dictionary<int, GameLine> collisions = null, List<LineTrigger> activetriggers = null)
+        private unsafe static void ProcessLines(
+            ISimulationGrid grid,
+            SimulationPoint[] body,
+            ref RectLRTB physinfo,
+            HashSet<int> collisions = null,
+            List<LineTrigger> activetriggers = null)
         {
             int bodylen = body.Length;
             for (int i = 0; i < bodylen; i++)
@@ -163,7 +167,7 @@ namespace linerider.Game
                             {
                                 if (collisions != null)
                                 {
-                                    collisions[line.ID] = line;
+                                    collisions.Add(line.ID);
                                 }
                                 if (line.Trigger != null && activetriggers != null)
                                 {
@@ -245,7 +249,7 @@ namespace linerider.Game
             DoubleRect ret = new DoubleRect(left, top, right - left, bottom - top);
             return ret;
         }
-        public Rider Simulate(Track track, Dictionary<int, GameLine> collisions, int maxiteration = 6)
+        public Rider Simulate(Track track, HashSet<int> collisions, int maxiteration = 6)
         {
             return Simulate(track.Grid, track.Bones, track.ActiveTriggers, collisions, maxiteration);
         }
@@ -253,7 +257,7 @@ namespace linerider.Game
             ISimulationGrid grid,
             Bone[] bones,
             List<LineTrigger> activetriggers,
-            Dictionary<int, GameLine> collisions,
+            HashSet<int> collisions,
             int maxiteration = 6,
             bool stepscarf = true)
         {
@@ -282,7 +286,7 @@ namespace linerider.Game
             SimulationPoint[] scarf;
             if (stepscarf)
             {
-                scarf = Scarf.Step(friction:true);
+                scarf = Scarf.Step(friction: true);
                 scarf[0] = body[RiderConstants.BodyShoulder];
                 ProcessScarfBones(RiderConstants.ScarfBones, scarf);
             }
@@ -292,13 +296,12 @@ namespace linerider.Game
             }
             return new Rider(body, scarf, phys, dead, sledbroken);
         }
-        public List<int> Diagnose(Track track, Dictionary<int, GameLine> collisions = null, int maxiteration = 6)
+        public List<int> Diagnose(Track track, HashSet<int> collisions = null, int maxiteration = 6)
         {
             var ret = new List<int>();
             if (Crashed)
                 return ret;
-            if (maxiteration == 0)//momentum tick but we want to still see
-                maxiteration = 1;
+            Debug.Assert(maxiteration != 0, "Momentum tick can't die but attempted diagnose");
 
             SimulationPoint[] body = Body.Step();
             int bodylen = Body.Length;

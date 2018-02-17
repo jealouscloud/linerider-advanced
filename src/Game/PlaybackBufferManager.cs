@@ -251,17 +251,20 @@ namespace linerider.Utils
             Debug.Assert(start > 0, "start is invalid for simulatechanges");
             using (var rw = game.Track.CreatePlaybackUpgradableReader())
             {
+                List<HashSet<int>> collisions = new List<HashSet<int>>();
                 Rider[] states = SimulateChanges(
                     track,
                     track.RiderStates[start - 1],
                     start,
-                    track.RiderStates.Count - start);
+                    track.RiderStates.Count - start,
+                    collisions);
                 using (_statesync.AcquireWrite())
                 {
                     if (Volatile.Read(ref _restart))
                         return false;
                     rw.UpgradeToWriter();
-                    UpdateBuffer(track, start, states);
+                    UpdateBuffer(track, start, states, collisions);
+                    game.Track.HitTest.ChangeFrames(start, collisions);
                     _changedcells.Clear();
                 }
             }
@@ -271,23 +274,28 @@ namespace linerider.Utils
         private Rider[] SimulateChanges(Track track,
         Rider prevstate,
         int start,
-        int count)
+        int count,
+        List<HashSet<int>> collisions)
         {
             Debug.Assert(count > 0, "simulating 0 changes");
             Rider[] states = new Rider[count];
             // we have to regenerate the frame at start using the frame before it
-            states[0] = prevstate.Simulate(track, null);
+            HashSet<int> firstcol = new HashSet<int>();
+            states[0] = prevstate.Simulate(track, firstcol);
+            collisions.Add(firstcol);
             int statelen = states.Length;
             for (int i = 1; i < statelen; i++)
             {
                 if (_restart)
                     return null;
                 //todo hit test
-                states[i] = states[i - 1].Simulate(track, null);
+                HashSet<int> co = new HashSet<int>();
+                states[i] = states[i - 1].Simulate(track, co);
+                collisions.Add(co);
             }
             return states;
         }
-        private void UpdateBuffer(Track track, int start, Rider[] changes)
+        private void UpdateBuffer(Track track, int start, Rider[] changes, List<HashSet<int>> collisions)
         {
             for (int i = 0; i < changes.Length; i++)
             {
@@ -298,7 +306,6 @@ namespace linerider.Utils
         {
             // even though its this frame that may need changing, we have to regenerate it using
             // the previous frame.
-            //   var overlaysimulated = prev.Simulate(_overlay, track.Bones, null, null);
             var newsimulated = track.RiderStates[frame - 1].Simulate(
                 track.Grid,
                 track.Bones,
