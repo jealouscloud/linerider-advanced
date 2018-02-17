@@ -84,7 +84,7 @@ namespace linerider.UI
                     {
                         var radiogrp = radio;
                         bool is1080p = radiogrp.Selected.Text == "1080p";
-                        TrackFiles.TrackRecorder.RecordTrack(game, is1080p, smooth.IsChecked);
+                        IO.TrackRecorder.RecordTrack(game, is1080p, smooth.IsChecked);
                     }
                 }
             };

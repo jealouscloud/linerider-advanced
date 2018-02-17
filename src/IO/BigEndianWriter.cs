@@ -22,7 +22,7 @@
 using System;
 using System.IO;
 using System.Text;
-namespace linerider
+namespace linerider.IO
 {
 	class BigEndianWriter
 	{

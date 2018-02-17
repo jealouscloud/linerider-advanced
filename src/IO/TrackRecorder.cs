@@ -37,7 +37,7 @@ using linerider.ffmpeg;
 using Key = OpenTK.Input.Key;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
 using System.Runtime.InteropServices;
-namespace linerider.TrackFiles
+namespace linerider.IO
 {
     internal static class TrackRecorder
     {

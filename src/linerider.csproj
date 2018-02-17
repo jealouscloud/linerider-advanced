@@ -41,6 +41,17 @@
     <Compile Include="Program.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="IO\TrackSave.cs" />
+    <Compile Include="IO\SOL\SOLFile.cs" />
+    <Compile Include="IO\SOL\Amf0Object.cs" />
+    <Compile Include="IO\SOL\Amf0.cs" />
+    <Compile Include="IO\TRKLoader.cs" />
+    <Compile Include="IO\TRKWriter.cs" />
+    <Compile Include="IO\SOLLoader.cs" />
+    <Compile Include="IO\SOL\sol_track.cs" />
+    <Compile Include="IO\SOLWriter.cs" />
+    <Compile Include="IO\BigEndianWriter.cs" />
+    <Compile Include="IO\BigEndianReader.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Audio\AudioDevice.cs" />
@@ -125,13 +136,8 @@
     <Compile Include="Tools\Tool.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TrackFiles\Amf0.cs" />
-    <Compile Include="TrackFiles\Amf0Object.cs" />
-    <Compile Include="TrackFiles\BigEndianReader.cs" />
-    <Compile Include="TrackFiles\BigEndianWriter.cs" />
-    <Compile Include="TrackFiles\SOL.cs" />
-    <Compile Include="TrackFiles\TrackLoader.cs" />
-    <Compile Include="TrackFiles\TrackRecorder.cs" />
+    <Compile Include="IO\TrackIO.cs" />
+    <Compile Include="IO\TrackRecorder.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="UI\ColorControls.cs" />
@@ -177,6 +183,9 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Runtime.CompilerServices.Unsafe">
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.4.4.0\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -263,6 +272,9 @@
       <Project>{41650c82-d630-4e5c-845a-f1513c8fdc99}</Project>
       <Name>Gwen.Renderer.OpenTK</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="IO\SOL\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

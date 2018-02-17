@@ -31,7 +31,7 @@ using Gwen.Controls;
 using linerider.Audio;
 using linerider.Drawing;
 using linerider.Rendering;
-using linerider.TrackFiles;
+using linerider.IO;
 using linerider.Tools;
 using linerider.UI;
 using linerider.Utils;
@@ -395,7 +395,7 @@ namespace linerider
         {
             base.OnMouseDown(e);
             InputUtils.UpdateMouse(e.Mouse);
-            if (linerider.TrackFiles.TrackRecorder.Recording)
+            if (linerider.IO.TrackRecorder.Recording)
                 return;
             var r = _input.ProcessMouseMessage(e);
 
@@ -448,7 +448,7 @@ namespace linerider
         {
             base.OnMouseUp(e);
             InputUtils.UpdateMouse(e.Mouse);
-            if (linerider.TrackFiles.TrackRecorder.Recording)
+            if (linerider.IO.TrackRecorder.Recording)
                 return;
             _dragRider = false;
             var r = _input.ProcessMouseMessage(e);
@@ -482,7 +482,7 @@ namespace linerider
         protected override void OnMouseMove(MouseMoveEventArgs e)
         {
             base.OnMouseMove(e);
-            if (linerider.TrackFiles.TrackRecorder.Recording)
+            if (linerider.IO.TrackRecorder.Recording)
                 return;
             InputUtils.UpdateMouse(e.Mouse);
             var r = _input.ProcessMouseMessage(e);
@@ -524,7 +524,7 @@ namespace linerider
         {
             base.OnMouseWheel(e);
             InputUtils.UpdateMouse(e.Mouse);
-            if (linerider.TrackFiles.TrackRecorder.Recording)
+            if (linerider.IO.TrackRecorder.Recording)
                 return;
             if (_input.ProcessMouseMessage(e))
                 return;
@@ -886,7 +886,7 @@ namespace linerider
         {
             base.OnKeyDown(e);
             InputUtils.UpdateKeysDown(e.Keyboard);
-            if (linerider.TrackFiles.TrackRecorder.Recording)
+            if (linerider.IO.TrackRecorder.Recording)
                 return;
             var openwindows = Canvas.GetOpenWindows();
             var mod = e.Modifiers;
@@ -948,7 +948,7 @@ namespace linerider
         {
             base.OnKeyUp(e);
             InputUtils.UpdateKeysDown(e.Keyboard);
-            if (linerider.TrackFiles.TrackRecorder.Recording)
+            if (linerider.IO.TrackRecorder.Recording)
                 return;
             if (_input.ProcessKeyUp(e) || Canvas.GetOpenWindows()?.Count > 1)
                 return;

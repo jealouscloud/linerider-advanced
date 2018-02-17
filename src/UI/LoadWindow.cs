@@ -28,6 +28,8 @@ using Gwen;
 using Gwen.Controls;
 using Gwen.Controls.Property;
 using System.IO;
+using linerider.IO;
+using linerider.IO.SOL;
 namespace linerider.UI
 {
     class LoadWindow : WindowControl
@@ -68,7 +70,7 @@ namespace linerider.UI
                 var folders = Directory.GetDirectories(files);
                 foreach (var folder in folders)
                 {
-                    var trackfiles = TrackLoader.EnumerateTRKFiles(folder);
+                    var trackfiles = TrackIO.EnumerateTRKFiles(folder);
 
                     AddTrack(tv, folder, trackfiles);
                 }
@@ -137,11 +139,11 @@ namespace linerider.UI
                 {
                     try
                     {
-                        if (selected.UserData is sol_track)
+                        if (selected.UserData is linerider.IO.SOL.sol_track sol)
                         {
                             if (!selected.IsRoot)
                                 return;
-                            var data = selected.UserData as sol_track;
+                            var data = sol;
                             File.Delete(data.filename);
                         }
                         else if (selected.UserData is string)
@@ -222,13 +224,13 @@ namespace linerider.UI
             if (en.Count > 0)
             {
                 var selected = en[0];
-                if (selected.UserData is sol_track)
+                if (selected.UserData is sol_track sol)
                 {
-                    var data = (sol_track)selected.UserData;
+                    var data = sol;
                     try
                     {
                         Settings.Local.EnableSong = false;
-                        game.Track.ChangeTrack(TrackLoader.LoadTrack(data));
+                        game.Track.ChangeTrack(SOLLoader.LoadTrack(data));
                     }
                     catch (Exception e)
                     {
@@ -249,7 +251,7 @@ namespace linerider.UI
                             List<sol_track> tracks = null;
                             try
                             {
-                                tracks = TrackLoader.LoadSol(filepath);
+                                tracks = SOLLoader.LoadSol(filepath);
                                 if (tracks.Count == 0)
                                     return;
                                 foreach (var track in tracks)
@@ -259,7 +261,7 @@ namespace linerider.UI
                                 if (tracks.Count == 1)
                                 {
                                     Settings.Local.EnableSong = false;
-                                    game.Track.ChangeTrack(TrackLoader.LoadTrack(tracks[0]));
+                                    game.Track.ChangeTrack(SOLLoader.LoadTrack(tracks[0]));
                                 }
                                 else
                                 {
@@ -299,7 +301,7 @@ namespace linerider.UI
                             }
                         }
                     }
-                    catch (TrackLoader.TrackLoadException e)
+                    catch (TrackIO.TrackLoadException e)
                     {
                         window.Close();
                         PopupWindow.Error(
@@ -327,11 +329,11 @@ namespace linerider.UI
             game.Loading = true;
             try
             {
-                game.Track.ChangeTrack(TrackLoader.LoadTrackTRK(file, name));
+                game.Track.ChangeTrack(TRKLoader.LoadTrackTRK(file, name));
                 Settings.LastSelectedTrack = file;
                 Settings.Save();
             }
-            catch (TrackLoader.TrackLoadException e)
+            catch (TrackIO.TrackLoadException e)
             {
                 PopupWindow.Error(
                     "Failed to load the track:" +
