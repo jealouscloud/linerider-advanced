@@ -28,6 +28,7 @@ using Gwen;
 using Gwen.Controls;
 using Gwen.Controls.Property;
 using OpenTK;
+using linerider.IO;
 
 namespace linerider.UI
 {
@@ -95,7 +96,7 @@ namespace linerider.UI
                 {
                     txt = tb.Text;
                 }
-                if (!TrackLoader.CheckValidFilename(txt + tb.Text) ||
+                if (!TrackIO.CheckValidFilename(txt + tb.Text) ||
                 tb.Text == Utils.Constants.DefaultTrackName ||
                 (txt.Length == 0))
                 {

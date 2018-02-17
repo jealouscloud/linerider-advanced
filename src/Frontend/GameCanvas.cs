@@ -333,7 +333,10 @@ namespace linerider
                         {
                             if (window.Result == System.Windows.Forms.DialogResult.OK)
                             {
-                                trk.SaveTrackAsSol();
+                                using (var track = game.Track.CreateTrackReader())
+                                {
+                                    track.SaveTrackAsSol();
+                                }
                             }
                         };
                     }

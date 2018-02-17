@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-namespace linerider
+namespace linerider.IO.SOL
 {
-	class Amf0Object
+	public class Amf0Object
 	{
 		public enum Amf0Type
 		{

@@ -22,7 +22,7 @@
 using System;
 using System.Text;
 using System.Collections.Generic;
-namespace linerider
+namespace linerider.IO.SOL
 {
 	class Amf0
 	{

@@ -33,6 +33,7 @@ using linerider.Rendering;
 using linerider.Game;
 using linerider.Utils;
 using linerider.Lines;
+using linerider.IO;
 namespace linerider
 {
     public class TrackReader : GameService, IDisposable
@@ -115,15 +116,15 @@ namespace linerider
         }
         public void SaveTrackAsSol()
         {
-            TrackLoader.SaveTrackSol(_track);
+            SOLWriter.SaveTrack(_track);
         }
         public string SaveTrackTrk(string savename, string songdata)
         {
-            return TrackLoader.SaveTrackToFile(_track, savename, songdata);
+            return TRKWriter.SaveTrack(_track, savename, songdata);
         }
         public Dictionary<string, bool> GetFeatures()
         {
-            return TrackLoader.TrackFeatures(Track);
+            return TrackIO.TrackFeatures(Track);
         }
         public void Dispose()
         {

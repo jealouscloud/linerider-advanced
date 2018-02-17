@@ -34,6 +34,7 @@ using linerider.Tools;
 using linerider.Audio;
 using linerider.Utils;
 using linerider.Lines;
+using linerider.IO;
 
 namespace linerider
 {
@@ -564,11 +565,11 @@ namespace linerider
                 {
                     if (Crash)
                     {
-                        TrackLoader.SaveTrackToFile(_track, "Crash Backup", Settings.Local.CurrentSong?.ToString());
+                        TrackIO.SaveTrackToFile(_track, "Crash Backup", Settings.Local.CurrentSong?.ToString());
                     }
                     else
                     {
-                        TrackLoader.CreateAutosave(_track, Settings.Local.CurrentSong?.ToString());
+                        TrackIO.CreateAutosave(_track, Settings.Local.CurrentSong?.ToString());
                     }
                 }
             }
@@ -634,7 +635,7 @@ namespace linerider
                                 }
                             }
 
-                            ChangeTrack(TrackLoader.LoadTrackTRK(lasttrack, trackname));
+                            ChangeTrack(TRKLoader.LoadTrack(lasttrack, trackname));
                         }
                     }
                 }
