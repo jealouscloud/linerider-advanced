@@ -164,12 +164,13 @@ namespace linerider
 
             return true;
         }
-        private static string GetTrackDirectory(Track track)
+        public static string GetTrackDirectory(Track track)
         {
-            return Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar
-             + track.Name + Path.DirectorySeparatorChar;
+            return Utils.Constants.TracksDirectory + 
+            track.Name + 
+            Path.DirectorySeparatorChar;
         }
-        public static void SaveTrackToFile(Track track, string savename, string songdata = null)
+        public static string SaveTrackToFile(Track track, string savename, string songdata = null)
         {
             var dir = GetTrackDirectory(track);
             if (!Directory.Exists(dir))
@@ -192,7 +193,7 @@ namespace linerider
                 }
             }
             saveindex++;
-            SaveTrackTrk(track, saveindex + " " + savename, songdata);
+            return SaveTrackTrk(track, saveindex + " " + savename, songdata);
         }
         private static bool TryMoveAndReplaceFile(string fname, string fname2)
         {
@@ -376,7 +377,7 @@ namespace linerider
             int framecount = 40 * 60 * 5;
             for (int i = 0; i < framecount; i++)
             {
-                track.AddFrame();
+                track.AddFrame(false);
             }
             var filename = SaveTrackTrk(track, track.Name + ".test");
             if (System.IO.File.Exists(filename + ".result"))
@@ -408,7 +409,7 @@ namespace linerider
                 track.Reset();
                 for (int i = 0; i < frame; i++)
                 {
-                    track.AddFrame();
+                    track.AddFrame(false);
                 }
                 //track.Chunks.fg.PrintMetrics();
                 var state = track.RiderStates[track.RiderStates.Count - 1];

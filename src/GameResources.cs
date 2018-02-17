@@ -314,6 +314,14 @@ namespace linerider
                 return GetBitmap("flag_icon.png");
             }
         }
+        
+        internal static System.Drawing.Bitmap flag_invalid_icon
+        {
+            get
+            {
+                return GetBitmap("flag_invalid.png");
+            }
+        }
 
         internal static System.Drawing.Bitmap line_adjust_icon
         {

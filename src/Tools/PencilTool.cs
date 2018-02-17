@@ -30,6 +30,13 @@ namespace linerider.Tools
 {
     public class PencilTool : Tool
     {
+        public override bool RequestsMousePrecision
+        {
+            get
+            {
+                return DrawingScenery;
+            }
+        }
         public override bool NeedsRender
         {
             get
@@ -62,7 +69,7 @@ namespace linerider.Tools
 
             if (game.EnableSnap)
             {
-                var gamepos = MouseCoordsToGame(pos);
+                var gamepos = ScreenToGameCoords(pos);
                 using (var trk = game.Track.CreateTrackReader())
                 {
                     var snap = TrySnapPoint(trk, gamepos, out bool snapped);
@@ -80,7 +87,7 @@ namespace linerider.Tools
             }
             else
             {
-                _start = MouseCoordsToGame(pos);
+                _start = ScreenToGameCoords(pos);
                 Snapped = false;
             }
             _addflip = UI.InputUtils.Check(UI.Hotkey.LineToolFlipLine);
@@ -110,7 +117,7 @@ namespace linerider.Tools
         {
             if (Active)
             {
-                _end = MouseCoordsToGame(pos);
+                _end = ScreenToGameCoords(pos);
                 var diff = _end - _start;
                 if (DrawingScenery || diff.Length >= MINIMUM_LINE)
                 {
@@ -121,7 +128,7 @@ namespace linerider.Tools
                 game.Invalidate();
             }
 
-            _mouseshadow = MouseCoordsToGame(pos);
+            _mouseshadow = ScreenToGameCoords(pos);
             base.OnMouseMoved(pos);
         }
         public override void OnMouseUp(Vector2d pos)

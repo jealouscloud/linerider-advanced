@@ -25,7 +25,13 @@ namespace linerider.Tools
 {
     public class EraserTool : Tool
     {
-
+        public override bool RequestsMousePrecision
+        {
+            get
+            {
+                return true;
+            }
+        }
         public override MouseCursor Cursor
         {
             get { return game.Cursors["eraser"]; }
@@ -38,7 +44,7 @@ namespace linerider.Tools
         public override void OnMouseDown(Vector2d pos)
         {
             Active = true;
-            var p = MouseCoordsToGame(pos);
+            var p = ScreenToGameCoords(pos);
             Erase(p);
             base.OnMouseDown(pos);
         }
@@ -47,7 +53,7 @@ namespace linerider.Tools
         {
             if (Active)
             {
-                var p = MouseCoordsToGame(pos);
+                var p = ScreenToGameCoords(pos);
                 Erase(p);
             }
             base.OnMouseMoved(pos);
@@ -58,7 +64,7 @@ namespace linerider.Tools
             if (Active)
             {
                 Active = false;
-                var p = MouseCoordsToGame(pos);
+                var p = ScreenToGameCoords(pos);
                 Erase(p);
             }
             base.OnMouseUp(pos);

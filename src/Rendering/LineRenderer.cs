@@ -7,6 +7,8 @@ using OpenTK;
 using linerider.Drawing;
 using linerider.Utils;
 using linerider.Lines;
+using System.Diagnostics;
+
 namespace linerider.Rendering
 {
     public class LineRenderer : IDisposable
@@ -152,6 +154,7 @@ namespace linerider.Rendering
         public void RemoveLine(int ibo_index)
         {
             int vertstart = _indices.Arr[ibo_index];
+            bool alreadyremoved = IsNulled(ibo_index);
             for (int i = 0; i < linesize; i++)
             {
                 _indices.Arr[ibo_index + i] = nullindex;
@@ -163,6 +166,11 @@ namespace linerider.Rendering
                 ibo_index,
                 linesize);
             _ibo.Unbind();
+            if (alreadyremoved)
+            {
+               // Debug.WriteLine("linerenderer remove line thats nulled" + ibo_index);
+                return;
+            }
             freevertices.Enqueue(vertstart);
             // we dont empty from the vbo cause theres no need, the ibo doesnt
             // point to it and we might need the space later
@@ -284,22 +292,22 @@ namespace linerider.Rendering
         public static LineVertex[] CreateTrackLine(Vector2d lnstart, Vector2d lnend, float size, int color = 0)
         {
             var d = lnend - lnstart;
-            var rad = Math.Atan2(d.Y, d.X);
-            var c = new Vector2d(Math.Cos(rad), Math.Sin(rad));
+            var rad = Angle.FromVector(d);
+            var c = new Vector2d(rad.Cos, rad.Sin);
             //create line cap ends
             lnstart += c * -1;
             lnend += c * 1;
 
-            return CreateLine(lnstart, lnend, size, (float)rad, color);
+            return CreateLine(lnstart, lnend, size, rad, color);
         }
-        public static LineVertex[] CreateLine(Vector2d lnstart, Vector2d lnend, float size, float radians, int color = 0)
+        public static LineVertex[] CreateLine(Vector2d lnstart, Vector2d lnend, float size, Angle angle, int color = 0)
         {
             LineVertex[] ret = new LineVertex[6];
             var start = (Vector2)lnstart;
             var end = (Vector2)lnend;
             var len = (end - start).Length;
 
-            var l = StaticRenderer.GenerateThickLine(start, end, radians, size);
+            var l = StaticRenderer.GenerateThickLine(start, end, angle, size);
             ret[1] = new LineVertex() { Position = l[0], circle_uv = new Vector2(0, 1), ratio = size / len, color = color };
             ret[0] = new LineVertex() { Position = l[1], circle_uv = new Vector2(1, 1), ratio = size / len, color = color };
             ret[2] = new LineVertex() { Position = l[2], circle_uv = new Vector2(1, 0), ratio = size / len, color = color };

@@ -140,19 +140,19 @@ namespace linerider.Rendering
                 {
                     c = Color.CornflowerBlue;
                     vertices.AddRange(GenRoundedLine(
-                        rider.Body[bones[i].joint1].Location, 
-                        rider.Body[bones[i].joint2].Location, 
-                        c, 
-                        1f / 4, 
+                        rider.Body[bones[i].joint1].Location,
+                        rider.Body[bones[i].joint2].Location,
+                        c,
+                        1f / 4,
                         false));
                 }
                 else if (i <= 3)
                 {
                     vertices.AddRange(GenRoundedLine(
-                        rider.Body[bones[i].joint1].Location, 
-                        rider.Body[bones[i].joint2].Location, 
-                        c, 
-                        1f / 4, 
+                        rider.Body[bones[i].joint1].Location,
+                        rider.Body[bones[i].joint2].Location,
+                        c,
+                        1f / 4,
                         false));
                 }
             }
@@ -192,10 +192,10 @@ namespace linerider.Rendering
                     c = Color.Blue;
                 }
                 vertices.AddRange(GenRoundedLine(
-                    rider.Body[i].Location, 
-                    rider.Body[i].Location, 
-                    c, 
-                    1f / 4, 
+                    rider.Body[i].Location,
+                    rider.Body[i].Location,
+                    c,
+                    1f / 4,
                     false));
             }
         }
@@ -369,8 +369,9 @@ namespace linerider.Rendering
         }
         public static void DbgDrawGrid()
         {
-            bool fastgrid = true;
+            bool fastgrid = false;
             bool renderext = true;
+            bool renderridersquare = true;
             int sqsize = fastgrid ? FastGrid.CellSize : SimulationGrid.CellSize;
             GL.PushMatrix();
             GL.Scale(Game.Track.Zoom, Game.Track.Zoom, 0);
@@ -385,18 +386,7 @@ namespace linerider.Rendering
                     if (!fastgrid)
                     {
                         var gridpos = new GridPoint((int)Math.Floor(yv.X / sqsize), (int)Math.Floor(yv.Y / sqsize));
-                        /*if (Game.Track.RenderRider.PhysicsBounds.ContainsPoint(gridpos))
-                        {
-                            GL.Color3(Color.Lime);
-                            GL.Vertex2(yv);
-                            yv.Y += sqsize;
-                            GL.Vertex2(yv);
-                            yv.X += sqsize;
-                            GL.Vertex2(yv);
-                            yv.Y -= sqsize;
-                            GL.Vertex2(yv);
-                        }
-                        else */
+
                         if (Game.Track.GridCheck(yv.X, yv.Y))
                         {
                             GL.Color3(Color.Yellow);
@@ -407,6 +397,20 @@ namespace linerider.Rendering
                             GL.Vertex2(yv);
                             yv.Y -= sqsize;
                             GL.Vertex2(yv);
+                        }
+                        if (renderridersquare)
+                        {
+                            if (Game.Track.RenderRider.PhysicsBounds.ContainsPoint(gridpos))
+                            {
+                                GL.Color3(Color.LightGray);
+                                GL.Vertex2(yv);
+                                yv.Y += sqsize;
+                                GL.Vertex2(yv);
+                                yv.X += sqsize;
+                                GL.Vertex2(yv);
+                                yv.Y -= sqsize;
+                                GL.Vertex2(yv);
+                            }
                         }
                     }
                     else if (Game.Track.FastGridCheck(yv.X, yv.Y))

@@ -107,7 +107,9 @@ namespace linerider.UI
                     trk.Track.Name = txt;
                     try
                     {
-                        trk.SaveTrackTrk(tb.Text, Settings.Local.CurrentSong?.ToString());
+                        var filepath = trk.SaveTrackTrk(tb.Text, Settings.Local.CurrentSong?.ToString());
+                        Settings.LastSelectedTrack = filepath;
+                        Settings.Save();
                     }
                     catch
                     {

@@ -35,12 +35,8 @@ namespace linerider
 {
     public class Track
     {
-        public HashSet<int> AllCollidedLines = new HashSet<int>();
 
         public SimulationGrid Grid = new SimulationGrid();
-
-        public List<ConcurrentDictionary<int, StandardLine>> Collisions =
-            new List<ConcurrentDictionary<int, StandardLine>>();
 
         public FastGrid QuickGrid = new FastGrid();
 
@@ -229,10 +225,14 @@ namespace linerider
             Grid.GridVersion = version;
         }
 
-        public void AddFrame()
+        public HashSet<int> AddFrame(bool hittest)
         {
-            //todo collision
-            RiderStates.Add(RiderStates[RiderStates.Count - 1].Simulate(this, null));
+            var collisions = hittest ? new HashSet<int>() : null;
+            RiderStates.Add(
+                RiderStates[RiderStates.Count - 1].Simulate(
+                    this,
+                    collisions));
+            return collisions;
         }
     }
 }

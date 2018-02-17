@@ -28,21 +28,12 @@ using OpenTK.Input;
 using OpenTK.Graphics;
 using linerider.Audio;
 using linerider.UI;
+using linerider.Utils;
 
 namespace linerider
 {
     static class Settings
     {
-        public static class Static
-        {
-            public static readonly Color4 ColorOffwhite = new Color4(244, 245, 249, 255);
-            public static readonly Color4 ColorWhite = new Color4(255, 255, 255, 255);
-            public static readonly Color4 ColorNightMode = new Color4(20, 20, 25, 255);
-            public static readonly int[] MotionArray =
-            {
-            1, 2, 5, 10, 20, 30, 40, 80, 160, 320, 640
-        };
-        }
         public static class Local
         {
             public static bool HitTest = false;
@@ -78,6 +69,7 @@ namespace linerider
         public static bool SmoothCamera = true;
         public static bool SmoothPlayback = true;
         public static bool CheckForUpdates = true;
+        public static string LastSelectedTrack = "";
         static Settings()
         {
 
@@ -180,6 +172,11 @@ namespace linerider
             LoadBool(GetSetting(lines, nameof(SmoothCamera)), ref SmoothCamera);
             LoadBool(GetSetting(lines, nameof(CheckForUpdates)), ref CheckForUpdates);
             LoadBool(GetSetting(lines, nameof(SmoothPlayback)), ref SmoothPlayback);
+            var lasttrack = GetSetting(lines, nameof(LastSelectedTrack));
+            if (File.Exists(lasttrack) && lasttrack.StartsWith(Constants.TracksDirectory))
+            {
+                LastSelectedTrack = lasttrack;
+            }
             foreach (string name in Enum.GetNames(typeof(Hotkey)))
             {
                 LoadKeybinding(lines, name);
@@ -198,6 +195,7 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(SmoothCamera), SmoothCamera.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(CheckForUpdates), CheckForUpdates.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SmoothPlayback), SmoothPlayback.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(LastSelectedTrack), LastSelectedTrack);
             foreach (var binds in Keybinds)
             {
                 foreach (var bind in binds.Value)
@@ -263,10 +261,10 @@ namespace linerider
             for (int i = start; i < config.Length; i++)
             {
                 var idx = config[i].IndexOf("=");
-                if (idx != -1 && idx + 1 < config[i].Length && config[i].Substring(0,idx) == name)//split[0] == name && split.Length > 1)
+                if (idx != -1 && idx + 1 < config[i].Length && config[i].Substring(0, idx) == name)//split[0] == name && split.Length > 1)
                 {
 
-                    var split = config[i].Substring(idx+1);
+                    var split = config[i].Substring(idx + 1);
                     start = i;
                     return split;
                 }

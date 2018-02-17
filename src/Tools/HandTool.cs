@@ -55,7 +55,7 @@ namespace linerider.Tools
             startposition = pos;
             lastposition = startposition;
             CameraStart = game.Track.Camera.GetCameraCenter();
-            CameraTarget = MouseCoordsToGame(pos);
+            CameraTarget = ScreenToGameCoords(pos);
             game.Invalidate();
             game.UpdateCursor();
             base.OnMouseRightDown(pos);

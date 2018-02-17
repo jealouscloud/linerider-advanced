@@ -41,14 +41,19 @@ namespace linerider.Tools
         public bool Active { get; protected set; }
         public virtual bool NeedsRender { get { return false; } }
         public abstract MouseCursor Cursor { get; }
+        /// <summary>
+        /// Determines whether to receive mouse movement events when they happen
+        /// or only the last one before frame update.
+        /// Leaving this false can be very good for performance.
+        /// </summary>
+        public virtual bool RequestsMousePrecision { get { return false;} }
         public Tool()
         {
         }
 
-        protected Vector2d MouseCoordsToGame(Vector2d mouse)
+        protected Vector2d ScreenToGameCoords(Vector2d mouse)
         {
-            var p = game.ScreenPosition + (mouse / game.Track.Zoom);
-            return p;
+            return game.ScreenPosition + (mouse / game.Track.Zoom);
         }
         public virtual void OnMouseMoved(Vector2d pos)
         {
@@ -247,7 +252,7 @@ namespace linerider.Tools
             }
             var next = reader.QuickSimulate(
                 prev,
-                out Dictionary<int, GameLine> collisions,
+                out HashSet<int> collisions,
                 game.Track.IterationsOffset);
             if (!next.Crashed)
             {
@@ -263,7 +268,7 @@ namespace linerider.Tools
                             return false;
                     }
                 }
-                if (collisions.ContainsKey(line.ID))
+                if (collisions.Contains(line.ID))
                     return true;
             }
             return false;

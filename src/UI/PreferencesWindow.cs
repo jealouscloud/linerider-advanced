@@ -28,6 +28,7 @@ using Gwen.Controls;
 using System.Globalization;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using linerider.Utils;
 
 namespace linerider.UI
 {
@@ -175,7 +176,7 @@ the color of the original line.");
             lcb.CheckChanged += (o, e) => { Settings.Local.PreviewMode = ((LabeledCheckBox)o).IsChecked; };
             lcb.Dock = Pos.Top;
             lcb.SetToolTipText(@"The opposite of Color Playback. The editor will
-shoe the lines as black instead");
+show the lines as black instead");
             //
 
             lcb = new LabeledCheckBox(gb);
@@ -282,9 +283,9 @@ shoe the lines as black instead");
             };
             var cbplayback = new ComboBox(gb);
             cbplayback.Dock = Pos.Top;
-            for (var i = 0; i < Settings.Static.MotionArray.Length; i++)
+            for (var i = 0; i < Constants.MotionArray.Length; i++)
             {
-                var f = (Settings.Static.MotionArray[i] / 40f);
+                var f = (Constants.MotionArray[i] / 40f);
                 cbplayback.AddItem("Playback: " + f + "x", f.ToString(CultureInfo.InvariantCulture), f);
             }
             cbplayback.SelectByName(Settings.Local.DefaultPlayback.ToString(CultureInfo.InvariantCulture));
@@ -322,6 +323,7 @@ shoe the lines as black instead");
             marg.Top += 5;
             lcb.Margin = marg;
             lcb.Text = "All Pink Lifelock";
+            lcb.SetToolTipText(@"I hope you know where the manual is.");
             lcb.IsChecked = Settings.PinkLifelock;
             lcb.CheckChanged += (o, e) => { Settings.PinkLifelock = ((LabeledCheckBox)o).IsChecked; Settings.Save(); };
             lcb.Dock = Pos.Top;
@@ -342,14 +344,11 @@ shoe the lines as black instead");
             lcb.Dock = Pos.Top;
             lcb = new LabeledCheckBox(gb);
             lcb.Text = "White BG";
-            lcb.SetToolTipText(@"For if you're a bad person");
             lcb.IsChecked = Settings.WhiteBG;
             lcb.CheckChanged += (o, e) =>
             {
                 Settings.WhiteBG = ((LabeledCheckBox)o).IsChecked;
                 Settings.Save();
-                if (!Settings.NightMode)
-                    GL.ClearColor(Settings.WhiteBG ? Settings.Static.ColorWhite : Settings.Static.ColorOffwhite);
             };
             lcb.Dock = Pos.Top;
             lcb = new LabeledCheckBox(gb);
@@ -357,24 +356,11 @@ shoe the lines as black instead");
             lcb.IsChecked = Settings.NightMode;
             lcb.CheckChanged += (o, e) =>
             {
-                if (((LabeledCheckBox)o).IsChecked)
-                {
-                    GL.ClearColor(new Color4(50, 50, 60, 255));
-                }
-                else
-                {
-                    GL.ClearColor(Settings.WhiteBG ? Settings.Static.ColorWhite : Settings.Static.ColorOffwhite);
-                }
                 Settings.NightMode = ((LabeledCheckBox)o).IsChecked;
                 Settings.Save();
+                game.Invalidate();
                 game.Canvas.ButtonsToggleNightmode();
             };
-            lcb.Dock = Pos.Top;
-            lcb = new LabeledCheckBox(gb);
-            lcb.Text = "Live Line Editing";
-            lcb.SetToolTipText("For the line adjust tool during playback\r\nEnable this if you have a slow PC");
-            lcb.IsChecked = Settings.LiveAdjustment;
-            lcb.CheckChanged += (o, e) => { Settings.LiveAdjustment = ((LabeledCheckBox)o).IsChecked; Settings.Save(); };
             lcb.Dock = Pos.Top;
 
             lcb = new LabeledCheckBox(container);

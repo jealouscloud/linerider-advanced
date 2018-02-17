@@ -48,8 +48,6 @@ namespace linerider.Lines
         protected double DotScalar;
         public double Distance;
         public Ext Extension;
-        public StandardLine Next;
-        public StandardLine Prev;
         public LineTrigger Trigger = null;
         public Vector2d Difference;
         public bool inv = false;

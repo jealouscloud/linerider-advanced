@@ -78,10 +78,10 @@ namespace linerider.Utils
         /// </summary>
         public Rider QuickSimulate(
             Rider state,
-            out Dictionary<int, GameLine> collisions,
+            out HashSet<int> collisions,
             int maxiteration = 6)
         {
-            collisions = new Dictionary<int, GameLine>();
+            collisions = new HashSet<int>();
             return state.Simulate(_track.Grid, 
             _track.Bones, 
             null,

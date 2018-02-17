@@ -432,15 +432,15 @@ namespace linerider
             var songs = new UI.SongWindow(this, game);
             ShowCenteredWindow(songs);
         }
-        public void ShowDelete()
+        public void ShowNewTrack()
         {
-            var window = PopupWindow.Create("Do you want to delete the current track?", "Delete Track", true, true);
+            var window = PopupWindow.Create("Do you want to start a new track? Your current progress will not be saved.", "New Track", true, true);
             window.Dismissed += (o, e) =>
             {
                 if (window.Result == System.Windows.Forms.DialogResult.OK)
                 {
                     game.Track.Stop();
-                    game.Track.ChangeTrack(new Track() { Name = "untitled" });
+                    game.Track.ChangeTrack(new Track() { Name = Utils.Constants.DefaultTrackName });
                     game.Invalidate();
                 }
             };
@@ -498,9 +498,10 @@ namespace linerider
         internal void DisableFlagTooltip()
         {
             RemoveTooltip(FlagTool);
+            FlagTool.DisableImageOverride();
         }
 
-        internal void CalculateFlag(TrackService.Tracklocation loc)
+        internal void CalculateFlag(Editor.Tracklocation loc)
         {
             if (loc?.State == null) return;
             DisableFlagTooltip();
@@ -512,12 +513,6 @@ namespace linerider
             {
                 if (frame > 400) //many frames, will likely lag the game. Update the window as a fallback.
                 {
-                    if (frame > 24000) //too many frames, could lag the game very bad.
-                    {
-                        SetTooltip(FlagTool, "Flag is incalculable.");
-                        game.Invalidate();
-                        return;
-                    }
                     game.Title = Program.WindowTitle + " [Validating flag]";
                 }
 
@@ -527,8 +522,7 @@ namespace linerider
                 }
             }
             invalid = !state.Body.CompareTo(loc.State.Body);
-            SetFlagTooltip(!invalid);
-            SetTooltip(FlagTool, invalid ? "Flag is invalid" : "Flag is valid");
+            SetFlagState(!invalid);
             if (frame > 400)
             {
                 game.Title = Program.WindowTitle;
@@ -536,9 +530,13 @@ namespace linerider
             game.Invalidate();
         }
 
-        internal void SetFlagTooltip(bool valid)
+        internal void SetFlagState(bool valid)
         {
-            SetTooltip(FlagTool, valid ? "Flag is valid" : "Flag is invalid");
+            FlagTool.SetToolTipText(valid ? "Flag is valid" : "Flag is invalid");
+            if (valid)
+                FlagTool.DisableImageOverride();
+            else
+                FlagTool.EnableImageOverride();
         }
 
         private void GameCanvas_BoundsChanged(ControlBase sender, EventArgs arguments)

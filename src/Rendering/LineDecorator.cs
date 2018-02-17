@@ -10,7 +10,7 @@ using linerider.Lines;
 namespace linerider.Rendering
 {
     internal class LineDecorator : IDisposable
-    {        
+    {
         private LineColorRenderer _linecolorrenderer;
         private WellRenderer _wellrenderer;
         public LineDecorator()
@@ -18,7 +18,7 @@ namespace linerider.Rendering
             _linecolorrenderer = new LineColorRenderer();
             _wellrenderer = new WellRenderer();
         }
-        public void Draw(DrawOptions options)
+        public void DrawUnder(DrawOptions options)
         {
             if (options.LineColors)
             {
@@ -39,9 +39,16 @@ namespace linerider.Rendering
             _linecolorrenderer.AddLine(line);
             _wellrenderer.AddLine(line);
         }
-        public void LineChanged(StandardLine line)
+        public void LineChanged(StandardLine line, bool hit = false)
         {
-            _linecolorrenderer.LineChanged(line);
+            if (!hit)
+            {
+                _linecolorrenderer.LineChanged(line, false);
+            }
+            else
+            {
+                _linecolorrenderer.RemoveLine(line);
+            }
             _wellrenderer.LineChanged(line);
         }
         public void RemoveLine(StandardLine line)

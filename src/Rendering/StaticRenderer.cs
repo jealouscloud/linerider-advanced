@@ -277,37 +277,39 @@ namespace linerider.Rendering
             ret[segments - 1] = ret[0];
             return ret;
         }
-
         public static Vector2[] GenerateThickLine(Vector2 p, Vector2 p1, float radians, float width)
         {
-            Vector2[] ret = new Vector2[4];
-            var angle = Angle.FromRadians(radians);
-            angle.Radians += 1.5708f; //90 degrees as const, radians so no conversion between degrees for a radians only calculation
-            var t = CalculateLine(Vector2.Zero, angle, width / 2);
-            ret[0] = p + t;
-            ret[1] = p1 + t;
-            ret[2] = p1 - t;
-            ret[3] = p - t;
-            return ret;
+            return GenerateThickLine(p, p1, Angle.FromRadians(radians), width);
         }
         public static Vector2[] GenerateThickLine(Vector2 p, Vector2 p1, float width)
         {
+            return GenerateThickLine(p, p1, Angle.FromLine(p, p1), width);
+        }
+        public static Vector2d[] GenerateThickLine(Vector2d p, Vector2d p1, double width)
+        {
+            return GenerateThickLine(p, p1, Angle.FromLine(p, p1), width);
+        }
+        public static Vector2[] GenerateThickLine(Vector2 p, Vector2 p1, Angle angle, float width)
+        {
             Vector2[] ret = new Vector2[4];
-            var angle = Angle.FromLine(p, p1);
-            angle.Radians += 1.5708f; //90 degrees as const, radians so no conversion between degrees for a radians only calculation
-            var t = CalculateLine(Vector2.Zero, angle, width / 2);
+            Vector2 diff = p - p1;
+            angle.Radians += 1.5708f; //90 degrees
+            var t = new Vector2(
+                (float)(angle.Cos * (width/2)),
+                (float)(angle.Sin * (width/2)));
             ret[0] = p + t;
             ret[1] = p1 + t;
             ret[2] = p1 - t;
             ret[3] = p - t;
             return ret;
         }
-        public static Vector2d[] GenerateThickLine(Vector2d p, Vector2d p1, double width)
+        public static Vector2d[] GenerateThickLine(Vector2d p, Vector2d p1, Angle angle, double width)
         {
             Vector2d[] ret = new Vector2d[4];
-            var angle = Angle.FromLine(p, p1);
-            angle.Radians += 1.5708f; //90 degrees as const, radians so no conversion between degrees for a radians only calculation
-            var t = CalculateLine(Vector2d.Zero, angle, width / 2);
+            angle.Radians += 1.5708f; //90 degrees
+            var t = new Vector2d(
+                angle.Cos * (width / 2),
+                angle.Sin * (width / 2));
             ret[0] = p + t;//bl
             ret[1] = p1 + t;//br
             ret[2] = p1 - t;//tr
