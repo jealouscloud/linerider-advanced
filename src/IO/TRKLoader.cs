@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using linerider.Audio;
 using linerider.Lines;
+using System.Diagnostics;
 
 namespace linerider.IO
 {

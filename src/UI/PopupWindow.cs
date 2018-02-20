@@ -30,6 +30,7 @@ namespace linerider
 {
     internal class PopupWindow : GameService
     {
+        public static readonly Queue<Action> QueuedActions = new Queue<Action>();
         public static Window Error(string text, string title = "Error!")
         {
             return Create(text, title, true, false);
