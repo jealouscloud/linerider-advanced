@@ -114,7 +114,7 @@ namespace linerider
         {
             if (line.Type == LineType.Scenery)
             {
-                if (line.ID == GameLine.UninitializedID)
+                if (line.ID == GameLine.UninitializedID || line.ID >= 0)
                     line.ID = _sceneryidcounter--;
                 else if (line.ID <= _sceneryidcounter)
                 {

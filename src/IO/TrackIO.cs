@@ -41,11 +41,12 @@ namespace linerider.IO
         }
 
 
-        public static string[] EnumerateTRKFiles(string folder)
+        public static string[] EnumerateTrackFiles(string folder)
         {
             return Directory.GetFiles(folder, "*.*")
                 .Where(x =>
-                    x.EndsWith(".trk", StringComparison.OrdinalIgnoreCase)).OrderByDescending(x =>
+                    (x.EndsWith(".trk", StringComparison.OrdinalIgnoreCase))).
+                    OrderByDescending(x =>
                     {
                         var fn = Path.GetFileName(x);
                         var index = fn.IndexOf(" ", StringComparison.Ordinal);
@@ -143,7 +144,7 @@ namespace linerider.IO
                 Directory.CreateDirectory(dir);
 
             var trackfiles =
-                TrackIO.EnumerateTRKFiles(dir);
+                TrackIO.EnumerateTrackFiles(dir);
             int saveindex = 0;
             for (var i = 0; i < trackfiles.Length; i++)
             {
@@ -159,7 +160,8 @@ namespace linerider.IO
                 }
             }
             saveindex++;
-            return TRKWriter.SaveTrack(track, saveindex + " " + savename, songdata);
+          //  return JSONWriter.SaveTrack(track,saveindex + " " + savename);
+           return TRKWriter.SaveTrack(track, saveindex + " " + savename, songdata);
         }
         private static bool TryMoveAndReplaceFile(string fname, string fname2)
         {

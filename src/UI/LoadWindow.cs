@@ -60,8 +60,7 @@ namespace linerider.UI
             }
             if (Directory.Exists(files))
             {
-                var trkfiles = Directory.GetFiles(files, "*.*")
-                        .Where(s => s != null && s.EndsWith(".trk", StringComparison.OrdinalIgnoreCase));
+                var trkfiles = TrackIO.EnumerateTrackFiles(files);
                 foreach (var trk in trkfiles)
                 {
                     AddTrack(tv, trk, null);
@@ -70,7 +69,7 @@ namespace linerider.UI
                 var folders = Directory.GetDirectories(files);
                 foreach (var folder in folders)
                 {
-                    var trackfiles = TrackIO.EnumerateTRKFiles(folder);
+                    var trackfiles = TrackIO.EnumerateTrackFiles(folder);
 
                     AddTrack(tv, folder, trackfiles);
                 }
@@ -295,9 +294,9 @@ namespace linerider.UI
                             Settings.Local.EnableSong = false;
                             string file = filepath;
                             string name = trackname;
-                            if (!ThreadPool.QueueUserWorkItem((o) =>LoadTRK(file, name)))
+                            if (!ThreadPool.QueueUserWorkItem((o) => LoadTrack(file, name)))
                             {
-                                LoadTRK(file, name);
+                                LoadTrack(file, name);
                             }
                         }
                     }
@@ -324,29 +323,40 @@ namespace linerider.UI
                 window.Close();
             }
         }
-        private void LoadTRK(string file, string name)
+        private void LoadTrack(string file, string name)
         {
             game.Loading = true;
             try
             {
-                game.Track.ChangeTrack(TRKLoader.LoadTrackTRK(file, name));
+                Track track;
+                if (file.EndsWith(".trk", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    track = TRKLoader.LoadTrack(file, name);
+                }
+                else
+                {
+                    throw new Exception("Filetype unknown");
+                }
+                game.Track.ChangeTrack(track);
                 Settings.LastSelectedTrack = file;
                 Settings.Save();
             }
             catch (TrackIO.TrackLoadException e)
             {
+                PopupWindow.QueuedActions.Enqueue(() =>
                 PopupWindow.Error(
                     "Failed to load the track:" +
                     Environment.NewLine +
-                    e.Message);
+                    e.Message));
                 return;
             }
             catch (Exception e)
             {
+                PopupWindow.QueuedActions.Enqueue(()=>
                 PopupWindow.Error(
                     "An unknown error occured while loading the track." +
                     Environment.NewLine +
-                    e.Message);
+                    e.Message));
                 return;
             }
             finally

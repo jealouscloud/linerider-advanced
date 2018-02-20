@@ -157,6 +157,10 @@ namespace linerider
 
         protected override void Render(SkinBase skin)
         {
+            while(PopupWindow.QueuedActions.Count != 0)
+            {
+                PopupWindow.QueuedActions.Dequeue().Invoke();
+            }
             SpriteLoading.IsHidden = !game.Loading;
             if (game.Loading)
                 SpriteLoading.Rotation = (Environment.TickCount % 1000) / 1000f;
@@ -311,38 +315,40 @@ namespace linerider
         }
         public void ExportAsSol()
         {
+            Dictionary<string, bool> features;
             using (var trk = game.Track.CreateTrackReader())
             {
-                if (trk.GetOldestLine() != null)
+                if (trk.GetOldestLine() == null)
+                    return;
+                features = trk.GetFeatures();
+            }
+            bool six_one;
+            bool redmultiplier;
+            bool scenerywidth;
+            features.TryGetValue("SIX_ONE", out six_one);
+            features.TryGetValue("REDMULTIPLIER", out redmultiplier);
+            features.TryGetValue("SCENERYWIDTH", out scenerywidth);
+            if (six_one || redmultiplier || scenerywidth)
+            {
+                var window = PopupWindow.Error("Unable to export SOL file due to it containing special LRA specific features.\n" + (six_one ? "\nthe track is based on 6.1, " : "") + (redmultiplier ? "\nthe track uses red multiplier lines, " : "") + (scenerywidth ? "\nthe track uses varying scenery line width " : "") + "\n\nand therefore cannot be loaded");
+            }
+            else
+            {
+                var window = PopupWindow.Create("Are you sure you wish to save this track as an SOL file? It will overwrite any file with its name. (trackname+savedLines.sol)", "Are you sure?", true, true);
+                window.Dismissed += (o, e) =>
                 {
-                    var features = trk.GetFeatures();
-                    bool six_one;
-                    bool redmultiplier;
-                    bool scenerywidth;
-                    features.TryGetValue("SIX_ONE", out six_one);
-                    features.TryGetValue("REDMULTIPLIER", out redmultiplier);
-                    features.TryGetValue("SCENERYWIDTH", out scenerywidth);
-                    if (six_one || redmultiplier || scenerywidth)
+                    if (window.Result == System.Windows.Forms.DialogResult.OK)
                     {
-                        var window = PopupWindow.Error("Unable to export SOL file due to it containing special LRA specific features.\n" + (six_one ? "\nthe track is based on 6.1, " : "") + (redmultiplier ? "\nthe track uses red multiplier lines, " : "") + (scenerywidth ? "\nthe track uses varying scenery line width " : "") + "\n\nand therefore cannot be loaded");
-                    }
-                    else
-                    {
-                        var window = PopupWindow.Create("Are you sure you wish to save this track as an SOL file? It will overwrite any file with its name. (trackname+savedLines.sol)", "Are you sure?", true, true);
-                        window.Dismissed += (o, e) =>
+                        using (var track = game.Track.CreateTrackReader())
                         {
-                            if (window.Result == System.Windows.Forms.DialogResult.OK)
-                            {
-                                using (var track = game.Track.CreateTrackReader())
-                                {
-                                    track.SaveTrackAsSol();
-                                }
-                            }
-                        };
+                            track.SaveTrackAsSol();
+                        }
                     }
-                }
+                };
             }
         }
+
+
         private static void OpenUrl(string url)
         {
             try
