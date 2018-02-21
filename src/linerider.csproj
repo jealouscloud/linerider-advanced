@@ -10,6 +10,13 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    
+      <AllowedReferenceRelatedFileExtensions>
+      <!-- Prevent default XML file output
+           Only *.allowedextension files will be included
+       -->
+      .pdb
+    </AllowedReferenceRelatedFileExtensions> 
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,17 +48,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="IO\TrackSave.cs" />
-    <Compile Include="IO\SOL\SOLFile.cs" />
-    <Compile Include="IO\SOL\Amf0Object.cs" />
-    <Compile Include="IO\SOL\Amf0.cs" />
-    <Compile Include="IO\TRKLoader.cs" />
-    <Compile Include="IO\TRKWriter.cs" />
-    <Compile Include="IO\SOLLoader.cs" />
-    <Compile Include="IO\SOL\sol_track.cs" />
-    <Compile Include="IO\SOLWriter.cs" />
-    <Compile Include="IO\BigEndianWriter.cs" />
-    <Compile Include="IO\BigEndianReader.cs" />
+    <Compile Include="EntryPoint.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Audio\AudioDevice.cs" />
@@ -111,6 +108,7 @@
     <Compile Include="Game\Track.cs" />
     <Compile Include="Game\PlaybackBufferManager.cs" />
     <Compile Include="Game\PlaybackReader.cs" />
+    <Compile Include="Game\Timeline.cs" />
     <Compile Include="Game\TrackReader.cs" />
     <Compile Include="Game\TrackWriter.cs" />
   </ItemGroup>
@@ -136,8 +134,19 @@
     <Compile Include="Tools\Tool.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IO\BigEndianReader.cs" />
+    <Compile Include="IO\BigEndianWriter.cs" />
+    <Compile Include="IO\SOL\Amf0.cs" />
+    <Compile Include="IO\SOL\Amf0Object.cs" />
+    <Compile Include="IO\SOL\sol_track.cs" />
+    <Compile Include="IO\SOL\SOLFile.cs" />
+    <Compile Include="IO\SOLLoader.cs" />
+    <Compile Include="IO\SOLWriter.cs" />
     <Compile Include="IO\TrackIO.cs" />
     <Compile Include="IO\TrackRecorder.cs" />
+    <Compile Include="IO\TrackSave.cs" />
+    <Compile Include="IO\TRKLoader.cs" />
+    <Compile Include="IO\TRKWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="UI\ColorControls.cs" />
@@ -183,9 +192,6 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Runtime.CompilerServices.Unsafe">
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.4.4.0\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -272,9 +278,6 @@
       <Project>{41650c82-d630-4e5c-845a-f1513c8fdc99}</Project>
       <Name>Gwen.Renderer.OpenTK</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="IO\SOL\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
