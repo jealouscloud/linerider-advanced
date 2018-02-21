@@ -28,27 +28,9 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
+
 namespace linerider
 {
-    public static class EntryPoint
-    {
-        #region Methods
-
-        [STAThread]
-        public static void Main(string[] args)
-        {
-#if DEBUG
-            if (args.Length >= 1 && args[0] == "debug")
-            {
-                Program.IsDebugged = true;
-            }
-#endif
-            Program.Run();
-        }
-
-        #endregion Methods
-    }
-
     public static class Program
     {
         #region Fields
@@ -63,7 +45,7 @@ namespace linerider
         public static readonly string WindowTitle = "Line Rider: Advanced " + TestVersion;
         public static Random Random;
         private static bool _crashed;
-        private static GLWindow glGame;
+        private static MainWindow glGame;
         private static string _currdir;
         private static string _userdir;
 
@@ -109,23 +91,41 @@ namespace linerider
 
         #region Methods
 
-        public static void Crash(Exception ex)
+        public static void Crash(Exception e)
         {
             if (!_crashed)
             {
                 _crashed = true;
                 glGame.Track.BackupTrack();
             }
+            if (System.Windows.Forms.MessageBox.Show(
+                "Unhandled Exception: " +
+                e.Message +
+                Environment.NewLine +
+                e.StackTrace +
+                Environment.NewLine +
+                "Would you like to export the crash data to a log.txt?",
+                "Error!",
+                System.Windows.Forms.MessageBoxButtons.YesNo)
+                 == System.Windows.Forms.DialogResult.Yes)
+            {
+                if (!File.Exists(UserDirectory + "log.txt"))
+                    File.Create(UserDirectory + "log.txt").Dispose();
+
+                string append = WindowTitle + "\r\n" + e.ToString() + "\r\n";
+                string begin = File.ReadAllText(UserDirectory + "log.txt", System.Text.Encoding.ASCII);
+                File.WriteAllText(UserDirectory + "log.txt", begin + append, System.Text.Encoding.ASCII);
+            }
+            throw e;
         }
 
         public static void NonFatalError(string err)
         {
             System.Windows.Forms.MessageBox.Show("Non Fatal Error: " + err);
         }
-
         public static void Run()
         {
-            #if DEBUG
+#if DEBUG
             if (IsDebugged)
             {
                 Debug.Listeners.Add(new TextWriterTraceListener(System.Console.Out));
@@ -134,8 +134,7 @@ namespace linerider
             {
                 AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             }
-            #endif
-            
+#endif
             if (!Directory.Exists(UserDirectory))
             {
                 Directory.CreateDirectory(UserDirectory);
@@ -153,7 +152,7 @@ namespace linerider
 
             using (Toolkit.Init(new ToolkitOptions { EnableHighResolution = true, Backend = PlatformBackend.Default }))
             {
-                using (glGame = new GLWindow())
+                using (glGame = new MainWindow())
                 {
                     glGame.RenderSize = new System.Drawing.Size(1280, 720);
                     Rendering.GameRenderer.Game = glGame;
@@ -170,15 +169,6 @@ namespace linerider
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Crash((Exception)e.ExceptionObject);
-            if (System.Windows.Forms.MessageBox.Show("Unhandled Exception: " + e.ExceptionObject + "\r\n\r\nWould you like to export the crash data to a log.txt?", "Error!", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-            {
-                if (!File.Exists(UserDirectory + "log.txt"))
-                    File.Create(UserDirectory + "log.txt").Dispose();
-
-                string append = WindowTitle + "\r\n" + e.ExceptionObject.ToString() + "\r\n";
-                string begin = File.ReadAllText(UserDirectory + "log.txt", System.Text.Encoding.ASCII);
-                File.WriteAllText(UserDirectory + "log.txt", begin + append, System.Text.Encoding.ASCII);
-            }
 
             throw (Exception)e.ExceptionObject;
         }
