@@ -21,6 +21,7 @@ namespace linerider.Drawing
             CompileShader(_frag);
             _vert = GL.CreateShader(ShaderType.VertexShader);
             GL.ShaderSource(_vert, vert);
+            CompileShader(_vert);
 
             GL.AttachShader(_program, _frag);
             GL.AttachShader(_program, _vert);
