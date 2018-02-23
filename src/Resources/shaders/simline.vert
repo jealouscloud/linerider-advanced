@@ -2,10 +2,10 @@
 uniform vec4 u_color;
 uniform float u_scale;
 
-in vec2 in_vertex;
-in vec2 in_circle;
-in float in_ratio;
-in vec4 in_color;
+attribute vec2 in_vertex;
+attribute vec2 in_circle;
+attribute float in_ratio;
+attribute vec4 in_color;
 
 varying vec2 v_circle;
 varying float v_ratio;
