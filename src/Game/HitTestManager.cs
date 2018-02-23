@@ -152,6 +152,18 @@ namespace linerider
                 return false;
             }
         }
+        public bool IsHitBy(int id, int frame)
+        {
+            using (_sync.AcquireRead())
+            {
+                if (_line_framehit.TryGetValue(id, out int frameid))
+                {
+                    if (frame >= frameid)
+                        return true;
+                }
+                return false;
+            }
+        }
 
         public void Reset()
         {

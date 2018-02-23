@@ -161,7 +161,7 @@ namespace linerider
 
                     ms.Dispose();
                     glGame.Title = WindowTitle;
-                    glGame.Run(60, 0);
+                    glGame.Run(60, 0);//todo maybe not limit this
                 }
                 Audio.AudioService.CloseDevice();
             }

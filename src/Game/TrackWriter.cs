@@ -31,13 +31,14 @@ using linerider.Tools;
 using linerider.Rendering;
 using linerider.Lines;
 using linerider.Utils;
+using linerider.Game;
 namespace linerider
 {
     public class TrackWriter : TrackReader
     {
         private bool _disposed = false;
         private UndoManager _undo;
-        private PlaybackBufferManager _buffermanager;
+        private Timeline _timeline;
         private SimulationRenderer _renderer;
         public Track Track
         {
@@ -64,9 +65,9 @@ namespace linerider
         {
             _undo = null;
         }
-        public static TrackWriter AcquireWrite(ResourceSync sync, Track track, SimulationRenderer renderer, UndoManager undo, PlaybackBufferManager manager)
+        public static TrackWriter AcquireWrite(ResourceSync sync, Track track, SimulationRenderer renderer, UndoManager undo, Timeline timeline)
         {
-            return new TrackWriter(sync.AcquireWrite(), track) { _undo = undo, _renderer = renderer, _buffermanager = manager };
+            return new TrackWriter(sync.AcquireWrite(), track) { _undo = undo, _renderer = renderer, _timeline = timeline };
         }
         /// <summary>
         /// state a change to the undo manager
@@ -85,7 +86,7 @@ namespace linerider
         /// <param name="lineend">line.Position2</param>
         private void SaveCells(Vector2d linestart, Vector2d lineend)
         {
-            _buffermanager.SaveCells(linestart, lineend);
+            _timeline.SaveCells(linestart, lineend);
         }
         /// <summary>
         /// Adds the line to the track, grid, and renderer. 

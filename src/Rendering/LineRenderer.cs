@@ -20,7 +20,7 @@ namespace linerider.Rendering
         private Shader _shader;
         private GLBuffer<LineVertex> _vbo;
         private GLBuffer<int> _ibo;
-        private ArrayWrapper<int> _indices = new ArrayWrapper<int>(StartingLineCount * linesize);
+        private AutoArray<int> _indices = new AutoArray<int>(StartingLineCount * linesize);
         private Queue<int> freevertices = new Queue<int>();
         private int _vertexcount = 0;
         const int linesize = 6;
@@ -69,7 +69,7 @@ namespace linerider.Rendering
         public void Clear()
         {
             _vertexcount = 0;
-            _indices.Clear();
+            _indices.Empty();
             freevertices.Clear();
         }
         public void Dispose()
@@ -119,7 +119,7 @@ namespace linerider.Rendering
 
             _ibo.Bind();
             EnsureIBOSize(_indices.Count + vertices.Length);
-            _ibo.SetData(_indices.Arr, startidx, startidx, vertices.Length);
+            _ibo.SetData(_indices.unsafe_array, startidx, startidx, vertices.Length);
             _ibo.Unbind();
             return ret;
         }
@@ -143,7 +143,7 @@ namespace linerider.Rendering
             }
             EnsureIBOSize(_indices.Count);
             _ibo.SetData(
-                _indices.Arr,
+                _indices.unsafe_array,
                 _indices.Count - linesize,
                 _indices.Count - linesize,
                 linesize);
@@ -153,15 +153,15 @@ namespace linerider.Rendering
         }
         public void RemoveLine(int ibo_index)
         {
-            int vertstart = _indices.Arr[ibo_index];
+            int vertstart = _indices.unsafe_array[ibo_index];
             bool alreadyremoved = IsNulled(ibo_index);
             for (int i = 0; i < linesize; i++)
             {
-                _indices.Arr[ibo_index + i] = nullindex;
+                _indices.unsafe_array[ibo_index + i] = nullindex;
             }
             _ibo.Bind();
             _ibo.SetData(
-                _indices.Arr,
+                _indices.unsafe_array,
                 ibo_index,
                 ibo_index,
                 linesize);
@@ -180,7 +180,7 @@ namespace linerider.Rendering
             if (line.Length != linesize)
                 throw new Exception(
                     "Lines are expected to have " + linesize + " vertices");
-            int vertbase = _indices.Arr[ibo_index];
+            int vertbase = _indices.unsafe_array[ibo_index];
             _vbo.Bind();
             /// nulled out
             bool wasremoved = false;
@@ -194,11 +194,11 @@ namespace linerider.Rendering
             {
                 for (int i = 0; i < linesize; i++)
                 {
-                    _indices.Arr[ibo_index + i] = vertbase + i;
+                    _indices.unsafe_array[ibo_index + i] = vertbase + i;
                 }
                 _ibo.Bind();
                 _ibo.SetData(
-                    _indices.Arr,
+                    _indices.unsafe_array,
                     ibo_index,
                     ibo_index,
                     linesize);
@@ -284,7 +284,7 @@ namespace linerider.Rendering
         {
             for (int i = 0; i < linesize; i++)
             {
-                if (_indices.Arr[index + i] != nullindex)
+                if (_indices.unsafe_array[index + i] != nullindex)
                     return false;
             }
             return true;

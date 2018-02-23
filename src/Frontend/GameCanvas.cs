@@ -42,6 +42,7 @@ namespace linerider
         public Gwen.Renderer.OpenTK Renderer;
         public ColorControls ColorControls;
         public ImageButton FlagTool;
+        public HorizontalIntSlider Scrubber { get; private set;}
         private MainWindow game;
         private bool _draggingSlider = false;
         int _lastfpsupdate = 0;
@@ -67,7 +68,7 @@ namespace linerider
             SpriteLoading.RotationPoint.Y = 16;
             SpriteLoading.SetPosition(Width - 32, 0);
 
-            var timeslider = new HorizontalIntSlider(this)
+            Scrubber = new HorizontalIntSlider(this)
             {
                 X = 120,
                 Y = Height - 25,
@@ -80,7 +81,7 @@ namespace linerider
             };
             var btnfastfoward = new ImageButton(this)
             {
-                X = timeslider.Right,
+                X = Scrubber.Right,
                 Y = Height - 36,
                 Width = 32,
                 Height = 32,
@@ -92,7 +93,7 @@ namespace linerider
             btnfastfoward.SetImage(GameResources.fast_forward, GameResources.fast_forward_white);
             var btnslowmo = new ImageButton(this)
             {
-                X = timeslider.X - 24,
+                X = Scrubber.X - 24,
                 Y = Height - 36,
                 Width = 32,
                 Height = 32,
@@ -102,10 +103,10 @@ namespace linerider
                 Name = "btnslowmo"
             };
             btnslowmo.SetImage(GameResources.rewind, GameResources.rewind_white);
-            btnslowmo.Clicked += (o, e) => { game.PlaybackDown(); };
-            btnfastfoward.Clicked += (o, e) => { game.PlaybackUp(); };
+            btnslowmo.Clicked += (o, e) => { game.PlaybackSpeedDown(); };
+            btnfastfoward.Clicked += (o, e) => { game.PlaybackSpeedUp(); };
 
-            timeslider.ValueChanged += timeslider_ValueChanged;
+            Scrubber.ValueChanged += scrubber_ValueChanged;
             var labelTrackName = new Label(this)
             {
                 TextColor = System.Drawing.Color.Black,
@@ -310,7 +311,7 @@ namespace linerider
 
             var slider = (HorizontalIntSlider)FindChildByName("timeslider");
             slider.Min = 0;
-            slider.Max = game.Track.EndFrameID;
+            slider.Max = game.Track.Timeline.Length - 1;
             slider.Value = game.Track.Offset;
         }
         public void ExportAsSol()
@@ -562,7 +563,7 @@ namespace linerider
             FindChildByName("btnfastforward").SetPosition(slider.Right, slider.Y - 4);
         }
 
-        private void timeslider_ValueChanged(ControlBase sender, EventArgs arguments)
+        private void scrubber_ValueChanged(ControlBase sender, EventArgs arguments)
         {
             var slider = (HorizontalIntSlider)sender;
             if (slider.Held || _draggingSlider)
@@ -577,19 +578,13 @@ namespace linerider
             if (slider.Held)
             {
                 _draggingSlider = true;
-                if (Settings.Local.EnableSong)
-                {
-                    AudioService.Pause();
-                }
+                AudioService.EnsureSync();
             }
             else if (_draggingSlider)
             {
                 _draggingSlider = false;
                 game.Scheduler.Reset();
-                if (Settings.Local.EnableSong)
-                {
-                    game.UpdateSongPosition(game.Track.CurrentFrame / 40f);
-                }
+                AudioService.EnsureSync();
             }
         }
 

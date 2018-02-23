@@ -46,7 +46,7 @@ namespace linerider.Tools
         /// or only the last one before frame update.
         /// Leaving this false can be very good for performance.
         /// </summary>
-        public virtual bool RequestsMousePrecision { get { return false;} }
+        public virtual bool RequestsMousePrecision { get { return false; } }
         public Tool()
         {
         }
@@ -235,31 +235,22 @@ namespace linerider.Tools
             }
             return retn.ToArray();
         }
-        protected bool LifeLock(PlaybackReader reader, StandardLine line)
+        protected bool LifeLock(TrackReader track, Timeline timeline, StandardLine line)
         {
             // todo
             // currently, this feature does not handle 
             // the target line being collided
             // with on different frames.
-            Rider prev;
 
-            using (game.Track.CreatePlaybackReader())
-            {
-                if (game.Track.Offset == 0)
-                    return false;
-                prev = reader.GetRider(game.Track.Offset - 1);
-
-            }
-            var next = reader.QuickSimulate(
-                prev,
-                out HashSet<int> collisions,
-                game.Track.IterationsOffset);
-            if (!next.Crashed)
+            if (game.Track.Offset == 0)
+                return false;
+            var frame = timeline.GetFrame(game.Track.Offset);
+            if (!frame.Crashed)
             {
                 if (Settings.PinkLifelock)
                 {
-                    var diagnosis = reader.Diagnose(
-                        next,
+                    var diagnosis = track.Diagnose(
+                        timeline.GetFrame(game.Track.Offset),
                         Math.Min(6, game.Track.IterationsOffset + 1));
                     foreach (var v in diagnosis)
                     {
@@ -268,7 +259,7 @@ namespace linerider.Tools
                             return false;
                     }
                 }
-                if (collisions.Contains(line.ID))
+                if (timeline.HitTest.IsHitBy(line.ID, game.Track.Offset))
                     return true;
             }
             return false;

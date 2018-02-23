@@ -46,9 +46,10 @@ namespace linerider.Tools
         {
             get { return game.Cursors["adjustline"]; }
         }
-        public bool CanLifelock => UI.InputUtils.Check(Hotkey.ToolLifeLock,false);
+        public bool CanLifelock => UI.InputUtils.Check(Hotkey.ToolLifeLock, false);
         private SelectInfo _selection = null;
         private Vector2d _clickstart;
+        private bool _lifelocking = false;
 
         public bool Started
         {
@@ -73,13 +74,14 @@ namespace linerider.Tools
             //todo does not handle snapped lines for lifelock
             if (line is StandardLine && CanLifelock)
             {
-                bool wasdead = game.Track.RenderRider.Crashed;
-                game.Track.BufferManager.UpdateOnThisThread();
+                bool wasdead = game.Track.RenderRider.Crashed || _lifelocking;
+                game.Track.NotifyTrackChanged();
                 if (wasdead)
                 {
-                    using (var pb = game.Track.CreatePlaybackReader())
+                    _lifelocking = true;
+                    using (var trk = game.Track.CreateTrackReader())
                     {
-                        if (LifeLock(pb, (StandardLine)line))
+                        if (LifeLock(trk, game.Track.Timeline, (StandardLine)line))
                         {
                             Stop();
                         }
@@ -231,6 +233,7 @@ namespace linerider.Tools
         public override void Stop()
         {
             Active = false;
+            _lifelocking = false;
             if (_selection != null)
             {
                 game.Track.UndoManager.BeginAction();

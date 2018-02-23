@@ -24,5 +24,6 @@ namespace linerider.Utils
         public const string TracksFolderName = "Tracks";
         public const string DefaultTrackName = "<untitled>";
         public const float DefaultZoom = 4;
+        public const int PhysicsRate = 40;
     }
 }

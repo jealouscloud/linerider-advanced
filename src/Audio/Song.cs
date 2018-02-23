@@ -33,7 +33,7 @@ namespace linerider.Audio
 
         public Song(string location, float offset)
         {
-            Location=location;
+            Location = location;
             Offset = offset;
         }
         public override string ToString()

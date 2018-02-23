@@ -20,6 +20,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Collections.Generic;
@@ -28,6 +29,7 @@ using OpenTK.Input;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
 using linerider.Audio;
+using linerider.Utils;
 
 namespace linerider.Audio
 {
@@ -36,17 +38,9 @@ namespace linerider.Audio
         private static string _currentsong = null;
         private static AudioDevice _device;
         private static AudioStreamer _musicplayer;
+        private static Stopwatch _audiosync_timer = Stopwatch.StartNew();
 
         private static Dictionary<string, AudioSource> _sfx;
-        public static float SongPosition
-        {
-            get
-            {
-                if (_musicplayer == null)
-                    return 0;
-                return (float)_musicplayer.SongPosition;
-            }
-        }
 
         public static void EnsureInitialized()
         {
@@ -195,6 +189,53 @@ namespace linerider.Audio
             if (hardexit)
                 return null;
             return file;
+        }
+        public static void EnsureSync()
+        {
+            if (!Settings.Local.EnableSong)
+                return;
+            var updaterate = (float)game.Scheduler.UpdatesPerSecond;
+            
+            var expectedtime = Settings.Local.CurrentSong.Offset +
+                (game.Track.CurrentFrame / (float)Constants.PhysicsRate) +
+                (game.Scheduler.UpdatePeriod * game.Scheduler.ElapsedPercent);
+
+            bool shouldplay = (_musicplayer != null &&
+                game.Track.Playing || game.TemporaryPlayback) &&
+                expectedtime < _musicplayer.Duration;
+
+            if (shouldplay && !game.Canvas.Scrubber.Held)
+            {
+                float rate = (updaterate / Constants.PhysicsRate);
+                if (game.TemporaryPlayback && game.ReversePlayback)
+                    rate = -rate;
+                if (_musicplayer.Speed != rate || !_musicplayer.Playing)
+                {
+                    AudioService.Resume(
+                        expectedtime,
+                        rate);
+                }
+                else if (_musicplayer.Playing)
+                {
+                    var sp = _musicplayer.SongPosition;
+                    var syncrate = Math.Abs(expectedtime - sp);
+                    if (syncrate > 0.1)
+                    {
+                        AudioService.Resume(
+                            expectedtime,
+                            rate);
+                        _audiosync_timer.Restart();
+                        Debug.WriteLine(
+                            "Audio fell out of sync by "+
+                            syncrate+
+                            " seconds");
+                    }
+                }
+            }
+            else
+            {
+                AudioService.Pause();
+            }
         }
     }
 }

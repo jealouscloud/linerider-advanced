@@ -38,21 +38,37 @@ namespace linerider.Rendering
         private void DrawRider(Camera camera, Track track)
         {
         }
-        public void Render(Track track, Camera camera, DrawOptions options)
+        public void Render(Track track, Timeline timeline, Camera camera, DrawOptions options)
         {
             Rider drawrider = options.Rider;
             _renderer.Render(options);
-            // todo onion skinning
+            if (Settings.Local.OnionSkinning && options.Playback)
+            {
+                //todo make efficient and clean
+                const int onions = 10;
+                for (int i = 0; i < onions; i++)
+                {
+                    var frame = game.Track.Offset - (onions - i);
+                    if (frame > 0)
+                    {
+                        GameRenderer.DrawRider(0.3f, timeline.GetFrame(frame), true, options.ShowContactLines);
+                    }
+                }
+                for (int i = 1; i < onions + 1 && game.Track.Offset + i < timeline.Length; i++)
+                {
+                    GameRenderer.DrawRider(0.3f, timeline.GetFrame(game.Track.Offset + i), true, options.ShowContactLines);
+                }
+            }
             if (options.DrawFlag)
                 GameRenderer.DrawRider(0.3f, options.FlagRider, true);
             GameRenderer.DrawRider(
                 options.ShowContactLines ? 0.4f : 1,
-                options.Rider, 
-                true, 
-                options.ShowContactLines, 
-                options.ShowMomentumVectors, 
+                options.Rider,
+                true,
+                options.ShowContactLines,
+                options.ShowMomentumVectors,
                 options.Iteration);
-                
+
             List<GenericVertex> verts = new List<GenericVertex>(300);
             if (options.ShowMomentumVectors)
             {

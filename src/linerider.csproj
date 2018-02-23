@@ -106,9 +106,8 @@
     <Compile Include="Game\GameScheduler.cs" />
     <Compile Include="Game\HitTestManager.cs" />
     <Compile Include="Game\Track.cs" />
-    <Compile Include="Game\PlaybackBufferManager.cs" />
-    <Compile Include="Game\PlaybackReader.cs" />
     <Compile Include="Game\Timeline.cs" />
+    <Compile Include="Game\Timeline.Engine.cs" />
     <Compile Include="Game\TrackReader.cs" />
     <Compile Include="Game\TrackWriter.cs" />
   </ItemGroup>
@@ -168,7 +167,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Utils\Angle.cs" />
-    <Compile Include="Utils\ArrayWrapper.cs" />
+    <Compile Include="Utils\AutoArray.cs" />
     <Compile Include="Utils\DoubleRect.cs" />
     <Compile Include="Utils\Constants.cs" />
     <Compile Include="Utils\FloatRect.cs" />

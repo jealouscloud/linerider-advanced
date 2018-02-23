@@ -16,7 +16,7 @@ namespace linerider.Rendering
             public int start;
             public int shapes;
         }
-        private ArrayWrapper<int> _indices = new ArrayWrapper<int>((LineRenderer.StartingLineCount / 4) * ShapeSize);
+        private AutoArray<int> _indices = new AutoArray<int>((LineRenderer.StartingLineCount / 4) * ShapeSize);
         private Dictionary<int, int> _lines = new Dictionary<int, int>();
         private Dictionary<int, accelentry> _accellines = new Dictionary<int, accelentry>();
         private Queue<int> _freeaccel = new Queue<int>();
@@ -70,7 +70,7 @@ namespace linerider.Rendering
             _linebuffer.Clear();
 
             _accelcount = 0;
-            _indices.Clear();
+            _indices.Empty();
             _freeaccel.Clear();
             _accellines.Clear();
         }
@@ -121,15 +121,15 @@ namespace linerider.Rendering
                     {
                         continue;//nulled out
                     }
-                    _freeaccel.Enqueue(_indices.Arr[offset]);
+                    _freeaccel.Enqueue(_indices.unsafe_array[offset]);
                     for (int i = 0; i < ShapeSize; i++)
                     {
-                        _indices.Arr[accel.start + (ix * ShapeSize) + i] = 0;
+                        _indices.unsafe_array[accel.start + (ix * ShapeSize) + i] = 0;
                     }
                 }
                 _accelibo.Bind();
                 _accelibo.SetData(
-                    _indices.Arr,
+                    _indices.unsafe_array,
                     accel.start,
                     accel.start,
                     accel.shapes * ShapeSize);
@@ -157,10 +157,10 @@ namespace linerider.Rendering
                 {
                     continue;//nulled out
                 }
-                _freeaccel.Enqueue(_indices.Arr[offset]);
+                _freeaccel.Enqueue(_indices.unsafe_array[offset]);
                 for (int i = 0; i < ShapeSize; i++)
                 {
-                    _indices.Arr[offset + i] = 0;
+                    _indices.unsafe_array[offset + i] = 0;
                 }
             }
             bool growing = shapes > entry.shapes;
@@ -182,7 +182,7 @@ namespace linerider.Rendering
                     else
                     {
                         int offset = entry.start + (ix * ShapeSize) + i;
-                        _indices.Arr[offset] = vertexbase + i;
+                        _indices.unsafe_array[offset] = vertexbase + i;
                     }
                 }
             }
@@ -190,7 +190,7 @@ namespace linerider.Rendering
 
             _accelibo.Bind();
             _accelibo.SetData(
-                _indices.Arr,
+                _indices.unsafe_array,
                 entry.start,
                 entry.start,
                 entry.shapes * ShapeSize);
@@ -199,7 +199,7 @@ namespace linerider.Rendering
                 int startindex = _indices.Count - (shapes * ShapeSize);
                 EnsureIBOSize(_indices.Count);
                 _accelibo.SetData(
-                    _indices.Arr,
+                    _indices.unsafe_array,
                     startindex,
                     startindex,
                     shapes * ShapeSize);
@@ -246,7 +246,7 @@ namespace linerider.Rendering
         {
             for (int i = 0; i < ShapeSize; i++)
             {
-                if (_indices.Arr[index + i] != nullindex)
+                if (_indices.unsafe_array[index + i] != nullindex)
                     return false;
             }
             return true;

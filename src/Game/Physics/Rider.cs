@@ -346,5 +346,9 @@ namespace linerider.Game
             }
             return ret;
         }
+        public override string ToString()
+        {
+            return "Rider { "+CalculateMomentum().Length + " pixels/frame, "+CalculateCenter().ToString()+" center}";
+        }
     }
 }
