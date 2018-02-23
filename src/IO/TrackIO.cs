@@ -195,12 +195,10 @@ namespace linerider.IO
         }
         public static void CreateTestFromTrack(Track track)
         {
-            track.Reset();
+            var timeline = new linerider.Game.Timeline(track);
+            timeline.Restart(track.GetStart());
             int framecount = 40 * 60 * 5;
-            for (int i = 0; i < framecount; i++)
-            {
-                track.AddFrame(false);
-            }
+            
             var filename = TRKWriter.SaveTrack(track, track.Name + ".test");
             if (System.IO.File.Exists(filename + ".result"))
                 System.IO.File.Delete(filename + ".result");
@@ -208,7 +206,7 @@ namespace linerider.IO
             {
                 var bw = new BinaryWriter(f);
                 bw.Write((int)framecount);
-                var state = track.RiderStates[track.RiderStates.Count - 1];
+                var state = timeline.GetFrame(framecount);
                 for (int i = 0; i < state.Body.Length; i++)
                 {
                     bw.Write(state.Body[i].Location.X);
@@ -228,13 +226,10 @@ namespace linerider.IO
             {
                 var br = new BinaryReader(file);
                 var frame = br.ReadInt32();
-                track.Reset();
-                for (int i = 0; i < frame; i++)
-                {
-                    track.AddFrame(false);
-                }
+                var timeline = new linerider.Game.Timeline(track);
+                timeline.Restart(track.GetStart());
                 //track.Chunks.fg.PrintMetrics();
-                var state = track.RiderStates[track.RiderStates.Count - 1];
+                var state = timeline.GetFrame(frame);
                 for (int i = 0; i < state.Body.Length; i++)
                 {
                     var x = br.ReadDouble();

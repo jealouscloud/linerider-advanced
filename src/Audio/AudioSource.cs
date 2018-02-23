@@ -31,6 +31,7 @@ namespace linerider.Audio
     {
         private VorbisReader _stream;
         private float[] _stream_buffer;
+        public int SamplesPerBuffer { get; private set;}
         public short[] Buffer;
         public int ReadSamples = 0;
         public int Channels => _stream.Channels;
@@ -58,26 +59,10 @@ namespace linerider.Audio
         public AudioSource(VorbisReader stream)
         {
             _stream = stream;
-            _stream_buffer = new float[(stream.SampleRate * stream.Channels) / 3];
-            Buffer = new short[_stream_buffer.Length];
+            SamplesPerBuffer = (stream.SampleRate * stream.Channels) / 3;
+            _stream_buffer = new float[SamplesPerBuffer];
+            Buffer = new short[SamplesPerBuffer];
         }
-
-        public int ReadBufferReversed()
-        {
-            int len = (int)Math.Min(_stream.DecodedPosition, _stream_buffer.Length / _stream.Channels);
-            _stream.DecodedPosition -= len;
-            ReadSamples = _stream.ReadSamples(_stream_buffer, 0, len*_stream.Channels);
-            for (var i = 0; i < ReadSamples; i++)
-            {
-                var temp = (int)(32767f * _stream_buffer[i]);
-                if (temp > short.MaxValue) temp = short.MaxValue;
-                else if (temp < short.MinValue) temp = short.MinValue;
-                Buffer[(ReadSamples - 1) - i] = (short)temp;
-            }
-            _stream.DecodedPosition -= len;
-            return ReadSamples;
-        }
-
         public int ReadBuffer()
         {
             ReadSamples = _stream.ReadSamples(_stream_buffer, 0, _stream_buffer.Length);
@@ -90,6 +75,22 @@ namespace linerider.Audio
             }
             return ReadSamples;
         }
+        public int ReadBufferReversed()
+        {
+            int len = (int)Math.Min(_stream.DecodedPosition, _stream_buffer.Length / _stream.Channels);
+            _stream.DecodedPosition -= len;
+            ReadSamples = _stream.ReadSamples(_stream_buffer, 0, len * _stream.Channels);
+            for (var i = 0; i < ReadSamples; i++)
+            {
+                var temp = (int)(32767f * _stream_buffer[i]);
+                if (temp > short.MaxValue) temp = short.MaxValue;
+                else if (temp < short.MinValue) temp = short.MinValue;
+                Buffer[(ReadSamples - 1) - i] = (short)temp;
+            }
+            _stream.DecodedPosition -= len;
+            return ReadSamples;
+        }
+
 
         public void Dispose()
         {

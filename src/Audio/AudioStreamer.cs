@@ -32,13 +32,14 @@ namespace linerider.Audio
 {
     class AudioStreamer
     {
+        //todo manually stretch samples for slow/fast play
         private readonly object _sync = new object();
+        private ManualResetEvent _event = new ManualResetEvent(false);
         private int[] _buffers;
-        private int _source;
+        private int _alsourceid;
         private AudioSource _stream;
-        private bool runthread = true;
-        private bool ShouldQueueMusic = false;
-        public float Speed = 1;
+        private bool _needsrefill = false;
+        public float Speed { get; private set; }
         public double SongPosition
         {
             get
@@ -48,8 +49,11 @@ namespace linerider.Audio
 
                 var queued = 0;
                 float elapsed;
-                AL.GetSource(_source, ALGetSourcei.BuffersQueued, out queued);
-                AL.GetSource(_source, ALSourcef.SecOffset, out elapsed);
+                lock (_sync)
+                {
+                    AL.GetSource(_alsourceid, ALGetSourcei.BuffersQueued, out queued);
+                    AL.GetSource(_alsourceid, ALSourcef.SecOffset, out elapsed);
+                }
                 double buffertime = (double)_stream.Buffer.Length / _stream.SampleRate / _stream.Channels;
                 double offset = (queued * buffertime);
                 //special case for if we're at the end of the audio.
@@ -67,51 +71,66 @@ namespace linerider.Audio
                 }
             }
         }
+        public float Duration
+        {
+            get
+            {
+                if (_stream == null || _stream.Channels == 0)
+                    return 0;
+                return _stream.Duration;
+            }
+        }
         public bool Playing
         {
             get
             {
-                return AL.GetSourceState(_source) == ALSourceState.Playing;
+                return AL.GetSourceState(_alsourceid) == ALSourceState.Playing;
             }
         }
         public AudioStreamer()
         {
-            _source = AL.GenSource();
+            _alsourceid = AL.GenSource();
             _buffers = AL.GenBuffers(3);
             new Thread(BufferRefiller) { IsBackground = true }.Start();
         }
         public void LoadSoundStream(AudioSource stream)
         {
             if (_stream != null)
+            {
+                Empty();
                 _stream.Dispose();
+            }
             _stream = stream;
         }
         public void Pause()
         {
-            lock (_sync)
+            if (Playing || _needsrefill)
             {
-                AL.SourcePause(_source);
-                ShouldQueueMusic = false;
+                lock (_sync)
+                {
+                    AL.SourcePause(_alsourceid);
+                    _needsrefill = false;
+                }
             }
         }
         public void Play(float time, float rate)
         {
             lock (_sync)
             {
-                var test = SongPosition;
                 Empty();
                 if (_stream.Duration > time)
                 {
                     _stream.Position = time;
-                    ShouldQueueMusic = true;
+                    _needsrefill = true;
                     Speed = rate;
-                    AL.Source(_source, ALSourcef.Gain, Settings.Volume / 100);
-                    AL.Source(_source, ALSourcef.Pitch, Math.Abs(rate));
+                    AL.Source(_alsourceid, ALSourcef.Gain, Settings.Volume / 100f);
+                    AL.Source(_alsourceid, ALSourcef.Pitch, Math.Abs(rate));
                     for (int i = 0; i < _buffers.Length; i++)
                     {
                         QueueBuffer(_buffers[i]);
                     }
-                    AL.SourcePlay(_source);
+                    AL.SourcePlay(_alsourceid);
+                    _event.Set();
                 }
             }
         }
@@ -119,15 +138,12 @@ namespace linerider.Audio
         {
             lock (_sync)
             {
-                AL.SourceStop(_source);
-
-
+                AL.SourceStop(_alsourceid);
                 AudioDevice.Check();
-                int queued;
-                AL.GetSource(_source, ALGetSourcei.BuffersQueued, out queued);
+                AL.GetSource(_alsourceid, ALGetSourcei.BuffersQueued, out int queued);
                 for (int i = 0; i < queued; i++)
                 {
-                    AL.SourceUnqueueBuffer(_source);
+                    AL.SourceUnqueueBuffer(_alsourceid);
 
                     AudioDevice.Check();
                 }
@@ -139,54 +155,68 @@ namespace linerider.Audio
                 {
                     //unqueueing buffers can fail
                 }
-                return;
+            }
+        }
+        private void BufferRefiller()
+        {
+            try
+            {
+                while (true)
+                {
+                    ALSourceState state;
+                    lock (_sync)
+                    {
+                        state = AL.GetSourceState(_alsourceid);
+
+                        if (state == ALSourceState.Playing)
+                        {
+                            RefillProcessed();
+                        }
+                        else if (_needsrefill)
+                        {
+                            AL.SourcePlay(_alsourceid);
+                            AudioDevice.Check();
+                        }
+                    }
+                    if (state == ALSourceState.Playing)
+                    {
+                        Thread.Sleep(1);
+                    }
+                    else
+                    {
+                        _event.WaitOne();
+                        _event.Reset();
+                    }
+                }
+            }
+            catch (AudioException ae)
+            {
+                Program.NonFatalError(ae.ToString());
             }
         }
         private void QueueBuffer(int buffer)
         {
-            if (!ShouldQueueMusic)
+            if (!_needsrefill)
                 return;
             int len = (Speed > 0 ? _stream.ReadBuffer() : _stream.ReadBufferReversed());
             if (len > 0)
             {
                 AL.BufferData(buffer, _stream.Channels == 1 ? ALFormat.Mono16 : ALFormat.Stereo16, _stream.Buffer, len * sizeof(short), _stream.SampleRate);
                 AudioDevice.Check();
-                AL.SourceQueueBuffer(_source, buffer);
+                AL.SourceQueueBuffer(_alsourceid, buffer);
                 AudioDevice.Check();
             }
             if (len != _stream.Buffer.Length)//we've reached the end
-                ShouldQueueMusic = false;
+                _needsrefill = false;
         }
-        private void BufferRefiller()
+        private void RefillProcessed()
         {
-            try
+            var processed = 0;
+            AL.GetSource(_alsourceid, ALGetSourcei.BuffersProcessed, out processed);
+            for (int i = 0; i < processed; i++)
             {
-                while (runthread)
-                {
-                    lock (_sync)
-                    {
-                        if (AL.GetSourceState(_source) == ALSourceState.Playing)
-                        {
-                            var processed = 0;
-                            AL.GetSource(_source, ALGetSourcei.BuffersProcessed, out processed);
-                            for (int i = 0; i < processed; i++)
-                            {
-                                var buffer = AL.SourceUnqueueBuffer(_source);
-                                QueueBuffer(buffer);
-                            }
-                        }
-                        else if (ShouldQueueMusic)
-                        {
-                            AL.SourcePlay(_source);
-                            AudioDevice.Check();
-                        }
-                    }
-                    Thread.Sleep(1);
-                }
-            }
-            catch (AudioException ae)
-            {
-                Program.NonFatalError(ae.ToString());
+                var buffer = AL.SourceUnqueueBuffer(_alsourceid);
+                QueueBuffer(buffer);
             }
         }
     }

@@ -25,28 +25,52 @@ using System.Collections.Generic;
 namespace linerider.Utils
 {
     /// <summary>
-    /// A class heavily referencing the .net list<T>
+    /// An array that resizes automatically similar to List or c++ vector
     /// </summary>
-    public class ArrayWrapper<T>
+    public class AutoArray<T>
     {
-        public T[] Arr;
+        public T this[int index]
+        {
+            get
+            {
+                if (index >= _size)
+                    throw new IndexOutOfRangeException();
+                return unsafe_array[index];
+            }
+            set
+            {
+                if (index >= _size)
+                    throw new IndexOutOfRangeException();
+                unsafe_array[index] = value;
+            }
+        }
+        /// <summary>
+        /// How much larger to make the list on reallocate
+        /// The default is 2.
+        /// </summary>
+        public int GrowthFactor { get; set; } = 2;
+        /// <summary>
+        /// The underlying array. This changes if capacity changes.
+        /// It also does not do bounds checks, so be careful.
+        /// </summary>
+        public T[] unsafe_array;
         private int _size;
         public int Capacity
         {
             get
             {
-                return Arr.Length;
+                return unsafe_array.Length;
             }
             set
             {
-                if (value != Arr.Length)
+                if (value != unsafe_array.Length)
                 {
                     T[] newarray = new T[value];
                     if (_size > 0)
                     {
-                        Array.Copy(Arr, 0, newarray, 0, _size);
+                        Array.Copy(unsafe_array, 0, newarray, 0, _size);
                     }
-                    Arr = newarray;
+                    unsafe_array = newarray;
                 }
             }
         }
@@ -58,39 +82,42 @@ namespace linerider.Utils
                 return _size;
             }
         }
-        public ArrayWrapper(int capacity)
+        public AutoArray(int capacity)
         {
-            Arr = new T[capacity];
+            unsafe_array = new T[capacity];
+        }
+        /// <summary>
+        /// sets the count with no checks or actions.
+        /// </summary>
+        public void UnsafeSetCount(int count)
+        {
+            //todo bad func
+            _size = count;
         }
         public void Add(T item)
         {
-            if (_size == Arr.Length)
+            if (_size == unsafe_array.Length)
                 EnsureCapacity(_size + 1);
-            Arr[_size++] = item;
+            unsafe_array[_size++] = item;
         }
         public void AddRange(IList<T> collection)
         {
             InsertRange(_size, collection);
         }
 
-        public void Clear()
+        public void Empty()
         {
             if (_size > 0)
             {
-                Array.Clear(Arr, 0, _size); 
+                Array.Clear(unsafe_array, 0, _size);
                 _size = 0;
             }
         }
-        public void CopyTo(T[] array, int arrayIndex)
+        public void EnsureCapacity(int min)
         {
-            Array.Copy(Arr, 0, array, arrayIndex, _size);
-        }
-
-        private void EnsureCapacity(int min)
-        {
-            if (Arr.Length < min)
+            if (unsafe_array.Length < min)
             {
-                Capacity = min * 2;
+                Capacity = min * GrowthFactor;
             }
         }
         public void Insert(int index, T item)
@@ -99,13 +126,13 @@ namespace linerider.Utils
             {
                 throw new IndexOutOfRangeException();
             }
-            if (_size == Arr.Length)
+            if (_size == unsafe_array.Length)
                 EnsureCapacity(_size + 1);
             if (index < _size)
             {
-                Array.Copy(Arr, index, Arr, index + 1, _size - index);
+                Array.Copy(unsafe_array, index, unsafe_array, index + 1, _size - index);
             }
-            Arr[index] = item;
+            unsafe_array[index] = item;
             _size++;
         }
 
@@ -122,11 +149,11 @@ namespace linerider.Utils
                 EnsureCapacity(_size + count);
                 if (index < _size)
                 {
-                    Array.Copy(Arr, index, Arr, index + count, _size - index);
+                    Array.Copy(unsafe_array, index, unsafe_array, index + count, _size - index);
                 }
-                for(int i = 0; i < collection.Count; i++)
+                for (int i = 0; i < collection.Count; i++)
                 {
-                    Arr[index+i] = collection[i];
+                    unsafe_array[index + i] = collection[i];
                 }
                 _size += count;
             }
@@ -140,7 +167,7 @@ namespace linerider.Utils
             _size--;
             if (index < _size)
             {
-                Array.Copy(Arr, index + 1, Arr, index, _size - index);
+                Array.Copy(unsafe_array, index + 1, unsafe_array, index, _size - index);
             }
         }
 
@@ -154,7 +181,7 @@ namespace linerider.Utils
                 _size -= count;
                 if (index < _size)
                 {
-                    Array.Copy(Arr, index + count, Arr, index, _size - index);
+                    Array.Copy(unsafe_array, index + count, unsafe_array, index, _size - index);
                 }
             }
         }

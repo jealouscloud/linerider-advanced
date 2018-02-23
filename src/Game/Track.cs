@@ -44,8 +44,6 @@ namespace linerider
         public Dictionary<int, GameLine> LineLookup = new Dictionary<int, GameLine>();
 
         public string Name = Constants.DefaultTrackName;
-
-        public List<Rider> RiderStates = new List<Rider>();
         //todo probably needs to be linkedlist for performance
         public List<LineTrigger> ActiveTriggers = null;
         private Vector2d _start = Vector2d.Zero;
@@ -73,7 +71,6 @@ namespace linerider
         public Track()
         {
             GenerateBones();
-            Reset();
         }
         public GameLine[] GetSortedLines()
         {
@@ -170,12 +167,6 @@ namespace linerider
             RemoveLineFromGrid(line);
         }
 
-
-        public void CalculateAllCollidedLines()
-        {
-            //todo collision states are completely unprogrammed
-        }
-
         public int GetVersion()
         {
             return Grid.GridVersion;
@@ -209,30 +200,9 @@ namespace linerider
         {
             return Rider.Create(this.StartOffset, new Vector2d(ZeroStart ? 0 : RiderConstants.StartingMomentum, 0));
         }
-        public void Reset()
-        {
-            Reset(GetStart());
-        }
-        public void Reset(Rider start)
-        {
-            RiderStates.Clear();
-            RiderStates.Add(start);
-        }
-
-
         public void SetVersion(int version)
         {
             Grid.GridVersion = version;
-        }
-
-        public HashSet<int> AddFrame(bool hittest)
-        {
-            var collisions = hittest ? new HashSet<int>() : null;
-            RiderStates.Add(
-                RiderStates[RiderStates.Count - 1].Simulate(
-                    this,
-                    collisions));
-            return collisions;
         }
     }
 }

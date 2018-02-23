@@ -220,9 +220,9 @@ namespace linerider
             if (InputUtils.HandleMouseMove(out int x, out int y))
             {
                 if (_handToolOverride)
-                    _handtool.OnMouseMoved(new Vector2d(x,y));
+                    _handtool.OnMouseMoved(new Vector2d(x, y));
                 else
-                    SelectedTool.OnMouseMoved(new Vector2d(x,y));
+                    SelectedTool.OnMouseMoved(new Vector2d(x, y));
             }
 
             var updates = Scheduler.UnqueueUpdates();
@@ -256,6 +256,8 @@ namespace linerider
             {
                 Invalidate();
             }
+
+
             if (Track.Playing || TemporaryPlayback)
             {
                 if (TemporaryPlayback && ReversePlayback)
@@ -271,15 +273,8 @@ namespace linerider
                 {
                     Track.Update(updates);
                 }
-                if (Track.Offset % Math.Max(1, Scheduler.UpdatesPerSecond / 2) == 0)
-                {
-                    var sp = AudioService.SongPosition;
-                    if (Math.Abs(((Track.CurrentFrame / 40f) + Settings.Local.CurrentSong.Offset) - sp) > 0.1)
-                    {
-                        UpdateSongPosition(Track.CurrentFrame / 40f);
-                    }
-                }
             }
+            AudioService.EnsureSync();
             if (Track.PlaybackMode && (Track.Paused || Settings.SmoothPlayback))
                 AllowTrackRender = true;
             if (Program.NewVersion != null)
@@ -287,7 +282,6 @@ namespace linerider
                 Canvas.ShowOutOfDate();
             }
         }
-
         public void Invalidate()
         {
             if (Canvas != null)
@@ -297,28 +291,6 @@ namespace linerider
         public void InvalidateTrack()
         {
             Track.RequiresUpdate = true;
-        }
-
-        public void UpdateSongPosition(float seconds, bool reverse = false)
-        {
-            if (Settings.Local.EnableSong &&
-            (!Track.Paused || TemporaryPlayback) &&
-            Track.PlaybackMode &&
-            !((HorizontalIntSlider)Canvas.FindChildByName("timeslider")).Held)
-            {
-                if (TemporaryPlayback && ReversePlayback)
-                    AudioService.Resume(
-                        Settings.Local.CurrentSong.Offset + seconds,
-                        -(Scheduler.UpdatesPerSecond / 40f));
-                else
-                    AudioService.Resume(
-                        Settings.Local.CurrentSong.Offset + seconds,
-                        (Scheduler.UpdatesPerSecond / 40f));
-            }
-            else
-            {
-                AudioService.Pause();
-            }
         }
         public void UpdateCursor()
         {
@@ -494,12 +466,9 @@ namespace linerider
                 var gamepos = ScreenPosition + (pos / Track.Zoom);
                 using (var trk = Track.CreateTrackWriter())
                 {
-                    using (Track.CreatePlaybackReader())
-                    {
-                        trk.Track.StartOffset = gamepos;
-                        Track.Reset();
-                        Track.NotifyTrackChanged();
-                    }
+                    trk.Track.StartOffset = gamepos;
+                    Track.Reset();
+                    Track.NotifyTrackChanged();
                 }
                 Invalidate();
             }
@@ -507,7 +476,7 @@ namespace linerider
             {
                 if (SelectedTool.RequestsMousePrecision)
                 {
-                    SelectedTool.OnMouseMoved(new Vector2d(e.X,e.Y));
+                    SelectedTool.OnMouseMoved(new Vector2d(e.X, e.Y));
                 }
             }
 
@@ -541,24 +510,26 @@ namespace linerider
 
             if (InputUtils.Check(Hotkey.PlaybackStartSlowmo, true))
             {
-                Track.Start(false, true, false);
+                Track.StartFromFlag();
                 Scheduler.UpdatesPerSecond = Settings.Local.SlowmoSpeed;
-                UpdateSongPosition(Track.CurrentFrame / 40f);
                 return true;
             }
             if (InputUtils.Check(Hotkey.PlaybackStartIgnoreFlag, true))
             {
-                Track.Start(true);
+                Track.StartIgnoreFlag();
+                Scheduler.DefaultSpeed();
                 return true;
             }
             if (InputUtils.Check(Hotkey.PlaybackStartGhostFlag, true))
             {
-                Track.Start(true, true, true, true);
+                Track.ResumeFromFlag();
+                Scheduler.DefaultSpeed();
                 return true;
             }
             if (InputUtils.Check(Hotkey.PlaybackStart, true))
             {
-                Track.Start();
+                Track.StartFromFlag();
+                Scheduler.DefaultSpeed();
                 return true;
             }
             if (InputUtils.Check(Hotkey.PlaybackStop))
@@ -585,6 +556,7 @@ namespace linerider
             else if (InputUtils.Check(Hotkey.PreferenceOnionSkinning, true))
             {
                 Settings.Local.OnionSkinning = !Settings.Local.OnionSkinning;
+                InvalidateTrack();
                 return true;
             }
 
@@ -594,7 +566,8 @@ namespace linerider
                 {
                     if (!Track.PlaybackMode)
                     {
-                        Track.Start(false, true, false);
+                        Track.StartFromFlag();
+                        Scheduler.DefaultSpeed();
                     }
                     if (!Track.Paused)
                         Track.TogglePause();
@@ -610,7 +583,8 @@ namespace linerider
                 {
                     if (!Track.PlaybackMode)
                     {
-                        Track.Start(false, true, false);
+                        Track.StartFromFlag();
+                        Scheduler.DefaultSpeed();
                     }
                     if (!Track.Paused)
                         Track.TogglePause();
@@ -624,31 +598,24 @@ namespace linerider
             {
                 if (InputUtils.Check(Hotkey.PlaybackSpeedUp))
                 {
-                    PlaybackUp();
+                    PlaybackSpeedUp();
                     return true;
                 }
                 if (InputUtils.Check(Hotkey.PlaybackSpeedDown))
                 {
-                    PlaybackDown();
+                    PlaybackSpeedDown();
                     return true;
                 }
                 if (InputUtils.Check(Hotkey.PlaybackSlowmo))
                 {
-                    if (Math.Abs(Scheduler.UpdatesPerSecond - 40) < 0.01)
+                    if (Scheduler.UpdatesPerSecond !=
+                    Settings.Local.SlowmoSpeed)
                     {
-                        Scheduler.UpdatesPerSecond = Settings.Local.SlowmoSpeed; ;
-                        if (Settings.Local.EnableSong)
-                        {
-                            UpdateSongPosition(Track.CurrentFrame / 40f);
-                        }
+                        Scheduler.UpdatesPerSecond = Settings.Local.SlowmoSpeed;
                     }
                     else
                     {
-                        Scheduler.UpdatesPerSecond = 40;
-                        if (Settings.Local.EnableSong)
-                        {
-                            UpdateSongPosition(Track.CurrentFrame / 40f);
-                        }
+                        Scheduler.DefaultSpeed();
                     }
                     return true;
                 }
@@ -664,10 +631,10 @@ namespace linerider
                         TemporaryPlayback = true;
                         if (!Track.PlaybackMode)
                         {
-                            Track.Start();
+                            Track.StartFromFlag();
+                            Scheduler.DefaultSpeed();
                         }
                         Scheduler.Reset();
-                        UpdateSongPosition(Track.CurrentFrame / 40f);
                     }
                     return true;
                 }
@@ -681,7 +648,6 @@ namespace linerider
                             TemporaryPlayback = true;
                         }
                         Scheduler.Reset();
-                        UpdateSongPosition(Track.CurrentFrame / 40f);
                     }
                     return true;
                 }
@@ -698,7 +664,8 @@ namespace linerider
                 {
                     if (!Track.PlaybackMode)
                     {
-                        Track.Start(false, true, false);
+                        Track.StartFromFlag();
+                        Scheduler.DefaultSpeed();
                     }
                     if (!Track.Paused)
                         Track.TogglePause();
@@ -881,7 +848,6 @@ namespace linerider
             }
             return false;
         }
-
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
             base.OnKeyDown(e);
@@ -1008,7 +974,7 @@ namespace linerider
                 }
                 else
                 {
-                    Track.Start();
+                    Track.StartFromFlag();
                 }
             };
             pos -= 32; //occupy same space as the start button
@@ -1076,29 +1042,21 @@ namespace linerider
             Canvas.ButtonsToggleNightmode();
         }
 
-        public void PlaybackUp()
+        public void PlaybackSpeedUp()
         {
             if (Track.PlaybackMode)
             {
                 var index = Array.IndexOf(Constants.MotionArray, Scheduler.UpdatesPerSecond);
                 Scheduler.UpdatesPerSecond = Constants.MotionArray[Math.Min(Constants.MotionArray.Length - 1, index + 1)];
-                if (Settings.Local.EnableSong)
-                {
-                    UpdateSongPosition(Track.CurrentFrame / 40f);
-                }
             }
         }
 
-        public void PlaybackDown()
+        public void PlaybackSpeedDown()
         {
             if (Track.PlaybackMode)
             {
                 var index = Array.IndexOf(Constants.MotionArray, Scheduler.UpdatesPerSecond);
                 Scheduler.UpdatesPerSecond = Constants.MotionArray[Math.Max(0, index - 1)];
-                if (Settings.Local.EnableSong)
-                {
-                    UpdateSongPosition(Track.CurrentFrame / 40f);
-                }
             }
         }
 

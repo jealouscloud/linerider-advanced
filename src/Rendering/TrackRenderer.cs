@@ -261,7 +261,7 @@ namespace linerider.Rendering
                             {
                                 var stl = (StandardLine)line;
                                 bool hit = Settings.Local.HitTest ?
-                                game.Track.HitTest.IsHit(stl.ID)
+                                game.Track.Timeline.HitTest.IsHit(stl.ID)
                                 : false;
                                 LineChanged(
                                     stl,

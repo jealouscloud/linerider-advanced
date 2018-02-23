@@ -136,7 +136,7 @@ namespace linerider.IO
                     game.Track.Flag();
                     var recmodesave = Settings.Local.RecordingMode;
                     Settings.Local.RecordingMode = true;
-                    game.Track.Start(true, true, false, false);
+                    game.Track.StartIgnoreFlag();
                     game.Render();
                     var dir = Program.UserDirectory + game.Track.Name + "_rec";
                     if (!Directory.Exists(dir))
