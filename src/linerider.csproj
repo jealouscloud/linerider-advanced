@@ -40,10 +40,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="MainWindow.cs" />
+    <Compile Include="GameCanvas.cs" />
+    <Compile Include="Editor.cs" />
     <Compile Include="GameResources.cs" />
     <Compile Include="GameService.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="Settings.cs" />
     <Compile Include="EntryPoint.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -53,10 +54,6 @@
     <Compile Include="Audio\AudioSource.cs" />
     <Compile Include="Audio\AudioStreamer.cs" />
     <Compile Include="Audio\Song.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Frontend\GameCanvas.cs" />
-    <Compile Include="Frontend\Editor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Drawing\DrawOptions.cs" />
@@ -182,6 +179,7 @@
     <Compile Include="Utils\Utility.cs" />
     <Compile Include="Utils\RectLRTB.cs" />
     <Compile Include="Utils\ErrorLog.cs" />
+    <Compile Include="Utils\Settings.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="NVorbis, Version=0.8.5.0, Culture=neutral, processorArchitecture=MSIL">
