@@ -120,7 +120,6 @@ namespace linerider
                    : GraphicsContextFlags.Default)
         {
             SafeFrameBuffer.Initialize();
-            StaticRenderer.InitializeCircles();
             PencilTool = new PencilTool();
             LineTool = new LineTool();
             EraserTool = new EraserTool();

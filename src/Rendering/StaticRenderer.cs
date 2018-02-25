@@ -36,17 +36,6 @@ namespace linerider.Rendering
 {
     public static class StaticRenderer
     {
-        #region Fields
-
-        /// <summary>
-        /// Circle Texture for fast rendering.
-        /// 1000 px large.
-        /// </summary>
-        public static int CircleTex;
-
-        #endregion Fields
-
-        #region Methods
         public static Vector2[] Arc(float cx, float cy, float r, float start_angle, float end_angle)
         {
             List<Vector2> ret = new List<Vector2>();
@@ -105,36 +94,6 @@ namespace linerider.Rendering
                 y *= radial_factor;
             }
             return ret;
-        }
-
-        public static void AddCircleVerts(float cx, float cy, float r, int num_segments)
-        {
-            var circle = GenerateCircle(cx, cy, r, num_segments);
-            foreach (var v in circle)
-            {
-                GL.Vertex2(v);
-            }
-            GL.Vertex2(circle[0]);
-        }
-        public static void RenderCircle(Vector2d viewpos, Vector2d pos, float radius, Color c)
-        {
-            RectangleF rect = new RectangleF((float)viewpos.X + (float)pos.X, (float)viewpos.Y + (float)pos.Y, radius * 2, radius * 2);
-            rect.X -= radius;
-            rect.Y -= radius;
-
-            GL.BindTexture(TextureTarget.Texture2D, CircleTex);
-            GL.Color4(c);
-            float x = rect.Location.X;
-            float y = rect.Location.Y;
-            float xx = x + rect.Size.Width;
-            float yy = y + rect.Size.Height;
-            GL.Begin(PrimitiveType.Quads);
-            GL.TexCoord2(0, 0); GL.Vertex2(x, y);
-            GL.TexCoord2(1, 0); GL.Vertex2(xx, y);
-            GL.TexCoord2(1, 1); GL.Vertex2(xx, yy);
-            GL.TexCoord2(0, 1); GL.Vertex2(x, yy);
-            GL.End();
-            GL.BindTexture(TextureTarget.Texture2D, 0);
         }
 
         public static void DrawTexture(int tex, DoubleRect rect, float alpha = 1, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
@@ -251,11 +210,6 @@ namespace linerider.Rendering
             GL.BindTexture(TextureTarget.Texture2D, 0);
             return glTex;
         }
-        public static void InitializeCircles()
-        {
-            CircleTex = LoadTexture(GameResources.circletex);
-            GL.BindTexture(TextureTarget.Texture2D, 0);
-        }
 
         public static Vector2[] GenerateEllipse(float radiusX, float radiusY, int segments)
         {
@@ -301,7 +255,5 @@ namespace linerider.Rendering
             GL.Vertex2(new Vector2(rect.Left, rect.Top + rect.Height));
             GL.End();
         }
-
-        #endregion Methods
     }
 }
