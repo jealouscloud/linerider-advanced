@@ -33,7 +33,6 @@ namespace linerider
 {
     public static class Program
     {
-        #region Fields
 #if DEBUG
         public static bool IsDebugged = false;
         public static bool LogGL => IsDebugged;
@@ -50,9 +49,6 @@ namespace linerider
         private static string _currdir;
         private static string _userdir;
 
-        #endregion Fields
-
-        #region Properties
         /// <summary>
         /// Gets the current directory. Ends in Path.DirectorySeperator
         /// </summary>
@@ -88,9 +84,6 @@ namespace linerider
                 return _currdir;
             }
         }
-        #endregion Properties
-
-        #region Methods
 
         public static void Crash(Exception e)
         {
@@ -204,7 +197,5 @@ namespace linerider
                 }.Start();
             }
         }
-
-        #endregion Methods
     }
 }

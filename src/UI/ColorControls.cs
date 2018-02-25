@@ -28,8 +28,6 @@ namespace linerider.UI
 {
     public class ColorControls
     {
-        #region Properties
-
         public float GreenMultiplier
         {
             get
@@ -65,10 +63,6 @@ namespace linerider.UI
             }
         }
 
-        #endregion Properties
-
-        #region Constructors
-
         public ColorControls(ControlBase parent, Vector2 start)
         {
             _blue = new ColorButton(parent);
@@ -86,10 +80,6 @@ namespace linerider.UI
             _red.Clicked += red_Clicked;
             _green.Clicked += green_Clicked;
         }
-
-        #endregion Constructors
-
-        #region Methods
 
         public bool GetVisible()
         {
@@ -131,61 +121,33 @@ namespace linerider.UI
             _red.IsHidden = !val;
             _blue.IsHidden = !val;
         }
-
-        #endregion Methods
-
-        #region Classes
-
         public class ColorButton : Button
         {
-            #region Fields
-
             public byte Alpha = 255;
             public Color Color = Color.Black;
-
-            #endregion Fields
-
-            #region Constructors
 
             public ColorButton(ControlBase canvas)
                 : base(canvas)
             {
             }
-
-            #endregion Constructors
-
-            #region Methods
-
             protected override void Render(Gwen.Skin.SkinBase skin)
             {
                 skin.Renderer.DrawColor = Color.FromArgb(IsDepressed ? 64 : (IsHovered ? 128 : Alpha), Color.R, Color.G, Color.B);
                 skin.Renderer.DrawFilledRect(RenderBounds);
             }
-
-            #endregion Methods
         }
 
         public class MultiplierButton : ColorButton
         {
-            #region Fields
-
             public bool eraser = false;
             public float max = 3;
             public float min = 1;
             public float Multiplier = 1;
 
-            #endregion Fields
-
-            #region Constructors
-
             public MultiplierButton(ControlBase canvas)
                 : base(canvas)
             {
             }
-
-            #endregion Constructors
-
-            #region Methods
 
             public void TickMultiplier()
             {
@@ -217,13 +179,7 @@ namespace linerider.UI
                     }
                 }
             }
-
-            #endregion Methods
         }
-
-        #endregion Classes
-
-        #region Fields
 
         private readonly ColorButton _blue;
         private readonly MultiplierButton _green;
@@ -231,8 +187,6 @@ namespace linerider.UI
         private LineType _eraserselected = LineType.All;
         private LineType _selected = LineType.All;
         private bool eraser = false;
-
-        #endregion Fields
 
         private void blue_Clicked(ControlBase sender, ClickedEventArgs arguments)
         {

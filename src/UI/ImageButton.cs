@@ -27,24 +27,13 @@ namespace linerider.UI
 {
     public class ImageButton : Button
     {
-        #region Fields
-
         public byte Alpha = 255;
         private Texture tx1;
         private Texture tx2;
         private Texture _overridetex = null;
         private bool _override = false;
 
-
-        #endregion Fields
-
-        #region Constructors
-
         public ImageButton(ControlBase canvas) : base(canvas) { }
-
-        #endregion Constructors
-
-        #region Methods
 
         public override void Dispose()
         {
@@ -122,8 +111,6 @@ namespace linerider.UI
                 skin.Renderer.DrawTexturedRect(m_texture, RenderBounds);
             }
         }
-
-        #endregion Methods
 
         private Texture m_texture;
     }

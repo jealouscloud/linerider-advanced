@@ -29,13 +29,8 @@ namespace linerider.Game
     /// </summary>
     public struct GridPoint
     {
-        #region Fields
 
         int x, y;
-
-        #endregion
-
-        #region Constructors
 
         /// <summary>
         /// Constructs a new Point instance.
@@ -48,10 +43,6 @@ namespace linerider.Game
             X = x;
             Y = y;
         }
-
-        #endregion
-
-        #region Public Members
 
         /// <summary>
         /// Gets a <see cref="System.Boolean"/> that indicates whether this instance is empty or zero.
@@ -178,11 +169,6 @@ namespace linerider.Game
         {
             return String.Format("{{{0}, {1}}}", X, Y);
         }
-
-        #endregion
-
-        #region IEquatable<Point> Members
-
         /// <summary>
         /// Indicates whether this instance is equal to the specified Point.
         /// </summary>
@@ -192,7 +178,5 @@ namespace linerider.Game
         {
             return X == other.X && Y == other.Y;
         }
-
-        #endregion
     }
 }

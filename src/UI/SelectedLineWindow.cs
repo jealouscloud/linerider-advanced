@@ -250,22 +250,15 @@ namespace linerider.UI
         }
         private class NoDecimalNUD : NumericUpDown
         {
-            #region Constructors
 
             public NoDecimalNUD(ControlBase b) : base(b)
             {
             }
 
-            #endregion Constructors
-
-            #region Methods
-
             protected override bool IsTextAllowed(string str)
             {
                 return base.IsTextAllowed(str) && !str.Contains(".");
             }
-
-            #endregion Methods
         }
     }
 }

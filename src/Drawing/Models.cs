@@ -25,7 +25,6 @@ namespace linerider
 {
     public static class Models
     {
-        #region Fields
         public static int SledTexture;
         public static int BodyTexture;
         public static int LimbsTexture;
@@ -41,9 +40,6 @@ namespace linerider
         public static readonly FloatRect BrokenSledUV = new FloatRect(0, 0.5f, 1, 0.5f);
         public static readonly FloatRect ArmUV = new FloatRect(0, 0, 1, 0.5f);
         public static readonly FloatRect LegUV = new FloatRect(0, 0.5f, 1, 0.5f);
-        #endregion Fields
-
-        #region Methods
 
         public static void LoadModels()
         {
@@ -52,7 +48,5 @@ namespace linerider
             LimbsTexture = Rendering.StaticRenderer.LoadTexture(GameResources.limbs_img);
 
         }
-
-        #endregion Methods
     }
 }
