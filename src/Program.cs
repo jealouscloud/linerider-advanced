@@ -36,6 +36,7 @@ namespace linerider
         #region Fields
 #if DEBUG
         public static bool IsDebugged = false;
+        public static bool LogGL => IsDebugged;
 #endif
         public static string BinariesFolder = "bin";
         public readonly static CultureInfo Culture = new CultureInfo("en-US");

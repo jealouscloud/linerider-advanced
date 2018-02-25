@@ -40,7 +40,6 @@ namespace linerider.Rendering
             Change,
             Remove
         }
-        public static Shader LineShader;
         public bool RequiresUpdate = true;
 
         private LineDecorator _decorator;
@@ -71,17 +70,11 @@ namespace linerider.Rendering
             _lineactions = new Queue<Tuple<LineActionType, GameLine>>();
             _physlines = new Dictionary<int, int>();
             _scenerylines = new Dictionary<int, int>();
-            if (LineShader == null)
-            {
-                LineShader = new Shader(
-                    GameResources.simline_vert,
-                    GameResources.simline_frag);
-            }
             _decorator = new LineDecorator();
-            _physvbo = new LineRenderer(LineShader);
+            _physvbo = new LineRenderer(Shaders.LineShader);
             _physvbo.LineColor = Constants.DefaultLineColor;
 
-            _sceneryvbo = new LineRenderer(LineShader);
+            _sceneryvbo = new LineRenderer(Shaders.LineShader);
             _sceneryvbo.LineColor = Color.Black;
         }
         public void Render(DrawOptions options)
@@ -292,7 +285,7 @@ namespace linerider.Rendering
             var lineverts = LineRenderer.CreateTrackLine(
                 line.Position,
                 line.Position2,
-                2,
+                2 * line.Width,
                 0);
             int start = renderer.AddLine(lineverts);
             lookup.Add(line.ID, start);

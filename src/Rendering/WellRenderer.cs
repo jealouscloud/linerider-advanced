@@ -95,13 +95,17 @@ namespace linerider.Rendering
 
         private static GenericVertex[] GetWell(StandardLine line)
         {
-            var t = StaticRenderer.CalculateLine(Vector2d.Zero, Angle.FromVector(line.DiffNormal), line.inv ? -StandardLine.Zone : StandardLine.Zone);
+            var t = Utility.GetThickLine(line.Start, line.End, Angle.FromLine(line.Start, line.End), StandardLine.Zone * 2);
             var wellcolor = Color.FromArgb(40, 0, 0, 0);
-            var tl = (new GenericVertex((Vector2)(line.Position), wellcolor));
-            var tr = (new GenericVertex((Vector2)(line.Position2), wellcolor));
-            var bl = (new GenericVertex((Vector2)(line.Position + t), wellcolor));
-            var br = (new GenericVertex((Vector2)(line.Position2 + t), wellcolor));
-            return new GenericVertex[] { tl, tr, bl, br, bl, tr };
+            var tl = new GenericVertex((Vector2)(line.Start), wellcolor);
+            var tr = new GenericVertex((Vector2)(line.End), wellcolor);
+            var bl = new GenericVertex((Vector2)(t[3]), wellcolor);
+            var br = new GenericVertex((Vector2)(t[0]), wellcolor);
+            return new GenericVertex[]
+                {
+                    tl, tr, bl,
+                    bl, br, tl
+                };
         }
     }
 }

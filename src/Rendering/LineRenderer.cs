@@ -168,7 +168,7 @@ namespace linerider.Rendering
             _ibo.Unbind();
             if (alreadyremoved)
             {
-               // Debug.WriteLine("linerenderer remove line thats nulled" + ibo_index);
+                // Debug.WriteLine("linerenderer remove line thats nulled" + ibo_index);
                 return;
             }
             freevertices.Enqueue(vertstart);
@@ -228,6 +228,7 @@ namespace linerider.Rendering
             var u_knobstate = _shader.GetUniform("u_knobstate");
             GL.Uniform4(u_color, global.R / 255f, global.G / 255f, global.B / 255f, global.A / 255f);
             GL.Uniform1(u_scale, Scale);
+            GL.Uniform1(_shader.GetUniform("u_alphachannel"), 0);
             GL.Uniform1(u_knobstate, (int)KnobState);
 
         }
@@ -295,8 +296,15 @@ namespace linerider.Rendering
             var rad = Angle.FromVector(d);
             var c = new Vector2d(rad.Cos, rad.Sin);
             //create line cap ends
-            lnstart += c * -1;
-            lnend += c * 1;
+            lnstart += c * (-1 * (size / 2));
+            lnend += c * (1 * (size / 2));
+
+            return CreateLine(lnstart, lnend, size, rad, color);
+        }
+        public static LineVertex[] CreateLine(Vector2d lnstart, Vector2d lnend, float size, int color = 0)
+        {
+            var d = lnend - lnstart;
+            var rad = Angle.FromVector(d);
 
             return CreateLine(lnstart, lnend, size, rad, color);
         }
@@ -307,14 +315,14 @@ namespace linerider.Rendering
             var end = (Vector2)lnend;
             var len = (end - start).Length;
 
-            var l = StaticRenderer.GenerateThickLine(start, end, angle, size);
-            ret[1] = new LineVertex() { Position = l[0], circle_uv = new Vector2(0, 1), ratio = size / len, color = color };
-            ret[0] = new LineVertex() { Position = l[1], circle_uv = new Vector2(1, 1), ratio = size / len, color = color };
-            ret[2] = new LineVertex() { Position = l[2], circle_uv = new Vector2(1, 0), ratio = size / len, color = color };
+            var l = Utility.GetThickLine(start, end, angle, size);
+            ret[0] = new LineVertex() { Position = l[0], circle_uv = new Vector2(0, 0), ratio = size / len, color = color };
+            ret[1] = new LineVertex() { Position = l[1], circle_uv = new Vector2(0, 1), ratio = size / len, color = color };
+            ret[2] = new LineVertex() { Position = l[2], circle_uv = new Vector2(1, 1), ratio = size / len, color = color };
 
-            ret[3] = new LineVertex() { Position = l[3], circle_uv = new Vector2(1, 1), ratio = size / len, color = color };
-            ret[4] = new LineVertex() { Position = l[2], circle_uv = new Vector2(0, 1), ratio = size / len, color = color };
-            ret[5] = new LineVertex() { Position = l[0], circle_uv = new Vector2(1, 0), ratio = size / len, color = color };
+            ret[3] = new LineVertex() { Position = l[2], circle_uv = new Vector2(1, 1), ratio = size / len, color = color };
+            ret[4] = new LineVertex() { Position = l[3], circle_uv = new Vector2(1, 0), ratio = size / len, color = color };
+            ret[5] = new LineVertex() { Position = l[0], circle_uv = new Vector2(0, 0), ratio = size / len, color = color };
             return ret;
         }
     }

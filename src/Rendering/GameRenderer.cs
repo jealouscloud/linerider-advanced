@@ -35,96 +35,19 @@ namespace linerider.Rendering
 {
     public static class GameRenderer
     {
-        #region Fields
-
         public static MainWindow Game;
-        private static readonly VAO _roundlinevao = new VAO(false, true);
-
-        #endregion Fields
-
-        #region Methods
-        public static void DrawRider(float opacity, Rider rider, bool scarf = false, bool drawcontactpoints = false, bool momentumvectors = false, int iteration = 6)
-        {
-            if (scarf)
-            {
-                DrawScarf(rider.GetScarfLines(), opacity);
-            }
-            var points = rider.Body;
-
-            DrawTexture(Models.LegTexture, Models.LegRect,
-            points[RiderConstants.BodyButt].Location,
-            points[RiderConstants.BodyFootRight].Location, opacity);
-
-            DrawTexture(Models.ArmTexture, Models.ArmRect,
-            points[RiderConstants.BodyShoulder].Location,
-            points[RiderConstants.BodyHandRight].Location, opacity);
-            if (!rider.Crashed)
-                RenderRoundedLine(points[RiderConstants.BodyHandRight].Location, points[RiderConstants.SledTR].Location,
-                Color.Black, 0.1f);
-
-            if (rider.SledBroken)
-            {
-                var nose = points[RiderConstants.SledTR].Location - points[RiderConstants.SledTL].Location;
-                var tail = points[RiderConstants.SledBL].Location - points[RiderConstants.SledTL].Location;
-                if ((nose.X * tail.Y) - (nose.Y * tail.X) < 0)
-                {
-                    DrawTexture(
-                        Models.BrokenSledTexture,
-                        Models.BrokenSledRect,
-                        points[RiderConstants.SledBL].Location,
-                        points[RiderConstants.SledBR].Location, opacity,
-                        0, 1, 1, 0);//we're upside down!
-                }
-                else
-                {
-                    DrawTexture(
-                        Models.BrokenSledTexture,
-                        Models.BrokenSledRect,
-                        points[RiderConstants.SledTL].Location,
-                        points[RiderConstants.SledTR].Location, opacity);
-                }
-            }
-            else
-            {
-                DrawTexture(Models.SledTexture, Models.SledRect,
-                points[RiderConstants.SledTL].Location,
-                points[RiderConstants.SledTR].Location, opacity);
-            }
-
-            DrawTexture(Models.LegTexture, Models.LegRect,
-            points[RiderConstants.BodyButt].Location,
-            points[RiderConstants.BodyFootLeft].Location, opacity);
-            if (!rider.Crashed)
-            {
-                DrawTexture(Models.BodyTexture, Models.BodyRect,
-                points[RiderConstants.BodyButt].Location,
-                points[RiderConstants.BodyShoulder].Location, opacity);
-            }
-            else
-            {
-                DrawTexture(Models.BodyDeadTexture, Models.BodyRect,
-                points[RiderConstants.BodyButt].Location,
-                points[RiderConstants.BodyShoulder].Location, opacity);
-            }
-            if (!rider.Crashed)
-                RenderRoundedLine(points[RiderConstants.BodyHandLeft].Location, points[RiderConstants.SledTR].Location,
-                Color.Black, 0.1f);
-
-            DrawTexture(Models.ArmTexture, Models.ArmRect,
-            points[RiderConstants.BodyShoulder].Location,
-            points[RiderConstants.BodyHandLeft].Location, opacity);
-        }
-        public static void DrawMomentum(Rider rider, List<GenericVertex> vertices)
+        private static LineVAO _linevao = null;
+        public static void DrawMomentum(Rider rider, LineVAO vao)
         {
             for (int i = 0; i < rider.Body.Length; i++)
             {
                 var anchor = rider.Body[i];
                 var vec1 = anchor.Location;
                 var vec2 = vec1 + (anchor.Momentum);
-                vertices.AddRange(GenRoundedLine(vec1, vec2, Color.Red, 1f / 2, false));
+                vao.AddLine(vec1, vec2, Color.Red, 1f / 2);
             }
         }
-        public static void DrawContactPoints(Rider rider, List<int> diagnosis, List<GenericVertex> vertices)
+        public static void DrawContactPoints(Rider rider, List<int> diagnosis, LineVAO vao)
         {
             if (diagnosis == null)
                 diagnosis = new List<int>();
@@ -139,21 +62,19 @@ namespace linerider.Rendering
                 else if (bones[i].OnlyRepel)
                 {
                     c = Color.CornflowerBlue;
-                    vertices.AddRange(GenRoundedLine(
+                    vao.AddLine(
                         rider.Body[bones[i].joint1].Location,
                         rider.Body[bones[i].joint2].Location,
                         c,
-                        1f / 4,
-                        false));
+                        1f / 4);
                 }
                 else if (i <= 3)
                 {
-                    vertices.AddRange(GenRoundedLine(
+                    vao.AddLine(
                         rider.Body[bones[i].joint1].Location,
                         rider.Body[bones[i].joint2].Location,
                         c,
-                        1f / 4,
-                        false));
+                        1f / 4);
                 }
             }
             if (!rider.Crashed && diagnosis.Count != 0)
@@ -165,21 +86,21 @@ namespace linerider.Rendering
                     var broken = diagnosis[i];
                     if (broken >= 0)
                     {
-                        vertices.AddRange(GenRoundedLine(
+                        vao.AddLine(
                         rider.Body[bones[broken].joint1].Location,
                         rider.Body[bones[broken].joint2].Location,
                         breakcolor,
-                        1f / 4,
-                        false));
+                        1f / 4);
                     }
                 }
                 //the first break is most important so we give it a better color, assuming its not just a fakie death
                 if (diagnosis[0] > 0)
                 {
-                    vertices.AddRange(GenRoundedLine(
+                    vao.AddLine(
                     rider.Body[bones[diagnosis[0]].joint1].Location,
                     rider.Body[bones[diagnosis[0]].joint2].Location,
-                    firstbreakcolor, 1f / 4, false));
+                    firstbreakcolor,
+                    1f / 4);
                 }
             }
             for (var i = 0; i < rider.Body.Length; i++)
@@ -191,72 +112,16 @@ namespace linerider.Rendering
                 {
                     c = Color.Blue;
                 }
-                vertices.AddRange(GenRoundedLine(
+                vao.AddLine(
                     rider.Body[i].Location,
                     rider.Body[i].Location,
                     c,
-                    1f / 4,
-                    false));
+                    1f / 4);
             }
-        }
-        public static void DrawScarf(Line[] lines, float opacity)
-        {
-            GLEnableCap blend = null;
-            if (opacity < 1)
-            {
-                blend = new GLEnableCap(EnableCap.Blend);
-                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            }
-            GameDrawingMatrix.Enter();
-            VAO scarf = new VAO(false, true);//VAO does not need disposing, it does not allocate a buffer
-            List<Vector2> altvectors = new List<Vector2>();
-            Color c = Color.FromArgb((byte)(255 * opacity), 209, 1, 1);
-            var alt = Color.FromArgb((byte)(255 * opacity), 255, 100, 100);
-            for (int i = 0; i < lines.Length; i += 2)
-            {
-                var thickline = StaticRenderer.GenerateThickLine((Vector2)lines[i].Position, (Vector2)lines[i].Position2, 2);
-
-                GenericVertex tl = (new GenericVertex(thickline[0], c));
-                GenericVertex tr = (new GenericVertex(thickline[1], c));
-                GenericVertex br = (new GenericVertex(thickline[2], c));
-                GenericVertex bl = (new GenericVertex(thickline[3], c));
-
-                scarf.AddVertex(tl);
-                scarf.AddVertex(bl);
-                scarf.AddVertex(tr);
-
-                scarf.AddVertex(bl);
-                scarf.AddVertex(tr);
-                scarf.AddVertex(br);
-                if (i != 0)
-                {
-                    altvectors.Add(tl.Position);
-                    altvectors.Add(bl.Position);
-                }
-                altvectors.Add(br.Position);
-                altvectors.Add(tr.Position); ;
-            }
-            for (int i = 0; i < altvectors.Count - 4; i += 4)
-            {
-                scarf.AddVertex(new GenericVertex(altvectors[i], alt));
-                scarf.AddVertex(new GenericVertex(altvectors[i + 1], alt));
-                scarf.AddVertex(new GenericVertex(altvectors[i + 2], alt));
-
-
-                scarf.AddVertex(new GenericVertex(altvectors[i], alt));
-                scarf.AddVertex(new GenericVertex(altvectors[i + 2], alt));
-                scarf.AddVertex(new GenericVertex(altvectors[i + 3], alt));
-            }
-            scarf.Draw(PrimitiveType.Triangles);
-            GameDrawingMatrix.Exit();
-
-            if (blend != null)
-                blend.Dispose();
         }
 
         public static void DrawTrackLine(StandardLine line, Color color, bool drawwell, bool drawcolor, bool drawknobs, bool redknobs = false)
         {
-            color = Color.FromArgb(255, color);
             var thickness = 2;
             Color color2;
             var type = line.Type;
@@ -311,61 +176,40 @@ namespace linerider.Rendering
                     GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
                     GameDrawingMatrix.Enter();
                     GL.Begin(PrimitiveType.Quads);
-                    GL.Color4(new Color4(150, 150, 150, 150));
-                    var rect = StaticRenderer.GenerateThickLine((Vector2)line.Position, (Vector2)line.Position2, (float)(StandardLine.Zone * 2));
+                    GL.Color4(new Color4(0, 0, 0, 40));
+                    var rect = Utility.GetThickLine((Vector2)line.Start, (Vector2)line.End, Angle.FromLine(line.Start,line.End), (float)(StandardLine.Zone * 2));
 
-                    GL.Vertex2(line.Position);
-                    GL.Vertex2(line.Position2);
-                    GL.Vertex2(rect[line.inv ? 2 : 1]);
-                    GL.Vertex2(rect[line.inv ? 3 : 0]);
+                    GL.Vertex2(line.Start);
+                    GL.Vertex2(line.End);
+                    GL.Vertex2(rect[3]);
+                    GL.Vertex2(rect[0]);
                     GL.End();
                     GL.PopMatrix();
                 }
             }
         }
-
+        private static LineVAO GetLineVAO()
+        {
+            if (_linevao == null)
+                _linevao = new LineVAO();
+            _linevao.Clear();
+            return _linevao;
+        }
         public static void RenderRoundedLine(Vector2d position, Vector2d position2, Color color, float thickness, bool knobs = false, bool redknobs = false)
         {
             using (new GLEnableCap(EnableCap.Blend))
             {
                 using (new GLEnableCap(EnableCap.Texture2D))
                 {
-                    var vertices = GenRoundedLine(position, position2, color, thickness, knobs, redknobs);
-                    if (vertices.Count != 0)
-                    {
-                        _roundlinevao.Texture = StaticRenderer.CircleTex;
-                        _roundlinevao.Clear();
-                        foreach (var v in vertices)
-                            _roundlinevao.AddVertex(v);
-                        _roundlinevao.SetOpacity(color.A / 255f);
-                        GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.OneMinusSrcAlpha);
-                        _roundlinevao.Draw(PrimitiveType.Triangles);
-                        _roundlinevao.Texture = 0;
-                    }
+                    GameDrawingMatrix.Enter();
+                    var vao = GetLineVAO();
+                    vao.Scale = GameDrawingMatrix.Scale;
+                    vao.AddLine(position, position2, color, thickness);
+                    vao.knobstate = knobs ? (redknobs ? 2 : 1) : 0;
+                    vao.Draw(PrimitiveType.Triangles);
+                    GameDrawingMatrix.Exit();
                 }
             }
-        }
-        public static List<GenericVertex> GenRoundedLine(Vector2d position, Vector2d position2, Color color, float thickness, bool knobs = false, bool redknobs = false)
-        {
-            List<GenericVertex> vertices = new List<GenericVertex>(6 * 5);
-            var end1 = (position + Game.ScreenTranslation) * Game.Track.Zoom;
-            var end2 = (position2 + Game.ScreenTranslation) * Game.Track.Zoom;
-            var line = StaticRenderer.GenerateThickLine((Vector2)end1, (Vector2)end2, thickness * Game.Track.Zoom);
-
-            vertices.Add(new GenericVertex(line[0], color));
-            vertices.Add(new GenericVertex(line[1], color));
-            vertices.Add(new GenericVertex(line[2], color));
-            vertices.Add(new GenericVertex(line[0], color));
-            vertices.Add(new GenericVertex(line[3], color));
-            vertices.Add(new GenericVertex(line[2], color));
-            vertices.AddRange(StaticRenderer.FastCircle((Vector2)(end1), Game.Track.Zoom * (thickness / 2), color));
-            vertices.AddRange(StaticRenderer.FastCircle((Vector2)(end2), Game.Track.Zoom * (thickness / 2), color));
-            if (knobs)
-            {
-                vertices.AddRange(StaticRenderer.FastCircle((Vector2)(end1), Game.Track.Zoom * (thickness / 3), redknobs ? Color.Red : Color.White));
-                vertices.AddRange(StaticRenderer.FastCircle((Vector2)(end2), Game.Track.Zoom * (thickness / 3), redknobs ? Color.Red : Color.White));
-            }
-            return vertices;
         }
         public static void DbgDrawGrid()
         {
@@ -471,28 +315,5 @@ namespace linerider.Rendering
                 }
             }
         }
-
-        private static void DrawTexture(int tex,
-        DoubleRect rect,
-        Vector2d p1,
-        Vector2d rotationAnchor,
-        float opacity,
-        float u1 = 0,
-        float v1 = 0,
-        float u2 = 1,
-        float v2 = 1)
-        {
-            var angle = Angle.FromLine(p1, rotationAnchor);
-            var offset = -(Game.ScreenPosition - p1);
-            GL.PushMatrix();
-            GL.Scale(Game.Track.Zoom, Game.Track.Zoom, 0);
-            GL.Translate(offset.X, offset.Y, 0);
-            GL.Rotate(angle.Degrees, 0, 0, 1);
-            GL.Scale(0.5, 0.5, 0);
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            StaticRenderer.DrawTexture(tex, rect, opacity, u1, v1, u2, v2);
-            GL.PopMatrix();
-        }
-        #endregion Methods
     }
 }

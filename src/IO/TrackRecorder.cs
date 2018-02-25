@@ -20,6 +20,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -87,7 +88,7 @@ namespace linerider.IO
                 game.Track.Reset();
 
                 var state = game.Track.GetStart();
-                var frame = flag.Frame;
+                var frame = flag.FrameID;
                 Recording = true;
                 Recording1080p = is1080P;
                 game.Canvas.SetSize(game.RenderSize.Width, game.RenderSize.Height);
@@ -148,6 +149,7 @@ namespace linerider.IO
                     int framecount = smooth ? (frame * 60) / 40 : frame;
 
                     double frametime = 0;
+                    Stopwatch sw = Stopwatch.StartNew();
                     for (var i = 0; i < framecount; i++)
                     {
                         if (hardexit)
@@ -192,12 +194,13 @@ namespace linerider.IO
                             hardexit = true;
                             errormessage = "The user manually cancelled recording.";
                         }
-                        if (i % 40 == 0)
+                        if (sw.ElapsedMilliseconds > 500)
                         {
                             game.Title = string.Format("{0} [Recording {1:P}% | Hold ESC to cancel]", Program.WindowTitle, i / (double)framecount);
                             game.ProcessEvents();
                         }
                     }
+                    game.ProcessEvents();
 
                     if (!hardexit)
                     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using OpenTK;
@@ -70,6 +71,7 @@ namespace linerider.Drawing
             if (status == 0)
             {
                 var log = GL.GetShaderInfoLog(shader);
+                Debug.WriteLine("Shader Error: "+log);
                 throw new Exception("Shader compile error: " + log);
             }
         }

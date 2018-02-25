@@ -127,7 +127,7 @@ namespace linerider
 
         public List<int> Diagnose(Rider state, int maxiteration = 6)
         {
-            return state.Diagnose(Track, null, maxiteration);
+            return state.Diagnose(Track.Grid,Track.Bones, null, maxiteration);
         }
         public void SaveTrackAsSol()
         {

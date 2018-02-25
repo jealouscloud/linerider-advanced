@@ -41,7 +41,7 @@ namespace linerider.Tools
         {
             get
             {
-                return true;
+                return DrawingScenery || Active;
             }
         }
         public bool Snapped = false;
@@ -50,7 +50,6 @@ namespace linerider.Tools
         const float MINIMUM_LINE = 0.5f;
         private bool _addflip = false;
         private Vector2d _mouseshadow;
-        private Vector2d _lastrendered;
         private bool DrawingScenery
         {
             get
@@ -97,6 +96,7 @@ namespace linerider.Tools
         }
         public override void OnChangingTool()
         {
+            Stop();
             _mouseshadow = Vector2d.Zero;
         }
         private void AddLine()
@@ -151,11 +151,11 @@ namespace linerider.Tools
             {
                 GameRenderer.RenderRoundedLine(_mouseshadow, _mouseshadow, Color.FromArgb(100, 0x00, 0xCC, 0x00), 2f * game.Canvas.ColorControls.GreenMultiplier, false, false);
             }
-            _lastrendered = _mouseshadow;
         }
         public override void Stop()
         {
             Active = false;
+            _mouseshadow = Vector2d.Zero;
         }
     }
 }

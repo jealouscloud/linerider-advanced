@@ -296,7 +296,11 @@ namespace linerider.Game
             }
             return new Rider(body, scarf, phys, dead, sledbroken);
         }
-        public List<int> Diagnose(Track track, HashSet<int> collisions = null, int maxiteration = 6)
+        public List<int> Diagnose(
+            ISimulationGrid grid,
+            Bone[] bones, 
+            HashSet<int> collisions = null, 
+            int maxiteration = 6)
         {
             var ret = new List<int>();
             if (Crashed)
@@ -308,16 +312,16 @@ namespace linerider.Game
             bool dead = Crashed;
             RectLRTB phys = new RectLRTB(ref body[0]);
             List<int> breaks = new List<int>();
-            using (track.Grid.Sync.AcquireRead())
+            using (grid.Sync.AcquireRead())
             {
                 for (int i = 0; i < maxiteration; i++)
                 {
-                    ProcessBones(track.Bones, body, ref dead, breaks);
+                    ProcessBones(bones, body, ref dead, breaks);
                     if (dead)
                     {
                         return breaks;
                     }
-                    ProcessLines(track.Grid, body, ref phys, collisions);
+                    ProcessLines(grid, body, ref phys, collisions);
                 }
             }
             var nose = body[RiderConstants.SledTR].Location - body[RiderConstants.SledTL].Location;

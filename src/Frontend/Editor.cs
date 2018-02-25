@@ -1,5 +1,5 @@
 ﻿//
-//  GLTrack.cs
+//  Editor.cs
 //
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
@@ -41,48 +41,28 @@ namespace linerider
     /// <summary>The interface for communicating with the game track object</summary>
     public class Editor : GameService
     {
-        internal class Tracklocation
-        {
-            public int Frame;
-            public int Iteration;
-            public Rider State;
-            public List<int> diagnosis = null;
-        }
+        private float _oldZoom = 1.0f;
+        private RiderFrame _flag;
+        private Track _track;
+        private int _startFrame;
+        private int _iteration = 6;
+        private bool _renderriderinvalid = true;
+        private RiderFrame _renderrider = null;
+        private ResourceSync _tracksync = new ResourceSync();
+        private ResourceSync _renderridersync = new ResourceSync();
+        private SimulationRenderer _renderer = new SimulationRenderer();
+        private bool _refreshtrack = false;
 
-        public readonly Stopwatch Fpswatch = new Stopwatch();
-        internal readonly FPSCounter FpsCounter = new FPSCounter();
+        public readonly Stopwatch FramerateWatch = new Stopwatch();
+        public readonly FPSCounter FramerateCounter = new FPSCounter();
         /// <summary>
         /// indicates if we're in playbackmode
         /// </summary>
         public bool PlaybackMode { get; private set; }
         private bool _paused = false;
-        public bool Paused
-        {
-            get
-            {
-                return _paused;
-            }
-            private set
-            {
-                if (value == _paused)
-                    return;
-                _paused = value;
-            }
-        }
         public float Zoom = Constants.DefaultZoom;
         public Camera Camera { get; private set; }
         public List<LineTrigger> ActiveTriggers = new List<LineTrigger>();
-        private float _oldZoom = 1.0f;
-        private Tracklocation _flag;
-        private Track _track;
-        private int _startFrame;
-        private ResourceSync _tracksync = new ResourceSync();
-        private ResourceSync _renderridersync = new ResourceSync();
-        private SimulationRenderer _renderer = new SimulationRenderer();
-        /// <summary>
-        /// The current number of frames since start (incl flag)
-        /// </summary>
-        public int Offset { get; private set; }
         public int CurrentFrame => PlaybackMode ? Offset + _startFrame : 0;
         public int LineCount => _track.Lines.Count;
         public bool SimulationNeedsDraw = false;
@@ -102,16 +82,23 @@ namespace linerider
             get { return _track.ZeroStart; }
             set { _track.ZeroStart = value; }
         }
-
-        private Tracklocation _renderrider = null;
+        public RiderFrame RenderRiderInfo
+        {
+            get
+            {
+                if (_renderriderinvalid)
+                {
+                    _renderriderinvalid = false;
+                    _renderrider = Timeline.ExtractFrame(Offset, IterationsOffset);
+                }
+                return _renderrider;
+            }
+        }
         public Rider RenderRider
         {
             get
             {
-                using (_renderridersync.AcquireRead())
-                {
-                    return _renderrider.State;
-                }
+                return RenderRiderInfo.State;
             }
         }
         public string Name
@@ -121,9 +108,21 @@ namespace linerider
                 return _track.Name;
             }
         }
-        /// Returns the real rider state associated with the current frame
 
-        public UndoManager UndoManager;
+        public bool Paused
+        {
+            get
+            {
+                return _paused;
+            }
+            private set
+            {
+                if (value == _paused)
+                    return;
+                _paused = value;
+            }
+        }
+        public UndoManager UndoManager { get; private set; }
         public bool Playing => PlaybackMode && !Paused;
         /// <summary>
         /// The offset between 0-6 of the currently rendered iteration
@@ -132,17 +131,19 @@ namespace linerider
         {
             get
             {
-                return _renderrider.Iteration;
+                return _iteration;
             }
             set
             {
                 if (IterationsOffset > 6 || IterationsOffset < 0)
                     throw new Exception("iteration num out of range");
-
-                _renderrider.Iteration = value;
+                _iteration = value;
             }
         }
-        private bool _refreshtrack = false;
+        /// <summary>
+        /// The current number of frames since start (incl flag)
+        /// </summary>
+        public int Offset { get; private set; }
 
         public Timeline Timeline { get; private set; }
         public Editor()
@@ -152,7 +153,6 @@ namespace linerider
             Timeline = new Timeline(_track);
             _track.ActiveTriggers = ActiveTriggers;
             Offset = 0;
-            _renderrider = new Tracklocation() { Frame = 0, State = Timeline.GetFrame(0), Iteration = 6 };
             UndoManager = new UndoManager();
         }
         public void Render(float blend)
@@ -181,11 +181,11 @@ namespace linerider
             }
             drawOptions.Paused = Paused;
             drawOptions.Playback = PlaybackMode;
-            drawOptions.Rider = RenderRider;
+            drawOptions.Rider = RenderRiderInfo.State;
             drawOptions.ShowContactLines = Settings.Local.DrawContactPoints;
             drawOptions.ShowMomentumVectors = Settings.Local.MomentumVectors;
             drawOptions.Zoom = Zoom;
-            drawOptions.RiderDiagnosis = _renderrider.diagnosis;
+            drawOptions.RiderDiagnosis = RenderRiderInfo.Diagnosis;
             if (Settings.SmoothPlayback && Playing && Offset > 0 && blend < 1)
             {
                 //interpolate between last frame and current one
@@ -207,43 +207,9 @@ namespace linerider
         /// <summary>
         /// Function to be called after updating the playback buffer
         /// </summary>
-        public void UpdateRenderRider()
+        public void InvalidateRenderRider()
         {
-            SimulationNeedsDraw = true;
-            Tracklocation newrider;
-            using (_renderridersync.AcquireRead())
-                newrider = _renderrider;
-
-            newrider.Frame = Offset;
-            Rider rider;
-            bool isiteration = newrider.Iteration < 6 && newrider.Frame > 0;
-            if (isiteration)
-            {
-                rider = Timeline.GetFrame(newrider.Frame - 1);
-            }
-            else
-            {
-                rider = Timeline.GetFrame(newrider.Frame);
-            }
-
-            using (var trk = CreateTrackReader())
-            {
-                newrider.diagnosis = trk.Diagnose(
-                    rider,
-                    Math.Min(6, newrider.Iteration + 1));
-                if (isiteration)
-                {
-                    newrider.State = trk.TickBasic(rider, newrider.Iteration);
-                }
-                else
-                {
-                    newrider.State = rider;
-                }
-            }
-            using (_renderridersync.AcquireWrite())
-            {
-                _renderrider = newrider;
-            }
+            _renderriderinvalid = true;
             SimulationNeedsDraw = true;
         }
         public Rider GetStart()
@@ -273,11 +239,12 @@ namespace linerider
             if (PlaybackMode)
             {
                 Timeline.NotifyChanged();
-                UpdateRenderRider();
+                InvalidateRenderRider();
             }
             game.Canvas.DisableFlagTooltip();
+            _renderer.RequiresUpdate = true;
         }
-        internal void RestoreFlag(Tracklocation flag)
+        internal void RestoreFlag(RiderFrame flag)
         {
             _flag = flag;
         }
@@ -286,7 +253,7 @@ namespace linerider
         {
             if (PlaybackMode)
             {
-                _flag = new Tracklocation { State = Timeline.GetFrame(Offset), Frame = CurrentFrame };
+                _flag = new RiderFrame { State = Timeline.GetFrame(Offset), FrameID = CurrentFrame };
             }
             else
             {
@@ -358,7 +325,7 @@ namespace linerider
             else
             {
                 Timeline.Restart(_flag.State);
-                _startFrame = _flag.Frame;
+                _startFrame = _flag.FrameID;
             }
             Start(0);
         }
@@ -374,7 +341,7 @@ namespace linerider
             Timeline.Restart(_track.GetStart());
             if (_flag != null)
             {
-                var atflag = Timeline.GetFrame(_flag.Frame);
+                var atflag = Timeline.GetFrame(_flag.FrameID);
                 game.Canvas.SetFlagState(atflag.Body.CompareTo(_flag.State.Body));
             }
             Start(Timeline.Length - 1);
@@ -412,7 +379,7 @@ namespace linerider
             }
             game.Scheduler.Reset();
             game.Canvas.UpdateScrubber();
-            UpdateRenderRider();
+            InvalidateRenderRider();
             SimulationNeedsDraw = true;
         }
         public void SetFrame(int frame, bool updateslider = true)
@@ -420,7 +387,7 @@ namespace linerider
             Offset = frame;
             Timeline.GetFrame(frame);
             IterationsOffset = 6;
-            UpdateRenderRider();
+            InvalidateRenderRider();
 
             game.Canvas.UpdateIterationUI();
             if (updateslider)
@@ -479,13 +446,17 @@ namespace linerider
                     }
                     else
                     {
-                        TrackIO.CreateAutosave(_track, Settings.Local.CurrentSong?.ToString());
+                        // make sure were not saving 0 changes
+                        if (UndoManager.HasChanges())
+                        {
+                            TrackIO.CreateAutosave(_track, Settings.Local.CurrentSong?.ToString());
+                        }
                     }
                 }
             }
-            catch
+            catch(Exception e)
             {
-                //ignored
+                Debug.WriteLine("Autosave exception: "+e);
             }
             finally
             {
@@ -511,7 +482,7 @@ namespace linerider
             Camera.SetFrameCenter(trk.StartOffset);
             GC.Collect();//this is the safest place to collect
         }
-        public void OnLoad()
+        public void AutoLoadPrevious()
         {
             ThreadPool.QueueUserWorkItem((o) =>
             {
@@ -529,20 +500,7 @@ namespace linerider
                             ".trk",
                             StringComparison.InvariantCultureIgnoreCase))
                         {
-                            string trackname = Path.GetFileNameWithoutExtension(lasttrack);
-                            var dirname = Path.GetDirectoryName(lasttrack);
-                            var dirs = Directory.GetDirectories(Constants.TracksDirectory);
-                            foreach (var dir in dirs)
-                            {
-                                if (string.Equals(
-                                    dirname,
-                                    dir,
-                                    StringComparison.InvariantCulture))
-                                {
-                                    trackname = Path.GetFileName(dirname);
-                                    break;
-                                }
-                            }
+                            var trackname = TrackIO.GetTrackName(lasttrack);
 
                             ChangeTrack(TRKLoader.LoadTrack(lasttrack, trackname));
                         }
@@ -567,7 +525,7 @@ namespace linerider
             return TrackReader.AcquireRead(_tracksync, _track);
         }
 
-        internal Tracklocation GetFlag()
+        internal RiderFrame GetFlag()
         {
             return _flag;
         }

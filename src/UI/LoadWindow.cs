@@ -279,21 +279,15 @@ namespace linerider.UI
                         else
                         {
                             bool trackfolder = selected.Children.Count > 0;
-                            string trackname;
                             if (trackfolder)
                             {
                                 // getfilenamewithoutextension interacts weird
                                 // with periods in the directory name.
-                                trackname = Path.GetFileName(filepath);
                                 filepath = (string)selected.Children[0].UserData;
-                            }
-                            else
-                            {
-                                trackname = Path.GetFileNameWithoutExtension(filepath);
                             }
                             Settings.Local.EnableSong = false;
                             string file = filepath;
-                            string name = trackname;
+                            string name = TrackIO.GetTrackName(filepath);
                             if (!ThreadPool.QueueUserWorkItem((o) => LoadTrack(file, name)))
                             {
                                 LoadTrack(file, name);

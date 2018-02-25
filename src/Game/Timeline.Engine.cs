@@ -48,14 +48,16 @@ namespace linerider.Game
     {
         private readonly object _changesync = new object();
         private HashSet<GridPoint> _changedcells = new HashSet<GridPoint>();
+        private SimulationGridOverlay _savedcells = new SimulationGridOverlay();
         private int _first_invalid_frame = 1;
         public void SaveCells(Vector2d start, Vector2d end)
         {
             var positions = SimulationGrid.GetGridPositions(start, end, _track.Grid.GridVersion);
-            lock(_changesync)
+            lock (_changesync)
             {
                 foreach (var cellpos in positions)
                 {
+                    _savedcells.AddOverlay(cellpos.Point, _track.Grid.GetCell(cellpos.X, cellpos.Y));
                     _changedcells.Add(cellpos.Point);
                 }
             }
@@ -69,6 +71,12 @@ namespace linerider.Game
                 if (start != -1)
                 {
                     _first_invalid_frame = Math.Min(start, _first_invalid_frame);
+                }
+                else
+                {
+                    // every single change has no effect on physics
+                    // our backup has no value
+                    _savedcells.Clear();
                 }
             }
         }

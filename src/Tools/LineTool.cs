@@ -37,12 +37,20 @@ namespace linerider.Tools
 
 
         public bool Snapped = false;
+        private const float MINIMUM_LINE = 0.01f;
+        private bool _addflip;
+        private Vector2d _end;
+        private Vector2d _start;
 
         public LineTool()
             : base()
         {
         }
 
+        public override void OnChangingTool()
+        {
+            Stop();
+        }
         public override void OnMouseDown(Vector2d pos)
         {
             Active = true;
@@ -154,7 +162,7 @@ namespace linerider.Tools
                 var diff = _end - _start;
                 var x = diff.X;
                 var y = diff.Y;
-                Color c = Color.FromArgb(150, 150, 150);
+                Color c = Color.FromArgb(200, 150, 150,150);
                 if (Math.Abs(x) + Math.Abs(y) < MINIMUM_LINE)
                     c = Color.Red;
                 switch (game.Canvas.ColorControls.Selected)
@@ -178,26 +186,10 @@ namespace linerider.Tools
                 }
             }
         }
-        public override bool OnKeyDown(Key k)
-        {
-            switch (k)
-            {
-                case Key.Left:
-                    return false;
-                case Key.Right:
-                    return false;
-            }
-            return base.OnKeyDown(k);
-        }
 
         public override void Stop()
         {
             Active = false;
         }
-        private const float MINIMUM_LINE = 0.01f;
-        private bool _addflip;
-        private Vector2d _end;
-        private Vector2d _start;
-
     }
 }

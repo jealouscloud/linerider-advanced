@@ -20,6 +20,8 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using OpenTK;
+using System;
+using linerider.Utils;
 
 namespace linerider.Tools
 {
@@ -29,9 +31,12 @@ namespace linerider.Tools
         {
             get
             {
-                return true;
+                return false;
             }
         }
+        private Vector2d _last_erased = Vector2d.Zero;
+        // todo, this + the circle function dont work at ultra zoomed out.
+        private float radius => 5 / game.Track.Zoom;
         public override MouseCursor Cursor
         {
             get { return game.Cursors["eraser"]; }
@@ -54,6 +59,21 @@ namespace linerider.Tools
             if (Active)
             {
                 var p = ScreenToGameCoords(pos);
+                var diff = (Vector2)(p - _last_erased);
+                var len = diff.LengthFast;
+                double steplen = radius * 2;
+                if (len >= steplen)
+                {
+                    // calculate intermediary lines we might have missed
+                    var v = Angle.FromLine(_last_erased,p);
+                    var current = _last_erased;
+                    int count = (int)(len / steplen);
+                    for(int i = 0; i < count; i++)
+                    {
+                        Erase(current);
+                        current += new Vector2d(v.Cos * steplen, v.Sin * steplen);
+                    }
+                }
                 Erase(p);
             }
             base.OnMouseMoved(pos);
@@ -74,7 +94,7 @@ namespace linerider.Tools
         {
             using (var trk = game.Track.CreateTrackWriter())
             {
-                var lines = LinesInRadius(trk, pos, 5 / game.Track.Zoom);
+                var lines = LinesInRadius(trk, pos, radius);
                 if (lines.Length != 0)
                 {
                     for (int i = 0; i < lines.Length; i++)
@@ -86,6 +106,7 @@ namespace linerider.Tools
                     game.Track.RequiresUpdate = true;
                     game.Track.NotifyTrackChanged();
                 }
+                _last_erased = pos;
             }
         }
 

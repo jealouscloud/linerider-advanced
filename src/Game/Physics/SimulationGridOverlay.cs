@@ -56,16 +56,23 @@ namespace linerider.Game
         /// <returns>true if the overlay was added</returns>
         public bool AddOverlay(GridPoint point, SimulationCell cell)
         {
-            if (!Overlay.ContainsKey(point))
+            using (var rw = Sync.AcquireUpgradableRead())
             {
-                Overlay[point] = cell;
-                return true;
+                if (!Overlay.ContainsKey(point))
+                {
+                    rw.UpgradeToWriter();
+                    Overlay[point] = cell;
+                    return true;
+                }
+                return false;
             }
-            return false;
         }
         public void Clear()
         {
-            Overlay.Clear();
+            using (Sync.AcquireWrite())
+            {
+                Overlay.Clear();
+            }
         }
     }
 }

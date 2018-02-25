@@ -42,7 +42,7 @@ namespace linerider
         public Gwen.Renderer.OpenTK Renderer;
         public ColorControls ColorControls;
         public ImageButton FlagTool;
-        public HorizontalIntSlider Scrubber { get; private set;}
+        public HorizontalIntSlider Scrubber { get; private set; }
         private MainWindow game;
         private bool _draggingSlider = false;
         int _lastfpsupdate = 0;
@@ -67,6 +67,7 @@ namespace linerider
             SpriteLoading.RotationPoint.X = 16;
             SpriteLoading.RotationPoint.Y = 16;
             SpriteLoading.SetPosition(Width - 32, 0);
+
 
             Scrubber = new HorizontalIntSlider(this)
             {
@@ -155,10 +156,16 @@ namespace linerider
             Align.AlignRight(vslider);
             vslider.Height = 125;
         }
-
+        protected override void OnChildAdded(ControlBase child)
+        {
+            if (child is Gwen.ControlInternal.Modal || child is WindowControl)
+            {
+                game.SelectedTool.Stop();
+            }
+        }
         protected override void Render(SkinBase skin)
         {
-            while(PopupWindow.QueuedActions.Count != 0)
+            while (PopupWindow.QueuedActions.Count != 0)
             {
                 PopupWindow.QueuedActions.Dequeue().Invoke();
             }
@@ -180,7 +187,7 @@ namespace linerider
                 if (Math.Abs(Environment.TickCount - _lastfpsupdate) > 500)
                 {
                     _lastfpsupdate = Environment.TickCount;
-                    fpsorlinecount = Settings.Local.RecordingMode ? "40 FPS" : Math.Round(game.Track.FpsCounter.FPS) + " FPS ";
+                    fpsorlinecount = Settings.Local.RecordingMode ? "40 FPS" : Math.Round(game.Track.FramerateCounter.FPS) + " FPS ";
                 }
                 else
                 {
@@ -220,9 +227,9 @@ namespace linerider
                 var cam = flag.State.CalculateCenter();
                 cam.X -= 15;
                 cam.Y -= 15;
-                var ts = TimeSpan.FromSeconds((flag.Frame) / 40f);
+                var ts = TimeSpan.FromSeconds((flag.FrameID) / 40f);
                 labelflagtime.IsHidden = false;
-                labelflagtime.Text = ts.ToString("mm\\:ss") + ":" + (flag.Frame % 40f);
+                labelflagtime.Text = ts.ToString("mm\\:ss") + ":" + (flag.FrameID % 40f);
                 labelflagtime.SetPosition((float)(cam.X + game.ScreenTranslation.X) * game.Track.Zoom,
                     (float)(cam.Y + game.ScreenTranslation.Y) * game.Track.Zoom);
             }
@@ -511,14 +518,14 @@ namespace linerider
             FlagTool.DisableImageOverride();
         }
 
-        internal void CalculateFlag(Editor.Tracklocation loc)
+        internal void CalculateFlag(Game.RiderFrame loc)
         {
             if (loc?.State == null) return;
             DisableFlagTooltip();
             var invalid = false;
 
             var state = game.Track.GetStart();
-            var frame = loc.Frame;
+            var frame = loc.FrameID;
             using (var trk = game.Track.CreateTrackReader())
             {
                 if (frame > 400) //many frames, will likely lag the game. Update the window as a fallback.
