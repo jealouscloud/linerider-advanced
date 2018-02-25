@@ -10,18 +10,15 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    
-      <AllowedReferenceRelatedFileExtensions>
-      <!-- Prevent default XML file output
-           Only *.allowedextension files will be included
-       -->
-      .pdb
-    </AllowedReferenceRelatedFileExtensions> 
+    <AllowedReferenceRelatedFileExtensions>
+      *.pdb;
+    </AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <OutputPath>..\build</OutputPath>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -31,7 +28,7 @@
     <Optimize>true</Optimize>
     <OutputPath>..\build</OutputPath>
     <WarningLevel>4</WarningLevel>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>7</LangVersion>
   </PropertyGroup>
@@ -39,16 +36,16 @@
     <StartupObject />
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="MainWindow.cs" />
     <Compile Include="GameResources.cs" />
     <Compile Include="GameService.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="EntryPoint.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Audio\AudioDevice.cs" />
@@ -268,9 +265,10 @@
     <EmbeddedResource Include="Resources\shaders\rider.frag" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.manifest" />
-    <None Include="OpenTK.dll.config">
+    <None Include="Properties\app.manifest" />
+    <None Include="Properties\OpenTK.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Link>OpenTK.dll.config</Link>
     </None>
     <None Include="openal32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
