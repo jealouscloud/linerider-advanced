@@ -203,37 +203,39 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\beep.wav" />
-    <EmbeddedResource Include="Resources\circletex.png" />
     <EmbeddedResource Include="Resources\DefaultColors.xml" />
     <EmbeddedResource Include="Resources\DefaultSkin.png" />
-    <EmbeddedResource Include="Resources\eraser_icon.png" />
-    <EmbeddedResource Include="Resources\fast-forward.png" />
-    <EmbeddedResource Include="Resources\flag_icon.png" />
-    <EmbeddedResource Include="Resources\flag_invalid.png" />
-    <EmbeddedResource Include="Resources\gwell_tool.png" />
     <EmbeddedResource Include="Resources\icon.ico" />
-    <EmbeddedResource Include="Resources\line_adjust_icon.png" />
-    <EmbeddedResource Include="Resources\line_icon.png" />
     <EmbeddedResource Include="Resources\loading.png" />
-    <EmbeddedResource Include="Resources\menu_icon.png" />
-    <EmbeddedResource Include="Resources\move_icon.png" />
-    <EmbeddedResource Include="Resources\pause.png" />
-    <EmbeddedResource Include="Resources\pencil_icon.png" />
-    <EmbeddedResource Include="Resources\play_icon.png" />
-    <EmbeddedResource Include="Resources\rewind.png" />
-    <EmbeddedResource Include="Resources\stop_icon.png" />
-    <EmbeddedResource Include="Resources\White\eraser_icon_white.png" />
-    <EmbeddedResource Include="Resources\White\fast-forward_white.png" />
-    <EmbeddedResource Include="Resources\White\flag_icon_white.png" />
-    <EmbeddedResource Include="Resources\White\line_adjust_icon_white.png" />
-    <EmbeddedResource Include="Resources\White\line_icon_white.png" />
-    <EmbeddedResource Include="Resources\White\menu_icon_white.png" />
-    <EmbeddedResource Include="Resources\White\move_icon_white.png" />
-    <EmbeddedResource Include="Resources\White\pause_white.png" />
-    <EmbeddedResource Include="Resources\White\pencil_icon_white.png" />
-    <EmbeddedResource Include="Resources\White\play_icon_white.png" />
-    <EmbeddedResource Include="Resources\White\rewind_white.png" />
-    <EmbeddedResource Include="Resources\White\stop_icon_white.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\icons\erasertool.png" />
+    <EmbeddedResource Include="Resources\icons\fast-forward.png" />
+    <EmbeddedResource Include="Resources\icons\flag.png" />
+    <EmbeddedResource Include="Resources\icons\flag_invalid.png" />
+    <EmbeddedResource Include="Resources\icons\movetool.png" />
+    <EmbeddedResource Include="Resources\icons\linetool.png" />
+    <EmbeddedResource Include="Resources\icons\menu.png" />
+    <EmbeddedResource Include="Resources\icons\pantool.png" />
+    <EmbeddedResource Include="Resources\icons\pause.png" />
+    <EmbeddedResource Include="Resources\icons\penciltool.png" />
+    <EmbeddedResource Include="Resources\icons\play.png" />
+    <EmbeddedResource Include="Resources\icons\rewind.png" />
+    <EmbeddedResource Include="Resources\icons\stop.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\icons\white\erasertool.png" />
+    <EmbeddedResource Include="Resources\icons\white\fast-forward.png" />
+    <EmbeddedResource Include="Resources\icons\white\flag.png" />
+    <EmbeddedResource Include="Resources\icons\white\movetool.png" />
+    <EmbeddedResource Include="Resources\icons\white\linetool.png" />
+    <EmbeddedResource Include="Resources\icons\white\menu.png" />
+    <EmbeddedResource Include="Resources\icons\white\pantool.png" />
+    <EmbeddedResource Include="Resources\icons\white\pause.png" />
+    <EmbeddedResource Include="Resources\icons\white\penciltool.png" />
+    <EmbeddedResource Include="Resources\icons\white\play.png" />
+    <EmbeddedResource Include="Resources\icons\white\rewind.png" />
+    <EmbeddedResource Include="Resources\icons\white\stop.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\cursors\closed_move.png" />

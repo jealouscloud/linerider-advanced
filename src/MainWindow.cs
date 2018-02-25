@@ -966,13 +966,13 @@ namespace linerider
             btn.Clicked += (o, e) => { SetTool(Tools.LineTool); };
             btn = createbutton(GameResources.eraser_icon, GameResources.eraser_icon_white, "Eraser Tool (E)", "erasertool");
             btn.Clicked += (o, e) => { SetTool(Tools.EraserTool); };
-            btn = createbutton(GameResources.line_adjust_icon, GameResources.line_adjust_icon_white, "Line Adjustment Tool (R)",
+            btn = createbutton(GameResources.movetool_icon, GameResources.movetool_icon_white, "Line Adjustment Tool (R)",
                 "lineadjusttool");
             btn.Clicked += (o, e) => { SetTool(Tools.LineAdjustTool); };
             //  btn = createbutton(Content.gwell_tool, Content.gwell_tool, "Gravity Well Tool (T)",
             //       "gwelltool");
             //   btn.Clicked += (o, e) => { SetTool(Tools.GwellTool); };
-            btn = createbutton(GameResources.move_icon, GameResources.move_icon_white, "Hand Tool (Space) (T)", "handtool");
+            btn = createbutton(GameResources.pantool_icon, GameResources.pantool_icon_white, "Hand Tool (Space) (T)", "handtool");
             btn.Clicked += (o, e) =>
             {
                 SetTool(Tools.HandTool);
