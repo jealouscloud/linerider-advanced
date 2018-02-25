@@ -19,6 +19,7 @@ namespace linerider.Rendering
     public class SimulationRenderer : GameService
     {
         private TrackRenderer _renderer;
+        private RiderRenderer _riderrenderer;
 
         public bool RequiresUpdate
         {
@@ -31,9 +32,12 @@ namespace linerider.Rendering
                 _renderer.RequiresUpdate = value;
             }
         }
+        private LineVAO _linevao;
         public SimulationRenderer()
         {
+            _linevao = new LineVAO();
             _renderer = new TrackRenderer();
+            _riderrenderer = new RiderRenderer();
         }
         private void DrawRider(Camera camera, Track track)
         {
@@ -44,47 +48,47 @@ namespace linerider.Rendering
             _renderer.Render(options);
             if (Settings.Local.OnionSkinning && options.Playback)
             {
-                //todo make efficient and clean
-                const int onions = 10;
-                for (int i = 0; i < onions; i++)
+                const int onions = 20;
+                for (int i = -onions; i < onions; i++)
                 {
-                    var frame = game.Track.Offset - (onions - i);
-                    if (frame > 0)
+                    var frame = game.Track.Offset + i;
+                    if (frame > 0 && frame < timeline.Length && i != 0)
                     {
-                        GameRenderer.DrawRider(0.3f, timeline.GetFrame(frame), true, options.ShowContactLines);
+                        _riderrenderer.DrawRider(
+                            0.3f,
+                            timeline.GetFrame(frame),
+                            true);
                     }
-                }
-                for (int i = 1; i < onions + 1 && game.Track.Offset + i < timeline.Length; i++)
-                {
-                    GameRenderer.DrawRider(0.3f, timeline.GetFrame(game.Track.Offset + i), true, options.ShowContactLines);
                 }
             }
             if (options.DrawFlag)
-                GameRenderer.DrawRider(0.3f, options.FlagRider, true);
-            GameRenderer.DrawRider(
+                _riderrenderer.DrawRider(
+                    0.3f,
+                    options.FlagRider,
+                    true);
+
+            _riderrenderer.DrawRider(
                 options.ShowContactLines ? 0.4f : 1,
                 options.Rider,
-                true,
-                options.ShowContactLines,
-                options.ShowMomentumVectors,
-                options.Iteration);
-
-            List<GenericVertex> verts = new List<GenericVertex>(300);
+                true);
+            _riderrenderer.Draw();
+            _riderrenderer.Clear();
             if (options.ShowMomentumVectors)
             {
-                GameRenderer.DrawMomentum(options.Rider, verts);
+                GameRenderer.DrawMomentum(options.Rider, _linevao);
             }
             if (options.ShowContactLines)
             {
-                GameRenderer.DrawContactPoints(options.Rider, options.RiderDiagnosis, verts);
+                GameRenderer.DrawContactPoints(options.Rider, options.RiderDiagnosis, _linevao);
             }
-            if (verts.Count > 0)
+            if (_linevao.Array.Count > 0)
             {
-                VAO vao = new VAO(false, false);
-                vao.Texture = StaticRenderer.CircleTex;
-                vao.AddVerticies(verts);
+                GameDrawingMatrix.Enter();
+                _linevao.Scale = GameDrawingMatrix.Scale;
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-                vao.Draw(PrimitiveType.Triangles);
+                _linevao.Draw(PrimitiveType.Triangles);
+                GameDrawingMatrix.Exit();
+                _linevao.Clear();
             }
         }
         public void AddLine(GameLine l)

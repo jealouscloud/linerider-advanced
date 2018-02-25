@@ -1,6 +1,7 @@
 #version 120
 uniform float u_scale;
 uniform int u_knobstate;
+uniform bool u_alphachannel;
 
 //basically u/v coordinates to the circle.
 varying vec2 v_circle;
@@ -45,5 +46,8 @@ void main()
     }
     if (alpha == 0.0)
         discard;
-    gl_FragColor = vec4(v_color.rgb, alpha);
+    float a = alpha;
+    if (u_alphachannel)
+        a *= v_color.a;
+    gl_FragColor = vec4(v_color.rgb, a);
 }

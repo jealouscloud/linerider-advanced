@@ -35,23 +35,21 @@ namespace linerider.Game
 {
     public partial class Timeline
     {
-        public int Length
-        {
-            get
-            {
-                return _frames.Count;
-            }
-        }
+        public HitTestManager HitTest { get; private set; } = new HitTestManager();
+        public int Length => _frames.Count;
+
         private ResourceSync _framesync = new ResourceSync();
-        private AutoArray<Rider> _frames = new AutoArray<Rider>(5 * 60 * 40);
+        private AutoArray<Rider> _frames = new AutoArray<Rider>(2 * 60 * 40);
         private Track _track;
         private List<LineTrigger> _activetriggers = null;
-        public HitTestManager HitTest { get; private set; } = new HitTestManager();
         public Timeline(Track track)
         {
             _track = track;
+            var start = _track.GetStart();
+            _savedcells.BaseGrid = _track.Grid;
             Restart(track.GetStart());
         }
+
         public void Restart(Rider state)
         {
             using (_framesync.AcquireWrite())
@@ -60,57 +58,101 @@ namespace linerider.Game
                 _frames.Add(state);
             }
         }
-        public Rider GetFrame(int frame)
+        public RiderFrame ExtractFrame(int frame, int iteration = 6)
         {
-            int invalid;
-            lock (_changesync)
+            Rider rider;
+            List<int> diagnosis;
+            bool isiteration = iteration != 6 && frame > 0;
+
+            if (isiteration)
             {
-                invalid = _first_invalid_frame;
-                _first_invalid_frame = Math.Max(invalid, frame + 1);
-                int start = Math.Min(_frames.Count, invalid);
-                int count = frame - (start - 1);
-                if (count > 0)
+                rider = GetFrame(frame - 1);
+            }
+            else
+            {
+                rider = GetFrame(frame);
+            }
+            using (_track.Grid.Sync.AcquireRead())
+            {
+                diagnosis = rider.Diagnose(
+                    _track.Grid,
+                    _track.Bones,
+                    null,
+                    Math.Min(6, iteration + 1));
+
+                if (isiteration)
                 {
-                    RunFrames(start, count);
+                    rider = rider.Simulate(
+                        _track.Grid,
+                        _track.Bones,
+                        null,
+                        null,
+                        iteration);
                 }
             }
-            return _frames[frame];
+            return new RiderFrame(frame, rider, diagnosis, iteration);
         }
-        private void RunFrames(int start, int count)
+        public Rider GetFrame(int frame)
         {
-            Rider[] steps = new Rider[count];
-            List<HashSet<int>> changedcollision = new List<HashSet<int>>(count);
+            using (_framesync.AcquireWrite())
+            {
+                int start;
+                int count;
+                int invalid;
+                lock (_changesync)
+                {
+                    invalid = _first_invalid_frame;
+                    start = Math.Min(_frames.Count, invalid);
+                    count = frame - (start - 1);
+                    _first_invalid_frame = Math.Max(invalid, frame + 1);
+                }
+                if (count > 0)
+                {
+                    ThreadUnsafeRunFrames(start, count);
+                }
+                return _frames[frame];
+            }
+        }
+        private void ThreadUnsafeRunFrames(int start, int count)
+        {
+            var steps = new Rider[count];
+            var changedcollision = new List<HashSet<int>>(count);
             Rider current = _frames[start - 1];
-            var framecount = _frames.Count;
+            int framecount = _frames.Count;
+            lock (_changesync)
+            {
+                // we use the savedcells buffer exactly so runframes can
+                // be completely consistent with the track state at the
+                // time of running
+
+                // we could also get a lock on the track grid, but that would
+                // block user input on the track until we finish running.
+                _savedcells.Clear();
+            }
             for (int i = 0; i < count; i++)
             {
                 int currentframe = start + i;
                 HashSet<int> collisions = new HashSet<int>();
-                current = current.Simulate(_track.Grid, _track.Bones, _activetriggers, collisions);
+                current = current.Simulate(_savedcells, _track.Bones, _activetriggers, collisions);
                 steps[i] = current;
                 if (currentframe >= framecount)
                     HitTest.AddFrame(collisions);
                 else
                     changedcollision.Add(collisions);
             }
-            using (_framesync.AcquireWrite())
+
+            if (start + count > framecount)
             {
-                if (start + count > framecount)
-                {
-                    _frames.EnsureCapacity(start + count);
-                    _frames.UnsafeSetCount(start + count);
-                }
-                for (int i = 0; i < steps.Length; i++)
-                {
-                    _frames.unsafe_array[start + i] = steps[i];
-                }
-                if (changedcollision.Count != 0)
-                    HitTest.ChangeFrames(start, changedcollision);
-                if (start <= _first_invalid_frame)
-                {
-                    _first_invalid_frame = start + count;
-                }
+                _frames.EnsureCapacity(start + count);
+                _frames.UnsafeSetCount(start + count);
             }
+            for (int i = 0; i < steps.Length; i++)
+            {
+                _frames.unsafe_array[start + i] = steps[i];
+            }
+            if (changedcollision.Count != 0)
+                HitTest.ChangeFrames(start, changedcollision);
         }
+
     }
 }

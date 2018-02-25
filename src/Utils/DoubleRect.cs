@@ -65,9 +65,16 @@ namespace linerider.Utils
             this.Width = width;
             this.Height = height;
         }
-        public DoubleRect(Vector2d position, Vector2d size)
+        public DoubleRect(Vector2d Position, Vector2d Size)
         {
-            this = new DoubleRect(position.X, position.Y, size.X, size.Y);
+            this.Left = Position.X;
+            this.Top = Position.Y;
+            this.Width = Size.X;
+            this.Height = Size.Y;
+        }
+        public static DoubleRect FromLRTB(double left, double right, double top, double bottom)
+        {
+            return new DoubleRect(left,top,right - left, bottom - top);
         }
 
         public FloatRect ToFloatRect()
@@ -134,6 +141,19 @@ namespace linerider.Utils
             rect.Width = width;
 
             var height = (Bottom - Top) * scale;
+            rect.Top -= (height / 2) - (Height / 2);
+            rect.Height = height;
+            return rect;
+        }
+        public DoubleRect Scale(double x, double y)
+        {
+            var rect = this;
+
+            var width = (Right - Left) * x;
+            rect.Left -= (width / 2) - (Width / 2);
+            rect.Width = width;
+
+            var height = (Bottom - Top) * y;
             rect.Top -= (height / 2) - (Height / 2);
             rect.Height = height;
             return rect;

@@ -70,6 +70,10 @@ namespace linerider.Utils
             this = new FloatRect(position.X, position.Y, size.X, size.Y);
         }
 
+        public static FloatRect FromLRTB(float left, float right, float top, float bottom)
+        {
+            return new FloatRect(left, top, right - left, bottom - top);
+        }
         public Vector2 EllipseClamp(Vector2 position)
         {
             var center = Vector + (Size / 2);

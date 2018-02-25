@@ -64,11 +64,11 @@ namespace linerider
         public Dictionary<string, MouseCursor> Cursors = new Dictionary<string, MouseCursor>();
         public Tool SelectedTool;
         public MsaaFbo MSAABuffer;
-        private readonly Tool _penciltool;
-        private readonly Tool _linetool;
-        private readonly Tool _erasertool;
-        private readonly Tool _handtool;
-        private readonly MoveTool _movetool;
+        public readonly PencilTool PencilTool;
+        public readonly LineTool LineTool;
+        public readonly EraserTool EraserTool;
+        public readonly HandTool HandTool;
+        public readonly MoveTool MoveTool;
         private readonly Stopwatch _autosavewatch = Stopwatch.StartNew();
         public GameCanvas Canvas;
         public bool Loading = false;
@@ -106,20 +106,30 @@ namespace linerider
         public Vector2d ScreenTranslation => -ScreenPosition;
         public Editor Track { get; }
         public MainWindow()
-            : base(1280, 720, new GraphicsMode(new ColorFormat(32), 0, 0, 0, ColorFormat.Empty),
-                   "Line Rider: Advanced", GameWindowFlags.Default, DisplayDevice.Default)
+            : base(
+                1280,
+                720,
+                new GraphicsMode(new ColorFormat(24), 0, 0, 0, ColorFormat.Empty),
+                   "Line Rider: Advanced",
+                   GameWindowFlags.Default,
+                   DisplayDevice.Default,
+                   Program.LogGL ? 4 : 2,
+                   Program.LogGL ? 3 : 0,
+                   Program.LogGL
+                   ? GraphicsContextFlags.Debug
+                   : GraphicsContextFlags.Default)
         {
             SafeFrameBuffer.Initialize();
             StaticRenderer.InitializeCircles();
-            _penciltool = new PencilTool();
-            _linetool = new LineTool();
-            _erasertool = new EraserTool();
-            _handtool = new HandTool();
-            _movetool = new MoveTool();
-            SelectedTool = _penciltool;
+            PencilTool = new PencilTool();
+            LineTool = new LineTool();
+            EraserTool = new EraserTool();
+            HandTool = new HandTool();
+            MoveTool = new MoveTool();
+            SelectedTool = PencilTool;
             Track = new Editor();
-            VSync = VSyncMode.Off;//todo change back before rls
-            Context.ErrorChecking = true;
+            VSync = VSyncMode.On;//todo change back before rls
+            Context.ErrorChecking = false;
             WindowBorder = WindowBorder.Resizable;
             RenderFrame += (o, e) => { Render(); };
             UpdateFrame += (o, e) => { GameUpdate(); };
@@ -177,10 +187,10 @@ namespace linerider
                 Track.SimulationNeedsDraw = false;
 
                 BeginOrtho();
-                var slider = (HorizontalIntSlider)Canvas.FindChildByName("timeslider");
+                var slider = Canvas.Scrubber;
                 if (blend == 1 && Settings.SmoothPlayback && Track.Playing && !TemporaryPlayback && !slider.Held)
                 {
-                    blend = Math.Min(1, Scheduler.ElapsedPercent);
+                    blend = Math.Min(1, (float)Scheduler.ElapsedPercent);
                 }
                 Track.Camera.BeginFrame(blend);
                 GL.ClearColor(Settings.NightMode
@@ -204,23 +214,26 @@ namespace linerider
                 {
                     StaticRenderer.RenderRect(new FloatRect(0, 0, RenderSize.Width, RenderSize.Height), Color.FromArgb(40, 0, 0, 0));
                 }
-                if (!TrackRecorder.Recording)
-                    SwapBuffers();
+                SwapBuffers();
                 //there are machines and cases where a refresh may not hit the screen without calling glfinish...
                 GL.Finish();
-                var seconds = Track.Fpswatch.Elapsed.TotalSeconds;
-                Track.FpsCounter.AddFrame(seconds);
-                Track.Fpswatch.Restart();
+                var seconds = Track.FramerateWatch.Elapsed.TotalSeconds;
+                Track.FramerateCounter.AddFrame(seconds);
+                Track.FramerateWatch.Restart();
             }
             if (!Track.Playing && !Canvas.NeedsRedraw && !Track.RequiresUpdate)//if nothing is waiting on us we can let the os breathe
                 Thread.Sleep(1);
+            if (Program.LogGL)
+            {
+                ErrorLog.PrintGLLog();
+            }
         }
         public void GameUpdate()
         {
-            if (InputUtils.HandleMouseMove(out int x, out int y))
+            if (InputUtils.HandleMouseMove(out int x, out int y) && !Canvas.IsModalOpen)
             {
                 if (_handToolOverride)
-                    _handtool.OnMouseMoved(new Vector2d(x, y));
+                    HandTool.OnMouseMoved(new Vector2d(x, y));
                 else
                     SelectedTool.OnMouseMoved(new Vector2d(x, y));
             }
@@ -242,7 +255,7 @@ namespace linerider
                 _handToolOverride = qp;
                 if (_handToolOverride == false)
                 {
-                    _handtool.Stop();
+                    HandTool.Stop();
                 }
                 Invalidate();
                 UpdateCursor();
@@ -297,13 +310,13 @@ namespace linerider
             if ((Track.PlaybackMode && !Track.Paused) || _dragRider)
                 Cursor = Cursors["default"];
             else if (_handToolOverride)
-                Cursor = _handtool.Cursor;
+                Cursor = HandTool.Cursor;
             else if (SelectedTool != null)
                 Cursor = SelectedTool.Cursor;
         }
-
         protected override void OnLoad(EventArgs e)
         {
+            Shaders.Load();
             MSAABuffer = new MsaaFbo();
             var renderer = new Gwen.Renderer.OpenTK();
 
@@ -353,7 +366,7 @@ namespace linerider
             AddCursor("zoom", GameResources.cursor_zoom_in, 11, 10);
             Gwen.Platform.Neutral.CursorSetter = new UI.CursorImpl(this);
             Program.UpdateCheck();
-            Track.OnLoad();
+            Track.AutoLoadPrevious();
         }
 
         protected override void OnResize(EventArgs e)
@@ -387,21 +400,21 @@ namespace linerider
                     if (e.Button == MouseButton.Left)
                     {
                         if (_handToolOverride)
-                            _handtool.OnMouseDown(new Vector2d(e.X, e.Y));
+                            HandTool.OnMouseDown(new Vector2d(e.X, e.Y));
                         else
                             SelectedTool.OnMouseDown(new Vector2d(e.X, e.Y));
                     }
                     else if (e.Button == MouseButton.Right)
                     {
                         if (_handToolOverride)
-                            _handtool.OnMouseRightDown(new Vector2d(e.X, e.Y));
+                            HandTool.OnMouseRightDown(new Vector2d(e.X, e.Y));
                         else
                             SelectedTool.OnMouseRightDown(new Vector2d(e.X, e.Y));
                     }
                     else if (e.Button == MouseButton.Middle)
                     {
                         _handToolOverride = true;
-                        _handtool.OnMouseDown(new Vector2d(e.X, e.Y));
+                        HandTool.OnMouseDown(new Vector2d(e.X, e.Y));
                     }
                 }
                 if (e.Button != MouseButton.Right)
@@ -429,21 +442,21 @@ namespace linerider
             if (e.Button == MouseButton.Left)
             {
                 if (_handToolOverride)
-                    _handtool.OnMouseUp(new Vector2d(e.X, e.Y));
+                    HandTool.OnMouseUp(new Vector2d(e.X, e.Y));
                 else
                     SelectedTool.OnMouseUp(new Vector2d(e.X, e.Y));
             }
             else if (e.Button == MouseButton.Right)
             {
                 if (_handToolOverride)
-                    _handtool.OnMouseRightUp(new Vector2d(e.X, e.Y));
+                    HandTool.OnMouseRightUp(new Vector2d(e.X, e.Y));
                 else
                     SelectedTool.OnMouseRightUp(new Vector2d(e.X, e.Y));
             }
             else if (e.Button == MouseButton.Middle)
             {
                 _handToolOverride = false;
-                _handtool.OnMouseUp(new Vector2d(e.X, e.Y));
+                HandTool.OnMouseUp(new Vector2d(e.X, e.Y));
             }
             if (r)
                 Cursor = Cursors["default"];
@@ -454,9 +467,9 @@ namespace linerider
         protected override void OnMouseMove(MouseMoveEventArgs e)
         {
             base.OnMouseMove(e);
+            InputUtils.UpdateMouse(e.Mouse);
             if (linerider.IO.TrackRecorder.Recording)
                 return;
-            InputUtils.UpdateMouse(e.Mouse);
             var r = _input.ProcessMouseMessage(e);
             if (Canvas.GetOpenWindows().Count != 0)
                 return;
@@ -680,7 +693,7 @@ namespace linerider
                         Invalidate();
                         Track.Camera.SetFrame(Track.RenderRider);
                     }
-                    Track.UpdateRenderRider();
+                    Track.InvalidateRenderRider();
                     Canvas.UpdateIterationUI();
                     return true;
                 }
@@ -699,7 +712,7 @@ namespace linerider
                             Invalidate();
                             Track.Camera.SetFrame(Track.RenderRider);
                         }
-                        Track.UpdateRenderRider();
+                        Track.InvalidateRenderRider();
                         Canvas.UpdateIterationUI();
                     }
                     return true;
@@ -728,7 +741,7 @@ namespace linerider
                 if (InputUtils.Check(Hotkey.EditorPanTool))
                 {
                     //bugfix: pushing t wuold cancel panning and youd have to click again
-                    if (SelectedTool != _handtool)
+                    if (SelectedTool != HandTool)
                     {
                         SetTool(Tools.HandTool);
                     }
@@ -822,6 +835,7 @@ namespace linerider
                 }
                 if (InputUtils.Check(Hotkey.EditorToolColor3))
                 {
+                    Track.BackupTrack(true);
                     if (!Track.Playing)
                     {
                         Canvas.ColorControls.Selected = LineType.Scenery;
@@ -1079,20 +1093,20 @@ namespace linerider
                 SelectedTool.Stop();
                 SelectedTool.OnChangingTool();
             }
-            if (SelectedTool == _erasertool && tool != Tools.EraserTool)
+            if (SelectedTool == EraserTool && tool != Tools.EraserTool)
             {
                 Canvas.ColorControls.SetEraser(false);
             }
             if (tool == Tools.HandTool)
             {
-                SelectedTool = _handtool;
-                _handtool.Stop();
+                SelectedTool = HandTool;
+                HandTool.Stop();
                 _handToolOverride = false;
                 Canvas.ColorControls.SetVisible(false);
             }
             else if (tool == Tools.LineTool)
             {
-                SelectedTool = _linetool;
+                SelectedTool = LineTool;
                 Canvas.ColorControls.SetVisible(true);
                 if (Canvas.ColorControls.Selected == LineType.All)
                 {
@@ -1101,7 +1115,7 @@ namespace linerider
             }
             else if (tool == Tools.PencilTool)
             {
-                SelectedTool = _penciltool;
+                SelectedTool = PencilTool;
                 Canvas.ColorControls.SetVisible(true);
                 if (Canvas.ColorControls.Selected == LineType.All)
                 {
@@ -1112,13 +1126,13 @@ namespace linerider
             {
                 Canvas.ColorControls.SetVisible(true);
                 Canvas.ColorControls.SetEraser(true);
-                if (SelectedTool == _erasertool)
+                if (SelectedTool == EraserTool)
                     Canvas.ColorControls.Selected = LineType.All;
-                SelectedTool = _erasertool;
+                SelectedTool = EraserTool;
             }
             else if (tool == Tools.LineAdjustTool)
             {
-                SelectedTool = _movetool;
+                SelectedTool = MoveTool;
                 Canvas.ColorControls.SetVisible(false);
             }
             Invalidate();

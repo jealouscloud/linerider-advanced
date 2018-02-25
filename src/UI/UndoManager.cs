@@ -157,5 +157,13 @@ namespace linerider
                 game.InvalidateTrack();
             }
         }
+        /// <summary>
+        /// Returns true if any changes have currently been made to the track
+        /// Basically for autosave.
+        /// </summary>
+        public bool HasChanges()
+        {
+            return (pos != 0 || _actions.Count > 100);
+        }
     }
 }

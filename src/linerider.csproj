@@ -65,6 +65,9 @@
     <Compile Include="Drawing\DrawOptions.cs" />
     <Compile Include="Drawing\GenericVertex.cs" />
     <Compile Include="Drawing\GLBuffer.cs" />
+    <Compile Include="Drawing\GLArray.cs" />
+    <Compile Include="Drawing\LineVAO.cs" />
+    <Compile Include="Drawing\GenericVAO.cs" />
     <Compile Include="Drawing\GLEnableCap.cs" />
     <Compile Include="Drawing\KnobState.cs" />
     <Compile Include="Drawing\Models.cs" />
@@ -72,7 +75,7 @@
     <Compile Include="Drawing\MsaaFbo.cs" />
     <Compile Include="Drawing\SafeFrameBuffer.cs" />
     <Compile Include="Drawing\Shader.cs" />
-    <Compile Include="Drawing\VAO.cs" />
+    <Compile Include="Drawing\Shaders.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Rendering\GameDrawingMatrix.cs" />
@@ -81,6 +84,7 @@
     <Compile Include="Rendering\WellRenderer.cs" />
     <Compile Include="Rendering\LineRenderer.cs" />
     <Compile Include="Rendering\LineDecorator.cs" />
+    <Compile Include="Rendering\RiderRenderer.cs" />
     <Compile Include="Rendering\SimulationRenderer.cs" />
     <Compile Include="Rendering\StaticRenderer.cs" />
     <Compile Include="Rendering\TrackRenderer.cs" />
@@ -105,6 +109,7 @@
     <Compile Include="Game\FPSCounter.cs" />
     <Compile Include="Game\GameScheduler.cs" />
     <Compile Include="Game\HitTestManager.cs" />
+    <Compile Include="Game\RiderFrame.cs" />
     <Compile Include="Game\Track.cs" />
     <Compile Include="Game\Timeline.cs" />
     <Compile Include="Game\Timeline.Engine.cs" />
@@ -154,6 +159,7 @@
     <Compile Include="UI\Hotkey.cs" />
     <Compile Include="UI\ImageButton.cs" />
     <Compile Include="UI\InputUtils.cs" />
+    <Compile Include="UI\InputState.cs" />
     <Compile Include="UI\Keybinding.cs" />
     <Compile Include="UI\LoadWindow.cs" />
     <Compile Include="UI\NumberProperty.cs" />
@@ -164,12 +170,14 @@
     <Compile Include="UI\Sprite.cs" />
     <Compile Include="UI\UndoManager.cs" />
     <Compile Include="UI\Window.cs" />
+    <Compile Include="UI\SelectedLineWindow.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Utils\Angle.cs" />
     <Compile Include="Utils\AutoArray.cs" />
     <Compile Include="Utils\DoubleRect.cs" />
     <Compile Include="Utils\Constants.cs" />
+    <Compile Include="Utils\AsyncTask.cs" />
     <Compile Include="Utils\FloatRect.cs" />
     <Compile Include="Utils\ResourceSync.cs" />
     <Compile Include="Utils\Line.cs" />
@@ -243,12 +251,9 @@
     <EmbeddedResource Include="Resources\cursors\zoom.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\leg.png" />
-    <EmbeddedResource Include="Resources\brokensled.png" />
-    <EmbeddedResource Include="Resources\boshdead.png" />
-    <EmbeddedResource Include="Resources\bosh.png" />
-    <EmbeddedResource Include="Resources\arm.png" />
-    <EmbeddedResource Include="Resources\sled.png" />
+    <EmbeddedResource Include="Resources\rider\limbs.png" />
+    <EmbeddedResource Include="Resources\rider\sled.png" />
+    <EmbeddedResource Include="Resources\rider\body.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\gamefont_15_0.png" />
@@ -257,6 +262,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\shaders\simline.vert" />
     <EmbeddedResource Include="Resources\shaders\simline.frag" />
+    <EmbeddedResource Include="Resources\shaders\rider.vert" />
+    <EmbeddedResource Include="Resources\shaders\rider.frag" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.manifest" />

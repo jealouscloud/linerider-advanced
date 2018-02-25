@@ -27,6 +27,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using linerider.Audio;
+using linerider.Utils;
 using linerider.Lines;
 
 namespace linerider.IO
@@ -130,6 +131,24 @@ namespace linerider.IO
             }
 
             return true;
+        }
+        public static string GetTrackName(string trkfile)
+        {
+            string trackname = Path.GetFileNameWithoutExtension(trkfile);
+            var dirname = Path.GetDirectoryName(trkfile);
+            var dirs = Directory.GetDirectories(Constants.TracksDirectory);
+            foreach (var dir in dirs)
+            {
+                if (string.Equals(
+                    dirname,
+                    dir,
+                    StringComparison.InvariantCulture))
+                {
+                    trackname = Path.GetFileName(dirname);
+                    break;
+                }
+            }
+            return trackname;
         }
         public static string GetTrackDirectory(Track track)
         {

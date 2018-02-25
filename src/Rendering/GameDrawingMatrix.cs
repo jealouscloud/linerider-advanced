@@ -26,6 +26,13 @@ namespace linerider.Rendering
 {
 	public class GameDrawingMatrix : GameService
 	{
+		public static float Scale
+		{
+			get
+			{
+				return game.Track.Zoom;
+			}
+		}
 		public static void Enter()
 		{
 			GL.PushMatrix();

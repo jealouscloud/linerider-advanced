@@ -96,6 +96,7 @@ namespace Gwen.Renderer
             // Create the opengl texture
             GL.GenTextures(1, out glTex);
 
+            int prevtex = GL.GetInteger(GetPName.Texture2D);
             GL.BindTexture(TextureTarget.Texture2D, glTex);
             m_LastTextureID = glTex;
 
@@ -123,6 +124,7 @@ namespace Gwen.Renderer
             }
 
             bmp.UnlockBits(data);
+            GL.BindTexture(TextureTarget.Texture2D, prevtex);
         }
 
         public override void Begin()
@@ -372,7 +374,7 @@ namespace Gwen.Renderer
 
             // Create the opengl texture
             GL.GenTextures(1, out glTex);
-
+            int prevtex = GL.GetInteger(GetPName.Texture2D);
             GL.BindTexture(TextureTarget.Texture2D, glTex);
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMagFilter.Nearest);
@@ -389,12 +391,7 @@ namespace Gwen.Renderer
             bmp.UnlockBits(data);
             bmp.Dispose();
 
-            //[halfofastaple] Must rebind previous texture, to ensure creating a texture doesn't mess with the render flow.
-            // Setting m_LastTextureID isn't working, for some reason (even if you always rebind the texture,
-            // even if the previous one was the same), we are probably making draw calls where we shouldn't be?
-            // Eventually the bug needs to be fixed (color picker in a window causes graphical errors), but for now,
-            // this is fine.
-            GL.BindTexture(TextureTarget.Texture2D, m_LastTextureID);
+            GL.BindTexture(TextureTarget.Texture2D, prevtex);
         }
 
         public override void LoadTextureStream(Texture t, System.IO.Stream data)

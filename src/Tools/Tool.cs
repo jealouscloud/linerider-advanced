@@ -109,14 +109,13 @@ namespace linerider.Tools
             foreach (var line in lines)
             {
                 double lnradius = line.Width;
-                var rect = Rendering.StaticRenderer.GenerateThickLine(
+                var angle = Angle.FromLine(line.Position, line.Position2);
+                var rect = Utility.GetThickLine(
                     line.Position,
                     line.Position2,
+                    angle,
                     lnradius * 2);
-                if (Utility.PointInRectangle(rect[3],
-                rect[2],
-                rect[1],
-                rect[0],
+                if (Utility.PointInRectangle(rect,
                 position))
                 {
                     return line;
@@ -173,23 +172,39 @@ namespace linerider.Tools
             var inrect =
                 trk.GetLinesInRect(new DoubleRect(position - new Vector2d(24, 24), new Vector2d(24 * 2, 24 * 2)),
                     false);
-            var octagon = Rendering.StaticRenderer.GenerateCircle(position.X, position.Y, rad, 8);
-            foreach (var line in inrect)
-            {
-                var rect = Rendering.StaticRenderer.GenerateThickLine(line.Position, line.Position2, line.Width * 2);
-                for (int i = 0; i < octagon.Length; i++)
-                {
-                    if (Utility.PointInRectangle(rect[3], rect[2], rect[1], rect[0], octagon[i]))
-                    {
-                        lines.Add(line.ID, line);
-                        break;
-                    }
-                }
-            }
+            var circle = Rendering.StaticRenderer.GenerateCircle(position.X, position.Y, rad, 8);
+            
             var ends = LineEndsInRadius(trk, position, rad);
             foreach (var line in ends)
             {
                 lines[line.ID] = line;
+            }
+            foreach (var line in inrect)
+            {
+                if (lines.ContainsKey(line.ID))
+                    continue;
+                var angle = Angle.FromLine(line.Position, line.Position2);
+                var rect = Utility.GetThickLine(
+                    line.Position,
+                    line.Position2,
+                    angle,
+                    line.Width * 2);
+                if (Utility.PointInRectangle(rect, position))
+                {
+                    lines.Add(line.ID, line);
+                    continue;
+                }
+                else
+                {
+                    for (int i = 0; i < circle.Length; i++)
+                    {
+                        if (Utility.PointInRectangle(rect, circle[i]))
+                        {
+                            lines.Add(line.ID, line);
+                            break;
+                        }
+                    }
+                }
             }
             GameLine[] ret = new GameLine[lines.Count];
             for (int i = 0; i < ret.Length; i++)

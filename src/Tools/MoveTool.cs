@@ -226,9 +226,34 @@ namespace linerider.Tools
 
         public override void OnMouseRightDown(Vector2d pos)
         {
+            Stop();//double check
+            var gamepos = ScreenToGameCoords(pos);
+            using (var trk = game.Track.CreateTrackWriter())
+            {
+                var line = SelectLine(trk, gamepos);
+                if (line != null)
+                {
+                    var point = Utility.CloserPoint(
+                        gamepos,
+                        line.Position,
+                        line.Position2);
+                    //is it a knob?
+                    if ((gamepos - point).Length <= line.Width)
+                    {
+                        SelectedLineWindow window = new SelectedLineWindow(game.Canvas,game,line);
+                        window.Show();
+                        window.X = (int)pos.X;
+                        window.Y = (int)pos.Y;
+                    }
+                }
+            }
             base.OnMouseRightDown(pos);
         }
 
+        public override void OnChangingTool()
+        {
+            Stop();
+        }
 
         public override void Stop()
         {

@@ -401,42 +401,21 @@ namespace linerider
         {
             get
             {
-                return GetBitmap("sled.png");
+                return GetBitmap("rider.sled.png");
             }
         }
-        internal static Bitmap bosh_img
+        internal static Bitmap limbs_img
         {
             get
             {
-                return GetBitmap("bosh.png");
+                return GetBitmap("rider.limbs.png");
             }
         }
-        internal static Bitmap boshdead_img
+        internal static Bitmap body_img
         {
             get
             {
-                return GetBitmap("boshdead.png");
-            }
-        }
-        internal static Bitmap brokensled_img
-        {
-            get
-            {
-                return GetBitmap("brokensled.png");
-            }
-        }
-        internal static Bitmap arm_img
-        {
-            get
-            {
-                return GetBitmap("arm.png");
-            }
-        }
-        internal static Bitmap leg_img
-        {
-            get
-            {
-                return GetBitmap("leg.png");
+                return GetBitmap("rider.body.png");
             }
         }
 
@@ -489,6 +468,20 @@ namespace linerider
             get
             {
                 return GetString("shaders.simline.vert");
+            }
+        }
+        internal static string rider_frag
+        {
+            get
+            {
+                return GetString("shaders.rider.frag");
+            }
+        }
+        internal static string rider_vert
+        {
+            get
+            {
+                return GetString("shaders.rider.vert");
             }
         }
     }

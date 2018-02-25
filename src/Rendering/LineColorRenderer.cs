@@ -28,7 +28,7 @@ namespace linerider.Rendering
         private GLBuffer<int> _accelibo;
         public LineColorRenderer()
         {
-            _linebuffer = new LineRenderer(TrackRenderer.LineShader);
+            _linebuffer = new LineRenderer(Shaders.LineShader);
             _linebuffer.LineColor = Color.FromArgb(0);
             _accelbuffer = new GLBuffer<GenericVertex>(BufferTarget.ArrayBuffer);
             _accelbuffer.Bind();

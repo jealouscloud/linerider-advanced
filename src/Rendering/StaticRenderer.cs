@@ -30,6 +30,8 @@ using linerider.Tools;
 using linerider.UI;
 using linerider.Utils;
 using linerider.Drawing;
+using System.Diagnostics;
+
 namespace linerider.Rendering
 {
     public static class StaticRenderer
@@ -135,27 +137,9 @@ namespace linerider.Rendering
             GL.BindTexture(TextureTarget.Texture2D, 0);
         }
 
-        public static void DrawConnectedLines(Vector2[] lines, Color color, float thickness)
-        {
-            GL.Color4(color);
-            GL.Begin(PrimitiveType.Triangles);
-            for (int i = 0; i < lines.Length - 1; i++)
-            {
-                var line = GenerateThickLine(lines[i], lines[i + 1], thickness);
-                GL.Vertex2(line[0]);
-                GL.Vertex2(line[1]);
-                GL.Vertex2(line[2]);
-
-                GL.Vertex2(line[0]);
-                GL.Vertex2(line[3]);
-                GL.Vertex2(line[2]);
-            }
-            GL.End();
-        }
         public static void DrawTexture(int tex, DoubleRect rect, float alpha = 1, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
         {
-            VAO buf = new VAO(false, false, 6);
-            buf.Texture = tex;
+            GenericVAO buf = new GenericVAO();
             var tr = new Vector2d(rect.Right, rect.Top);
             var tl = new Vector2d(rect.Left, rect.Top);
             var bl = new Vector2d(rect.Left, rect.Bottom);
@@ -165,7 +149,13 @@ namespace linerider.Rendering
             buf.AddVertex(new GenericVertex((Vector2)tr, c, u2, v1));
             buf.AddVertex(new GenericVertex((Vector2)br, c, u2, v2));
             buf.AddVertex(new GenericVertex((Vector2)bl, c, u1, v2));
-            buf.Draw(PrimitiveType.Quads);
+            using (new GLEnableCap(EnableCap.Texture2D))
+            using (new GLEnableCap(EnableCap.Blend))
+            {
+                GL.BindTexture(TextureTarget.Texture2D, tex);
+                buf.Draw(PrimitiveType.Quads);
+                GL.BindTexture(TextureTarget.Texture2D, 0);
+            }
         }
         public static void DrawTexture(int tex, RectangleF rect, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
         {
@@ -258,6 +248,7 @@ namespace linerider.Rendering
 
             bmp.UnlockBits(data);
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
             return glTex;
         }
         public static void InitializeCircles()
@@ -277,72 +268,23 @@ namespace linerider.Rendering
             ret[segments - 1] = ret[0];
             return ret;
         }
-        public static Vector2[] GenerateThickLine(Vector2 p, Vector2 p1, float radians, float width)
-        {
-            return GenerateThickLine(p, p1, Angle.FromRadians(radians), width);
-        }
         public static Vector2[] GenerateThickLine(Vector2 p, Vector2 p1, float width)
-        {
-            return GenerateThickLine(p, p1, Angle.FromLine(p, p1), width);
-        }
-        public static Vector2d[] GenerateThickLine(Vector2d p, Vector2d p1, double width)
         {
             return GenerateThickLine(p, p1, Angle.FromLine(p, p1), width);
         }
         public static Vector2[] GenerateThickLine(Vector2 p, Vector2 p1, Angle angle, float width)
         {
-            Vector2[] ret = new Vector2[4];
-            Vector2 diff = p - p1;
-            angle.Radians += 1.5708f; //90 degrees
-            var t = new Vector2(
-                (float)(angle.Cos * (width/2)),
-                (float)(angle.Sin * (width/2)));
-            ret[0] = p + t;
-            ret[1] = p1 + t;
-            ret[2] = p1 - t;
-            ret[3] = p - t;
-            return ret;
+            var rect = new FloatRect(
+                p.X - (width / 2),
+                p.Y,
+                width,
+                (p1 - p).Length);
+            angle.Degrees -= 90;
+            /// returns tl tr br bl of the rotated rectangle
+            var rot = Utility.RotateRect(rect, p, angle);
+            //we return tr br bl tl
+            return new Vector2[] { rot[1], rot[2], rot[3], rot[0] };
         }
-        public static Vector2d[] GenerateThickLine(Vector2d p, Vector2d p1, Angle angle, double width)
-        {
-            Vector2d[] ret = new Vector2d[4];
-            angle.Radians += 1.5708f; //90 degrees
-            var t = new Vector2d(
-                angle.Cos * (width / 2),
-                angle.Sin * (width / 2));
-            ret[0] = p + t;//bl
-            ret[1] = p1 + t;//br
-            ret[2] = p1 - t;//tr
-            ret[3] = p - t;//tl
-            return ret;
-        }
-        public static List<GenericVertex> GenerateRoundedLine(Vector2 p, Vector2 p1, float width, Color c)
-        {
-            List<GenericVertex> ret = new List<GenericVertex>();
-            ret.AddRange(FastCircle(p, width / 2, c));
-            ret.AddRange(FastCircle(p1, width / 2, c));
-            var thickline = GenerateThickLine(p, p1, width);
-
-            var v1 = new GenericVertex(thickline[0].X, thickline[0].Y, c);
-            var v2 = new GenericVertex(thickline[1].X, thickline[1].Y, c);
-            var v3 = new GenericVertex(thickline[2].X, thickline[2].Y, c);
-            var v4 = new GenericVertex(thickline[3].X, thickline[3].Y, c);
-            ret.Add(v1);
-            ret.Add(v2);
-            ret.Add(v3);
-
-            ret.Add(v1);
-            ret.Add(v4);
-            ret.Add(v3);
-
-            return ret;
-        }
-
-        public static void RenderLine(Vector2d position, Vector2d position2, Color color, float thickness)
-        {
-            DrawConnectedLines(new Vector2[] { (Vector2)position, (Vector2)position2 }, color, thickness);
-        }
-
         public static void RenderRect(FloatRect rect, Color color)
         {
             RenderRect(new RectangleF(rect.Left, rect.Top, rect.Width, rect.Height), color);
@@ -358,28 +300,6 @@ namespace linerider.Rendering
             GL.Vertex2(new Vector2(rect.Left + rect.Width, rect.Top + rect.Height));
             GL.Vertex2(new Vector2(rect.Left, rect.Top + rect.Height));
             GL.End();
-        }
-
-        /// <summary>
-        /// Rotates one point around another
-        /// </summary>
-        /// <param name="pointToRotate">The point to rotate.</param>
-        /// <param name="centerPoint">The centre point of rotation.</param>
-        /// <param name="angleInRadians">angle in radians</param>
-        /// <returns>Rotated point</returns>
-        public static Vector2 RotatePoint(Vector2 pointToRotate, Vector2 centerPoint, double angleInRadians)
-        {
-            var cosTheta = Math.Cos(angleInRadians);
-            var sinTheta = Math.Sin(angleInRadians);
-            return (Vector2)new Vector2d
-            {
-                X =
-                    (cosTheta * (pointToRotate.X - centerPoint.X) -
-                     sinTheta * (pointToRotate.Y - centerPoint.Y) + centerPoint.X),
-                Y =
-                    (sinTheta * (pointToRotate.X - centerPoint.X) +
-                     cosTheta * (pointToRotate.Y - centerPoint.Y) + centerPoint.Y)
-            };
         }
 
         #endregion Methods
