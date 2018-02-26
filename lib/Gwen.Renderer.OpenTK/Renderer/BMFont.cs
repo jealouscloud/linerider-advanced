@@ -81,12 +81,12 @@ namespace Gwen.Renderer
                     if (cword == "info")
                     {
                         var facesubstr = "face=\"";
-                        var faceidx1 = fullline.IndexOf(facesubstr) + facesubstr.Length;
-                        var faceidx2 = fullline.IndexOf("\"", faceidx1);
+                        var faceidx1 = fullline.IndexOf(facesubstr, StringComparison.Ordinal) + facesubstr.Length;
+                        var faceidx2 = fullline.IndexOf("\"", faceidx1, StringComparison.Ordinal);
 
                         var sizesubstr = "size=";
-                        var sizeidx1 = fullline.IndexOf(sizesubstr) + sizesubstr.Length;
-                        var sizeidx2 = fullline.IndexOf(" ", sizeidx1);
+                        var sizeidx1 = fullline.IndexOf(sizesubstr, StringComparison.Ordinal) + sizesubstr.Length;
+                        var sizeidx2 = fullline.IndexOf(" ", sizeidx1, StringComparison.Ordinal);
 
                         Face = fullline.Substring(faceidx1, faceidx2 - faceidx1);
                         FontSize = ParseInt(fullline.Substring(sizeidx1, sizeidx2 - sizeidx1));
