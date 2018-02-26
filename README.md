@@ -1,47 +1,41 @@
-# linerider-advanced
-An open source spiritual successor to the flash game Line Rider 6.2
+# About
+An open source spiritual successor to the flash game Line Rider 6.2 with lots of new features.
 
-# foreword
-This source is awful. It's bad, and I should feel bad. I do not intend to repair it. Occasional feature requests, bug fixes, etc are fine, but I do not have the will to put in the effort to make this the code base I know it should be.
-There are quite a few things put down on day of release (May 27 2017) that I almost instantly intend to change, but I wanted a release by today.
-# issues
+# Instructions
+You can download the latest version [on the releases page](https://github.com/jealouscloud/linerider-advanced/releases)
+
+## Windows
+If you can't run the application, you probably need to install [.net 4.6](https://www.microsoft.com/en-us/download/details.aspx?id=48130) which is a requirement for running LRA.
+## Mac/Linux
+You will need the [mono framework](http://www.mono-project.com/download/stable/) installed in order to run LRA.
+
+# Features
+* Fast
+* Backwards compatible physics
+* Cross platform
+
+There's lots and lots of new features, but I intend to list those in the wiki, eventually.
+
+# Issues
 Be sure to post an issue you've found in the issue tracker https://github.com/jealouscloud/linerider-advanced/issues
 
-# build
-in order to build, open up your favorite terminal or command prompt on windows and cd to the 'lib' directory.
-run the appropriate script per your operating system:
-linux: build.sh
-osx: osxbuild.sh
-windows: build.ps1
+# Build
+Run nuget restore in src (Visual Studio will do this for you)
+Build src/linerider.sln with msbuild or Visual Studio
 
-If you don't know how to run a powershell (windows) script/shell script (osx), I'm sure google can help you.
+This project requires .net 4.6 and C# 7 support.
 
-Once you've done that you can open up linerider.sln in your C# ide of choice, build it against .net 4.0 client profile, and you should have a running version.
-All files are designed to output to 'build'.
+# Libraries
+This project uses binaries, sources, or modified sources from the following libraries:
 
-# license
+* ffmpeg https://ffmpeg.org/
+* NVorbis https://github.com/ioctlLR/NVorbis
+* gwen-dotnet https://code.google.com/archive/p/gwen-dotnet/
+* OpenTK https://github.com/opentk/opentk
+
+You can find their license info in LICENSES.txt
+
+The UI is a personally modified version of gwen-dotnet
+
+# License
 linerider-advanced is licensed under GPL3.
-
-# libraries
-i lazily included the ffmpeg binaries in this solution. info here https://ffmpeg.org/
-i'll figure something better out sometime.
-
-This program features code from the following libraries. Their license information can be found in LICENSES.txt:
-nanosvg https://github.com/memononen/nanosvg
-
-Microsoft Public License
-
-NVorbis https://github.com/ioctlLR/NVorbis
-
-MIT License
-
-gwen-dotnet https://code.google.com/archive/p/gwen-dotnet/
-QuickFont https://github.com/opcon/QuickFont
-NGraphics https://github.com/praeclarum/NGraphics
-
-
-License: http://oss.sgi.com/projects/FreeB/
-LibTessDotNet https://github.com/speps/LibTessDotNet
-
-BSD 2-clause "Simplified" License
-agg-sharp https://github.com/MatterHackers/agg-sharp
