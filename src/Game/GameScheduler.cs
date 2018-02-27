@@ -29,7 +29,7 @@ namespace linerider
     {
         private Stopwatch sw = new Stopwatch();
         private double lastupdate = 0;
-        private double updateperiod = 0;
+        private double updateperiod = 1;
         private bool reset = true;
         public float UpdatePeriod
         {
