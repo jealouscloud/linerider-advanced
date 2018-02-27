@@ -70,7 +70,7 @@ namespace linerider
         {
             get
             {
-                return _renderer.RequiresUpdate;
+                return _renderer.RequiresUpdate || _refreshtrack;
             }
             set
             {
@@ -159,7 +159,7 @@ namespace linerider
         {
             if (_refreshtrack)
             {
-                RefreshTrack();
+                _renderer.RefreshTrack(_track);
                 _refreshtrack = false;
             }
             DrawOptions drawOptions = new DrawOptions();
@@ -262,14 +262,6 @@ namespace linerider
 
             game.Canvas.DisableFlagTooltip();
             game.Invalidate();
-        }
-        /// <summary>
-        /// Redraws the entire track in the renderer.
-        /// useful for night mode toggle
-        /// </summary>
-        public void RefreshTrack()
-        {
-            _renderer.RefreshTrack(_track);
         }
 
         public void NextFrame()
@@ -481,6 +473,7 @@ namespace linerider
             Reset();
             Camera.SetFrameCenter(trk.StartOffset);
             GC.Collect();//this is the safest place to collect
+            SimulationNeedsDraw = true;
         }
         public void AutoLoadPrevious()
         {

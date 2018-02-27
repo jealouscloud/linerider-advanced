@@ -114,7 +114,7 @@ namespace linerider
                    GameWindowFlags.Default,
                    DisplayDevice.Default,
                    Program.LogGL ? 4 : 2,
-                   Program.LogGL ? 3 : 0,
+                   Program.LogGL ? 6 : 0,
                    Program.LogGL
                    ? GraphicsContextFlags.Debug
                    : GraphicsContextFlags.Default)

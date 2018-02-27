@@ -17,24 +17,23 @@ float getedge(float rad)
 void main()
 {
     vec2 scaled = vec2(v_circle.x / v_ratio, v_circle.y);
-    vec2 circ_center = vec2((1 / v_ratio) - 0.5,0.5);
+    vec2 circ_center = vec2((1.0 / v_ratio) - 0.5, 0.5);
 
     float leftdist = distance(scaled,circ_center);
-    float rightdist = distance(scaled, vec2(0.5,0.5));
+    float rightdist = distance(scaled, vec2(0.5, 0.5));
     float edgedist = min(leftdist, rightdist);
     float alpha;
     if (u_knobstate > 0 && edgedist < knobradius)
     {
         float knobedgediff = knobradius - getedge(knobradius);
         float step = (knobradius - edgedist) / knobedgediff;
-        const vec3 showncolor = vec3(1,1,1);
-        const vec3 lifelockcolor = vec3(1,0,0);
+        const vec3 showncolor = vec3(1.0, 1.0, 1.0);
+        const vec3 lifelockcolor = vec3(1.0, 0.0, 0.0);
         vec3 knobcolor = showncolor;
         if (u_knobstate == 2)
             knobcolor = lifelockcolor;
-        gl_FragColor = vec4(mix(v_color.rgb, knobcolor, min(step,1.0)), 1.0);
+        gl_FragColor = vec4(mix(v_color.rgb, knobcolor, min(step, 1.0)), 1.0);
         return;
-
     }
     else if (scaled.x < circ_center.x && scaled.x > 0.5)//between circles
     {

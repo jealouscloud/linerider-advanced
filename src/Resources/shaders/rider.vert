@@ -12,7 +12,7 @@ varying vec2 v_texcoord;
 varying float v_unit;
 void main() 
 {
-    gl_Position = gl_ModelViewProjectionMatrix * vec4(in_vertex,0.0,1.0);
+    gl_Position = gl_ModelViewProjectionMatrix * vec4(in_vertex, 0.0, 1.0);
     v_color = in_color;
     v_texcoord = in_texcoord;
     v_unit = in_unit;
