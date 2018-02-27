@@ -162,7 +162,7 @@ namespace linerider.Rendering
                     phys,
                     Color.FromArgb(0));
             }
-
+            RequiresUpdate = true;
         }
         public void AddLine(GameLine line)
         {
