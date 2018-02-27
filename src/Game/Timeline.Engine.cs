@@ -46,14 +46,14 @@ namespace linerider.Game
     /// </summary>
     public partial class Timeline
     {
-        private readonly object _changesync = new object();
+        private readonly ResourceSync changesync = new ResourceSync();
         private HashSet<GridPoint> _changedcells = new HashSet<GridPoint>();
         private SimulationGridOverlay _savedcells = new SimulationGridOverlay();
         private int _first_invalid_frame = 1;
         public void SaveCells(Vector2d start, Vector2d end)
         {
             var positions = SimulationGrid.GetGridPositions(start, end, _track.Grid.GridVersion);
-            lock (_changesync)
+            using (changesync.AcquireWrite())
             {
                 foreach (var cellpos in positions)
                 {
@@ -64,7 +64,7 @@ namespace linerider.Game
         }
         public void NotifyChanged()
         {
-            lock (_changesync)
+            using (changesync.AcquireWrite())
             {
                 int start = FindUpdateStart();
                 _changedcells.Clear();
@@ -116,8 +116,8 @@ namespace linerider.Game
         }
         private bool CheckInteraction(int frame)
         {
-            // even though its this frame that may need changing, we have to regenerate it using
-            // the previous frame.
+            // even though its this frame that may need changing, we have to 
+            // regenerate it using the previos frame.
             var newsimulated = _frames[frame - 1].Simulate(
                 _track.Grid,
                 _track.Bones,

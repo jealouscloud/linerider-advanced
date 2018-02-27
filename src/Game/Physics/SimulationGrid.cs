@@ -31,7 +31,6 @@ using linerider.Lines;
 
 namespace linerider
 {
-
     public partial class SimulationGrid : ISimulationGrid
     {
         public const int CellSize = 14;
@@ -69,20 +68,14 @@ namespace linerider
                 }
             }
         }
-        public void MoveLine(Vector2d p1, Vector2d p2, StandardLine line)
+        /// <summary>
+        /// Removes the line ID in all old grid cells and adds it back to new
+        /// ones
+        /// </summary>
+        public void MoveLine(Vector2d old1, Vector2d old2, StandardLine line)
         {
-            var oldpos = GetGridPositions(p1, p2, GridVersion);
+            var oldpos = GetGridPositions(old1, old2, GridVersion);
             var newpos = GetGridPositions(line);
-           // foreach (var v in oldpos)
-            {
-         //       if (!newhash.Contains(v))
-       //             remove.Add(v);
-            }
-         //   foreach (var v in newpos)
-         //   {
-         //       if (!oldhash.Contains(v))
-             //       add.Add(v);
-           // }
             using (_sync.AcquireWrite())
             {
                 foreach (var v in oldpos)

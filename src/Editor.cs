@@ -52,6 +52,7 @@ namespace linerider
         private ResourceSync _renderridersync = new ResourceSync();
         private SimulationRenderer _renderer = new SimulationRenderer();
         private bool _refreshtrack = false;
+        private EditorGrid _cells = new EditorGrid();
 
         public readonly Stopwatch FramerateWatch = new Stopwatch();
         public readonly FPSCounter FramerateCounter = new FPSCounter();
@@ -223,7 +224,7 @@ namespace linerider
         }
         public bool FastGridCheck(double x, double y)
         {
-            var chunk = _track.QuickGrid.GetCellFromPoint(new Vector2d(x, y));
+            var chunk = _cells.GetCellFromPoint(new Vector2d(x, y));
             return chunk != null && chunk.Count != 0;
         }
         public bool GridCheck(double x, double y)
@@ -439,16 +440,16 @@ namespace linerider
                     else
                     {
                         // make sure were not saving 0 changes
-                        if (UndoManager.HasChanges())
+                        if (UndoManager.HasChanges)
                         {
                             TrackIO.CreateAutosave(_track, Settings.Local.CurrentSong?.ToString());
                         }
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                Debug.WriteLine("Autosave exception: "+e);
+                Debug.WriteLine("Autosave exception: " + e);
             }
             finally
             {
@@ -466,6 +467,11 @@ namespace linerider
                     _track.ActiveTriggers = null;
                 _track = trk;
                 _track.ActiveTriggers = ActiveTriggers;
+                _cells.Clear();
+                foreach(var line in trk.LineLookup.Values)
+                {
+                    _cells.AddLine(line);
+                }
             }
             Timeline = new Timeline(trk);
             UndoManager = new UndoManager();
@@ -511,11 +517,11 @@ namespace linerider
         }
         public TrackWriter CreateTrackWriter()
         {
-            return TrackWriter.AcquireWrite(_tracksync, _track, _renderer, UndoManager, Timeline);
+            return TrackWriter.AcquireWrite(_tracksync, _track, _renderer, UndoManager, Timeline, _cells);
         }
         public TrackReader CreateTrackReader()
         {
-            return TrackReader.AcquireRead(_tracksync, _track);
+            return TrackReader.AcquireRead(_tracksync, _track,_cells);
         }
 
         internal RiderFrame GetFlag()

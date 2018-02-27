@@ -43,6 +43,10 @@ namespace linerider.Utils
         {
             return (Position2 - Position).Length;
         }
+        public Vector2d GetVector()
+        {
+            return (Position2 - Position);
+        }
 
         public static bool DoesLineIntersectRect(Line l1, DoubleRect rect)
         {

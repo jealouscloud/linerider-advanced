@@ -29,11 +29,10 @@ using linerider.Game;
 using linerider.Utils;
 namespace linerider.Game
 {
-    public interface ISimulationGrid
-    {
-        ResourceSync Sync { get; }
-        SimulationCell GetCell(int x, int y);
-    }
+    /// <summary>
+    /// An overlay around an existing simulation grid.
+    /// This grid's cells are checked first before the underlying grid.
+    /// </summary>
     public class SimulationGridOverlay : ISimulationGrid
     {
         public ResourceSync Sync
@@ -41,7 +40,7 @@ namespace linerider.Game
             get { return BaseGrid.Sync; }
         }
         public SimulationGrid BaseGrid;
-        public Dictionary<GridPoint, SimulationCell> Overlay = new Dictionary<GridPoint, SimulationCell>(128);
+        public ConcurrentDictionary<GridPoint, SimulationCell> Overlay = new ConcurrentDictionary<GridPoint, SimulationCell>();
         public SimulationCell GetCell(int x, int y)
         {
             SimulationCell cell;
@@ -56,23 +55,16 @@ namespace linerider.Game
         /// <returns>true if the overlay was added</returns>
         public bool AddOverlay(GridPoint point, SimulationCell cell)
         {
-            using (var rw = Sync.AcquireUpgradableRead())
+            if (!Overlay.ContainsKey(point))
             {
-                if (!Overlay.ContainsKey(point))
-                {
-                    rw.UpgradeToWriter();
-                    Overlay[point] = cell;
-                    return true;
-                }
-                return false;
+                Overlay[point] = cell;
+                return true;
             }
+            return false;
         }
         public void Clear()
         {
-            using (Sync.AcquireWrite())
-            {
-                Overlay.Clear();
-            }
+            Overlay.Clear();
         }
     }
 }

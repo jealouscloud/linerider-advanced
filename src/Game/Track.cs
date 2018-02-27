@@ -35,10 +35,8 @@ namespace linerider
 {
     public class Track
     {
-
         public SimulationGrid Grid = new SimulationGrid();
-
-        public FastGrid QuickGrid = new FastGrid();
+        public SimulationGridOverlay OverlayGrid = new SimulationGridOverlay();
 
         public LinkedList<int> Lines = new LinkedList<int>();
         public Dictionary<int, GameLine> LineLookup = new Dictionary<int, GameLine>();
@@ -71,6 +69,7 @@ namespace linerider
         public Track()
         {
             GenerateBones();
+            OverlayGrid.BaseGrid = Grid;
         }
         public GameLine[] GetSortedLines()
         {
@@ -93,21 +92,23 @@ namespace linerider
             // if the start offset is different the floating point math could
             // result in a slightly different restlength and cause inconsistency.
             var joints = GetStart().Body;
-            for (int i = 0; i < RiderConstants.Bones.Length; i++)
+            Bone[] bones = new Bone[RiderConstants.Bones.Length];
+            for (int i = 0; i < bones.Length; i++)
             {
                 var bone = RiderConstants.Bones[i];
                 var rest = (joints[bone.joint1].Location - joints[bone.joint2].Location).Length;
                 if (bone.OnlyRepel)
                     rest *= 0.5;
-                Bones[i] = new Bone(
+                bones[i] = new Bone(
                     bone.joint1,
                     bone.joint2,
                     rest,
                     bone.Breakable,
                     bone.OnlyRepel);
             }
+            Bones = bones;
         }
-        public void AddLine(GameLine line, bool isloading = false)
+        public void AddLine(GameLine line)
         {
             if (line.Type == LineType.Scenery)
             {
@@ -144,8 +145,9 @@ namespace linerider
                 "Lines occupying the same ID -- really bad");
             LineLookup.Add(line.ID, line);
             Lines.AddFirst(line.ID);
-            AddLineToGrid(line);
 
+            if (line is StandardLine stl)
+                AddLineToGrid(stl);
         }
         public void RemoveLine(GameLine line)
         {
@@ -164,9 +166,18 @@ namespace linerider
             LineLookup.Remove(line.ID);
             Lines.Remove(line.ID);
 
-            RemoveLineFromGrid(line);
+            if (line is StandardLine stl)
+                RemoveLineFromGrid(stl);
         }
-
+        public void MoveLine(StandardLine line, Vector2d new1, Vector2d new2)
+        {
+            var old = line.Position;
+            var old2 = line.Position2;
+            line.Position = new1;
+            line.Position2 = new2;
+            line.CalculateConstants();
+            Grid.MoveLine(old, old2, line);
+        }
         public int GetVersion()
         {
             return Grid.GridVersion;
@@ -178,23 +189,18 @@ namespace linerider
         }
 
         /// <summary>
-        /// Adds the line to the physics and fast grid
+        /// Adds the line to the physics grid.
         /// </summary>
-        public void AddLineToGrid(GameLine line, bool trackgrid = true)
+        public void AddLineToGrid(StandardLine line)
         {
-            if (trackgrid && line is StandardLine sl)
-                Grid.AddLine(sl);
-            QuickGrid.AddLine(line);
+            Grid.AddLine(line);
         }
-
         /// <summary>
-        /// Removes the line from the physics and fast grid
+        /// Removes the line from the physics
         /// </summary>
-        public void RemoveLineFromGrid(GameLine line, bool trackgrid = true)
+        public void RemoveLineFromGrid(StandardLine line)
         {
-            if (trackgrid && line is StandardLine sl)
-                Grid.RemoveLine((StandardLine)sl);
-            QuickGrid.RemoveLine(line);
+            Grid.RemoveLine(line);
         }
         public Rider GetStart()
         {

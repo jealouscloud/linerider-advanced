@@ -61,36 +61,38 @@ namespace linerider.Game
         public RiderFrame ExtractFrame(int frame, int iteration = 6)
         {
             Rider rider;
-            List<int> diagnosis;
-            bool isiteration = iteration != 6 && frame > 0;
-
-            if (isiteration)
-            {
-                rider = GetFrame(frame - 1);
-            }
-            else
-            {
-                rider = GetFrame(frame);
-            }
+            List<int> diagnosis = null;
             using (_track.Grid.Sync.AcquireRead())
             {
-                diagnosis = rider.Diagnose(
-                    _track.Grid,
-                    _track.Bones,
-                    null,
-                    Math.Min(6, iteration + 1));
-
-                if (isiteration)
-                {
-                    rider = rider.Simulate(
+                diagnosis = DiagnoseFrame(frame, iteration);
+                rider = GetFrame(frame, iteration);
+            }
+            return new RiderFrame(frame, rider, diagnosis, iteration);
+        }
+        public Rider GetFrame(int frame, int iteration = 6)
+        {
+            bool isiteration = iteration != 6 && frame > 0;
+            if (iteration != 6 && frame > 0)
+            {
+                return GetFrame(frame - 1).Simulate(
                         _track.Grid,
                         _track.Bones,
                         null,
                         null,
                         iteration);
-                }
             }
-            return new RiderFrame(frame, rider, diagnosis, iteration);
+            return GetFrame(frame);
+        }
+        public List<int> DiagnoseFrame(int frame, int iteration = 6)
+        {
+            bool isiteration = iteration != 6 && frame > 0;
+            frame = isiteration ? frame - 1 : frame;
+
+            return GetFrame(frame).Diagnose(
+                    _track.Grid,
+                    _track.Bones,
+                    null,
+                    Math.Min(6, iteration + 1));
         }
         public Rider GetFrame(int frame)
         {
@@ -99,7 +101,7 @@ namespace linerider.Game
                 int start;
                 int count;
                 int invalid;
-                lock (_changesync)
+                using (changesync.AcquireRead())
                 {
                     invalid = _first_invalid_frame;
                     start = Math.Min(_frames.Count, invalid);
@@ -119,7 +121,8 @@ namespace linerider.Game
             var changedcollision = new List<HashSet<int>>(count);
             Rider current = _frames[start - 1];
             int framecount = _frames.Count;
-            lock (_changesync)
+            var bones = _track.Bones;
+            using (changesync.AcquireWrite())
             {
                 // we use the savedcells buffer exactly so runframes can
                 // be completely consistent with the track state at the
@@ -129,18 +132,24 @@ namespace linerider.Game
                 // block user input on the track until we finish running.
                 _savedcells.Clear();
             }
-            for (int i = 0; i < count; i++)
+            using (var sync = changesync.AcquireRead())
             {
-                int currentframe = start + i;
-                HashSet<int> collisions = new HashSet<int>();
-                current = current.Simulate(_savedcells, _track.Bones, _activetriggers, collisions);
-                steps[i] = current;
-                if (currentframe >= framecount)
-                    HitTest.AddFrame(collisions);
-                else
-                    changedcollision.Add(collisions);
+                for (int i = 0; i < count; i++)
+                {
+                    int currentframe = start + i;
+                    HashSet<int> collisions = new HashSet<int>();
+                    current = current.Simulate(_savedcells, bones, _activetriggers, collisions);
+                    steps[i] = current;
+                    if (currentframe >= framecount)
+                        HitTest.AddFrame(collisions);
+                    else
+                        changedcollision.Add(collisions);
+                    if (i % 120 == 0)
+                    {
+                        sync.ReleaseWaiting();
+                    }
+                }
             }
-
             if (start + count > framecount)
             {
                 _frames.EnsureCapacity(start + count);
@@ -153,6 +162,5 @@ namespace linerider.Game
             if (changedcollision.Count != 0)
                 HitTest.ChangeFrames(start, changedcollision);
         }
-
     }
 }

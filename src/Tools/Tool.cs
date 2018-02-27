@@ -173,7 +173,7 @@ namespace linerider.Tools
                 trk.GetLinesInRect(new DoubleRect(position - new Vector2d(24, 24), new Vector2d(24 * 2, 24 * 2)),
                     false);
             var circle = Rendering.StaticRenderer.GenerateCircle(position.X, position.Y, rad, 8);
-            
+
             var ends = LineEndsInRadius(trk, position, rad);
             foreach (var line in ends)
             {
@@ -256,17 +256,16 @@ namespace linerider.Tools
             // currently, this feature does not handle 
             // the target line being collided
             // with on different frames.
-
-            if (game.Track.Offset == 0)
+            int offset = game.Track.Offset;
+            int iteration = game.Track.IterationsOffset;
+            if (offset == 0)
                 return false;
-            var frame = timeline.GetFrame(game.Track.Offset);
+            var frame = timeline.GetFrame(offset, iteration);
             if (!frame.Crashed)
             {
                 if (Settings.PinkLifelock)
                 {
-                    var diagnosis = track.Diagnose(
-                        timeline.GetFrame(game.Track.Offset),
-                        Math.Min(6, game.Track.IterationsOffset + 1));
+                    var diagnosis = timeline.DiagnoseFrame(offset, iteration);
                     foreach (var v in diagnosis)
                     {
                         //the next frame dies on something that isnt a fakie, so we cant stop here

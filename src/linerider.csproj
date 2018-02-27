@@ -120,6 +120,7 @@
     <Compile Include="Game\Physics\Rider.cs" />
     <Compile Include="Game\Physics\SimulationCell.cs" />
     <Compile Include="Game\Physics\SimulationGrid.cs" />
+    <Compile Include="Game\Physics\ISimulationGrid.cs" />
     <Compile Include="Game\Physics\SimulationGridStatic.cs" />
     <Compile Include="Game\Physics\SimulationPoint.cs" />
   </ItemGroup>

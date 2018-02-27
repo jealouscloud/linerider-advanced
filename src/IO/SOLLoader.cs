@@ -170,7 +170,7 @@ namespace linerider.IO
                 Convert.ToDouble(startline[1].data, CultureInfo.InvariantCulture));
             foreach (var line in lineslist)
             {
-                ret.AddLine(line, true);
+                ret.AddLine(line);
             }
             return ret;
         }
