@@ -66,16 +66,12 @@ namespace linerider
         public List<LineTrigger> ActiveTriggers = new List<LineTrigger>();
         public int CurrentFrame => PlaybackMode ? Offset + _startFrame : 0;
         public int LineCount => _track.Lines.Count;
-        public bool SimulationNeedsDraw = false;
-        public bool RequiresUpdate
+        private bool _invalidated = false;
+        public bool NeedsDraw
         {
             get
             {
-                return _renderer.RequiresUpdate || _refreshtrack;
-            }
-            set
-            {
-                _renderer.RequiresUpdate = value;
+                return _renderer.RequiresUpdate || _refreshtrack || _renderriderinvalid || _invalidated;
             }
         }
         public bool ZeroStart
@@ -158,6 +154,7 @@ namespace linerider
         }
         public void Render(float blend)
         {
+            _invalidated = false;
             if (_refreshtrack)
             {
                 _renderer.RefreshTrack(_track);
@@ -211,7 +208,10 @@ namespace linerider
         public void InvalidateRenderRider()
         {
             _renderriderinvalid = true;
-            SimulationNeedsDraw = true;
+        }
+        public void Invalidate()
+        {
+            _invalidated = true;
         }
         public Rider GetStart()
         {
@@ -243,7 +243,7 @@ namespace linerider
                 InvalidateRenderRider();
             }
             game.Canvas.DisableFlagTooltip();
-            _renderer.RequiresUpdate = true;
+            Invalidate();
         }
         internal void RestoreFlag(RiderFrame flag)
         {
@@ -292,8 +292,7 @@ namespace linerider
                 }
                 ActiveTriggers.Clear();
                 game.Canvas.HidePlaybackUI();
-                game.Invalidate();
-                game.Track.SimulationNeedsDraw = true;
+                Invalidate();
             }
         }
 
@@ -305,7 +304,7 @@ namespace linerider
                 game.Canvas.UpdatePauseUI();
                 game.Canvas.UpdateIterationUI();
                 game.Scheduler.Reset();
-                SimulationNeedsDraw = true;
+                Invalidate();
             }
         }
         public void StartFromFlag()
@@ -373,7 +372,7 @@ namespace linerider
             game.Scheduler.Reset();
             game.Canvas.UpdateScrubber();
             InvalidateRenderRider();
-            SimulationNeedsDraw = true;
+            Invalidate();
         }
         public void SetFrame(int frame, bool updateslider = true)
         {
@@ -416,12 +415,12 @@ namespace linerider
                 Rider prediction;
                 using (var trk = CreateTrackReader())
                 {
-                    prediction = trk.TickBasic(RenderRider);
+                    prediction = trk.TickBasic(Timeline.GetFrame(Offset));
                 }
                 Camera.SetPrediction(prediction.CalculateCenter());
 
             }
-            SimulationNeedsDraw = true;
+            Invalidate();
         }
 
         public void BackupTrack(bool Crash = true)
@@ -468,7 +467,7 @@ namespace linerider
                 _track = trk;
                 _track.ActiveTriggers = ActiveTriggers;
                 _cells.Clear();
-                foreach(var line in trk.LineLookup.Values)
+                foreach (var line in trk.LineLookup.Values)
                 {
                     _cells.AddLine(line);
                 }
@@ -479,7 +478,7 @@ namespace linerider
             Reset();
             Camera.SetFrameCenter(trk.StartOffset);
             GC.Collect();//this is the safest place to collect
-            SimulationNeedsDraw = true;
+            Invalidate();
         }
         public void AutoLoadPrevious()
         {
@@ -521,7 +520,7 @@ namespace linerider
         }
         public TrackReader CreateTrackReader()
         {
-            return TrackReader.AcquireRead(_tracksync, _track,_cells);
+            return TrackReader.AcquireRead(_tracksync, _track, _cells);
         }
 
         internal RiderFrame GetFlag()

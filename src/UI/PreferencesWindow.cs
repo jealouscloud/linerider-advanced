@@ -244,7 +244,7 @@ show the lines as black instead");
             lcb = new LabeledCheckBox(gb);
             lcb.Text = "Gravity Wells";
             lcb.IsChecked = Settings.Local.RenderGravityWells;
-            lcb.CheckChanged += (o, e) => { Settings.Local.RenderGravityWells = ((LabeledCheckBox)o).IsChecked; game.InvalidateTrack(); };
+            lcb.CheckChanged += (o, e) => { Settings.Local.RenderGravityWells = ((LabeledCheckBox)o).IsChecked; game.Track.Invalidate(); };
             lcb.Dock = Pos.Top;
             //playback
             gb = new GroupBox(container);
