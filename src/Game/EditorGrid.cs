@@ -36,7 +36,7 @@ namespace linerider.Game
     /// this grid accurately places lines in cells, compared to the sparse
     /// placement in the simulation grid.
     /// </summary>
-    public class FastGrid
+    public class EditorGrid
     {
         private readonly ResourceSync Sync = new ResourceSync();
         private readonly Dictionary<int, SimulationCell<GameLine>> Cells = new Dictionary<int, SimulationCell<GameLine>>(4096);

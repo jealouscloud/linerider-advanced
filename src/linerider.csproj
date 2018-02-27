@@ -99,7 +99,7 @@
     <Compile Include="Game\Camera.cs" />
     <Compile Include="Game\CameraBoundingBox.cs" />
     <Compile Include="Game\CameraLocation.cs" />
-    <Compile Include="Game\FastGrid.cs" />
+    <Compile Include="Game\EditorGrid.cs" />
     <Compile Include="Game\FPSCounter.cs" />
     <Compile Include="Game\GameScheduler.cs" />
     <Compile Include="Game\HitTestManager.cs" />
