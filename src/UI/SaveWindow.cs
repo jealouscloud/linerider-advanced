@@ -105,7 +105,7 @@ namespace linerider.UI
                 }
                 using (var trk = game.Track.CreateTrackWriter())
                 {
-                    trk.Track.Name = txt;
+                    trk.Name = txt;
                     try
                     {
                         //var filepath = trk.SaveTrackTrk(tb.Text, Settings.Local.CurrentSong?.ToString());

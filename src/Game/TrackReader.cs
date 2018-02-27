@@ -49,9 +49,13 @@ namespace linerider
                 return _track;
             }
         }
-        public string Name
+        /// <summary>
+        /// Returns the read-only track name.
+        /// </summary>
+        public virtual string Name
         {
             get { return Track.Name; }
+            set { throw new NotSupportedException("Track reader cannot set Name"); }
         }
         private bool _disposed = false;
         protected TrackReader(ResourceSync.ResourceLock sync, Track track)
@@ -113,21 +117,21 @@ namespace linerider
         /// Ticks the rider in the simulation
         /// </summary>
         public Rider TickBasic(
-            Rider state, 
+            Rider state,
             HashSet<int> collisions,
             int maxiteration = 6)
         {
             return state.Simulate(
-                _track.Grid, 
-                _track.Bones, 
-                null, 
-                collisions, 
+                _track.Grid,
+                _track.Bones,
+                null,
+                collisions,
                 maxiteration);
         }
 
         public List<int> Diagnose(Rider state, int maxiteration = 6)
         {
-            return state.Diagnose(Track.Grid,Track.Bones, null, maxiteration);
+            return state.Diagnose(Track.Grid, Track.Bones, null, maxiteration);
         }
         public void SaveTrackAsSol()
         {
