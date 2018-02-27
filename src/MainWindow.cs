@@ -813,6 +813,7 @@ namespace linerider
                     {
                         Canvas.ColorControls.OnTabButtonPressed();
                     }
+                    return true;
                 }
                 if (InputUtils.Check(Hotkey.EditorToolColor1))
                 {
