@@ -6,9 +6,9 @@ namespace linerider.UI
 {
     static class InputUtils
     {
-        public static List<Key> KeysDown { get; private set; } = new List<Key>();
+        private static List<Key> _keysdown = new List<Key>();
         private static KeyboardState _last_kb_state;
-        public static List<MouseButton> MouseButtonsDown { get; private set; } = new List<MouseButton>();
+        private static List<MouseButton> _mousebuttonsdown = new List<MouseButton>();
         private static MouseState _last_mouse_state;
         private static bool _hasmoved = false;
         private static ResourceSync _lock = new ResourceSync();
@@ -36,7 +36,7 @@ namespace linerider.UI
                         }
                     }
                 }
-                KeysDown = ret;
+                _keysdown = ret;
             }
         }
         public static bool HandleMouseMove(out int x, out int y)
@@ -65,7 +65,7 @@ namespace linerider.UI
                     if (ms.IsButtonDown(btn))
                         ret.Add(btn);
                 }
-                MouseButtonsDown = ret;
+                _mousebuttonsdown = ret;
             }
         }
         private static bool IsModifier(Key key)
@@ -85,16 +85,16 @@ namespace linerider.UI
         private static bool RegularExclusiveCHeck(Keybinding bind)
         {
             int allowedkeys = bind.KeysDown;
-            var keysdown = KeysDown.Count;
+            var keysdown = _keysdown.Count;
             if (allowedkeys > 0 && !IsModifier(bind.Key))
             {
-                if ((bind.UsesModifiers && keysdown != allowedkeys) || 
-                (!bind.UsesModifiers && _modifiersdown!=0))
-                return false;
+                if ((bind.UsesModifiers && keysdown != allowedkeys) ||
+                (!bind.UsesModifiers && _modifiersdown != 0))
+                    return false;
             }
             if (bind.UsesMouse)
             {
-                if (MouseButtonsDown.Count > 1)
+                if (_mousebuttonsdown.Count > 1)
                     return false;
             }
             return true;
@@ -104,14 +104,14 @@ namespace linerider.UI
             List<Keybinding> keybindings;
             if (Settings.Keybinds.TryGetValue(hotkey, out keybindings))
             {
-                foreach (var bind in keybindings)
+                using (_lock.AcquireRead())
                 {
-                    using (_lock.AcquireRead())
+                    foreach (var bind in keybindings)
                     {
                         if (trulyexclusive)
                         {
                             int allowedkeys = bind.KeysDown;
-                            var keysdown = KeysDown.Count;
+                            var keysdown = _keysdown.Count;
                             if (allowedkeys > 0 && keysdown != allowedkeys)
                                 continue;
                         }
@@ -137,7 +137,6 @@ namespace linerider.UI
                                 continue;
                         }
                         return true;
-
                     }
                 }
             }
