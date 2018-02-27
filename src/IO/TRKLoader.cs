@@ -211,12 +211,12 @@ namespace linerider.IO
                             if (!addedlines.ContainsKey(l.ID))
                             {
                                 addedlines[ID] = (StandardLine)l;
-                                ret.AddLine(l, true);
+                                ret.AddLine(l);
                             }
                         }
                         else
                         {
-                            ret.AddLine(l, true);
+                            ret.AddLine(l);
                         }
                     }
                 }

@@ -42,17 +42,17 @@ namespace linerider
                 // remove line
                 if (afteract == null)
                 {
-                    track.RemoveLine(beforeact,false);
+                    track.RemoveLine(beforeact);
                 }
                 // add line
                 else if (beforeact == null)
                 {
-                    track.AddLine(afteract,false);
+                    track.AddLine(afteract);
                 }
                 //move action
                 else
                 {
-                    track.ReplaceLine(beforeact, afteract,false);
+                    track.ReplaceLine(beforeact, afteract);
                 }
                 return !(beforeact is SceneryLine);
 
@@ -87,6 +87,11 @@ namespace linerider
         private List<act> _actions = new List<act>();
         private act _currentaction;
         const int MaximumBufferSize = 10000;
+        /// <summary>
+        /// Returns true if any changes have currently been made to the track
+        /// Basically for autosave.
+        /// </summary>
+        public bool HasChanges => (pos != 0 || _actions.Count > 100);
         public UndoManager()
         {
         }
@@ -134,6 +139,7 @@ namespace linerider
                 using (var trk = game.Track.CreateTrackWriter())
                 {
                     trk.DisableUndo();
+                    trk.DisableExtensionUpdating();
                     action.Undo(trk);
                 }
                 game.Track.NotifyTrackChanged();
@@ -152,18 +158,11 @@ namespace linerider
                 using (var trk = game.Track.CreateTrackWriter())
                 {
                     trk.DisableUndo();
+                    trk.DisableExtensionUpdating();
                     action.Redo(trk);
                 }
                 game.InvalidateTrack();
             }
-        }
-        /// <summary>
-        /// Returns true if any changes have currently been made to the track
-        /// Basically for autosave.
-        /// </summary>
-        public bool HasChanges()
-        {
-            return (pos != 0 || _actions.Count > 100);
         }
     }
 }

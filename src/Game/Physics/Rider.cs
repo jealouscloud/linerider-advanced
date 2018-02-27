@@ -274,14 +274,17 @@ namespace linerider.Game
                     ProcessLines(grid, body, ref phys, collisions, activetriggers);
                 }
             }
-            var nose = body[RiderConstants.SledTR].Location - body[RiderConstants.SledTL].Location;
-            var tail = body[RiderConstants.SledBL].Location - body[RiderConstants.SledTL].Location;
-            var head = body[RiderConstants.BodyShoulder].Location - body[RiderConstants.BodyButt].Location;
-            if ((nose.X * tail.Y) - (nose.Y * tail.X) < 0 || // tail fakie
-                (nose.X * head.Y) - (nose.Y * head.X) > 0)   // head fakie
+            if (maxiteration == 6)
             {
-                dead = true;
-                sledbroken = true;
+                var nose = body[RiderConstants.SledTR].Location - body[RiderConstants.SledTL].Location;
+                var tail = body[RiderConstants.SledBL].Location - body[RiderConstants.SledTL].Location;
+                var head = body[RiderConstants.BodyShoulder].Location - body[RiderConstants.BodyButt].Location;
+                if ((nose.X * tail.Y) - (nose.Y * tail.X) < 0 || // tail fakie
+                    (nose.X * head.Y) - (nose.Y * head.X) > 0)   // head fakie
+                {
+                    dead = true;
+                    sledbroken = true;
+                }
             }
             SimulationPoint[] scarf;
             if (stepscarf)
@@ -298,8 +301,8 @@ namespace linerider.Game
         }
         public List<int> Diagnose(
             ISimulationGrid grid,
-            Bone[] bones, 
-            HashSet<int> collisions = null, 
+            Bone[] bones,
+            HashSet<int> collisions = null,
             int maxiteration = 6)
         {
             var ret = new List<int>();
@@ -324,19 +327,22 @@ namespace linerider.Game
                     ProcessLines(grid, body, ref phys, collisions);
                 }
             }
-            var nose = body[RiderConstants.SledTR].Location - body[RiderConstants.SledTL].Location;
-            var tail = body[RiderConstants.SledBL].Location - body[RiderConstants.SledTL].Location;
-            var head = body[RiderConstants.BodyShoulder].Location - body[RiderConstants.BodyButt].Location;
-            if ((nose.X * tail.Y) - (nose.Y * tail.X) < 0) // tail fakie
+            if (maxiteration == 6)
+            {
+                var nose = body[RiderConstants.SledTR].Location - body[RiderConstants.SledTL].Location;
+                var tail = body[RiderConstants.SledBL].Location - body[RiderConstants.SledTL].Location;
+                var head = body[RiderConstants.BodyShoulder].Location - body[RiderConstants.BodyButt].Location;
+                if ((nose.X * tail.Y) - (nose.Y * tail.X) < 0) // tail fakie
 
-            {
-                dead = true;
-                ret.Add(-1);
-            }
-            if ((nose.X * head.Y) - (nose.Y * head.X) > 0)// head fakie
-            {
-                dead = true;
-                ret.Add(-2);
+                {
+                    dead = true;
+                    ret.Add(-1);
+                }
+                if ((nose.X * head.Y) - (nose.Y * head.X) > 0)// head fakie
+                {
+                    dead = true;
+                    ret.Add(-2);
+                }
             }
 
             return ret;
@@ -352,7 +358,7 @@ namespace linerider.Game
         }
         public override string ToString()
         {
-            return "Rider { "+CalculateMomentum().Length + " pixels/frame, "+CalculateCenter().ToString()+" center}";
+            return "Rider { " + CalculateMomentum().Length + " pixels/frame, " + CalculateCenter().ToString() + " center}";
         }
     }
 }

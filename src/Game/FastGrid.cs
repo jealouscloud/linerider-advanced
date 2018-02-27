@@ -52,7 +52,10 @@ namespace linerider.Game
                 return hash;
             }
         }
-
+        public void Clear()
+        {
+            Cells.Clear();
+        }
         public SimulationCell<GameLine> GetCell(int x, int y)
         {
             SimulationCell<GameLine> cell;

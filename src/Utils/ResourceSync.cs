@@ -39,14 +39,24 @@ namespace linerider.Utils
             private bool _read;
             private bool _write;
             private ResourceSync _parent;
-            public bool WritersWaiting
+            public bool WaitedOn
             {
                 get
                 {
-                    return _parent._lock.WaitingWriteCount != 0;
+                    var l = _parent._lock;
+                    return (l.WaitingReadCount > 0 ||
+                    l.WaitingUpgradeCount > 0 ||
+                    l.WaitingWriteCount > 0);
                 }
             }
-            public ResourceLock(bool read, bool write, bool upgradableread, ResourceSync parent)
+            /// <summary>
+            /// Creates a disposable object around a recently acquired lock
+            /// </summary>
+            public ResourceLock(
+                bool read,
+                bool write,
+                bool upgradableread,
+                ResourceSync parent)
             {
                 _read = read;
                 _write = write;
@@ -79,24 +89,73 @@ namespace linerider.Utils
                 }
                 _parent.UnsafeEnterWrite();
                 _write = true;
-
+            }
+            /// <summary>
+            /// Drops and reacquires the lock until nobody is waiting on us.
+            /// </summary>
+            public void ReleaseWaiting()
+            {
+                int count = 0;
+                bool dbg = false;//todo remove this 
+                while (WaitedOn)
+                {
+                    if (!dbg)
+                    {
+                        dbg = true;
+                        Debug.WriteLine("Letting waiters run");
+                    }
+                    Debug.Assert(count++ != 10000,"Wait release in possible infinite loop");
+                    Release();
+                    Acquire();
+                }
+            }
+            private void Acquire()
+            {
+                if (_upgradableread)
+                {
+                    _parent.UnsafeEnterUpgradableRead();
+                    if (_write)
+                    {
+                        _parent.UnsafeEnterWrite();
+                    }
+                }
+                else if (_read)
+                {
+                    _parent.UnsafeEnterRead();
+                }
+                else if (_write)
+                {
+                    _parent.UnsafeEnterWrite();
+                }
+                else
+                {
+                    throw new Exception("Unknown resourcesync type");
+                }
+            }
+            private void Release()
+            {
+                if (_upgradableread)
+                {
+                    _parent.UnsafeExitUpgradableRead();
+                }
+                else if (_read)
+                {
+                    _parent.UnsafeExitRead();
+                }
+                else if (_write)
+                {
+                    _parent.UnsafeExitWrite();
+                }
+                else
+                {
+                    throw new Exception("Unknown resourcesync type");
+                }
             }
             public void Dispose()
             {
                 if (_disposed)
                     return;
-                if (_read)
-                {
-                    _parent.UnsafeExitRead();
-                }
-                if (_write)
-                {
-                    _parent.UnsafeExitWrite();
-                }
-                if (_upgradableread)
-                {
-                    _parent.UnsafeExitUpgradableRead();
-                }
+                Release();
                 _disposed = true;
             }
         }

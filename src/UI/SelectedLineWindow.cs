@@ -60,7 +60,7 @@ namespace linerider.UI
                         var caller = (LabeledCheckBox)o;
                         copy.inv = caller.IsChecked;
                         copy.CalculateConstants();
-                        trk.ReplaceLine(stl, copy, true);
+                        trk.ReplaceLine(stl, copy);
                         game.Track.UndoManager.EndAction();
                         game.Track.NotifyTrackChanged();
                         game.Invalidate();
@@ -103,7 +103,7 @@ namespace linerider.UI
                                 copy.Trigger = null;
                             }
                         }
-                        trk.ReplaceLine(stl, copy, true);
+                        trk.ReplaceLine(stl, copy);
                         game.Track.UndoManager.EndAction();
                         game.Track.NotifyTrackChanged();
                     }
@@ -242,7 +242,7 @@ namespace linerider.UI
                     var copy = (RedLine)l.Clone();
                     copy.Multiplier = (int)Math.Round(((NumericUpDown)sender).Value);
                     copy.CalculateConstants();
-                    trk.ReplaceLine(l, copy, true);
+                    trk.ReplaceLine(l, copy);
                     game.Track.UndoManager.EndAction();
                     game.Track.NotifyTrackChanged();
                 }

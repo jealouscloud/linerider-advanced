@@ -34,9 +34,15 @@ using linerider.Utils;
 using linerider.Game;
 namespace linerider
 {
+    /// <summary>
+    /// A class that wraps the complication of modifying the track with thread
+    /// safety and guarantees. Always wrap undoable actions with
+    /// UndoManager.BeginAction and UndoManager.EndAction
+    /// </summary>
     public class TrackWriter : TrackReader
     {
         private bool _disposed = false;
+        private bool _updateextensions = true;
         private UndoManager _undo;
         private Timeline _timeline;
         private SimulationRenderer _renderer;
@@ -57,10 +63,36 @@ namespace linerider
                 return _track;
             }
         }
-        protected TrackWriter(ResourceSync.ResourceLock sync, Track track) : base(sync, track)
+        public EditorGrid Cells
+        {
+            get
+            {
+                if (_disposed)
+                    throw new ObjectDisposedException("TrackWriter");
+                return _editorcells;
+            }
+        }
+        protected TrackWriter(ResourceSync.ResourceLock sync, Track track)
+        : base(sync, track)
         {
             _track = track;
             _sync = sync;
+        }
+        public static TrackWriter AcquireWrite(
+            ResourceSync sync,
+            Track track,
+            SimulationRenderer renderer,
+            UndoManager undo,
+            Timeline timeline,
+            EditorGrid cells)
+        {
+            return new TrackWriter(sync.AcquireWrite(), track)
+            {
+                _undo = undo,
+                _renderer = renderer,
+                _timeline = timeline,
+                _editorcells = cells
+            };
         }
         public void NotifyTrackChanged()
         {
@@ -73,53 +105,40 @@ namespace linerider
         {
             _undo = null;
         }
-        public static TrackWriter AcquireWrite(ResourceSync sync, Track track, SimulationRenderer renderer, UndoManager undo, Timeline timeline)
-        {
-            return new TrackWriter(sync.AcquireWrite(), track) { _undo = undo, _renderer = renderer, _timeline = timeline };
-        }
         /// <summary>
-        /// state a change to the undo manager
-        /// always needs to be in PAIRS with a before and after
+        /// A function in place so the undo manager can restore states without
+        /// fooling with the original extensions.
         /// </summary>
-        private void RegisterUndoAction(GameLine before, GameLine after)
+        public void DisableExtensionUpdating()
         {
-            _undo?.AddChange(before, after);
-        }
-        /// <summary>
-        /// State a change to the buffer manager
-        /// call this before making the change, as the buffer manager
-        /// backs up cells and compares their output to the new cells
-        /// </summary>
-        /// <param name="linestart">line.Position</param>
-        /// <param name="lineend">line.Position2</param>
-        private void SaveCells(Vector2d linestart, Vector2d lineend)
-        {
-            _timeline.SaveCells(linestart, lineend);
+            _updateextensions = false;
         }
         /// <summary>
         /// Adds the line to the track, grid, and renderer. 
         /// Updates extensions
         /// Notifies the undo/buffer managers
-        /// Most uses should be wrapped in UndoManager.BeginAction / EndAction
         /// </summary>
-        public void AddLine(GameLine line, bool updateextensions = true)
+        public void AddLine(GameLine line)
         {
             if (line is StandardLine)
                 SaveCells(line.Position, line.Position2);
 
             Track.AddLine(line);
+            _editorcells.AddLine(line);
             _renderer.AddLine(line);
             RegisterUndoAction(null, line);
-            if (updateextensions && line is StandardLine stl)
+            if (_updateextensions && line is StandardLine stl)
                 AddExtensions(stl);
         }
         /// <summary>
         /// Moves the line in the track, grid, and renderer. 
         /// Updates extensions
-        /// Notifies the undo/buffer managers
-        /// Most uses should be wrapped in UndoManager.BeginAction / EndAction
+        /// Notifies the undo/timeline managers
         /// </summary>
-        public void MoveLine(GameLine line, Vector2d pos1, Vector2d pos2, bool updateextensions = true)
+        public void MoveLine(
+            GameLine line,
+            Vector2d pos1,
+            Vector2d pos2)
         {
             if (line.Position != pos1 || line.Position2 != pos2)
             {
@@ -129,13 +148,10 @@ namespace linerider
                 {
                     SaveCells(line.Position, line.Position2);
                     SaveCells(pos1, pos2);
-                    if (updateextensions)
+                    if (_updateextensions)
                         RemoveExtensions(std);
-                    line.Position = pos1;
-                    line.Position2 = pos2;
-                    std.CalculateConstants();
-                    Track.Grid.MoveLine(clone.Position, clone.Position2, std);
-                    if (updateextensions)
+                    Track.MoveLine(std, pos1, pos2);
+                    if (_updateextensions)
                         AddExtensions(std);
                 }
                 else
@@ -143,8 +159,8 @@ namespace linerider
                     line.Position = pos1;
                     line.Position2 = pos2;
                 }
-                Track.RemoveLineFromGrid(clone, false);
-                Track.AddLineToGrid(line, false);
+                _editorcells.RemoveLine(clone);
+                _editorcells.AddLine(line);
 
                 RegisterUndoAction(clone, line);
                 _renderer.RedrawLine(line);
@@ -153,10 +169,9 @@ namespace linerider
         /// <summary>
         /// Replaces the line in the track, grid, and renderer. 
         /// Updates extensions
-        /// Notifies the undo/buffer managers
-        /// Most uses should be wrapped in UndoManager.BeginAction / EndAction
+        /// Notifies the undo/timeline managers
         /// </summary>
-        public void ReplaceLine(GameLine oldline, GameLine newline, bool updateextensions = true)
+        public void ReplaceLine(GameLine oldline, GameLine newline)
         {
             if (oldline.ID != newline.ID)
                 throw new Exception("can only replace lines with the same id");
@@ -167,49 +182,61 @@ namespace linerider
             {
                 SaveCells(oldline.Position, oldline.Position2);
                 SaveCells(newline.Position, newline.Position2);
-                if (updateextensions)
+                if (_updateextensions)
                     RemoveExtensions(std);
+                using (Track.Grid.Sync.AcquireWrite())
+                {
+                    // this could be a moveline, i think.
+                    Track.Grid.RemoveLine(std);
+                    Track.Grid.AddLine((StandardLine)newline);
+                }
+                if (_updateextensions)
+                    AddExtensions((StandardLine)newline);
             }
-            using (Track.Grid.Sync.AcquireWrite())
-            {
-                Track.RemoveLineFromGrid(oldline);
-                Track.AddLineToGrid(newline);
-            }
+
+            _editorcells.RemoveLine(oldline);
+            _editorcells.AddLine(newline);
+
             Track.LineLookup[newline.ID] = newline;
-            if (updateextensions && newline is StandardLine stl)
-                AddExtensions(stl);
             _renderer.RedrawLine(newline);
         }
 
         /// <summary>
-        /// Removes the line from the track, grid, and renderer. 
+        /// Removes the line from the track, grid, and renderer.
         /// Updates extensions
-        /// Notifies the undo/buffer managers
-        /// Most uses should be wrapped in UndoManager.BeginAction / EndAction
+        /// Notifies the undo/timeline managers
         /// </summary>
-        public void RemoveLine(GameLine line, bool updateextensions = true)
+        public void RemoveLine(GameLine line)
         {
             if (line is StandardLine std)
             {
                 SaveCells(line.Position, line.Position2);
-                if (updateextensions)
+                if (_updateextensions)
                     RemoveExtensions(std);
             }
             RegisterUndoAction(line, null);
             Track.RemoveLine(line);
+            _editorcells.RemoveLine(line);
             _renderer.RemoveLine(line);
+        }
+        private void AddExtensions(StandardLine input)
+        {
+            UpdateExtensions(input, true);
+        }
+        private void RemoveExtensions(StandardLine input)
+        {
+            UpdateExtensions(input, false);
         }
         private SimulationCell GetPairs(StandardLine input)
         {
             var list = new SimulationCell();
-            var c1 = Track.QuickGrid.GetCellFromPoint(input.Position);
-            var c2 = Track.QuickGrid.GetCellFromPoint(input.Position2);
+            var c1 = _editorcells.GetCellFromPoint(input.Position);
+            var c2 = _editorcells.GetCellFromPoint(input.Position2);
             var cells = new SimulationCell<GameLine>[]
             {
                 c1,
-                c1 == c2
-                ? null
-                : c2 };
+                c1 == c2 ? null : c2
+            };
             foreach (var cell in cells)
             {
                 if (cell == null)
@@ -230,14 +257,6 @@ namespace linerider
                 }
             }
             return list;
-        }
-        public void AddExtensions(StandardLine input)
-        {
-            UpdateExtensions(input, true);
-        }
-        public void RemoveExtensions(StandardLine input)
-        {
-            UpdateExtensions(input, false);
         }
         /// <summary>
         /// Checks every line with the input line's ends if its extensions
@@ -301,6 +320,25 @@ namespace linerider
             //we do this outside of loop in case we lose both extensions!
             if (changemade)
                 RegisterUndoAction(inputclone, input);
+        }
+        /// <summary>
+        /// state a change to the undo manager
+        /// always needs to be in PAIRS with a before and after
+        /// </summary>
+        private void RegisterUndoAction(GameLine before, GameLine after)
+        {
+            _undo?.AddChange(before, after);
+        }
+        /// <summary>
+        /// State a change to the timeline manager
+        /// call this before making the change, as the timeline manager
+        /// needs it for thread safety
+        /// </summary>
+        /// <param name="linestart">line.Position</param>
+        /// <param name="lineend">line.Position2</param>
+        private void SaveCells(Vector2d linestart, Vector2d lineend)
+        {
+            _timeline.SaveCells(linestart, lineend);
         }
     }
 }

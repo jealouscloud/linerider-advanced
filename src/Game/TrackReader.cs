@@ -57,15 +57,16 @@ namespace linerider
             get { return Track.Name; }
             set { throw new NotSupportedException("Track reader cannot set Name"); }
         }
+        protected EditorGrid _editorcells;
         private bool _disposed = false;
         protected TrackReader(ResourceSync.ResourceLock sync, Track track)
         {
             _track = track;
             _sync = sync;
         }
-        public static TrackReader AcquireRead(ResourceSync sync, Track track)
+        public static TrackReader AcquireRead(ResourceSync sync, Track track, EditorGrid cells)
         {
-            return new TrackReader(sync.AcquireRead(), track);
+            return new TrackReader(sync.AcquireRead(), track) { _editorcells = cells };
         }
 
         public GameLine GetNewestLine()
@@ -83,7 +84,7 @@ namespace linerider
         }
         public IEnumerable<GameLine> GetLinesInRect(DoubleRect rect, bool precise)
         {
-            var ret = Track.QuickGrid.LinesInRect(rect);
+            var ret = _editorcells.LinesInRect(rect);
             if (precise)
             {
                 var newret = new List<GameLine>(ret.Count);
