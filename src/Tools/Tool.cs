@@ -158,7 +158,7 @@ namespace linerider.Tools
                 if (snapend)
                     SnapLineEnd(trk, added, added.Position2);
             }
-            game.Track.RequiresUpdate = true;
+            game.Track.Invalidate();
             return added;
         }
         /// <summary>

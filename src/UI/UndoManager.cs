@@ -143,7 +143,7 @@ namespace linerider
                     action.Undo(trk);
                 }
                 game.Track.NotifyTrackChanged();
-                game.InvalidateTrack();
+                game.Track.Invalidate();
             }
         }
 
@@ -161,7 +161,7 @@ namespace linerider
                     trk.DisableExtensionUpdating();
                     action.Redo(trk);
                 }
-                game.InvalidateTrack();
+                game.Track.Invalidate();
             }
         }
     }

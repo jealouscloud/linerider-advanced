@@ -103,7 +103,6 @@ namespace linerider.Tools
                         trk.RemoveLine(lines[i]);
                         game.Track.UndoManager.EndAction();
                     }
-                    game.Track.RequiresUpdate = true;
                     game.Track.NotifyTrackChanged();
                 }
                 _last_erased = pos;

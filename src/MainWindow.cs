@@ -176,14 +176,13 @@ namespace linerider
         public void Render(float blend = 1)
         {
             bool shouldrender = Canvas.NeedsRedraw ||
-            (Track.PlaybackMode && (Track.SimulationNeedsDraw || Settings.SmoothPlayback)) ||
+            (Track.PlaybackMode && Settings.SmoothPlayback) ||
             Loading ||
-            Track.RequiresUpdate ||
+            Track.NeedsDraw ||
             SelectedTool.NeedsRender;
 
             if (shouldrender)
             {
-                Track.SimulationNeedsDraw = false;
 
                 BeginOrtho();
                 var slider = Canvas.Scrubber;
@@ -220,7 +219,7 @@ namespace linerider
                 Track.FramerateCounter.AddFrame(seconds);
                 Track.FramerateWatch.Restart();
             }
-            if (!Track.Playing && !Canvas.NeedsRedraw && !Track.RequiresUpdate)//if nothing is waiting on us we can let the os breathe
+            if (!Track.Playing && !Canvas.NeedsRedraw && !Track.NeedsDraw)//if nothing is waiting on us we can let the os breathe
                 Thread.Sleep(1);
             if (Program.LogGL)
             {
@@ -298,11 +297,6 @@ namespace linerider
         {
             if (Canvas != null)
                 Canvas.NeedsRedraw = true;
-        }
-
-        public void InvalidateTrack()
-        {
-            Track.RequiresUpdate = true;
         }
         public void UpdateCursor()
         {
@@ -568,7 +562,7 @@ namespace linerider
             else if (InputUtils.Check(Hotkey.PreferenceOnionSkinning, true))
             {
                 Settings.Local.OnionSkinning = !Settings.Local.OnionSkinning;
-                InvalidateTrack();
+                Track.Invalidate();
                 return true;
             }
 
@@ -689,9 +683,8 @@ namespace linerider
                     {
                         Track.NextFrame();
                         Track.IterationsOffset = 0;
-                        Invalidate();
-                        Track.Camera.SetFrame(Track.RenderRider);
                     }
+                    Track.Camera.SetFrame(Track.RenderRider);
                     Track.InvalidateRenderRider();
                     Canvas.UpdateIterationUI();
                     return true;
@@ -709,8 +702,8 @@ namespace linerider
                             Track.PreviousFrame();
                             Track.IterationsOffset = 6;
                             Invalidate();
-                            Track.Camera.SetFrame(Track.RenderRider);
                         }
+                        Track.Camera.SetFrame(Track.RenderRider);
                         Track.InvalidateRenderRider();
                         Canvas.UpdateIterationUI();
                     }
