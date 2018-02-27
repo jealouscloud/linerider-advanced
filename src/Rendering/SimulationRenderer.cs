@@ -18,25 +18,25 @@ namespace linerider.Rendering
 {
     public class SimulationRenderer : GameService
     {
-        private TrackRenderer _renderer;
+        private TrackRenderer _trackrenderer;
         private RiderRenderer _riderrenderer;
 
         public bool RequiresUpdate
         {
             get
             {
-                return _renderer.RequiresUpdate;
+                return _trackrenderer.RequiresUpdate;
             }
             set
             {
-                _renderer.RequiresUpdate = value;
+                _trackrenderer.RequiresUpdate = value;
             }
         }
         private LineVAO _linevao;
         public SimulationRenderer()
         {
             _linevao = new LineVAO();
-            _renderer = new TrackRenderer();
+            _trackrenderer = new TrackRenderer();
             _riderrenderer = new RiderRenderer();
         }
         private void DrawRider(Camera camera, Track track)
@@ -45,7 +45,7 @@ namespace linerider.Rendering
         public void Render(Track track, Timeline timeline, Camera camera, DrawOptions options)
         {
             Rider drawrider = options.Rider;
-            _renderer.Render(options);
+            _trackrenderer.Render(options);
             if (Settings.Local.OnionSkinning && options.Playback)
             {
                 const int onions = 20;
@@ -93,20 +93,19 @@ namespace linerider.Rendering
         }
         public void AddLine(GameLine l)
         {
-            _renderer.AddLine(l);
+            _trackrenderer.AddLine(l);
         }
         public void RedrawLine(GameLine l)
         {
-            _renderer.LineChanged(l);
+            _trackrenderer.LineChanged(l);
         }
         public void RemoveLine(GameLine l)
         {
-            _renderer.RemoveLine(l);
+            _trackrenderer.RemoveLine(l);
         }
         public void RefreshTrack(Track track)
         {
-            _renderer.InitializeTrack(track);
-            _renderer.RequiresUpdate = true;
+            _trackrenderer.InitializeTrack(track);
         }
     }
 }
