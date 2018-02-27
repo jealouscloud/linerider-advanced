@@ -216,7 +216,7 @@ namespace linerider.Rendering
             bool fastgrid = false;
             bool renderext = true;
             bool renderridersquare = true;
-            int sqsize = fastgrid ? FastGrid.CellSize : SimulationGrid.CellSize;
+            int sqsize = fastgrid ? EditorGrid.CellSize : SimulationGrid.CellSize;
             GL.PushMatrix();
             GL.Scale(Game.Track.Zoom, Game.Track.Zoom, 0);
             GL.Translate(new Vector3d(Game.ScreenTranslation));
