@@ -40,6 +40,14 @@ namespace linerider
         private UndoManager _undo;
         private Timeline _timeline;
         private SimulationRenderer _renderer;
+        /// <summary>
+        /// Gets or sets the track name
+        /// </summary>
+        public override string Name
+        {
+            get { return Track.Name; }
+            set { Track.Name = value; }
+        }
         public Track Track
         {
             get
