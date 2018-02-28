@@ -136,8 +136,8 @@ namespace linerider.Tools
                             snapjoint2);
                     }
                 }
-                UpdatePlayback(line);
                 UpdateTooltip();
+                UpdatePlayback(line);
             }
             game.Invalidate();
         }
@@ -280,12 +280,15 @@ namespace linerider.Tools
         }
         private void UpdateTooltip()
         {
-            var vec = _selection.line.GetVector();
-            var len = vec.Length;
-            var angle = Angle.FromVector(vec);
-            angle.Degrees += 90;
-            string tooltip = "length: "+Math.Round(len, 2) +" \n"+ "angle: " +Math.Round(angle.Degrees, 2) + "° ";
-            ShowTooltip(tooltip);
+            if (_selection != null && _selection.line != null)
+            {
+                var vec = _selection.line.GetVector();
+                var len = vec.Length;
+                var angle = Angle.FromVector(vec);
+                angle.Degrees += 90;
+                string tooltip = "length: " + Math.Round(len, 2) + " \n" + "angle: " + Math.Round(angle.Degrees, 2) + "° ";
+                ShowTooltip(tooltip);
+            }
         }
         private void ApplyModifiers(ref Vector2d joint1, ref Vector2d joint2)
         {
