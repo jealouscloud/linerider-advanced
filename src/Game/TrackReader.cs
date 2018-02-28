@@ -114,26 +114,6 @@ namespace linerider
         {
             return state.Simulate(_track.Grid, _track.Bones, null, null, maxiteration);
         }
-        /// <summary>
-        /// Ticks the rider in the simulation
-        /// </summary>
-        public Rider TickBasic(
-            Rider state,
-            HashSet<int> collisions,
-            int maxiteration = 6)
-        {
-            return state.Simulate(
-                _track.Grid,
-                _track.Bones,
-                null,
-                collisions,
-                maxiteration);
-        }
-
-        public List<int> Diagnose(Rider state, int maxiteration = 6)
-        {
-            return state.Diagnose(Track.Grid, Track.Bones, null, maxiteration);
-        }
         public void SaveTrackAsSol()
         {
             SOLWriter.SaveTrack(_track);
