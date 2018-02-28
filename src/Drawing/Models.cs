@@ -46,7 +46,6 @@ namespace linerider
             SledTexture = Rendering.StaticRenderer.LoadTexture(GameResources.sled_img);
             BodyTexture = Rendering.StaticRenderer.LoadTexture(GameResources.body_img);
             LimbsTexture = Rendering.StaticRenderer.LoadTexture(GameResources.limbs_img);
-
         }
     }
 }
