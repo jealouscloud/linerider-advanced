@@ -54,10 +54,10 @@ namespace linerider.Audio
                     AL.GetSource(_alsourceid, ALGetSourcei.BuffersQueued, out queued);
                     AL.GetSource(_alsourceid, ALSourcef.SecOffset, out elapsed);
                 }
-                double buffertime = (double)_stream.Buffer.Length / _stream.SampleRate / _stream.Channels;
+                double buffertime = (double)_stream.SamplesPerBuffer / _stream.SampleRate / _stream.Channels;
                 double offset = (queued * buffertime);
                 //special case for if we're at the end of the audio.
-                if (_stream.ReadSamples != _stream.Buffer.Length && queued > 1)
+                if (_stream.ReadSamples != _stream.SamplesPerBuffer && queued > 1)
                 {
                     offset -= buffertime - ((double)_stream.ReadSamples / _stream.SampleRate / _stream.Channels);
                 }
@@ -206,7 +206,7 @@ namespace linerider.Audio
                 AL.SourceQueueBuffer(_alsourceid, buffer);
                 AudioDevice.Check();
             }
-            if (len != _stream.Buffer.Length)//we've reached the end
+            if (len != _stream.SamplesPerBuffer)//we've reached the end
                 _needsrefill = false;
         }
         private void RefillProcessed()
