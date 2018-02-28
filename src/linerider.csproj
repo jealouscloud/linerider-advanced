@@ -88,12 +88,12 @@
     <Compile Include="ffmpeg\FFMPEGParameters.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Lines\GameLine.cs" />
-    <Compile Include="Lines\LineTrigger.cs" />
-    <Compile Include="Lines\LineType.cs" />
-    <Compile Include="Lines\RedLine.cs" />
-    <Compile Include="Lines\SceneryLine.cs" />
-    <Compile Include="Lines\StandardLine.cs" />
+    <Compile Include="Game\Lines\GameLine.cs" />
+    <Compile Include="Game\Lines\LineTrigger.cs" />
+    <Compile Include="Game\Lines\LineType.cs" />
+    <Compile Include="Game\Lines\RedLine.cs" />
+    <Compile Include="Game\Lines\SceneryLine.cs" />
+    <Compile Include="Game\Lines\StandardLine.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Game\Camera.cs" />
