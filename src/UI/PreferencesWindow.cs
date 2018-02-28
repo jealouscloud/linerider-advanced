@@ -285,7 +285,7 @@ show the lines as black instead");
             cbplayback.Dock = Pos.Top;
             for (var i = 0; i < Constants.MotionArray.Length; i++)
             {
-                var f = (Constants.MotionArray[i] / 40f);
+                var f = (Constants.MotionArray[i] / (float)Constants.PhysicsRate);
                 cbplayback.AddItem("Playback: " + f + "x", f.ToString(CultureInfo.InvariantCulture), f);
             }
             cbplayback.SelectByName(Settings.Local.DefaultPlayback.ToString(CultureInfo.InvariantCulture));
