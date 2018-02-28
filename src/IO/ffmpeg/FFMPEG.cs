@@ -26,7 +26,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Drawing;
 
-namespace linerider.ffmpeg
+namespace linerider.IO.ffmpeg
 {
     public static class FFMPEG
     {
@@ -63,7 +63,7 @@ namespace linerider.ffmpeg
             TryInitialize();
             if (!file.EndsWith(".ogg", true, Program.Culture))
             {
-                var par = new ffmpeg.FFMPEGParameters();
+                var par = new IO.ffmpeg.FFMPEGParameters();
                 par.AddOption("i", "\"" + file + "\"");
                 par.OutputFilePath = file.Remove(file.IndexOf(".", StringComparison.Ordinal)) + ".ogg";
                 if (File.Exists(par.OutputFilePath))
