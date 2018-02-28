@@ -252,17 +252,19 @@ namespace linerider.Rendering
                             }
                             else
                             {
+                                int color = 0;
                                 var stl = (StandardLine)line;
-                                bool hit = Settings.Local.HitTest ?
-                                game.Track.Timeline.HitTest.IsHit(stl.ID)
-                                : false;
+                                bool hit = Settings.Local.HitTest
+                                    ? game.Track.Timeline.HitTest.IsHit(stl.ID)
+                                    : false;
+                                if (hit)
+                                    color = Utility.ColorToRGBA_LE(stl.Color);
+
                                 LineChanged(
-                                    stl,
+                                    line,
                                     _physvbo,
                                     _physlines,
-                                    hit
-                                    ? Utility.ColorToRGBA_LE(stl.Color)
-                                    : 0);
+                                    color);
 
                                 _decorator.LineChanged(stl, hit);
                             }
@@ -282,26 +284,35 @@ namespace linerider.Rendering
                 LineChanged(line, renderer, lookup);
                 return;
             }
+            int color = 0;
+            if (line is StandardLine stl && stl.Trigger != null)
+                color = unchecked((int)0xff4f95ff);
             var lineverts = LineRenderer.CreateTrackLine(
                 line.Position,
                 line.Position2,
                 2 * line.Width,
-                0);
+                color);
             int start = renderer.AddLine(lineverts);
             lookup.Add(line.ID, start);
         }
         private void LineChanged(
             GameLine line,
             LineRenderer renderer,
-            Dictionary<int, int> lookup, 
-            int color = 0)
+            Dictionary<int, int> lookup,
+            int coloroverride = 0)
         {
             float width = 2 * line.Width;
+            if (coloroverride == 0 && line is StandardLine stl)
+            {
+                if (stl.Trigger != null)
+                    coloroverride = Utility.ColorToRGBA_LE(
+                        Constants.TriggerLineColor);
+            }
             var lineverts = LineRenderer.CreateTrackLine(
                 line.Position,
                 line.Position2,
                 width,
-                color);
+                coloroverride);
             renderer.ChangeLine(lookup[line.ID], lineverts);
         }
         private void RemoveLine(
