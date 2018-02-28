@@ -15,6 +15,7 @@ namespace linerider.Utils
         public static readonly Color RedLineColor = Color.FromArgb(0xCC, 0, 0);
         public static readonly Color BlueLineColor = Color.FromArgb(0, 0x66, 0xFF);
         public static readonly Color SceneryLineColor = Color.FromArgb(0, 0xCC, 0);
+        public static readonly Color TriggerLineColor = Color.FromArgb(0xFF, 0x95, 0x4F);
 
         // the following have an alpha of 254 
         // so theyre overridden by the shader for hit test
