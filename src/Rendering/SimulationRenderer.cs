@@ -46,13 +46,13 @@ namespace linerider.Rendering
         {
             Rider drawrider = options.Rider;
             _trackrenderer.Render(options);
-            if (Settings.Local.OnionSkinning && options.Playback)
+            if (Settings.Local.OnionSkinning && options.PlaybackMode)
             {
                 const int onions = 20;
                 for (int i = -onions; i < onions; i++)
                 {
                     var frame = game.Track.Offset + i;
-                    if (frame > 0 && frame < timeline.Length && i != 0)
+                    if (frame > 0 && frame < game.Track.FrameCount && i != 0)
                     {
                         _riderrenderer.DrawRider(
                             0.3f,
@@ -68,19 +68,25 @@ namespace linerider.Rendering
                     true);
 
             _riderrenderer.DrawRider(
-                options.ShowContactLines ? 0.4f : 1,
+                options.ShowContactLines ? 0.5f : 1,
                 options.Rider,
                 true);
-            _riderrenderer.Draw();
-            _riderrenderer.Clear();
             if (options.ShowMomentumVectors)
             {
                 GameRenderer.DrawMomentum(options.Rider, _linevao);
+                // todo create a preference and uncommon this feature:
+                /*if (!options.IsRunning)
+                {
+                    var frame = timeline.GetFrame(game.Track.Offset + 1, 0);
+                    _riderrenderer.DrawRider(0.1f, frame);
+                }*/
             }
             if (options.ShowContactLines)
             {
                 GameRenderer.DrawContactPoints(options.Rider, options.RiderDiagnosis, _linevao);
             }
+            _riderrenderer.Draw();
+            _riderrenderer.Clear();
             if (_linevao.Array.Count > 0)
             {
                 GameDrawingMatrix.Enter();
