@@ -31,7 +31,7 @@ namespace linerider.Audio
     {
         private VorbisReader _stream;
         private float[] _stream_buffer;
-        public int SamplesPerBuffer { get; private set;}
+        public int SamplesPerBuffer { get; private set; }
         public short[] Buffer;
         public int ReadSamples = 0;
         public int Channels => _stream.Channels;

@@ -195,10 +195,10 @@ namespace linerider.Audio
             if (!Settings.Local.EnableSong)
                 return;
             var updaterate = (float)game.Scheduler.UpdatesPerSecond;
-            
+            var updatepercent = (float)game.Scheduler.ElapsedPercent;
             var expectedtime = Settings.Local.CurrentSong.Offset +
                 (game.Track.CurrentFrame / (float)Constants.PhysicsRate) +
-                (game.Scheduler.UpdatePeriod * game.Scheduler.ElapsedPercent);
+                (updatepercent / (float)Constants.PhysicsRate);
 
             bool shouldplay = (_musicplayer != null &&
                 game.Track.Playing || game.TemporaryPlayback) &&
