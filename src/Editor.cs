@@ -119,6 +119,8 @@ namespace linerider
                 _paused = value;
             }
         }
+        public int FrameCount { get; private set;} = 1;
+
         public UndoManager UndoManager { get; private set; }
         public bool Playing => PlaybackMode && !Paused;
         /// <summary>
@@ -177,7 +179,7 @@ namespace linerider
                 : KnobState.Shown;
             }
             drawOptions.Paused = Paused;
-            drawOptions.Playback = PlaybackMode;
+            drawOptions.PlaybackMode = PlaybackMode;
             drawOptions.Rider = RenderRiderInfo.State;
             drawOptions.ShowContactLines = Settings.Local.DrawContactPoints;
             drawOptions.ShowMomentumVectors = Settings.Local.MomentumVectors;
@@ -318,28 +320,32 @@ namespace linerider
                 Timeline.Restart(_flag.State);
                 _startFrame = _flag.FrameID;
             }
+            FrameCount = 1;
             Start(0);
         }
         public void StartIgnoreFlag()
         {
             Timeline.HitTest.Reset();
             Timeline.Restart(_track.GetStart());
+            FrameCount = 1;
             Start(0);
         }
         public void ResumeFromFlag()
         {
             Timeline.HitTest.Reset();
             Timeline.Restart(_track.GetStart());
+            FrameCount = 1;
             if (_flag != null)
             {
                 var atflag = Timeline.GetFrame(_flag.FrameID);
+                FrameCount = _flag.FrameID+1;
                 game.Canvas.SetFlagState(atflag.Body.CompareTo(_flag.State.Body));
             }
-            Start(Timeline.Length - 1);
+            Start(FrameCount - 1);
         }
         private void Start(int frameid)
         {
-            if (frameid >= Timeline.Length)
+            if (frameid >= FrameCount)
                 throw new Exception("Start frame out of range");
             if (!PlaybackMode)
             {
@@ -369,6 +375,7 @@ namespace linerider
                     break;
             }
             game.Scheduler.Reset();
+            FramerateCounter.Reset();
             game.Canvas.UpdateScrubber();
             InvalidateRenderRider();
             Invalidate();
@@ -377,6 +384,8 @@ namespace linerider
         {
             Offset = frame;
             Timeline.GetFrame(frame);
+            if (frame > FrameCount)
+                FrameCount = frame;
             IterationsOffset = 6;
             InvalidateRenderRider();
 

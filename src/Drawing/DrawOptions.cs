@@ -6,7 +6,7 @@ namespace linerider.Drawing
 {
     public class DrawOptions
     {
-        public bool Playback = false;
+        public bool PlaybackMode = false;
         public bool Paused = false;
         public bool LineColors = true;
         public bool GravityWells = false;
@@ -25,7 +25,7 @@ namespace linerider.Drawing
         {
             get
             {
-                return Playback && !Paused;
+                return PlaybackMode && !Paused;
             }
         }
     }
