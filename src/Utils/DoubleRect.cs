@@ -74,7 +74,7 @@ namespace linerider.Utils
         }
         public static DoubleRect FromLRTB(double left, double right, double top, double bottom)
         {
-            return new DoubleRect(left,top,right - left, bottom - top);
+            return new DoubleRect(left, top, right - left, bottom - top);
         }
 
         public FloatRect ToFloatRect()
@@ -85,25 +85,16 @@ namespace linerider.Utils
         public Vector2d EllipseClamp(Vector2d position)
         {
             var center = Vector + (Size / 2);
-            var a = Width / 2;
-            var b = Height / 2;
-            var p = position - center;
-            var d = p.X * p.X / (a * a) + p.Y * p.Y / (b * b);
+            var xrad = Width / 2;
+            var yrad = Height / 2;
 
-            if (d > 1)
+            var diff = position - center;
+            if ((((diff.X * diff.X) / (xrad * xrad)) + ((diff.Y * diff.Y) / (yrad * yrad))) > 1.0)
             {
-
-                Angle angle = Angle.FromLine(center, position);
-                double t = Math.Atan((Width / 2) * Math.Tan(angle.Radians) / (Height / 2));
-                if (angle.Degrees < 270 && angle.Degrees >= 90)
-                {
-                    t += Math.PI;
-                }
-                Vector2d ptfPoint =
-                   new Vector2d(center.X + (Width / 2) * Math.Cos(t),
-                               center.Y + (Height / 2) * Math.Sin(t));
-
-                position = ptfPoint;
+                var m = Math.Atan2(diff.Y * xrad / yrad, diff.X);
+                return new Vector2d(
+                    center.X + xrad * Math.Cos(m),
+                    center.Y + yrad * Math.Sin(m));
             }
             return position;
         }

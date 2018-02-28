@@ -77,24 +77,16 @@ namespace linerider.Utils
         public Vector2 EllipseClamp(Vector2 position)
         {
             var center = Vector + (Size / 2);
-            var a = Width / 2;
-            var b = Height / 2;
-            var p = position - center;
-            var d = p.X * p.X / (a * a) + p.Y * p.Y / (b * b);
+            var xrad = Width / 2;
+            var yrad = Height / 2;
 
-            if (d > 1)
+            var diff = position - center;
+            if ((((diff.X * diff.X) / (xrad * xrad)) + ((diff.Y * diff.Y) / (yrad * yrad))) > 1.0)
             {
-                Angle angle = Angle.FromLine(center, position);
-                double t = Math.Atan((Width / 2) * Math.Tan(angle.Radians) / (Height / 2));
-                if (angle.Degrees < 270 && angle.Degrees >= 90)
-                {
-                    t += Math.PI;
-                }
-                Vector2 ptfPoint =
-                   new Vector2((float)(center.X + (Width / 2) * Math.Cos(t)),
-                               (float)(center.Y + (Height / 2) * Math.Sin(t)));
-
-                position = ptfPoint;
+                var m = Math.Atan2(diff.Y * xrad / yrad, diff.X);
+                return new Vector2(
+                    (float)(center.X + xrad * Math.Cos(m)),
+                    (float)(center.Y + yrad * Math.Sin(m)));
             }
             return position;
         }
