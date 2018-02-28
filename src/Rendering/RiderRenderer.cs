@@ -37,7 +37,8 @@ namespace linerider.Rendering
                  Models.LegRect,
                  Models.LegUV,
                  points[RiderConstants.BodyButt].Location,
-                 points[RiderConstants.BodyFootRight].Location, opacity);
+                 points[RiderConstants.BodyFootRight].Location, opacity,
+                 true);
 
             DrawTexture(
                 Tex.Limb,
@@ -90,8 +91,7 @@ namespace linerider.Rendering
                     Models.SledUV,
                     points[RiderConstants.SledTL].Location,
                     points[RiderConstants.SledTR].Location,
-                    opacity,
-                    true);
+                    opacity);
             }
 
             DrawTexture(
