@@ -28,7 +28,7 @@ using System.Linq;
 using System.Text;
 using linerider.Audio;
 using linerider.Utils;
-using linerider.Lines;
+using linerider.Game;
 
 namespace linerider.IO
 {

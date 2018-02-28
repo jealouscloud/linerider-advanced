@@ -29,7 +29,6 @@ using System.Drawing;
 using linerider.Game;
 using linerider.Utils;
 using linerider.Drawing;
-using linerider.Lines;
 
 namespace linerider.Rendering
 {

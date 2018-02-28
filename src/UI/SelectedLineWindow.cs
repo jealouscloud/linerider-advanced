@@ -26,7 +26,7 @@ using System.IO;
 using Gwen;
 using Gwen.Controls;
 using linerider.Audio;
-using linerider.Lines;
+using linerider.Game;
 using OpenTK.Graphics;
 using linerider.Utils;
 using OpenTK;

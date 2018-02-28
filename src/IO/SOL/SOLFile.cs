@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using OpenTK;
-using linerider.Lines;
+using linerider.Game;
 namespace linerider.IO.SOL
 {
     internal class SOLFile

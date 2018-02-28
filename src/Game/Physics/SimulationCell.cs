@@ -4,7 +4,6 @@ using System.Linq;
 using System.Collections.Generic;
 using linerider.Game;
 using linerider.Rendering;
-using linerider.Lines;
 using System.Collections;
 
 namespace linerider

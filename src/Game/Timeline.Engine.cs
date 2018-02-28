@@ -31,7 +31,6 @@ using System.Collections.Concurrent;
 using linerider.Tools;
 using linerider.Rendering;
 using linerider.Game;
-using linerider.Lines;
 using linerider.UI;
 using linerider.Utils;
 using System.Diagnostics;

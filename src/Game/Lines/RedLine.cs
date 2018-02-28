@@ -21,7 +21,7 @@
 
 using OpenTK;
 using linerider.Game;
-namespace linerider.Lines
+namespace linerider.Game
 {
     public class RedLine : StandardLine
     {

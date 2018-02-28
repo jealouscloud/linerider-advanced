@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using OpenTK;
 using linerider.Drawing;
 using linerider.Utils;
-using linerider.Lines;
+using linerider.Game;
 using System.Diagnostics;
 
 namespace linerider.Rendering
