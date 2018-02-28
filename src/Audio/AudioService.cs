@@ -159,7 +159,7 @@ namespace linerider.Audio
         {
             bool hardexit = false;
             TimeSpan duration = TimeSpan.Zero;
-            file = ffmpeg.FFMPEG.ConvertSongToOgg(file, (string obj) =>
+            file = IO.ffmpeg.FFMPEG.ConvertSongToOgg(file, (string obj) =>
             {
                 var idx = obj.IndexOf("Duration: ", StringComparison.InvariantCulture);
                 if (idx != -1)

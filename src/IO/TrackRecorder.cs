@@ -34,7 +34,7 @@ using linerider.Rendering;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
-using linerider.ffmpeg;
+using linerider.IO.ffmpeg;
 using Key = OpenTK.Input.Key;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
 using System.Runtime.InteropServices;

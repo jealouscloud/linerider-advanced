@@ -22,7 +22,7 @@
 using System;
 using System.Text;
 
-namespace linerider.ffmpeg
+namespace linerider.IO.ffmpeg
 {
     public class FFMPEGParameters
     {
