@@ -232,7 +232,7 @@ namespace linerider
             var list = new SimulationCell();
             var c1 = _editorcells.GetCellFromPoint(input.Position);
             var c2 = _editorcells.GetCellFromPoint(input.Position2);
-            var cells = new SimulationCell<GameLine>[]
+            var cells = new LineContainer<GameLine>[]
             {
                 c1,
                 c1 == c2 ? null : c2

@@ -147,8 +147,7 @@ namespace linerider
         {
             Camera = new Camera();
             _track = new Track();
-            Timeline = new Timeline(_track);
-            _track.ActiveTriggers = ActiveTriggers;
+            Timeline = new Timeline(_track, ActiveTriggers);
             Offset = 0;
             UndoManager = new UndoManager();
         }
@@ -462,17 +461,15 @@ namespace linerider
             using (_tracksync.AcquireWrite())
             {
                 _flag = null;
-                if (_track != null && _track.ActiveTriggers == ActiveTriggers)
-                    _track.ActiveTriggers = null;
                 _track = trk;
-                _track.ActiveTriggers = ActiveTriggers;
                 _cells.Clear();
                 foreach (var line in trk.LineLookup.Values)
                 {
                     _cells.AddLine(line);
                 }
+                ActiveTriggers.Clear();
             }
-            Timeline = new Timeline(trk);
+            Timeline = new Timeline(trk, ActiveTriggers);
             UndoManager = new UndoManager();
             _refreshtrack = true;
             Reset();

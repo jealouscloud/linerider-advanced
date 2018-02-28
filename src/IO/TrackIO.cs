@@ -214,7 +214,9 @@ namespace linerider.IO
         }
         public static void CreateTestFromTrack(Track track)
         {
-            var timeline = new linerider.Game.Timeline(track);
+            var timeline = new linerider.Game.Timeline(
+                track,
+                new List<LineTrigger>());
             timeline.Restart(track.GetStart());
             int framecount = 40 * 60 * 5;
             
@@ -245,7 +247,9 @@ namespace linerider.IO
             {
                 var br = new BinaryReader(file);
                 var frame = br.ReadInt32();
-                var timeline = new linerider.Game.Timeline(track);
+                var timeline = new linerider.Game.Timeline(
+                    track,
+                    new List<LineTrigger>());
                 timeline.Restart(track.GetStart());
                 //track.Chunks.fg.PrintMetrics();
                 var state = timeline.GetFrame(frame);

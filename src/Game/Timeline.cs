@@ -42,12 +42,13 @@ namespace linerider.Game
         private AutoArray<Rider> _frames = new AutoArray<Rider>(2 * 60 * 40);
         private Track _track;
         private List<LineTrigger> _activetriggers = null;
-        public Timeline(Track track)
+        public Timeline(Track track, List<LineTrigger> triggerlist)
         {
             _track = track;
             var start = _track.GetStart();
             _savedcells.BaseGrid = _track.Grid;
             Restart(track.GetStart());
+            _activetriggers = triggerlist;
         }
         public void Restart(Rider state)
         {
@@ -76,7 +77,6 @@ namespace linerider.Game
             return GetFrame(frame).Diagnose(
                     _track.Grid,
                     _track.Bones,
-                    null,
                     Math.Min(6, iteration + 1));
         }
         public Rider GetFrame(int frame, int iteration = 6)
@@ -117,7 +117,7 @@ namespace linerider.Game
         private void ThreadUnsafeRunFrames(int start, int count)
         {
             var steps = new Rider[count];
-            var changedcollision = new List<HashSet<int>>(count);
+            var changedcollision = new List<LineContainer<StandardLine>>(count);
             Rider current = _frames[start - 1];
             int framecount = _frames.Count;
             var bones = _track.Bones;
@@ -136,7 +136,7 @@ namespace linerider.Game
                 for (int i = 0; i < count; i++)
                 {
                     int currentframe = start + i;
-                    HashSet<int> collisions = new HashSet<int>();
+                    var collisions = new LineContainer<StandardLine>();
                     current = current.Simulate(
                         _savedcells, 
                         bones, 
@@ -147,6 +147,8 @@ namespace linerider.Game
                         HitTest.AddFrame(collisions);
                     else
                         changedcollision.Add(collisions);
+                    // 3 seconds of frames, 
+                    // couldnt hurt to check?
                     if (i % 120 == 0)
                     {
                         sync.ReleaseWaiting();
