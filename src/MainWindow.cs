@@ -370,148 +370,503 @@ namespace linerider
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-            Canvas.SetSize(RenderSize.Width, RenderSize.Height);
-            Canvas.FindChildByName("buttons").Position(Pos.CenterH);
+            try
+            {
+                Canvas.SetSize(RenderSize.Width, RenderSize.Height);
+                Canvas.FindChildByName("buttons").Position(Pos.CenterH);
+            }
+            catch (Exception ex)
+            {
+                // SDL2 backend eats exceptions.
+                // we have to manually crash.
+                Program.Crash(ex, true);
+                Close();
+            }
         }
 
         protected override void OnMouseDown(MouseButtonEventArgs e)
         {
             base.OnMouseDown(e);
-            InputUtils.UpdateMouse(e.Mouse);
-            if (linerider.IO.TrackRecorder.Recording)
-                return;
-            var r = _input.ProcessMouseMessage(e);
+            try
+            {
+                InputUtils.UpdateMouse(e.Mouse);
+                if (linerider.IO.TrackRecorder.Recording)
+                    return;
+                var r = _input.ProcessMouseMessage(e);
 
-            if (!r && (!Track.PlaybackMode || Track.Paused))
-            {
-                if (!Track.Paused && OpenTK.Input.Keyboard.GetState()[Key.D])
+                if (!r && (!Track.PlaybackMode || Track.Paused))
                 {
-                    var pos = new Vector2d(e.X, e.Y) / Track.Zoom;
-                    var gamepos = (ScreenPosition + pos);
-                    _dragRider = Game.Rider.GetBounds(
-                        Track.GetStart()).Contains(
-                            gamepos.X,
-                            gamepos.Y);
-                }
-                if (!_dragRider)
-                {
-                    if (e.Button == MouseButton.Left)
+                    if (!Track.Paused && OpenTK.Input.Keyboard.GetState()[Key.D])
                     {
-                        if (_handToolOverride)
+                        var pos = new Vector2d(e.X, e.Y) / Track.Zoom;
+                        var gamepos = (ScreenPosition + pos);
+                        _dragRider = Game.Rider.GetBounds(
+                            Track.GetStart()).Contains(
+                                gamepos.X,
+                                gamepos.Y);
+                    }
+                    if (!_dragRider)
+                    {
+                        if (e.Button == MouseButton.Left)
+                        {
+                            if (_handToolOverride)
+                                HandTool.OnMouseDown(new Vector2d(e.X, e.Y));
+                            else
+                                SelectedTool.OnMouseDown(new Vector2d(e.X, e.Y));
+                        }
+                        else if (e.Button == MouseButton.Right)
+                        {
+                            if (_handToolOverride)
+                                HandTool.OnMouseRightDown(new Vector2d(e.X, e.Y));
+                            else
+                                SelectedTool.OnMouseRightDown(new Vector2d(e.X, e.Y));
+                        }
+                        else if (e.Button == MouseButton.Middle)
+                        {
+                            _handToolOverride = true;
                             HandTool.OnMouseDown(new Vector2d(e.X, e.Y));
-                        else
-                            SelectedTool.OnMouseDown(new Vector2d(e.X, e.Y));
+                        }
                     }
-                    else if (e.Button == MouseButton.Right)
+                    if (e.Button != MouseButton.Right)
                     {
-                        if (_handToolOverride)
-                            HandTool.OnMouseRightDown(new Vector2d(e.X, e.Y));
-                        else
-                            SelectedTool.OnMouseRightDown(new Vector2d(e.X, e.Y));
-                    }
-                    else if (e.Button == MouseButton.Middle)
-                    {
-                        _handToolOverride = true;
-                        HandTool.OnMouseDown(new Vector2d(e.X, e.Y));
+                        UpdateCursor();
                     }
                 }
-                if (e.Button != MouseButton.Right)
+                else
                 {
-                    UpdateCursor();
+                    Cursor = Cursors["default"];
                 }
+                Invalidate();
             }
-            else
+            catch (Exception ex)
             {
-                Cursor = Cursors["default"];
+                // SDL2 backend eats exceptions.
+                // we have to manually crash.
+                Program.Crash(ex, true);
+                Close();
             }
-            Invalidate();
         }
 
         protected override void OnMouseUp(MouseButtonEventArgs e)
         {
             base.OnMouseUp(e);
-            InputUtils.UpdateMouse(e.Mouse);
-            if (linerider.IO.TrackRecorder.Recording)
-                return;
-            _dragRider = false;
-            var r = _input.ProcessMouseMessage(e);
-            if (Canvas.GetOpenWindows().Count != 0)
-                return;
-            if (e.Button == MouseButton.Left)
+            try
             {
-                if (_handToolOverride)
+                InputUtils.UpdateMouse(e.Mouse);
+                if (linerider.IO.TrackRecorder.Recording)
+                    return;
+                _dragRider = false;
+                var r = _input.ProcessMouseMessage(e);
+                if (Canvas.GetOpenWindows().Count != 0)
+                    return;
+                if (e.Button == MouseButton.Left)
+                {
+                    if (_handToolOverride)
+                        HandTool.OnMouseUp(new Vector2d(e.X, e.Y));
+                    else
+                        SelectedTool.OnMouseUp(new Vector2d(e.X, e.Y));
+                }
+                else if (e.Button == MouseButton.Right)
+                {
+                    if (_handToolOverride)
+                        HandTool.OnMouseRightUp(new Vector2d(e.X, e.Y));
+                    else
+                        SelectedTool.OnMouseRightUp(new Vector2d(e.X, e.Y));
+                }
+                else if (e.Button == MouseButton.Middle)
+                {
+                    _handToolOverride = false;
                     HandTool.OnMouseUp(new Vector2d(e.X, e.Y));
+                }
+                if (r)
+                    Cursor = Cursors["default"];
                 else
-                    SelectedTool.OnMouseUp(new Vector2d(e.X, e.Y));
+                    UpdateCursor();
             }
-            else if (e.Button == MouseButton.Right)
+            catch (Exception ex)
             {
-                if (_handToolOverride)
-                    HandTool.OnMouseRightUp(new Vector2d(e.X, e.Y));
-                else
-                    SelectedTool.OnMouseRightUp(new Vector2d(e.X, e.Y));
+                // SDL2 backend eats exceptions.
+                // we have to manually crash.
+                Program.Crash(ex, true);
+                Close();
             }
-            else if (e.Button == MouseButton.Middle)
-            {
-                _handToolOverride = false;
-                HandTool.OnMouseUp(new Vector2d(e.X, e.Y));
-            }
-            if (r)
-                Cursor = Cursors["default"];
-            else
-                UpdateCursor();
         }
 
         protected override void OnMouseMove(MouseMoveEventArgs e)
         {
             base.OnMouseMove(e);
-            InputUtils.UpdateMouse(e.Mouse);
-            if (linerider.IO.TrackRecorder.Recording)
-                return;
-            var r = _input.ProcessMouseMessage(e);
-            if (Canvas.GetOpenWindows().Count != 0)
-                return;
-            if (_dragRider)
+            try
             {
-                var pos = new Vector2d(e.X, e.Y);
-                var gamepos = ScreenPosition + (pos / Track.Zoom);
-                using (var trk = Track.CreateTrackWriter())
+                InputUtils.UpdateMouse(e.Mouse);
+                if (linerider.IO.TrackRecorder.Recording)
+                    return;
+                var r = _input.ProcessMouseMessage(e);
+                if (Canvas.GetOpenWindows().Count != 0)
+                    return;
+                if (_dragRider)
                 {
-                    trk.Track.StartOffset = gamepos;
-                    Track.Reset();
-                    Track.NotifyTrackChanged();
+                    var pos = new Vector2d(e.X, e.Y);
+                    var gamepos = ScreenPosition + (pos / Track.Zoom);
+                    using (var trk = Track.CreateTrackWriter())
+                    {
+                        trk.Track.StartOffset = gamepos;
+                        Track.Reset();
+                        Track.NotifyTrackChanged();
+                    }
+                    Invalidate();
                 }
-                Invalidate();
-            }
-            if (!_handToolOverride)
-            {
-                if (SelectedTool.RequestsMousePrecision)
+                if (!_handToolOverride)
                 {
-                    SelectedTool.OnMouseMoved(new Vector2d(e.X, e.Y));
+                    if (SelectedTool.RequestsMousePrecision)
+                    {
+                        SelectedTool.OnMouseMoved(new Vector2d(e.X, e.Y));
+                    }
                 }
-            }
 
-            if (r)
-            {
-                Cursor = Cursors["default"];
-                Invalidate();
+                if (r)
+                {
+                    Cursor = Cursors["default"];
+                    Invalidate();
+                }
+                else
+                    UpdateCursor();
             }
-            else
-                UpdateCursor();
+            catch (Exception ex)
+            {
+                // SDL2 backend eats exceptions.
+                // we have to manually crash.
+                Program.Crash(ex, true);
+                Close();
+            }
         }
 
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
             base.OnMouseWheel(e);
-            InputUtils.UpdateMouse(e.Mouse);
-            if (linerider.IO.TrackRecorder.Recording)
-                return;
-            if (_input.ProcessMouseMessage(e))
-                return;
-            if (Canvas.GetOpenWindows().Count != 0)
-                return;
-            var delta = (float.IsNaN(e.DeltaPrecise) ? e.Delta : e.DeltaPrecise);
-            Zoom((Track.Zoom / 50) * delta);
+            try
+            {
+                InputUtils.UpdateMouse(e.Mouse);
+                if (linerider.IO.TrackRecorder.Recording)
+                    return;
+                if (_input.ProcessMouseMessage(e))
+                    return;
+                if (Canvas.GetOpenWindows().Count != 0)
+                    return;
+                var delta = (float.IsNaN(e.DeltaPrecise) ? e.Delta : e.DeltaPrecise);
+                Zoom((Track.Zoom / 50) * delta);
+            }
+            catch (Exception ex)
+            {
+                // SDL2 backend eats exceptions.
+                // we have to manually crash.
+                Program.Crash(ex, true);
+                Close();
+            }
+        }
+        protected override void OnKeyDown(KeyboardKeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            try
+            {
+                InputUtils.UpdateKeysDown(e.Keyboard);
+                if (linerider.IO.TrackRecorder.Recording)
+                    return;
+                var openwindows = Canvas.GetOpenWindows();
+                var mod = e.Modifiers;
+                if (openwindows != null && openwindows.Count >= 1)
+                {
+                    if (e.Key == Key.Escape)
+                    {
+                        foreach (var v in openwindows)
+                        {
+                            ((WindowControl)v).Close();
+                            Invalidate();
+                        }
+                        return;
+                    }
+                }
+                if (_input.ProcessKeyDown(e) || Canvas.IsModalOpen)
+                {
+                    return;
+                }
+                if (_dragRider || OpenTK.Input.Mouse.GetState().IsButtonDown(MouseButton.Left))
+                {
+                    if (!_handToolOverride && (!Track.PlaybackMode || (Track.PlaybackMode && Track.Paused)) &&
+                        SelectedTool != null)
+                    {
+                        if (SelectedTool.OnKeyDown(e.Key))
+                            return;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+                var input = e.Keyboard;
+                if (!input.IsAnyKeyDown)
+                    return;
+                HandleHotkeys(e);
+                if (input.IsKeyDown(Key.AltLeft) || input.IsKeyDown(Key.AltRight))
+                {
+                    if (input.IsKeyDown(Key.Enter))
+                    {
+                        if (WindowBorder == WindowBorder.Resizable)
+                        {
+                            WindowBorder = WindowBorder.Hidden;
+                            X = 0;
+                            Y = 0;
+                            var area = Screen.PrimaryScreen.Bounds;
+                            RenderSize = area.Size;
+                        }
+                        else
+                        {
+                            WindowBorder = WindowBorder.Resizable;
+                        }
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // SDL2 backend eats exceptions.
+                // we have to manually crash.
+                Program.Crash(ex, true);
+                Close();
+            }
+        }
+
+        protected override void OnKeyUp(KeyboardKeyEventArgs e)
+        {
+            base.OnKeyUp(e);
+            try
+            {
+                InputUtils.UpdateKeysDown(e.Keyboard);
+                if (linerider.IO.TrackRecorder.Recording)
+                    return;
+                if (_input.ProcessKeyUp(e) || Canvas.GetOpenWindows()?.Count > 1)
+                    return;
+
+                if (TemporaryPlayback && !InputUtils.Check(Hotkey.PlaybackForward) && !InputUtils.Check(Hotkey.PlaybackBackward))
+                {
+                    TemporaryPlayback = false;
+                    Scheduler.Reset();
+                    AudioService.Pause();
+                }
+            }
+            catch (Exception ex)
+            {
+                // SDL2 backend eats exceptions.
+                // we have to manually crash.
+                Program.Crash(ex, true);
+                Close();
+            }
+        }
+
+        internal void InitControls()
+        {
+            var ctrl = new ControlBase(Canvas);
+            ctrl.Name = "buttons";
+            var pos = 0;
+            Func<Bitmap, Bitmap, string, string, ImageButton> createbutton =
+                delegate (Bitmap bmp, Bitmap bmp2, string tooltip, string name)
+                {
+                    var ret = new ImageButton(ctrl) { Name = name };
+                    if (tooltip != null)
+                        ret.SetToolTipText(tooltip);
+                    ret.SetImage(bmp, bmp2);
+                    ret.SetSize(32, 32);
+                    ret.X = pos;
+                    pos += 32;
+                    return ret;
+                };
+            //Warning:
+            //the name parameter needs to stay consistent for these buttons
+            //other parts of code reference it.
+            var btn = createbutton(GameResources.pencil_icon, GameResources.pencil_icon_white, "Pencil Tool (Q)", "penciltool");
+            btn.Clicked += (o, e) => { SetTool(Tools.PencilTool); };
+            btn = createbutton(GameResources.line_icon, GameResources.line_icon_white, "Line Tool (W)", "linetool");
+            btn.Clicked += (o, e) => { SetTool(Tools.LineTool); };
+            btn = createbutton(GameResources.eraser_icon, GameResources.eraser_icon_white, "Eraser Tool (E)", "erasertool");
+            btn.Clicked += (o, e) => { SetTool(Tools.EraserTool); };
+            btn = createbutton(GameResources.movetool_icon, GameResources.movetool_icon_white, "Line Adjustment Tool (R)",
+                "lineadjusttool");
+            btn.Clicked += (o, e) => { SetTool(Tools.LineAdjustTool); };
+            //  btn = createbutton(Content.gwell_tool, Content.gwell_tool, "Gravity Well Tool (T)",
+            //       "gwelltool");
+            //   btn.Clicked += (o, e) => { SetTool(Tools.GwellTool); };
+            btn = createbutton(GameResources.pantool_icon, GameResources.pantool_icon_white, "Hand Tool (Space) (T)", "handtool");
+            btn.Clicked += (o, e) =>
+            {
+                SetTool(Tools.HandTool);
+                _handToolOverride = false;
+            };
+            btn = createbutton(GameResources.play_icon, GameResources.play_icon_white, "Start (Y)", "start");
+            btn.Clicked += (o, e) =>
+            {
+                if (Track.PlaybackMode && Track.Paused)
+                {
+                    Track.TogglePause();
+                }
+                else
+                {
+                    Track.StartFromFlag();
+                }
+            };
+            pos -= 32; //occupy same space as the start button
+            btn = createbutton(GameResources.pause, GameResources.pause_white, null, "pause");
+            btn.IsHidden = true;
+            btn.Clicked += (o, e) => { Track.TogglePause(); };
+            btn = createbutton(GameResources.stop_icon, GameResources.stop_icon_white, "Stop (U)", "stop");
+            btn.Clicked += (o, e) => { Track.Stop(); };
+            btn = createbutton(GameResources.flag_icon, GameResources.flag_icon_white, "Flag (I)", "flag");
+            btn.SetOverride(GameResources.flag_invalid_icon);
+            btn.Clicked += (o, e) => { Track.Flag(); };
+            btn.RightClicked += (o, e) => { Canvas.CalculateFlag(Track.GetFlag()); };
+            Canvas.FlagTool = btn;
+            btn = createbutton(GameResources.menu_icon, GameResources.menu_icon_white, "Menu", "menu");
+            var _menuEdit = new Menu(Canvas);
+            var item = _menuEdit.AddItem("Save");
+            item.AutoSizeToContents = false;
+            item.Clicked += (snd, evt) => { Canvas.ShowSaveWindow(); };
+            item = _menuEdit.AddItem("Load");
+            item.AutoSizeToContents = false;
+            item.Clicked += (snd, evt) => { Canvas.ShowLoadWindow(); };
+            item = _menuEdit.AddItem("New");
+            item.AutoSizeToContents = false;
+            item.Clicked += (snd, evt) => { Canvas.ShowNewTrack(); };
+            item = _menuEdit.AddItem("Preferences");
+            item.AutoSizeToContents = false;
+            item.Clicked += (snd, msg) => { Canvas.ShowPreferences(); };
+            item = _menuEdit.AddItem("Song");
+            item.AutoSizeToContents = false;
+            item.Clicked += (snd, msg) => { Canvas.ShowSongWindow(); };
+            item = _menuEdit.AddItem("Export SOL");
+            item.AutoSizeToContents = false;
+            item.Clicked += (snd, msg) =>
+            {
+                Canvas.ExportAsSol();
+            };
+            item = _menuEdit.AddItem("Export Video");
+            item.AutoSizeToContents = false;
+            item.Clicked += (snd, msg) =>
+            {
+                if (SafeFrameBuffer.CanRecord)
+                {
+                    ExportVideoWindow.Create(this);
+                }
+                else
+                {
+                    PopupWindow.Error("This computer does not support recording.\nTry updating your graphics drivers.");
+                }
+            };
+            btn.Clicked += (o, e) =>
+            {
+                var canvaspos = ctrl.LocalPosToCanvas(new Point(btn.X, btn.Y));
+                _menuEdit.MoveTo(canvaspos.X, canvaspos.Y + 32);
+                _menuEdit.Show();
+            };
+            _menuEdit.DeleteOnClose = false;
+            _menuEdit.Close();
+            var cc = new ColorControls(ctrl, new Vector2(0, 32 + 3));
+            cc.Selected = LineType.Blue;
+            Canvas.ColorControls = cc;
+            ctrl.SizeToChildren();
+            ctrl.ShouldCacheToTexture = true;
+            ctrl.Position(Pos.CenterH);
+
+            Canvas.ButtonsToggleNightmode();
+        }
+
+        public void PlaybackSpeedUp()
+        {
+            if (Track.PlaybackMode)
+            {
+                var index = Array.IndexOf(Constants.MotionArray, Scheduler.UpdatesPerSecond);
+                Scheduler.UpdatesPerSecond = Constants.MotionArray[Math.Min(Constants.MotionArray.Length - 1, index + 1)];
+            }
+        }
+
+        public void PlaybackSpeedDown()
+        {
+            if (Track.PlaybackMode)
+            {
+                var index = Array.IndexOf(Constants.MotionArray, Scheduler.UpdatesPerSecond);
+                Scheduler.UpdatesPerSecond = Constants.MotionArray[Math.Max(0, index - 1)];
+            }
+        }
+
+        private void BeginOrtho()
+        {
+            if (RenderSize.Height > 0 && RenderSize.Width > 0)
+            {
+                GL.Viewport(new Rectangle(0, 0, RenderSize.Width, RenderSize.Height));
+                GL.MatrixMode(MatrixMode.Projection);
+                GL.LoadIdentity();
+                GL.Ortho(0, RenderSize.Width, RenderSize.Height, 0, 0, 1);
+                GL.MatrixMode(MatrixMode.Modelview);
+                GL.LoadIdentity();
+            }
+        }
+        private void SetTool(Tools tool)
+        {
+            if (SelectedTool != null)
+            {
+                SelectedTool.Stop();
+                SelectedTool.OnChangingTool();
+            }
+            if (SelectedTool == EraserTool && tool != Tools.EraserTool)
+            {
+                Canvas.ColorControls.SetEraser(false);
+            }
+            if (tool == Tools.HandTool)
+            {
+                SelectedTool = HandTool;
+                HandTool.Stop();
+                _handToolOverride = false;
+                Canvas.ColorControls.SetVisible(false);
+            }
+            else if (tool == Tools.LineTool)
+            {
+                SelectedTool = LineTool;
+                Canvas.ColorControls.SetVisible(true);
+                if (Canvas.ColorControls.Selected == LineType.All)
+                {
+                    Canvas.ColorControls.Selected = LineType.Blue;
+                }
+            }
+            else if (tool == Tools.PencilTool)
+            {
+                SelectedTool = PencilTool;
+                Canvas.ColorControls.SetVisible(true);
+                if (Canvas.ColorControls.Selected == LineType.All)
+                {
+                    Canvas.ColorControls.Selected = LineType.Blue;
+                }
+            }
+            else if (tool == Tools.EraserTool)
+            {
+                Canvas.ColorControls.SetVisible(true);
+                Canvas.ColorControls.SetEraser(true);
+                if (SelectedTool == EraserTool)
+                    Canvas.ColorControls.Selected = LineType.All;
+                SelectedTool = EraserTool;
+            }
+            else if (tool == Tools.LineAdjustTool)
+            {
+                SelectedTool = MoveTool;
+                Canvas.ColorControls.SetVisible(false);
+            }
+            Invalidate();
+            UpdateCursor();
+        }
+
+        private void AddCursor(string name, Bitmap image, int hotx, int hoty)
+        {
+            var data = image.LockBits(
+                new Rectangle(0, 0, image.Width, image.Height),
+                ImageLockMode.ReadOnly,
+                PixelFormat.Format32bppPArgb);
+            Cursors[name] = new MouseCursor(hotx, hoty, image.Width, image.Height, data.Scan0);
         }
         private bool HandleHotkeys(KeyboardKeyEventArgs e)
         {
@@ -859,291 +1214,6 @@ namespace linerider
                 return true;
             }
             return false;
-        }
-        protected override void OnKeyDown(KeyboardKeyEventArgs e)
-        {
-            base.OnKeyDown(e);
-            InputUtils.UpdateKeysDown(e.Keyboard);
-            if (linerider.IO.TrackRecorder.Recording)
-                return;
-            var openwindows = Canvas.GetOpenWindows();
-            var mod = e.Modifiers;
-            if (openwindows != null && openwindows.Count >= 1)
-            {
-                if (e.Key == Key.Escape)
-                {
-                    foreach (var v in openwindows)
-                    {
-                        ((WindowControl)v).Close();
-                        Invalidate();
-                    }
-                    return;
-                }
-            }
-            if (_input.ProcessKeyDown(e) || Canvas.IsModalOpen)
-            {
-                return;
-            }
-            if (_dragRider || OpenTK.Input.Mouse.GetState().IsButtonDown(MouseButton.Left))
-            {
-                if (!_handToolOverride && (!Track.PlaybackMode || (Track.PlaybackMode && Track.Paused)) &&
-                    SelectedTool != null)
-                {
-                    if (SelectedTool.OnKeyDown(e.Key))
-                        return;
-                }
-                else
-                {
-                    return;
-                }
-            }
-            var input = e.Keyboard;
-            if (!input.IsAnyKeyDown)
-                return;
-            HandleHotkeys(e);
-            if (input.IsKeyDown(Key.AltLeft) || input.IsKeyDown(Key.AltRight))
-            {
-                if (input.IsKeyDown(Key.Enter))
-                {
-                    if (WindowBorder == WindowBorder.Resizable)
-                    {
-                        WindowBorder = WindowBorder.Hidden;
-                        X = 0;
-                        Y = 0;
-                        var area = Screen.PrimaryScreen.Bounds;
-                        RenderSize = area.Size;
-                    }
-                    else
-                    {
-                        WindowBorder = WindowBorder.Resizable;
-                    }
-                    return;
-                }
-            }
-        }
-
-        protected override void OnKeyUp(KeyboardKeyEventArgs e)
-        {
-            base.OnKeyUp(e);
-            InputUtils.UpdateKeysDown(e.Keyboard);
-            if (linerider.IO.TrackRecorder.Recording)
-                return;
-            if (_input.ProcessKeyUp(e) || Canvas.GetOpenWindows()?.Count > 1)
-                return;
-
-            if (TemporaryPlayback && !InputUtils.Check(Hotkey.PlaybackForward) && !InputUtils.Check(Hotkey.PlaybackBackward))
-            {
-                TemporaryPlayback = false;
-                Scheduler.Reset();
-                AudioService.Pause();
-            }
-        }
-
-        internal void InitControls()
-        {
-            var ctrl = new ControlBase(Canvas);
-            ctrl.Name = "buttons";
-            var pos = 0;
-            Func<Bitmap, Bitmap, string, string, ImageButton> createbutton =
-                delegate (Bitmap bmp, Bitmap bmp2, string tooltip, string name)
-                {
-                    var ret = new ImageButton(ctrl) { Name = name };
-                    if (tooltip != null)
-                        ret.SetToolTipText(tooltip);
-                    ret.SetImage(bmp, bmp2);
-                    ret.SetSize(32, 32);
-                    ret.X = pos;
-                    pos += 32;
-                    return ret;
-                };
-            //Warning:
-            //the name parameter needs to stay consistent for these buttons
-            //other parts of code reference it.
-            var btn = createbutton(GameResources.pencil_icon, GameResources.pencil_icon_white, "Pencil Tool (Q)", "penciltool");
-            btn.Clicked += (o, e) => { SetTool(Tools.PencilTool); };
-            btn = createbutton(GameResources.line_icon, GameResources.line_icon_white, "Line Tool (W)", "linetool");
-            btn.Clicked += (o, e) => { SetTool(Tools.LineTool); };
-            btn = createbutton(GameResources.eraser_icon, GameResources.eraser_icon_white, "Eraser Tool (E)", "erasertool");
-            btn.Clicked += (o, e) => { SetTool(Tools.EraserTool); };
-            btn = createbutton(GameResources.movetool_icon, GameResources.movetool_icon_white, "Line Adjustment Tool (R)",
-                "lineadjusttool");
-            btn.Clicked += (o, e) => { SetTool(Tools.LineAdjustTool); };
-            //  btn = createbutton(Content.gwell_tool, Content.gwell_tool, "Gravity Well Tool (T)",
-            //       "gwelltool");
-            //   btn.Clicked += (o, e) => { SetTool(Tools.GwellTool); };
-            btn = createbutton(GameResources.pantool_icon, GameResources.pantool_icon_white, "Hand Tool (Space) (T)", "handtool");
-            btn.Clicked += (o, e) =>
-            {
-                SetTool(Tools.HandTool);
-                _handToolOverride = false;
-            };
-            btn = createbutton(GameResources.play_icon, GameResources.play_icon_white, "Start (Y)", "start");
-            btn.Clicked += (o, e) =>
-            {
-                if (Track.PlaybackMode && Track.Paused)
-                {
-                    Track.TogglePause();
-                }
-                else
-                {
-                    Track.StartFromFlag();
-                }
-            };
-            pos -= 32; //occupy same space as the start button
-            btn = createbutton(GameResources.pause, GameResources.pause_white, null, "pause");
-            btn.IsHidden = true;
-            btn.Clicked += (o, e) => { Track.TogglePause(); };
-            btn = createbutton(GameResources.stop_icon, GameResources.stop_icon_white, "Stop (U)", "stop");
-            btn.Clicked += (o, e) => { Track.Stop(); };
-            btn = createbutton(GameResources.flag_icon, GameResources.flag_icon_white, "Flag (I)", "flag");
-            btn.SetOverride(GameResources.flag_invalid_icon);
-            btn.Clicked += (o, e) => { Track.Flag(); };
-            btn.RightClicked += (o, e) => { Canvas.CalculateFlag(Track.GetFlag()); };
-            Canvas.FlagTool = btn;
-            btn = createbutton(GameResources.menu_icon, GameResources.menu_icon_white, "Menu", "menu");
-            var _menuEdit = new Menu(Canvas);
-            var item = _menuEdit.AddItem("Save");
-            item.AutoSizeToContents = false;
-            item.Clicked += (snd, evt) => { Canvas.ShowSaveWindow(); };
-            item = _menuEdit.AddItem("Load");
-            item.AutoSizeToContents = false;
-            item.Clicked += (snd, evt) => { Canvas.ShowLoadWindow(); };
-            item = _menuEdit.AddItem("New");
-            item.AutoSizeToContents = false;
-            item.Clicked += (snd, evt) => { Canvas.ShowNewTrack(); };
-            item = _menuEdit.AddItem("Preferences");
-            item.AutoSizeToContents = false;
-            item.Clicked += (snd, msg) => { Canvas.ShowPreferences(); };
-            item = _menuEdit.AddItem("Song");
-            item.AutoSizeToContents = false;
-            item.Clicked += (snd, msg) => { Canvas.ShowSongWindow(); };
-            item = _menuEdit.AddItem("Export SOL");
-            item.AutoSizeToContents = false;
-            item.Clicked += (snd, msg) =>
-            {
-                Canvas.ExportAsSol();
-            };
-            item = _menuEdit.AddItem("Export Video");
-            item.AutoSizeToContents = false;
-            item.Clicked += (snd, msg) =>
-            {
-                if (SafeFrameBuffer.CanRecord)
-                {
-                    ExportVideoWindow.Create(this);
-                }
-                else
-                {
-                    PopupWindow.Error("This computer does not support recording.\nTry updating your graphics drivers.");
-                }
-            };
-            btn.Clicked += (o, e) =>
-            {
-                var canvaspos = ctrl.LocalPosToCanvas(new Point(btn.X, btn.Y));
-                _menuEdit.MoveTo(canvaspos.X, canvaspos.Y + 32);
-                _menuEdit.Show();
-            };
-            _menuEdit.DeleteOnClose = false;
-            _menuEdit.Close();
-            var cc = new ColorControls(ctrl, new Vector2(0, 32 + 3));
-            cc.Selected = LineType.Blue;
-            Canvas.ColorControls = cc;
-            ctrl.SizeToChildren();
-            ctrl.ShouldCacheToTexture = true;
-            ctrl.Position(Pos.CenterH);
-
-            Canvas.ButtonsToggleNightmode();
-        }
-
-        public void PlaybackSpeedUp()
-        {
-            if (Track.PlaybackMode)
-            {
-                var index = Array.IndexOf(Constants.MotionArray, Scheduler.UpdatesPerSecond);
-                Scheduler.UpdatesPerSecond = Constants.MotionArray[Math.Min(Constants.MotionArray.Length - 1, index + 1)];
-            }
-        }
-
-        public void PlaybackSpeedDown()
-        {
-            if (Track.PlaybackMode)
-            {
-                var index = Array.IndexOf(Constants.MotionArray, Scheduler.UpdatesPerSecond);
-                Scheduler.UpdatesPerSecond = Constants.MotionArray[Math.Max(0, index - 1)];
-            }
-        }
-
-        private void BeginOrtho()
-        {
-            if (RenderSize.Height > 0 && RenderSize.Width > 0)
-            {
-                GL.Viewport(new Rectangle(0, 0, RenderSize.Width, RenderSize.Height));
-                GL.MatrixMode(MatrixMode.Projection);
-                GL.LoadIdentity();
-                GL.Ortho(0, RenderSize.Width, RenderSize.Height, 0, 0, 1);
-                GL.MatrixMode(MatrixMode.Modelview);
-                GL.LoadIdentity();
-            }
-        }
-        private void SetTool(Tools tool)
-        {
-            if (SelectedTool != null)
-            {
-                SelectedTool.Stop();
-                SelectedTool.OnChangingTool();
-            }
-            if (SelectedTool == EraserTool && tool != Tools.EraserTool)
-            {
-                Canvas.ColorControls.SetEraser(false);
-            }
-            if (tool == Tools.HandTool)
-            {
-                SelectedTool = HandTool;
-                HandTool.Stop();
-                _handToolOverride = false;
-                Canvas.ColorControls.SetVisible(false);
-            }
-            else if (tool == Tools.LineTool)
-            {
-                SelectedTool = LineTool;
-                Canvas.ColorControls.SetVisible(true);
-                if (Canvas.ColorControls.Selected == LineType.All)
-                {
-                    Canvas.ColorControls.Selected = LineType.Blue;
-                }
-            }
-            else if (tool == Tools.PencilTool)
-            {
-                SelectedTool = PencilTool;
-                Canvas.ColorControls.SetVisible(true);
-                if (Canvas.ColorControls.Selected == LineType.All)
-                {
-                    Canvas.ColorControls.Selected = LineType.Blue;
-                }
-            }
-            else if (tool == Tools.EraserTool)
-            {
-                Canvas.ColorControls.SetVisible(true);
-                Canvas.ColorControls.SetEraser(true);
-                if (SelectedTool == EraserTool)
-                    Canvas.ColorControls.Selected = LineType.All;
-                SelectedTool = EraserTool;
-            }
-            else if (tool == Tools.LineAdjustTool)
-            {
-                SelectedTool = MoveTool;
-                Canvas.ColorControls.SetVisible(false);
-            }
-            Invalidate();
-            UpdateCursor();
-        }
-
-        private void AddCursor(string name, Bitmap image, int hotx, int hoty)
-        {
-            var data = image.LockBits(
-                new Rectangle(0, 0, image.Width, image.Height),
-                ImageLockMode.ReadOnly,
-                PixelFormat.Format32bppPArgb);
-            Cursors[name] = new MouseCursor(hotx, hoty, image.Width, image.Height, data.Scan0);
         }
     }
 }

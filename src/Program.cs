@@ -35,7 +35,7 @@ namespace linerider
     {
 #if DEBUG
         public static bool IsDebugged = false;
-        public static bool LogGL => IsDebugged;
+        public static bool LogGL => false;
 #endif
         public static string BinariesFolder = "bin";
         public readonly static CultureInfo Culture = new CultureInfo("en-US");
@@ -85,7 +85,7 @@ namespace linerider
             }
         }
 
-        public static void Crash(Exception e)
+        public static void Crash(Exception e, bool nothrow = false)
         {
             if (!_crashed)
             {
@@ -110,7 +110,8 @@ namespace linerider
                 string begin = File.ReadAllText(UserDirectory + "log.txt", System.Text.Encoding.ASCII);
                 File.WriteAllText(UserDirectory + "log.txt", begin + append, System.Text.Encoding.ASCII);
             }
-            throw e;
+            if (!nothrow)
+                throw e;
         }
 
         public static void NonFatalError(string err)
@@ -169,7 +170,7 @@ namespace linerider
         public static void UpdateCheck()
         {
             if (TestVersion.Contains("closed"))
-            return;
+                return;
             if (Settings.CheckForUpdates)
             {
                 new System.Threading.Thread(() =>
