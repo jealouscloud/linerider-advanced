@@ -44,7 +44,11 @@ namespace linerider.Rendering
                 var anchor = rider.Body[i];
                 var vec1 = anchor.Location;
                 var vec2 = vec1 + (anchor.Momentum);
-                vao.AddLine(vec1, vec2, Color.Red, 1f / 2);
+                var line = Line.FromAngle(
+                    vec1,
+                    Angle.FromVector(anchor.Momentum), 
+                    2);
+                vao.AddLine(line.Position,line.Position2, Color.Red, 1f / 2.5f);
             }
         }
         public static void DrawContactPoints(Rider rider, List<int> diagnosis, LineVAO vao)
@@ -177,7 +181,7 @@ namespace linerider.Rendering
                     GameDrawingMatrix.Enter();
                     GL.Begin(PrimitiveType.Quads);
                     GL.Color4(new Color4(0, 0, 0, 40));
-                    var rect = Utility.GetThickLine((Vector2)line.Start, (Vector2)line.End, Angle.FromLine(line.Start,line.End), (float)(StandardLine.Zone * 2));
+                    var rect = Utility.GetThickLine((Vector2)line.Start, (Vector2)line.End, Angle.FromLine(line.Start, line.End), (float)(StandardLine.Zone * 2));
 
                     GL.Vertex2(line.Start);
                     GL.Vertex2(line.End);

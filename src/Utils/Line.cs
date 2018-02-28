@@ -39,6 +39,16 @@ namespace linerider.Utils
             Position = p1;
             Position2 = p2;
         }
+        public static Line FromAngle(Vector2d p1, Angle angle, double length)
+        {
+            Line ret;
+            ret = new Line(
+                p1,
+                new Vector2d(
+                    p1.X + (length * angle.Cos), 
+                    p1.Y + (length * angle.Sin)));
+            return ret;
+        }
         public double GetLength()
         {
             return (Position2 - Position).Length;
