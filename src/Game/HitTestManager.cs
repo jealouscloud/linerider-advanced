@@ -26,7 +26,7 @@ namespace linerider
         {
             Reset();
         }
-        public void AddFrame(LineContainer<StandardLine> collisions)
+        public void AddFrame(LinkedList<int> collisions)
         {
             int frameid = _unique_frame_collisions.Count;
             using (_sync.AcquireWrite())
@@ -34,7 +34,7 @@ namespace linerider
                 HashSet<int> unique = new HashSet<int>();
                 foreach (var collision in collisions)
                 {
-                    var id = collision.ID;
+                    var id = collision;
                     if (_allcollisions.Add(id))
                     {
                         _changed.Add(id);
@@ -45,7 +45,7 @@ namespace linerider
                 _unique_frame_collisions.Add(unique);
             }
         }
-        public void ChangeFrames(int start, List<LineContainer<StandardLine>> collisions)
+        public void ChangeFrames(int start, List<LinkedList<int>> collisions)
         {
             Debug.Assert(start != 0, "Attempt to change frame 0 from hit test");
             using (_sync.AcquireWrite())
@@ -65,7 +65,7 @@ namespace linerider
                     HashSet<int> unique = new HashSet<int>();
                     foreach (var collision in collisions[i])
                     {
-                        var id = collision.ID;
+                        var id = collision;
                         if (_allcollisions.Add(id))
                         {
                             _changed.Add(id);

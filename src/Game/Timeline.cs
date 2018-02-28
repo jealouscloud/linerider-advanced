@@ -116,7 +116,7 @@ namespace linerider.Game
         private void ThreadUnsafeRunFrames(int start, int count)
         {
             var steps = new Rider[count];
-            var changedcollision = new List<LineContainer<StandardLine>>(count);
+            var changedcollision = new List<LinkedList<int>>(count);
             Rider current = _frames[start - 1];
             int framecount = _frames.Count;
             var bones = _track.Bones;
@@ -135,7 +135,7 @@ namespace linerider.Game
                 for (int i = 0; i < count; i++)
                 {
                     int currentframe = start + i;
-                    var collisions = new LineContainer<StandardLine>();
+                    var collisions = new LinkedList<int>();
                     current = current.Simulate(
                         _savedcells, 
                         bones, 
