@@ -25,7 +25,6 @@ using System.Linq;
 using OpenTK;
 using linerider.Utils;
 using linerider.Game;
-using linerider.Lines;
 
 namespace linerider.Tools
 {

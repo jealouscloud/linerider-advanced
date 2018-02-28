@@ -33,7 +33,6 @@ using Gwen.Controls;
 using linerider.Tools;
 using linerider.Audio;
 using linerider.Utils;
-using linerider.Lines;
 using linerider.IO;
 
 namespace linerider

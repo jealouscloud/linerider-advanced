@@ -32,7 +32,6 @@ using linerider.Tools;
 using linerider.Rendering;
 using linerider.Game;
 using linerider.Utils;
-using linerider.Lines;
 using linerider.IO;
 namespace linerider
 {

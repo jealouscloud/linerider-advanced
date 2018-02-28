@@ -28,7 +28,7 @@ using System.Linq;
 using System.Diagnostics;
 using linerider.Utils;
 using linerider.Drawing;
-using linerider.Lines;
+using linerider.Game;
 
 namespace linerider.Rendering
 {

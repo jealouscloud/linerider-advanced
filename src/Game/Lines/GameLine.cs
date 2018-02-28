@@ -24,7 +24,7 @@ using System;
 using linerider.Game;
 using linerider.Utils;
 using System.Drawing;
-namespace linerider.Lines
+namespace linerider.Game
 {
     public abstract class GameLine : Line
     {

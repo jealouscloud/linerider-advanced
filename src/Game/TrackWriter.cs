@@ -29,9 +29,8 @@ using System.Threading;
 using System.Diagnostics;
 using linerider.Tools;
 using linerider.Rendering;
-using linerider.Lines;
-using linerider.Utils;
 using linerider.Game;
+using linerider.Utils;
 namespace linerider
 {
     /// <summary>

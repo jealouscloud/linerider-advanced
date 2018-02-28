@@ -25,7 +25,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
-using linerider.Lines;
+using linerider.Game;
 using linerider.Utils;
 
 namespace linerider.Game

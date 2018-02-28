@@ -24,7 +24,7 @@ using OpenTK;
 using System;
 using Color = System.Drawing.Color;
 using OpenTK.Input;
-using linerider.Lines;
+using linerider.Game;
 
 namespace linerider.Tools
 {

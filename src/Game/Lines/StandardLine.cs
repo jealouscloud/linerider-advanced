@@ -26,7 +26,7 @@ using linerider.Game;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace linerider.Lines
+namespace linerider.Game
 {
     public class StandardLine : GameLine
     {

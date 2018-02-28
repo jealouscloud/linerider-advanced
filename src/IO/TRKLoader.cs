@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using linerider.Audio;
-using linerider.Lines;
+using linerider.Game;
 using System.Diagnostics;
 
 namespace linerider.IO

@@ -28,7 +28,6 @@ using System.Drawing;
 using System.Threading;
 using linerider.Game;
 using linerider.Utils;
-using linerider.Lines;
 using System.Diagnostics;
 
 namespace linerider

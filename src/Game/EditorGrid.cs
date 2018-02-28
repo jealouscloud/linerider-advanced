@@ -28,7 +28,7 @@ using System.Text;
 using System.Drawing;
 using OpenTK;
 using linerider.Utils;
-using linerider.Lines;
+using linerider.Game;
 namespace linerider.Game
 {
     /// <summary>
