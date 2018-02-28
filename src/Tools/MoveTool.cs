@@ -137,6 +137,7 @@ namespace linerider.Tools
                     }
                 }
                 UpdatePlayback(line);
+                UpdateTooltip();
             }
             game.Invalidate();
         }
@@ -200,6 +201,7 @@ namespace linerider.Tools
                             }
                         }
                         Active = true;
+                        UpdateTooltip();
                     }
                     else
                     {
@@ -240,7 +242,7 @@ namespace linerider.Tools
                     //is it a knob?
                     if ((gamepos - point).Length <= line.Width)
                     {
-                        SelectedLineWindow window = new SelectedLineWindow(game.Canvas,game,line);
+                        SelectedLineWindow window = new SelectedLineWindow(game.Canvas, game, line);
                         window.Show();
                         window.X = (int)pos.X;
                         window.Y = (int)pos.Y;
@@ -257,28 +259,41 @@ namespace linerider.Tools
 
         public override void Stop()
         {
-            Active = false;
             _lifelocking = false;
-            if (_selection != null)
+            if (Active)
             {
-                game.Track.UndoManager.BeginAction();
-                game.Track.UndoManager.AddChange(_selection.clone, _selection.line);
-                foreach (var s in _selection.snapped)
+                HideTooltip();
+                if (_selection != null)
                 {
-                    game.Track.UndoManager.AddChange(s.clone, s.line);
+                    game.Track.UndoManager.BeginAction();
+                    game.Track.UndoManager.AddChange(_selection.clone, _selection.line);
+                    foreach (var s in _selection.snapped)
+                    {
+                        game.Track.UndoManager.AddChange(s.clone, s.line);
+                    }
+                    game.Track.UndoManager.EndAction();
                 }
-                game.Track.UndoManager.EndAction();
+                game.Invalidate();
             }
+            Active = false;
             _selection = null;
+        }
+        private void UpdateTooltip()
+        {
+            var vec = _selection.line.GetVector();
+            var len = vec.Length;
+            var angle = Angle.FromVector(vec);
+            angle.Degrees += 90;
+            string tooltip = "length: "+Math.Round(len, 2) +" \n"+ "angle: " +Math.Round(angle.Degrees, 2) + "° ";
+            ShowTooltip(tooltip);
         }
         private void ApplyModifiers(ref Vector2d joint1, ref Vector2d joint2)
         {
             var start = _selection.joint1 ? joint2 : joint1;
             var end = _selection.joint2 ? joint2 : joint1;
-            var currentdelta = _selection.line.Position2 - _selection.line.Position;
             if (UI.InputUtils.Check(Hotkey.ToolAngleLock))
             {
-                end = Utility.AngleLock(start, end, Angle.FromVector(currentdelta));
+                end = Utility.AngleLock(start, end, Angle.FromVector(_selection.clone.GetVector()));
             }
             if (UI.InputUtils.Check(Hotkey.ToolXYSnap))
             {
@@ -286,6 +301,7 @@ namespace linerider.Tools
             }
             if (UI.InputUtils.Check(Hotkey.ToolLengthLock))
             {
+                var currentdelta = _selection.line.Position2 - _selection.line.Position;
                 end = Utility.LengthLock(start, end, currentdelta.Length);
             }
             if (_selection.joint2)

@@ -321,5 +321,13 @@ namespace linerider.Tools
                 }
             }
         }
+        protected void ShowTooltip(string message)
+        {
+            game.Canvas.SetTooltip(null, message);
+        }
+        protected void HideTooltip()
+        {
+            game.Canvas.RemoveTooltip(null);
+        }
     }
 }
