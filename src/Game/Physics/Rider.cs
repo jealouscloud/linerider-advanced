@@ -139,7 +139,7 @@ namespace linerider.Game
             ISimulationGrid grid,
             SimulationPoint[] body,
             ref RectLRTB physinfo,
-            HashSet<int> collisions = null,
+            LineContainer<StandardLine> collisions = null,
             List<LineTrigger> activetriggers = null)
         {
             int bodylen = body.Length;
@@ -165,10 +165,7 @@ namespace linerider.Game
                         {
                             if (line.Interact(ref body[i]))
                             {
-                                if (collisions != null)
-                                {
-                                    collisions.Add(line.ID);
-                                }
+                                collisions?.AddLine(line);
                                 if (line.Trigger != null && activetriggers != null)
                                 {
                                     if (!activetriggers.Contains(line.Trigger))
@@ -249,15 +246,15 @@ namespace linerider.Game
             DoubleRect ret = new DoubleRect(left, top, right - left, bottom - top);
             return ret;
         }
-        public Rider Simulate(Track track, HashSet<int> collisions, int maxiteration = 6)
+        public Rider Simulate(Track track, int maxiteration = 6, LineContainer<StandardLine> collisions = null)
         {
-            return Simulate(track.Grid, track.Bones, track.ActiveTriggers, collisions, maxiteration);
+            return Simulate(track.Grid, track.Bones, null, collisions, maxiteration);
         }
         public Rider Simulate(
             ISimulationGrid grid,
             Bone[] bones,
             List<LineTrigger> activetriggers,
-            HashSet<int> collisions,
+            LineContainer<StandardLine> collisions,
             int maxiteration = 6,
             bool stepscarf = true)
         {
@@ -302,7 +299,6 @@ namespace linerider.Game
         public List<int> Diagnose(
             ISimulationGrid grid,
             Bone[] bones,
-            HashSet<int> collisions = null,
             int maxiteration = 6)
         {
             var ret = new List<int>();
@@ -324,7 +320,7 @@ namespace linerider.Game
                     {
                         return breaks;
                     }
-                    ProcessLines(grid, body, ref phys, collisions);
+                    ProcessLines(grid, body, ref phys);
                 }
             }
             if (maxiteration == 6)

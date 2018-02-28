@@ -26,25 +26,26 @@ namespace linerider
         {
             Reset();
         }
-        public void AddFrame(HashSet<int> collisions)
+        public void AddFrame(LineContainer<StandardLine> collisions)
         {
             int frameid = _unique_frame_collisions.Count;
             using (_sync.AcquireWrite())
             {
                 HashSet<int> unique = new HashSet<int>();
-                foreach (var co in collisions)
+                foreach (var collision in collisions)
                 {
-                    if (_allcollisions.Add(co))
+                    var id = collision.ID;
+                    if (_allcollisions.Add(id))
                     {
-                        _changed.Add(co);
-                        unique.Add(co);
-                        _line_framehit.Add(co, frameid);
+                        _changed.Add(id);
+                        unique.Add(id);
+                        _line_framehit.Add(id, frameid);
                     }
                 }
                 _unique_frame_collisions.Add(unique);
             }
         }
-        public void ChangeFrames(int start, List<HashSet<int>> collisions)
+        public void ChangeFrames(int start, List<LineContainer<StandardLine>> collisions)
         {
             Debug.Assert(start != 0, "Attempt to change frame 0 from hit test");
             using (_sync.AcquireWrite())
@@ -62,13 +63,14 @@ namespace linerider
                 for (int i = 0; i < collisions.Count; i++)
                 {
                     HashSet<int> unique = new HashSet<int>();
-                    foreach (var co in collisions[i])
+                    foreach (var collision in collisions[i])
                     {
-                        if (_allcollisions.Add(co))
+                        var id = collision.ID;
+                        if (_allcollisions.Add(id))
                         {
-                            _changed.Add(co);
-                            unique.Add(co);
-                            _line_framehit.Add(co, start + i);
+                            _changed.Add(id);
+                            unique.Add(id);
+                            _line_framehit.Add(id, start + i);
                         }
                     }
                     frames[start + i] = unique;

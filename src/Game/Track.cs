@@ -36,14 +36,10 @@ namespace linerider
     public class Track
     {
         public SimulationGrid Grid = new SimulationGrid();
-        public SimulationGridOverlay OverlayGrid = new SimulationGridOverlay();
-
         public LinkedList<int> Lines = new LinkedList<int>();
         public Dictionary<int, GameLine> LineLookup = new Dictionary<int, GameLine>();
 
         public string Name = Constants.DefaultTrackName;
-        //todo probably needs to be linkedlist for performance
-        public List<LineTrigger> ActiveTriggers = null;
         private Vector2d _start = Vector2d.Zero;
         public Bone[] Bones = new Bone[RiderConstants.Bones.Length];
         public Vector2d StartOffset
@@ -69,7 +65,6 @@ namespace linerider
         public Track()
         {
             GenerateBones();
-            OverlayGrid.BaseGrid = Grid;
         }
         public GameLine[] GetSortedLines()
         {
