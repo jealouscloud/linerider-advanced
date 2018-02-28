@@ -120,23 +120,6 @@ namespace linerider.Rendering
         {
             DrawTexture(tex, new DoubleRect(rect.Left, rect.Top, rect.Width, rect.Height), 1, u1, v1, u2, v2);
         }
-        public static List<GenericVertex> FastCircle(Vector2d p, float radius, Color co)
-        {
-            return FastCircle((Vector2)p, radius, co);
-        }
-
-        public static List<GenericVertex> FastCircle(Vector2 p, float radius, Color co)
-        {
-            List<GenericVertex> ret = new List<GenericVertex>();
-            ret.Add(new GenericVertex(p.X - radius, p.Y - radius, co, 0, 1));
-            ret.Add(new GenericVertex(p.X + radius, p.Y - radius, co, 1, 1));
-            ret.Add(new GenericVertex(p.X + radius, p.Y + radius, co, 1, 0));
-
-            ret.Add(new GenericVertex(p.X - radius, p.Y + radius, co, 0, 0));
-            ret.Add(new GenericVertex(p.X - radius, p.Y - radius, co, 0, 1));
-            ret.Add(new GenericVertex(p.X + radius, p.Y + radius, co, 1, 0));
-            return ret;
-        }
 
         public static Vector2d[] GenerateCircle(double cx, double cy, double r, int num_segments)
         {
@@ -214,9 +197,11 @@ namespace linerider.Rendering
         public static Vector2[] GenerateEllipse(float radiusX, float radiusY, int segments)
         {
             Vector2[] ret = new Vector2[segments];
+            double percent;
             for (int i = 0; i < segments; i++)
             {
-                float rad = MathHelper.DegreesToRadians(i);
+                percent = (i / (double)segments) * 360.0;
+                float rad = (float)MathHelper.DegreesToRadians(percent);
                 ret[i] = new Vector2((float)(Math.Cos(rad) * radiusX), (float)(Math.Sin(rad) * radiusY));
             }
             ret[segments - 1] = ret[0];

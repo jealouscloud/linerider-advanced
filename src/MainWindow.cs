@@ -1,4 +1,5 @@
 ﻿//#define debuggrid
+//#define debugcamera
 //
 //  GLWindow.cs
 //
@@ -204,7 +205,9 @@ namespace linerider
 #if debuggrid
                 GameRenderer.DbgDrawGrid();
 #endif
-
+#if debugcamera
+               GameRenderer.DbgDrawCamera();
+#endif
                 Track.Render(blend);
                 SelectedTool.Render();
                 Canvas.RenderCanvas();
