@@ -31,6 +31,7 @@ namespace linerider.Audio
     {
         private VorbisReader _stream;
         private float[] _stream_buffer;
+        private double _duration;
         public int SamplesPerBuffer { get; private set; }
         public short[] Buffer;
         public int ReadSamples = 0;
@@ -52,7 +53,7 @@ namespace linerider.Audio
         {
             get
             {
-                return (float)_stream.TotalTime.TotalSeconds;
+                return (float)_duration;
             }
         }
 
@@ -62,6 +63,7 @@ namespace linerider.Audio
             SamplesPerBuffer = (stream.SampleRate * stream.Channels) / 3;
             _stream_buffer = new float[SamplesPerBuffer];
             Buffer = new short[SamplesPerBuffer];
+            _duration = stream.TotalTime.TotalSeconds;
         }
         public int ReadBuffer()
         {
