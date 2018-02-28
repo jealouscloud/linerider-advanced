@@ -84,10 +84,6 @@
     <Compile Include="Rendering\TrackRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ffmpeg\FFMPEG.cs" />
-    <Compile Include="ffmpeg\FFMPEGParameters.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Game\Lines\GameLine.cs" />
     <Compile Include="Game\Lines\LineTrigger.cs" />
     <Compile Include="Game\Lines\LineType.cs" />
@@ -132,6 +128,10 @@
     <Compile Include="Tools\MoveTool.cs" />
     <Compile Include="Tools\PencilTool.cs" />
     <Compile Include="Tools\Tool.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="IO\ffmpeg\FFMPEG.cs" />
+    <Compile Include="IO\ffmpeg\FFMPEGParameters.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IO\BigEndianReader.cs" />
