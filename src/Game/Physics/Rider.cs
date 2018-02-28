@@ -139,7 +139,7 @@ namespace linerider.Game
             ISimulationGrid grid,
             SimulationPoint[] body,
             ref RectLRTB physinfo,
-            LineContainer<StandardLine> collisions = null,
+            LinkedList<int> collisions = null,
             List<LineTrigger> activetriggers = null)
         {
             int bodylen = body.Length;
@@ -165,7 +165,7 @@ namespace linerider.Game
                         {
                             if (line.Interact(ref body[i]))
                             {
-                                collisions?.AddLine(line);
+                                collisions?.AddLast(line.ID);
                                 if (line.Trigger != null && activetriggers != null)
                                 {
                                     if (!activetriggers.Contains(line.Trigger))
@@ -246,7 +246,7 @@ namespace linerider.Game
             DoubleRect ret = new DoubleRect(left, top, right - left, bottom - top);
             return ret;
         }
-        public Rider Simulate(Track track, int maxiteration = 6, LineContainer<StandardLine> collisions = null)
+        public Rider Simulate(Track track, int maxiteration = 6, LinkedList<int> collisions = null)
         {
             return Simulate(track.Grid, track.Bones, null, collisions, maxiteration);
         }
@@ -254,7 +254,7 @@ namespace linerider.Game
             ISimulationGrid grid,
             Bone[] bones,
             List<LineTrigger> activetriggers,
-            LineContainer<StandardLine> collisions,
+            LinkedList<int> collisions,
             int maxiteration = 6,
             bool stepscarf = true)
         {
