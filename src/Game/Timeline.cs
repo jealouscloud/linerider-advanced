@@ -36,7 +36,6 @@ namespace linerider.Game
     public partial class Timeline
     {
         public HitTestManager HitTest { get; private set; } = new HitTestManager();
-        public int Length => _frames.Count;
 
         private ResourceSync _framesync = new ResourceSync();
         private AutoArray<Rider> _frames = new AutoArray<Rider>(2 * 60 * 40);

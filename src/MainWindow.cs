@@ -178,7 +178,7 @@ namespace linerider
         {
             bool shouldrender = _invalidated ||
              Canvas.NeedsRedraw ||
-            (Track.PlaybackMode && Settings.SmoothPlayback) ||
+            (Track.PlaybackMode) ||
             Loading ||
             Track.NeedsDraw ||
             SelectedTool.NeedsRender;

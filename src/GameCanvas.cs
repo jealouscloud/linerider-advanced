@@ -318,7 +318,7 @@ namespace linerider
 
             var slider = (HorizontalIntSlider)FindChildByName("timeslider");
             slider.Min = 0;
-            slider.Max = game.Track.Timeline.Length - 1;
+            slider.Max = game.Track.FrameCount - 1;
             slider.Value = game.Track.Offset;
         }
         public void ExportAsSol()
