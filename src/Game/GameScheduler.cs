@@ -88,7 +88,8 @@ namespace linerider
                 {
                     elapsed -= updateperiod;
                     updates++;
-                    int cap = (int)(2 + (UpdatesPerSecond / 40f));
+                    int cap = (int)(2 + 
+                    (UpdatesPerSecond / (float)Constants.PhysicsRate));
                     if (updates >= cap)
                     {
                         elapsed = Math.Min(elapsed, updateperiod * cap);
