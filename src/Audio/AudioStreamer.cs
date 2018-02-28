@@ -33,6 +33,9 @@ namespace linerider.Audio
     class AudioStreamer
     {
         //todo manually stretch samples for slow/fast play
+        //response: audio stretching turns out to be really complicated
+        //not sure what sort of dependency we want to include for that, if any
+        //maybe pursue waveform visualize instead
         private readonly object _sync = new object();
         private ManualResetEvent _event = new ManualResetEvent(false);
         private int[] _buffers;
