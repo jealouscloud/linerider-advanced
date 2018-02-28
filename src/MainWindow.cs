@@ -79,6 +79,7 @@ namespace linerider
         private bool _handToolOverride;
         private Gwen.Input.OpenTK _input;
         private bool _dragRider;
+        private bool _invalidated;
 
         public bool EnableSnap
         {
@@ -175,12 +176,13 @@ namespace linerider
         }
         public void Render(float blend = 1)
         {
-            bool shouldrender = Canvas.NeedsRedraw ||
+            bool shouldrender = _invalidated ||
+             Canvas.NeedsRedraw ||
             (Track.PlaybackMode && Settings.SmoothPlayback) ||
             Loading ||
             Track.NeedsDraw ||
             SelectedTool.NeedsRender;
-
+            _invalidated = false;
             if (shouldrender)
             {
 
@@ -239,6 +241,7 @@ namespace linerider
             var updates = Scheduler.UnqueueUpdates();
             if (updates > 0)
             {
+                Invalidate();
                 if (Track.Playing)
                 {
                     if (InputUtils.Check(Hotkey.PlaybackZoom))
@@ -295,8 +298,7 @@ namespace linerider
         }
         public void Invalidate()
         {
-            if (Canvas != null)
-                Canvas.NeedsRedraw = true;
+            _invalidated = true;
         }
         public void UpdateCursor()
         {
