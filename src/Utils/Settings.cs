@@ -42,7 +42,7 @@ namespace linerider
             public static bool ForceXySnap = false;
             public static bool MomentumVectors = false;
             public static bool PreviewMode;
-            public static int SlowmoSpeed = 1;
+            public static int SlowmoSpeed = 2;
             public static bool RecordingMode;
             public static bool RenderGravityWells;
             public static bool ColorPlayback;
