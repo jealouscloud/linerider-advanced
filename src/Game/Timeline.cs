@@ -49,7 +49,6 @@ namespace linerider.Game
             _savedcells.BaseGrid = _track.Grid;
             Restart(track.GetStart());
         }
-
         public void Restart(Rider state)
         {
             using (_framesync.AcquireWrite())
@@ -69,6 +68,17 @@ namespace linerider.Game
             }
             return new RiderFrame(frame, rider, diagnosis, iteration);
         }
+        public List<int> DiagnoseFrame(int frame, int iteration = 6)
+        {
+            bool isiteration = iteration != 6 && frame > 0;
+            frame = isiteration ? frame - 1 : frame;
+
+            return GetFrame(frame).Diagnose(
+                    _track.Grid,
+                    _track.Bones,
+                    null,
+                    Math.Min(6, iteration + 1));
+        }
         public Rider GetFrame(int frame, int iteration = 6)
         {
             bool isiteration = iteration != 6 && frame > 0;
@@ -82,17 +92,6 @@ namespace linerider.Game
                         iteration);
             }
             return GetFrame(frame);
-        }
-        public List<int> DiagnoseFrame(int frame, int iteration = 6)
-        {
-            bool isiteration = iteration != 6 && frame > 0;
-            frame = isiteration ? frame - 1 : frame;
-
-            return GetFrame(frame).Diagnose(
-                    _track.Grid,
-                    _track.Bones,
-                    null,
-                    Math.Min(6, iteration + 1));
         }
         public Rider GetFrame(int frame)
         {
@@ -138,7 +137,11 @@ namespace linerider.Game
                 {
                     int currentframe = start + i;
                     HashSet<int> collisions = new HashSet<int>();
-                    current = current.Simulate(_savedcells, bones, _activetriggers, collisions);
+                    current = current.Simulate(
+                        _savedcells, 
+                        bones, 
+                        _activetriggers, 
+                        collisions);
                     steps[i] = current;
                     if (currentframe >= framecount)
                         HitTest.AddFrame(collisions);
