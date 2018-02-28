@@ -46,9 +46,9 @@ namespace linerider.Rendering
                 var vec2 = vec1 + (anchor.Momentum);
                 var line = Line.FromAngle(
                     vec1,
-                    Angle.FromVector(anchor.Momentum), 
+                    Angle.FromVector(anchor.Momentum),
                     2);
-                vao.AddLine(line.Position,line.Position2, Color.Red, 1f / 2.5f);
+                vao.AddLine(line.Position, line.Position2, Color.Red, 1f / 2.5f);
             }
         }
         public static void DrawContactPoints(Rider rider, List<int> diagnosis, LineVAO vao)
@@ -214,6 +214,75 @@ namespace linerider.Rendering
                     GameDrawingMatrix.Exit();
                 }
             }
+        }
+        public static void DbgDrawCamera()
+        {
+            GL.PushMatrix();
+            var center = new Vector2(Game.RenderSize.Width / 2, Game.RenderSize.Height / 2);
+            var rect = Game.Track.Camera.getclamp(1, Game.RenderSize.Width, Game.RenderSize.Height);
+
+            rect.Width *= Game.Track.Zoom;
+            rect.Height *= Game.Track.Zoom;
+            var circle = StaticRenderer.GenerateEllipse((float)rect.Width, (float)rect.Height, 100);
+
+            var clamprect = new DoubleRect(center.X, center.Y, 0, 0);
+            clamprect.Left -= rect.Width / 2;
+            clamprect.Top -= rect.Height / 2;
+            clamprect.Width = rect.Width;
+            clamprect.Height = rect.Height;
+            if (!Settings.SmoothCamera)
+            {
+                GL.Begin(PrimitiveType.LineStrip);
+                GL.Color3(0, 0, 0);
+                GL.Vertex2(clamprect.Left, clamprect.Top);
+                GL.Vertex2(clamprect.Right, clamprect.Top);
+                GL.Vertex2(clamprect.Right, clamprect.Bottom);
+                GL.Vertex2(clamprect.Left, clamprect.Bottom);
+                GL.Vertex2(clamprect.Left, clamprect.Top);
+                GL.End();
+                GL.PopMatrix();
+                return;
+            }
+            GL.Begin(PrimitiveType.LineStrip);
+            GL.Color3(0, 0, 0);
+            for (int i = 0; i < circle.Length; i++)
+            {
+                var pos = (Vector2d)center + (Vector2d)circle[i];
+                var square = clamprect.Clamp(pos);
+                var oval = clamprect.EllipseClamp(pos);
+                pos = (Vector2d.Lerp(square, oval, CameraBoundingBox.roundness));
+                GL.Vertex2(pos);
+            }
+            GL.End();
+            // visualize example points being clamped
+            GL.Begin(PrimitiveType.Lines);
+            circle = StaticRenderer.GenerateEllipse((float)rect.Width / 1.5f, (float)rect.Height / 1.5f, 20);
+            for (int i = 0; i < circle.Length; i++)
+            {
+                var pos = (Vector2d)center + (Vector2d)circle[i];
+                var square = clamprect.Clamp(pos);
+                var oval = clamprect.EllipseClamp(pos);
+                pos = (Vector2d.Lerp(square, oval, CameraBoundingBox.roundness));
+                if (pos != (Vector2d)center + (Vector2d)circle[i])
+                {
+                    GL.Vertex2(pos);
+                    GL.Vertex2((Vector2d)center + (Vector2d)circle[i]);
+                }
+            }
+            GL.End();
+            GL.PopMatrix();
+            //visualize rider center
+            GameDrawingMatrix.Enter();
+            center = (Vector2)Game.Track.Timeline.GetFrame(Game.Track.Offset).CalculateCenter();
+            var circ = StaticRenderer.GenerateCircle(center.X, center.Y, 10, 360);
+            GL.Begin(PrimitiveType.LineStrip);
+            GL.Color3(0, 0, 255);
+            for (int i = 0; i < circ.Length; i++)
+            {
+                GL.Vertex2((Vector2)circ[i]);
+            }
+            GL.End();
+            GameDrawingMatrix.Exit();
         }
         public static void DbgDrawGrid()
         {
