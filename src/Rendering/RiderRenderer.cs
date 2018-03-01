@@ -243,34 +243,10 @@ namespace linerider.Rendering
             var u2 = uv.Right;
             var v2 = uv.Bottom;
             var verts = new RiderVertex[] {
-                new RiderVertex()
-                {
-                    Position = (Vector2)texrect[0],
-                    tex_coord = new Vector2(uv.Left, uv.Top),
-                    texture_unit = (float)tex,
-                    color = Utility.ColorToRGBA_LE(colors[0])
-                },
-                new RiderVertex()
-                {
-                    Position = (Vector2)texrect[1],
-                    tex_coord = new Vector2(uv.Right, uv.Top),
-                    texture_unit = (float)tex,
-                    color = Utility.ColorToRGBA_LE(colors[1])
-                },
-                new RiderVertex()
-                {
-                    Position = (Vector2)texrect[2],
-                    tex_coord = new Vector2(uv.Right, uv.Bottom),
-                    texture_unit = (float)tex,
-                    color = Utility.ColorToRGBA_LE(colors[2])
-                },
-                new RiderVertex()
-                {
-                    Position = (Vector2)texrect[3],
-                    tex_coord = new Vector2(uv.Left, uv.Bottom),
-                    texture_unit = (float)tex,
-                    color = Utility.ColorToRGBA_LE(colors[3])
-                },
+                new RiderVertex(texrect[0],  new Vector2(uv.Left, uv.Top),tex,colors[0]),
+                new RiderVertex(texrect[1],  new Vector2(uv.Right, uv.Top),tex,colors[1]),
+                new RiderVertex(texrect[2],  new Vector2(uv.Right, uv.Bottom),tex,colors[2]),
+                new RiderVertex(texrect[3],  new Vector2(uv.Left, uv.Bottom),tex,colors[3])
             };
             Array.Add(verts[0]);
             Array.Add(verts[1]);
@@ -360,6 +336,13 @@ namespace linerider.Rendering
             public Vector2 tex_coord;
             public float texture_unit;
             public int color;
+            public RiderVertex(Vector2 position, Vector2 uv, Tex unit, Color Color)
+            {
+                Position = position;
+                tex_coord = uv;
+                texture_unit = (float)unit;
+                color = Utility.ColorToRGBA_LE(Color);
+            }
             public static RiderVertex NoTexture(Vector2 position, int color)
             {
                 RiderVertex ret = new RiderVertex();
