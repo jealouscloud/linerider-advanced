@@ -394,7 +394,7 @@ namespace linerider
                     return;
                 var r = _input.ProcessMouseMessage(e);
 
-                if (!r && (!Track.PlaybackMode || Track.Paused))
+                if (!r && (!Track.PlaybackMode || Track.Paused) && !TemporaryPlayback)
                 {
                     if (!Track.Paused && OpenTK.Input.Keyboard.GetState()[Key.D])
                     {
@@ -605,7 +605,7 @@ namespace linerider
                 var input = e.Keyboard;
                 if (!input.IsAnyKeyDown)
                     return;
-                HandleHotkeys(e);
+                HandleHotkeys();
                 if (input.IsKeyDown(Key.AltLeft) || input.IsKeyDown(Key.AltRight))
                 {
                     if (input.IsKeyDown(Key.Enter))
@@ -646,12 +646,7 @@ namespace linerider
                 if (_input.ProcessKeyUp(e) || Canvas.GetOpenWindows()?.Count > 1)
                     return;
 
-                if (TemporaryPlayback && !InputUtils.Check(Hotkey.PlaybackForward) && !InputUtils.Check(Hotkey.PlaybackBackward))
-                {
-                    TemporaryPlayback = false;
-                    Scheduler.Reset();
-                    AudioService.Pause();
-                }
+                HandleHotkeys();
             }
             catch (Exception ex)
             {
@@ -868,38 +863,58 @@ namespace linerider
                 PixelFormat.Format32bppPArgb);
             Cursors[name] = new MouseCursor(hotx, hoty, image.Width, image.Height, data.Scan0);
         }
-        private bool HandleHotkeys(KeyboardKeyEventArgs e)
+        private void StopTools()
+        {
+            if (_handToolOverride)
+                HandTool.Stop();
+            else
+                SelectedTool?.Stop();
+        }
+        private bool HandleHotkeys()
         {
             bool editormode = !Track.PlaybackMode;
             bool animating = Track.Playing;
             bool recording = Settings.Local.RecordingMode;
+            
+            // key up:
+            if (TemporaryPlayback && !InputUtils.Check(Hotkey.PlaybackForward) && !InputUtils.Check(Hotkey.PlaybackBackward))
+            {
+                TemporaryPlayback = false;
+                Scheduler.Reset();
+                AudioService.Pause();
+            }
 
             if (InputUtils.Check(Hotkey.PlaybackStartSlowmo, true))
             {
+                StopTools();
                 Track.StartFromFlag();
                 Scheduler.UpdatesPerSecond = Settings.Local.SlowmoSpeed;
                 return true;
             }
             if (InputUtils.Check(Hotkey.PlaybackStartIgnoreFlag, true))
             {
+                StopTools();
                 Track.StartIgnoreFlag();
                 Scheduler.DefaultSpeed();
                 return true;
             }
             if (InputUtils.Check(Hotkey.PlaybackStartGhostFlag, true))
             {
+                StopTools();
                 Track.ResumeFromFlag();
                 Scheduler.DefaultSpeed();
                 return true;
             }
             if (InputUtils.Check(Hotkey.PlaybackStart, true))
             {
+                StopTools();
                 Track.StartFromFlag();
                 Scheduler.DefaultSpeed();
                 return true;
             }
             if (InputUtils.Check(Hotkey.PlaybackStop))
             {
+                StopTools();
                 Track.Stop();
                 return true;
             }
@@ -911,15 +926,17 @@ namespace linerider
 
             if (InputUtils.Check(Hotkey.LoadWindow, true))
             {
+                StopTools();
                 Canvas.ShowLoadWindow();
                 return true;
             }
-            else if (InputUtils.Check(Hotkey.PreferencesWindow, true))
+            if (InputUtils.Check(Hotkey.PreferencesWindow, true))
             {
+                StopTools();
                 Canvas.ShowPreferences();
                 return true;
             }
-            else if (InputUtils.Check(Hotkey.PreferenceOnionSkinning, true))
+            if (InputUtils.Check(Hotkey.PreferenceOnionSkinning, true))
             {
                 Settings.Local.OnionSkinning = !Settings.Local.OnionSkinning;
                 Track.Invalidate();
@@ -930,6 +947,7 @@ namespace linerider
             {
                 if (!TemporaryPlayback)
                 {
+                    StopTools();
                     if (!Track.PlaybackMode)
                     {
                         Track.StartFromFlag();
@@ -947,6 +965,7 @@ namespace linerider
             {
                 if (!TemporaryPlayback)
                 {
+                    StopTools();
                     if (!Track.PlaybackMode)
                     {
                         Track.StartFromFlag();
@@ -957,6 +976,38 @@ namespace linerider
                     Track.PreviousFrame();
                     Invalidate();
                     Track.UpdateCamera();
+                }
+                return true;
+            }
+            if (InputUtils.Check(Hotkey.PlaybackForward))
+            {
+                if (!TemporaryPlayback || ReversePlayback)
+                {
+                    StopTools();
+                    if (!Track.PlaybackMode)
+                    {
+                        Track.StartFromFlag();
+                        Scheduler.DefaultSpeed();
+                    }
+                    if (!Track.Paused)
+                        Track.TogglePause();
+                    ReversePlayback = false;
+                    TemporaryPlayback = true;
+                    Scheduler.Reset();
+                }
+                return true;
+            }
+            if (InputUtils.Check(Hotkey.PlaybackBackward))
+            {
+                if (!TemporaryPlayback || !ReversePlayback)
+                {
+                    StopTools();
+                    ReversePlayback = true;
+                    TemporaryPlayback = true;
+                    Scheduler.Reset();
+
+                    if (!Track.Paused)
+                        Track.TogglePause();
                 }
                 return true;
             }
@@ -985,41 +1036,10 @@ namespace linerider
                     }
                     return true;
                 }
-                if (InputUtils.Check(Hotkey.PlaybackForward))
-                {
-                    if (!TemporaryPlayback && !e.IsRepeat)
-                    {
-                        if (animating)
-                        {
-                            Track.TogglePause();
-                        }
-                        ReversePlayback = false;
-                        TemporaryPlayback = true;
-                        if (!Track.PlaybackMode)
-                        {
-                            Track.StartFromFlag();
-                            Scheduler.DefaultSpeed();
-                        }
-                        Scheduler.Reset();
-                    }
-                    return true;
-                }
-                if (InputUtils.Check(Hotkey.PlaybackBackward))
-                {
-                    if (!TemporaryPlayback && !e.IsRepeat)
-                    {
-                        if (Track.PlaybackMode)
-                        {
-                            ReversePlayback = true;
-                            TemporaryPlayback = true;
-                        }
-                        Scheduler.Reset();
-                    }
-                    return true;
-                }
 
                 if (InputUtils.Check(Hotkey.PlaybackTogglePause))
                 {
+                    StopTools();
                     Track.TogglePause();
                     return true;
                 }
@@ -1028,6 +1048,7 @@ namespace linerider
             {
                 if (InputUtils.Check(Hotkey.PlaybackIterationNext))
                 {
+                    StopTools();
                     if (!Track.PlaybackMode)
                     {
                         Track.StartFromFlag();
@@ -1053,6 +1074,7 @@ namespace linerider
                 {
                     if (Track.Offset != 0)
                     {
+                        StopTools();
                         if (Track.IterationsOffset > 0)
                         {
                             Track.IterationsOffset--;
@@ -1101,22 +1123,23 @@ namespace linerider
                 }
                 if (InputUtils.Check(Hotkey.EditorUndo))
                 {
-                    SelectedTool?.Stop();
+                    StopTools();
                     Track.UndoManager.Undo();
                     Invalidate();
                     return true;
                 }
                 if (InputUtils.Check(Hotkey.EditorRedo))
                 {
-                    SelectedTool?.Stop();
+                    StopTools();
                     Track.UndoManager.Redo();
                     Invalidate();
                     return true;
                 }
                 if (InputUtils.Check(Hotkey.EditorRemoveLatestLine))
                 {
-                    if (!Track.PlaybackMode || Track.Paused)
+                    if ((!Track.PlaybackMode || Track.Paused) && !TemporaryPlayback)
                     {
+                        StopTools();
                         using (var trk = Track.CreateTrackWriter())
                         {
                             SelectedTool?.Stop();
