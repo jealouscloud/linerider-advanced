@@ -86,6 +86,11 @@ namespace linerider
                 {
                     _renderriderinvalid = false;
                     _renderrider = Timeline.ExtractFrame(Offset, IterationsOffset);
+
+                    // we dont want it and we dont wanto to continuously
+                    // update the diagnosis.
+                    if (!PlaybackMode)
+                        _renderrider.Diagnosis.Clear();
                 }
                 return _renderrider;
             }
@@ -118,7 +123,7 @@ namespace linerider
                 _paused = value;
             }
         }
-        public int FrameCount { get; private set;} = 1;
+        public int FrameCount { get; private set; } = 1;
 
         public UndoManager UndoManager { get; private set; }
         public bool Playing => PlaybackMode && !Paused;
@@ -309,6 +314,7 @@ namespace linerider
         }
         public void StartFromFlag()
         {
+            Stop();
             Timeline.HitTest.Reset();
             if (_flag == null)
             {
@@ -324,6 +330,7 @@ namespace linerider
         }
         public void StartIgnoreFlag()
         {
+            Stop();
             Timeline.HitTest.Reset();
             Timeline.Restart(_track.GetStart());
             FrameCount = 1;
@@ -331,13 +338,14 @@ namespace linerider
         }
         public void ResumeFromFlag()
         {
+            Stop();
             Timeline.HitTest.Reset();
             Timeline.Restart(_track.GetStart());
             FrameCount = 1;
             if (_flag != null)
             {
                 var atflag = Timeline.GetFrame(_flag.FrameID);
-                FrameCount = _flag.FrameID+1;
+                FrameCount = _flag.FrameID + 1;
                 game.Canvas.SetFlagState(atflag.Body.CompareTo(_flag.State.Body));
             }
             Start(FrameCount - 1);
