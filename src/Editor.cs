@@ -318,12 +318,13 @@ namespace linerider
             Timeline.HitTest.Reset();
             if (_flag == null)
             {
+                _startFrame = 0;
                 Timeline.Restart(_track.GetStart());
             }
             else
             {
-                Timeline.Restart(_flag.State);
                 _startFrame = _flag.FrameID;
+                Timeline.Restart(_flag.State);
             }
             FrameCount = 1;
             Start(0);
@@ -331,14 +332,17 @@ namespace linerider
         public void StartIgnoreFlag()
         {
             Stop();
+            _startFrame = 0;
             Timeline.HitTest.Reset();
             Timeline.Restart(_track.GetStart());
+            _startFrame = _flag.FrameID;
             FrameCount = 1;
             Start(0);
         }
         public void ResumeFromFlag()
         {
             Stop();
+            _startFrame = 0;
             Timeline.HitTest.Reset();
             Timeline.Restart(_track.GetStart());
             FrameCount = 1;
@@ -361,7 +365,6 @@ namespace linerider
             }
             PlaybackMode = true;
             Paused = false;
-            _startFrame = 0;
             Offset = frameid;
             IterationsOffset = 6;
             Camera.SetFrameCenter(Timeline.GetFrame(frameid).CalculateCenter());
