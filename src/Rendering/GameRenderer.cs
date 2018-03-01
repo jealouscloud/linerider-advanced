@@ -305,7 +305,10 @@ namespace linerider.Rendering
 
                         if (Game.Track.GridCheck(yv.X, yv.Y))
                         {
-                            GL.Color3(Color.Yellow);
+                            if (Game.Track.RenderRider.PhysicsBounds.ContainsPoint(gridpos))
+                                GL.Color3(Color.LightSlateGray);
+                            else
+                                GL.Color3(Color.Yellow);
                             GL.Vertex2(yv);
                             yv.Y += sqsize;
                             GL.Vertex2(yv);
