@@ -74,19 +74,19 @@ namespace linerider.Tools
             //todo does not handle snapped lines for lifelock
             if (line is StandardLine && CanLifelock)
             {
-                bool wasdead = game.Track.RenderRider.Crashed || _lifelocking;
                 game.Track.NotifyTrackChanged();
-                if (wasdead)
+                using (var trk = game.Track.CreateTrackReader())
                 {
-                    _lifelocking = true;
-                    using (var trk = game.Track.CreateTrackReader())
+                    if (!LifeLock(trk, game.Track.Timeline, (StandardLine)line))
                     {
-                        if (LifeLock(trk, game.Track.Timeline, (StandardLine)line))
-                        {
-                            Stop();
-                        }
+                        _lifelocking = true;
+                    }
+                    else if (_lifelocking)
+                    {
+                        Stop();
                     }
                 }
+
             }
             else
             {
@@ -286,7 +286,14 @@ namespace linerider.Tools
                 var len = vec.Length;
                 var angle = Angle.FromVector(vec);
                 angle.Degrees += 90;
-                string tooltip = "length: " + Math.Round(len, 2) + " \n" + "angle: " + Math.Round(angle.Degrees, 2) + "° ";
+                string tooltip = "length: " + Math.Round(len, 2) +
+                " \n" +
+                "angle: " + Math.Round(angle.Degrees, 2) + "° ";
+                if (_selection.line.Type != LineType.Scenery)
+                {
+                    tooltip += " \n" +
+                    "ID: " + _selection.line.ID;
+                }
                 ShowTooltip(tooltip);
             }
         }
