@@ -109,11 +109,7 @@ namespace linerider.Tools
                     if (_selection.joint2)
                         joint2 =
                             _selection.clone.Position2 + (pos - _clickstart);
-
-                    if (_selection.joint1 != _selection.joint2)
-                    {
-                        ApplyModifiers(ref joint1, ref joint2);
-                    }
+                    ApplyModifiers(ref joint1, ref joint2);
 
                     trk.MoveLine(
                         line,
@@ -235,18 +231,10 @@ namespace linerider.Tools
                 var line = SelectLine(trk, gamepos);
                 if (line != null)
                 {
-                    var point = Utility.CloserPoint(
-                        gamepos,
-                        line.Position,
-                        line.Position2);
-                    //is it a knob?
-                    if ((gamepos - point).Length <= line.Width)
-                    {
-                        SelectedLineWindow window = new SelectedLineWindow(game.Canvas, game, line);
-                        window.Show();
-                        window.X = (int)pos.X;
-                        window.Y = (int)pos.Y;
-                    }
+                    SelectedLineWindow window = new SelectedLineWindow(game.Canvas, game, line);
+                    window.Show();
+                    window.X = (int)pos.X;
+                    window.Y = (int)pos.Y;
                 }
             }
             base.OnMouseRightDown(pos);
@@ -299,25 +287,37 @@ namespace linerider.Tools
         }
         private void ApplyModifiers(ref Vector2d joint1, ref Vector2d joint2)
         {
-            var start = _selection.joint1 ? joint2 : joint1;
-            var end = _selection.joint2 ? joint2 : joint1;
-            if (UI.InputUtils.Check(Hotkey.ToolAngleLock))
+            bool both = _selection.joint1 && _selection.joint2;
+            if (both)
             {
-                end = Utility.AngleLock(start, end, Angle.FromVector(_selection.clone.GetVector()));
+                if (UI.InputUtils.Check(Hotkey.ToolAngleLock))
+                {
+                    joint1 = Utility.AngleLock(_selection.line.Position, joint1, Angle.FromVector(_selection.clone.GetVector()));
+                    joint2 = Utility.AngleLock(_selection.line.Position2, joint2, Angle.FromVector(_selection.clone.GetVector()));
+                }
             }
-            if (UI.InputUtils.Check(Hotkey.ToolXYSnap))
-            {
-                end = Utility.SnapToDegrees(start, end);
-            }
-            if (UI.InputUtils.Check(Hotkey.ToolLengthLock))
-            {
-                var currentdelta = _selection.line.Position2 - _selection.line.Position;
-                end = Utility.LengthLock(start, end, currentdelta.Length);
-            }
-            if (_selection.joint2)
-                joint2 = end;
             else
-                joint1 = end;
+            {
+                var start = _selection.joint1 ? joint2 : joint1;
+                var end = _selection.joint2 ? joint2 : joint1;
+                if (UI.InputUtils.Check(Hotkey.ToolAngleLock))
+                {
+                    end = Utility.AngleLock(start, end, Angle.FromVector(_selection.clone.GetVector()));
+                }
+                if (UI.InputUtils.Check(Hotkey.ToolXYSnap))
+                {
+                    end = Utility.SnapToDegrees(start, end);
+                }
+                if (UI.InputUtils.Check(Hotkey.ToolLengthLock))
+                {
+                    var currentdelta = _selection.line.Position2 - _selection.line.Position;
+                    end = Utility.LengthLock(start, end, currentdelta.Length);
+                }
+                if (_selection.joint2)
+                    joint2 = end;
+                else
+                    joint1 = end;
+            }
         }
     }
 }
