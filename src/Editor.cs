@@ -391,8 +391,8 @@ namespace linerider
         {
             Offset = frame;
             Timeline.GetFrame(frame);
-            if (frame > FrameCount)
-                FrameCount = frame;
+            if (frame + 1 > FrameCount)
+                FrameCount = frame + 1;
             IterationsOffset = 6;
             InvalidateRenderRider();
 
