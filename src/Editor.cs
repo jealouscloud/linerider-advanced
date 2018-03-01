@@ -291,11 +291,7 @@ namespace linerider
                 Zoom = _oldZoom;
                 Camera.Pop();
                 Reset();
-                foreach (var v in ActiveTriggers)
-                {
-                    v.Reset();
-                }
-                ActiveTriggers.Clear();
+                CancelTriggers();
                 game.Canvas.HidePlaybackUI();
                 Invalidate();
             }
@@ -314,7 +310,7 @@ namespace linerider
         }
         public void StartFromFlag()
         {
-            Stop();
+            CancelTriggers();
             Timeline.HitTest.Reset();
             if (_flag == null)
             {
@@ -331,7 +327,7 @@ namespace linerider
         }
         public void StartIgnoreFlag()
         {
-            Stop();
+            CancelTriggers();
             _startFrame = 0;
             Timeline.HitTest.Reset();
             Timeline.Restart(_track.GetStart());
@@ -341,7 +337,7 @@ namespace linerider
         }
         public void ResumeFromFlag()
         {
-            Stop();
+            CancelTriggers();
             _startFrame = 0;
             Timeline.HitTest.Reset();
             Timeline.Restart(_track.GetStart());
@@ -542,6 +538,14 @@ namespace linerider
         internal RiderFrame GetFlag()
         {
             return _flag;
+        }
+        private void CancelTriggers()
+        {
+            foreach (var v in ActiveTriggers)
+            {
+                v.Reset();
+            }
+            ActiveTriggers.Clear();
         }
     }
 }
