@@ -25,6 +25,7 @@ namespace linerider
 {
     public static class Models
     {
+        const float half_uv = 0.499023438f;
         public static int SledTexture;
         public static int BodyTexture;
         public static int LimbsTexture;
@@ -34,11 +35,13 @@ namespace linerider
         public static readonly DoubleRect ArmRect = new DoubleRect(-0.657, -1.2305, 7.82, 3.91);
         public static readonly DoubleRect LegRect = new DoubleRect(-0.6535, -2.013, 8.02, 4.01);
 
-        public static readonly FloatRect BodyUV = new FloatRect(0, 0, 1, 0.5f);
+        public static readonly FloatRect BodyUV = new FloatRect(0, 0, 1, half_uv);
         public static readonly FloatRect DeadBodyUV = new FloatRect(0, 0.5f, 1, 0.5f);
-        public static readonly FloatRect SledUV = new FloatRect(0, 0, 1, 0.5f);
+
+        public static readonly FloatRect SledUV = new FloatRect(0, 0, 1, half_uv);
         public static readonly FloatRect BrokenSledUV = new FloatRect(0, 0.5f, 1, 0.5f);
-        public static readonly FloatRect ArmUV = new FloatRect(0, 0, 1, 0.5f);
+
+        public static readonly FloatRect ArmUV = new FloatRect(0, 0, 1, half_uv);
         public static readonly FloatRect LegUV = new FloatRect(0, 0.5f, 1, 0.5f);
 
         public static void LoadModels()
