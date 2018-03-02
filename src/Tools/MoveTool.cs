@@ -46,7 +46,7 @@ namespace linerider.Tools
         {
             get { return game.Cursors["adjustline"]; }
         }
-        public bool CanLifelock => UI.InputUtils.Check(Hotkey.ToolLifeLock, false);
+        public bool CanLifelock => UI.InputUtils.Check(Hotkey.ToolLifeLock);
         private SelectInfo _selection = null;
         private Vector2d _clickstart;
         private bool _lifelocking = false;

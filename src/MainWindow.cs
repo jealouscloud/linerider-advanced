@@ -300,7 +300,7 @@ namespace linerider
                         Zoom(Math.Min(Track.Zoom, 12) * (-0.08f));
                 }
             }
-            var qp = (!Track.PlaybackMode) ? InputUtils.Check(Hotkey.EditorQuickPan, false) : false;
+            var qp = (!Track.PlaybackMode) ? InputUtils.Check(Hotkey.EditorQuickPan) : false;
             if (qp != _handToolOverride)
             {
                 _handToolOverride = qp;
