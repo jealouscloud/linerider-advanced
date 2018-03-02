@@ -417,15 +417,22 @@ namespace linerider
             }
         }
 
-        public void UpdateCamera()
+        public void UpdateCamera(bool reverse = false)
         {
             Camera.SetFrame(RenderRider);
             if (Settings.SmoothCamera)
             {
                 Rider prediction;
-                using (var trk = CreateTrackReader())
+                if (reverse)
                 {
-                    prediction = trk.TickBasic(Timeline.GetFrame(Offset));
+                    prediction = Timeline.GetFrame(Math.Max(0, Offset - 1));
+                }
+                else
+                {
+                    using (var trk = CreateTrackReader())
+                    {
+                        prediction = trk.TickBasic(Timeline.GetFrame(Offset));
+                    }
                 }
                 Camera.SetPrediction(prediction.CalculateCenter());
 

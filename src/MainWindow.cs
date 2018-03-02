@@ -999,7 +999,7 @@ namespace linerider
                     Track.TogglePause();
                 Track.PreviousFrame();
                 Invalidate();
-                Track.UpdateCamera();
+                Track.UpdateCamera(true);
             },
             null,
             repeat: true);
