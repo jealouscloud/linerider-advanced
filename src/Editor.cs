@@ -284,7 +284,6 @@ namespace linerider
         {
             if (PlaybackMode)
             {
-                Timeline.HitTest.Reset();
                 PlaybackMode = false;
                 Paused = false;
 
@@ -311,7 +310,6 @@ namespace linerider
         public void StartFromFlag()
         {
             CancelTriggers();
-            Timeline.HitTest.Reset();
             if (_flag == null)
             {
                 _startFrame = 0;
@@ -329,7 +327,6 @@ namespace linerider
         {
             CancelTriggers();
             _startFrame = 0;
-            Timeline.HitTest.Reset();
             Timeline.Restart(_track.GetStart());
             _startFrame = _flag.FrameID;
             FrameCount = 1;
@@ -339,7 +336,6 @@ namespace linerider
         {
             CancelTriggers();
             _startFrame = 0;
-            Timeline.HitTest.Reset();
             Timeline.Restart(_track.GetStart());
             FrameCount = 1;
             if (_flag != null)

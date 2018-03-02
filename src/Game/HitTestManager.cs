@@ -79,7 +79,7 @@ namespace linerider
 
         public HashSet<int> SetFrame(int newframe)
         {
-            using (var sync = _sync.AcquireUpgradableRead())
+            using (_sync.AcquireWrite())
             {
                 var ret = new HashSet<int>();
                 foreach (var v in _changed)
@@ -135,7 +135,6 @@ namespace linerider
                             }
                         }
                     }
-                    sync.UpgradeToWriter();
                     _currentframe = newframe;
                 }
                 return ret;
