@@ -56,7 +56,7 @@ namespace linerider
             LineTool,
             PencilTool,
             EraserTool,
-            LineAdjustTool,
+            MoveTool,
             GwellTool
         }
 
@@ -76,7 +76,6 @@ namespace linerider
         public bool AllowTrackRender;
 
         public bool ReversePlayback = false;
-        public bool TemporaryPlayback = false;
         private bool _handToolOverride;
         private Gwen.Input.OpenTK _input;
         private bool _dragRider;
@@ -107,6 +106,7 @@ namespace linerider
 
         public Vector2d ScreenTranslation => -ScreenPosition;
         public Editor Track { get; }
+        private bool _playbacktemp = false;
         public MainWindow()
             : base(
                 1280,
@@ -135,6 +135,7 @@ namespace linerider
             RenderFrame += (o, e) => { Render(); };
             UpdateFrame += (o, e) => { GameUpdate(); };
             GameService.Initialize(this);
+            RegisterHotkeys();
         }
 
         public override void Dispose()
@@ -189,11 +190,13 @@ namespace linerider
 
                 BeginOrtho();
                 var slider = Canvas.Scrubber;
-                if (blend == 1 && Settings.SmoothPlayback && Track.Playing && !TemporaryPlayback && !slider.Held)
+                if (blend == 1 && Settings.SmoothPlayback && Track.Playing && !slider.Held)
                 {
                     blend = Math.Min(1, (float)Scheduler.ElapsedPercent);
                 }
                 Track.Camera.BeginFrame(blend);
+                if (ReversePlayback)
+                    blend = 1 - blend;
                 GL.ClearColor(Settings.NightMode
                     ? Constants.ColorNightMode
                     : (Settings.WhiteBG ? Constants.ColorWhite : Constants.ColorOffwhite));
@@ -231,7 +234,7 @@ namespace linerider
                 ErrorLog.PrintGLLog();
             }
         }
-        public void GameUpdate()
+        private void GameUpdateHandleInput()
         {
             if (InputUtils.HandleMouseMove(out int x, out int y) && !Canvas.IsModalOpen)
             {
@@ -240,7 +243,51 @@ namespace linerider
                 else
                     SelectedTool.OnMouseMoved(new Vector2d(x, y));
             }
-
+            if (InputUtils.Check(Hotkey.PlaybackForward))
+            {
+                if (!_playbacktemp || (ReversePlayback && !InputUtils.Check(Hotkey.PlaybackBackward)))
+                {
+                    StopTools();
+                    if (!Track.PlaybackMode)
+                    {
+                        Track.StartFromFlag();
+                        Scheduler.DefaultSpeed();
+                    }
+                    if (Track.Paused)
+                        Track.TogglePause();
+                    Scheduler.Reset();
+                    ReversePlayback = false;
+                    _playbacktemp = true;
+                }
+            }
+            else if (InputUtils.Check(Hotkey.PlaybackBackward))
+            {
+                if (!_playbacktemp || (!ReversePlayback && !InputUtils.Check(Hotkey.PlaybackForward)))
+                {
+                    StopTools();
+                    if (!Track.PlaybackMode)
+                    {
+                        Track.StartFromFlag();
+                        Scheduler.DefaultSpeed();
+                    }
+                    if (Track.Paused)
+                        Track.TogglePause();
+                    Scheduler.Reset();
+                    ReversePlayback = true;
+                    _playbacktemp = true;
+                }
+            }
+            else if (_playbacktemp)
+            {
+                if (!Track.Paused)
+                    Track.TogglePause();
+                _playbacktemp = false;
+                ReversePlayback = false;
+            }
+        }
+        public void GameUpdate()
+        {
+            GameUpdateHandleInput();
             var updates = Scheduler.UnqueueUpdates();
             if (updates > 0)
             {
@@ -275,15 +322,15 @@ namespace linerider
             }
 
 
-            if (Track.Playing || TemporaryPlayback)
+            if (Track.Playing)
             {
-                if (TemporaryPlayback && ReversePlayback)
+                if (ReversePlayback)
                 {
                     Track.ActiveTriggers.Clear();//we don't want wonky unpredictable behavior
                     for (int i = 0; i < updates; i++)
                     {
                         Track.PreviousFrame();
-                        Track.UpdateCamera();
+                        Track.UpdateCamera(true);
                     }
                 }
                 else
@@ -394,7 +441,7 @@ namespace linerider
                     return;
                 var r = _input.ProcessMouseMessage(e);
 
-                if (!r && (!Track.PlaybackMode || Track.Paused) && !TemporaryPlayback)
+                if (!r && !Track.Playing)
                 {
                     if (!Track.Paused && OpenTK.Input.Keyboard.GetState()[Key.D])
                     {
@@ -568,6 +615,10 @@ namespace linerider
             base.OnKeyDown(e);
             try
             {
+                if (!e.IsRepeat)
+                {
+                    InputUtils.KeyDown(e.Key);
+                }
                 InputUtils.UpdateKeysDown(e.Keyboard);
                 if (linerider.IO.TrackRecorder.Recording)
                     return;
@@ -602,10 +653,10 @@ namespace linerider
                         return;
                     }
                 }
+                InputUtils.ProcessHotkeys();
                 var input = e.Keyboard;
                 if (!input.IsAnyKeyDown)
                     return;
-                HandleHotkeys();
                 if (input.IsKeyDown(Key.AltLeft) || input.IsKeyDown(Key.AltRight))
                 {
                     if (input.IsKeyDown(Key.Enter))
@@ -645,8 +696,7 @@ namespace linerider
                     return;
                 if (_input.ProcessKeyUp(e) || Canvas.GetOpenWindows()?.Count > 1)
                     return;
-
-                HandleHotkeys();
+                InputUtils.ProcessKeyup();
             }
             catch (Exception ex)
             {
@@ -685,7 +735,7 @@ namespace linerider
             btn.Clicked += (o, e) => { SetTool(Tools.EraserTool); };
             btn = createbutton(GameResources.movetool_icon, GameResources.movetool_icon_white, "Line Adjustment Tool (R)",
                 "lineadjusttool");
-            btn.Clicked += (o, e) => { SetTool(Tools.LineAdjustTool); };
+            btn.Clicked += (o, e) => { SetTool(Tools.MoveTool); };
             //  btn = createbutton(Content.gwell_tool, Content.gwell_tool, "Gravity Well Tool (T)",
             //       "gwelltool");
             //   btn.Clicked += (o, e) => { SetTool(Tools.GwellTool); };
@@ -846,7 +896,7 @@ namespace linerider
                     Canvas.ColorControls.Selected = LineType.All;
                 SelectedTool = EraserTool;
             }
-            else if (tool == Tools.LineAdjustTool)
+            else if (tool == Tools.MoveTool)
             {
                 SelectedTool = MoveTool;
                 Canvas.ColorControls.SetVisible(false);
@@ -870,373 +920,300 @@ namespace linerider
             else
                 SelectedTool?.Stop();
         }
-        private bool HandleHotkeys()
+        private void RegisterHotkeys()
         {
-            bool editormode = !Track.PlaybackMode;
-            bool animating = Track.Playing;
-            bool recording = Settings.Local.RecordingMode;
-            
-            // key up:
-            if (TemporaryPlayback && !InputUtils.Check(Hotkey.PlaybackForward) && !InputUtils.Check(Hotkey.PlaybackBackward))
+            RegisterPlaybackHotkeys();
+            RegisterEditorHotkeys();
+            RegisterSettingHotkeys();
+            RegisterPopupHotkeys();
+        }
+        private void RegisterSettingHotkeys()
+        {
+            InputUtils.RegisterHotkey(Hotkey.PreferenceOnionSkinning, () => true, () =>
             {
-                TemporaryPlayback = false;
-                Scheduler.Reset();
-                AudioService.Pause();
-            }
-
-            if (InputUtils.Check(Hotkey.PlaybackStartSlowmo, true))
+                Settings.Local.OnionSkinning = !Settings.Local.OnionSkinning;
+                Track.Invalidate();
+            });
+        }
+        private void RegisterPlaybackHotkeys()
+        {
+            InputUtils.RegisterHotkey(Hotkey.PlaybackStartSlowmo, () => true, () =>
             {
                 StopTools();
                 Track.StartFromFlag();
                 Scheduler.UpdatesPerSecond = Settings.Local.SlowmoSpeed;
-                return true;
-            }
-            if (InputUtils.Check(Hotkey.PlaybackStartIgnoreFlag, true))
+            });
+            InputUtils.RegisterHotkey(Hotkey.PlaybackStartIgnoreFlag, () => true, () =>
             {
                 StopTools();
                 Track.StartIgnoreFlag();
                 Scheduler.DefaultSpeed();
-                return true;
-            }
-            if (InputUtils.Check(Hotkey.PlaybackStartGhostFlag, true))
+            });
+            InputUtils.RegisterHotkey(Hotkey.PlaybackStartGhostFlag, () => true, () =>
             {
                 StopTools();
                 Track.ResumeFromFlag();
                 Scheduler.DefaultSpeed();
-                return true;
-            }
-            if (InputUtils.Check(Hotkey.PlaybackStart, true))
+            });
+            InputUtils.RegisterHotkey(Hotkey.PlaybackStart, () => true, () =>
             {
                 StopTools();
                 Track.StartFromFlag();
                 Scheduler.DefaultSpeed();
-                return true;
-            }
-            if (InputUtils.Check(Hotkey.PlaybackStop))
+            });
+            InputUtils.RegisterHotkey(Hotkey.PlaybackStop, () => true, () =>
             {
                 StopTools();
                 Track.Stop();
-                return true;
-            }
-            if (InputUtils.Check(Hotkey.PlaybackFlag))
+            });
+            InputUtils.RegisterHotkey(Hotkey.PlaybackFlag, () => true, () =>
             {
                 Track.Flag();
-                return true;
-            }
+            });
 
-            if (InputUtils.Check(Hotkey.LoadWindow, true))
+            InputUtils.RegisterHotkey(Hotkey.PlaybackFrameNext, () => true, () =>
             {
                 StopTools();
-                Canvas.ShowLoadWindow();
-                return true;
-            }
-            if (InputUtils.Check(Hotkey.PreferencesWindow, true))
-            {
-                StopTools();
-                Canvas.ShowPreferences();
-                return true;
-            }
-            if (InputUtils.Check(Hotkey.PreferenceOnionSkinning, true))
-            {
-                Settings.Local.OnionSkinning = !Settings.Local.OnionSkinning;
-                Track.Invalidate();
-                return true;
-            }
-
-            if (InputUtils.Check(Hotkey.PlaybackFrameNext))
-            {
-                if (!TemporaryPlayback)
+                if (!Track.PlaybackMode)
                 {
-                    StopTools();
-                    if (!Track.PlaybackMode)
-                    {
-                        Track.StartFromFlag();
-                        Scheduler.DefaultSpeed();
-                    }
-                    if (!Track.Paused)
-                        Track.TogglePause();
-                    Track.NextFrame();
-                    Invalidate();
-                    Track.UpdateCamera();
+                    Track.StartFromFlag();
+                    Scheduler.DefaultSpeed();
                 }
-                return true;
-            }
-            if (InputUtils.Check(Hotkey.PlaybackFramePrev))
-            {
-                if (!TemporaryPlayback)
-                {
-                    StopTools();
-                    if (!Track.PlaybackMode)
-                    {
-                        Track.StartFromFlag();
-                        Scheduler.DefaultSpeed();
-                    }
-                    if (!Track.Paused)
-                        Track.TogglePause();
-                    Track.PreviousFrame();
-                    Invalidate();
-                    Track.UpdateCamera();
-                }
-                return true;
-            }
-            if (InputUtils.Check(Hotkey.PlaybackForward))
-            {
-                if (!TemporaryPlayback || ReversePlayback)
-                {
-                    StopTools();
-                    if (!Track.PlaybackMode)
-                    {
-                        Track.StartFromFlag();
-                        Scheduler.DefaultSpeed();
-                    }
-                    if (!Track.Paused)
-                        Track.TogglePause();
-                    ReversePlayback = false;
-                    TemporaryPlayback = true;
-                    Scheduler.Reset();
-                }
-                return true;
-            }
-            if (InputUtils.Check(Hotkey.PlaybackBackward))
-            {
-                if (!TemporaryPlayback || !ReversePlayback)
-                {
-                    StopTools();
-                    ReversePlayback = true;
-                    TemporaryPlayback = true;
-                    Scheduler.Reset();
-
-                    if (!Track.Paused)
-                        Track.TogglePause();
-                }
-                return true;
-            }
-            if (Track.PlaybackMode)
-            {
-                if (InputUtils.Check(Hotkey.PlaybackSpeedUp))
-                {
-                    PlaybackSpeedUp();
-                    return true;
-                }
-                if (InputUtils.Check(Hotkey.PlaybackSpeedDown))
-                {
-                    PlaybackSpeedDown();
-                    return true;
-                }
-                if (InputUtils.Check(Hotkey.PlaybackSlowmo))
-                {
-                    if (Scheduler.UpdatesPerSecond !=
-                    Settings.Local.SlowmoSpeed)
-                    {
-                        Scheduler.UpdatesPerSecond = Settings.Local.SlowmoSpeed;
-                    }
-                    else
-                    {
-                        Scheduler.DefaultSpeed();
-                    }
-                    return true;
-                }
-
-                if (InputUtils.Check(Hotkey.PlaybackTogglePause))
-                {
-                    StopTools();
+                if (!Track.Paused)
                     Track.TogglePause();
-                    return true;
-                }
-            }
-            if (!animating)
+                Track.NextFrame();
+                Invalidate();
+                Track.UpdateCamera();
+            },
+            null,
+            repeat: true);
+            InputUtils.RegisterHotkey(Hotkey.PlaybackFramePrev, () => true, () =>
             {
-                if (InputUtils.Check(Hotkey.PlaybackIterationNext))
+                StopTools();
+                if (!Track.PlaybackMode)
+                {
+                    Track.StartFromFlag();
+                    Scheduler.DefaultSpeed();
+                }
+                if (!Track.Paused)
+                    Track.TogglePause();
+                Track.PreviousFrame();
+                Invalidate();
+                Track.UpdateCamera();
+            },
+            null,
+            repeat: true);
+            InputUtils.RegisterHotkey(Hotkey.PlaybackSpeedUp, () => Track.PlaybackMode, () =>
+            {
+                PlaybackSpeedUp();
+            });
+            InputUtils.RegisterHotkey(Hotkey.PlaybackSpeedDown, () => Track.PlaybackMode, () =>
+            {
+                PlaybackSpeedDown();
+            });
+            InputUtils.RegisterHotkey(Hotkey.PlaybackSlowmo, () => Track.PlaybackMode, () =>
+            {
+                if (Scheduler.UpdatesPerSecond !=
+                Settings.Local.SlowmoSpeed)
+                {
+                    Scheduler.UpdatesPerSecond = Settings.Local.SlowmoSpeed;
+                }
+                else
+                {
+                    Scheduler.DefaultSpeed();
+                }
+            });
+            InputUtils.RegisterHotkey(Hotkey.PlaybackTogglePause, () => Track.PlaybackMode, () =>
+            {
+                StopTools();
+                Track.TogglePause();
+            },
+            null,
+            repeat: true);
+            InputUtils.RegisterHotkey(Hotkey.PlaybackIterationNext, () => !Track.Playing, () =>
+            {
+                StopTools();
+                if (!Track.PlaybackMode)
+                {
+                    Track.StartFromFlag();
+                    Scheduler.DefaultSpeed();
+                }
+                if (!Track.Paused)
+                    Track.TogglePause();
+                if (Track.IterationsOffset != 6)
+                {
+                    Track.IterationsOffset++;
+                }
+                else
+                {
+                    Track.NextFrame();
+                    Track.IterationsOffset = 0;
+                }
+                Track.Camera.SetFrame(Track.RenderRider);
+                Track.InvalidateRenderRider();
+                Canvas.UpdateIterationUI();
+            },
+            null,
+            repeat: true);
+            InputUtils.RegisterHotkey(Hotkey.PlaybackIterationPrev, () => !Track.Playing, () =>
+            {
+                if (Track.Offset != 0)
                 {
                     StopTools();
-                    if (!Track.PlaybackMode)
+                    if (Track.IterationsOffset > 0)
                     {
-                        Track.StartFromFlag();
-                        Scheduler.DefaultSpeed();
-                    }
-                    if (!Track.Paused)
-                        Track.TogglePause();
-                    if (Track.IterationsOffset != 6)
-                    {
-                        Track.IterationsOffset++;
+                        Track.IterationsOffset--;
                     }
                     else
                     {
-                        Track.NextFrame();
-                        Track.IterationsOffset = 0;
+                        Track.PreviousFrame();
+                        Track.IterationsOffset = 6;
+                        Invalidate();
                     }
                     Track.Camera.SetFrame(Track.RenderRider);
                     Track.InvalidateRenderRider();
                     Canvas.UpdateIterationUI();
-                    return true;
                 }
-                if (InputUtils.Check(Hotkey.PlaybackIterationPrev))
-                {
-                    if (Track.Offset != 0)
-                    {
-                        StopTools();
-                        if (Track.IterationsOffset > 0)
-                        {
-                            Track.IterationsOffset--;
-                        }
-                        else
-                        {
-                            Track.PreviousFrame();
-                            Track.IterationsOffset = 6;
-                            Invalidate();
-                        }
-                        Track.Camera.SetFrame(Track.RenderRider);
-                        Track.InvalidateRenderRider();
-                        Canvas.UpdateIterationUI();
-                    }
-                    return true;
-                }
+            },
+            null,
+            repeat: true);
+        }
+        private void RegisterPopupHotkeys()
+        {
+            InputUtils.RegisterHotkey(Hotkey.LoadWindow, () => true, () =>
+            {
+                StopTools();
+                Canvas.ShowLoadWindow();
+            });
 
-                if (InputUtils.Check(Hotkey.EditorPencilTool))
+            InputUtils.RegisterHotkey(Hotkey.PreferencesWindow, () => true, () =>
+            {
+                StopTools();
+                Canvas.ShowPreferences();
+            });
+        }
+        private void RegisterEditorHotkeys()
+        {
+            InputUtils.RegisterHotkey(Hotkey.EditorPencilTool, () => !Track.Playing, () =>
+            {
+                SetTool(Tools.PencilTool);
+            });
+            InputUtils.RegisterHotkey(Hotkey.EditorLineTool, () => !Track.Playing, () =>
+            {
+                SetTool(Tools.LineTool);
+            });
+            InputUtils.RegisterHotkey(Hotkey.EditorEraserTool, () => !Track.Playing, () =>
+            {
+                SetTool(Tools.EraserTool);
+            });
+            InputUtils.RegisterHotkey(Hotkey.EditorSelectTool, () => !Track.Playing, () =>
+            {
+                SetTool(Tools.MoveTool);
+            });
+            InputUtils.RegisterHotkey(Hotkey.EditorPanTool, () => !Track.Playing, () =>
+            {
+                //bugfix: pushing t wuold cancel panning and youd have to click again
+                if (SelectedTool != HandTool)
                 {
-                    SetTool(Tools.PencilTool);
-                    return true;
+                    SetTool(Tools.HandTool);
                 }
-                if (InputUtils.Check(Hotkey.EditorLineTool))
-                {
-                    SetTool(Tools.LineTool);
-                    return true;
-                }
-                if (InputUtils.Check(Hotkey.EditorEraserTool))
-                {
-                    SetTool(Tools.EraserTool);
-                    return true;
-                }
-                if (InputUtils.Check(Hotkey.EditorSelectTool))
-                {
-                    SetTool(Tools.LineAdjustTool);
-                    return true;
-                }
-                if (InputUtils.Check(Hotkey.EditorPanTool))
-                {
-                    //bugfix: pushing t wuold cancel panning and youd have to click again
-                    if (SelectedTool != HandTool)
-                    {
-                        SetTool(Tools.HandTool);
-                    }
-                    return true;
-                }
-                if (InputUtils.Check(Hotkey.EditorUndo))
+            });
+            InputUtils.RegisterHotkey(Hotkey.EditorUndo, () => !Track.Playing, () =>
+            {
+                StopTools();
+                Track.UndoManager.Undo();
+                Invalidate();
+            },
+            null,
+            repeat: true);
+            InputUtils.RegisterHotkey(Hotkey.EditorRedo, () => !Track.Playing, () =>
+            {
+                StopTools();
+                Track.UndoManager.Redo();
+                Invalidate();
+            },
+            null,
+            repeat: true);
+            InputUtils.RegisterHotkey(Hotkey.EditorRemoveLatestLine, () => !Track.Playing, () =>
+            {
+                if (!Track.PlaybackMode || Track.Paused)
                 {
                     StopTools();
-                    Track.UndoManager.Undo();
-                    Invalidate();
-                    return true;
-                }
-                if (InputUtils.Check(Hotkey.EditorRedo))
-                {
-                    StopTools();
-                    Track.UndoManager.Redo();
-                    Invalidate();
-                    return true;
-                }
-                if (InputUtils.Check(Hotkey.EditorRemoveLatestLine))
-                {
-                    if ((!Track.PlaybackMode || Track.Paused) && !TemporaryPlayback)
+                    using (var trk = Track.CreateTrackWriter())
                     {
-                        StopTools();
-                        using (var trk = Track.CreateTrackWriter())
-                        {
-                            SelectedTool?.Stop();
-                            var l = trk.GetNewestLine();
-                            if (l != null)
-                            {
-                                Track.UndoManager.BeginAction();
-                                trk.RemoveLine(l);
-                                Track.UndoManager.EndAction();
-                            }
-
-                            Track.NotifyTrackChanged();
-                            Invalidate();
-                        }
-                    }
-                    return true;
-                }
-                if (InputUtils.Check(Hotkey.EditorFocusStart))
-                {
-                    using (var trk = Track.CreateTrackReader())
-                    {
-                        var l = trk.GetOldestLine();
-                        if (l != null)
-                        {
-                            Track.Camera.SetFrameCenter(l.Position);
-                            Invalidate();
-                        }
-                    }
-                    return true;
-                }
-                if (InputUtils.Check(Hotkey.EditorFocusLastLine))
-                {
-                    using (var trk = Track.CreateTrackReader())
-                    {
+                        SelectedTool?.Stop();
                         var l = trk.GetNewestLine();
                         if (l != null)
                         {
-                            Track.Camera.SetFrameCenter(l.Position);
-                            Invalidate();
+                            Track.UndoManager.BeginAction();
+                            trk.RemoveLine(l);
+                            Track.UndoManager.EndAction();
                         }
-                    }
-                    return true;
-                }
-                if (InputUtils.Check(Hotkey.EditorCycleToolSetting))
-                {
-                    if (!Track.Playing)
-                    {
-                        Canvas.ColorControls.OnTabButtonPressed();
-                    }
-                    return true;
-                }
-                if (InputUtils.Check(Hotkey.EditorToolColor1))
-                {
-                    if (!Track.Playing)
-                    {
-                        Canvas.ColorControls.Selected = LineType.Blue;
+
+                        Track.NotifyTrackChanged();
                         Invalidate();
                     }
-                    return true;
                 }
-                if (InputUtils.Check(Hotkey.EditorToolColor2))
+            },
+            null,
+            repeat: true);
+            InputUtils.RegisterHotkey(Hotkey.EditorFocusStart, () => !Track.Playing, () =>
+            {
+                using (var trk = Track.CreateTrackReader())
                 {
-                    if (!Track.Playing)
+                    var l = trk.GetOldestLine();
+                    if (l != null)
                     {
-                        Canvas.ColorControls.Selected = LineType.Red;
+                        Track.Camera.SetFrameCenter(l.Position);
                         Invalidate();
                     }
-                    return true;
                 }
-                if (InputUtils.Check(Hotkey.EditorToolColor3))
+            });
+            InputUtils.RegisterHotkey(Hotkey.EditorFocusLastLine, () => !Track.Playing, () =>
+            {
+                using (var trk = Track.CreateTrackReader())
                 {
-                    Track.BackupTrack(true);
-                    if (!Track.Playing)
+                    var l = trk.GetNewestLine();
+                    if (l != null)
                     {
-                        Canvas.ColorControls.Selected = LineType.Scenery;
+                        Track.Camera.SetFrameCenter(l.Position);
                         Invalidate();
                     }
-                    return true;
                 }
-                if (InputUtils.Check(Hotkey.EditorFocusFlag))
+            });
+            InputUtils.RegisterHotkey(Hotkey.EditorCycleToolSetting, () => !Track.Playing, () =>
+            {
+                Canvas.ColorControls.OnTabButtonPressed();
+            });
+            InputUtils.RegisterHotkey(Hotkey.EditorToolColor1, () => !Track.Playing, () =>
+            {
+                Canvas.ColorControls.Selected = LineType.Blue;
+                Invalidate();
+            });
+            InputUtils.RegisterHotkey(Hotkey.EditorToolColor2, () => !Track.Playing, () =>
+            {
+                Canvas.ColorControls.Selected = LineType.Red;
+                Invalidate();
+            });
+            InputUtils.RegisterHotkey(Hotkey.EditorToolColor3, () => !Track.Playing, () =>
+            {
+                Canvas.ColorControls.Selected = LineType.Scenery;
+                Invalidate();
+            });
+            InputUtils.RegisterHotkey(Hotkey.EditorFocusFlag, () => !Track.Playing, () =>
+            {
+                var flag = Track.GetFlag();
+                if (flag != null)
                 {
-                    var flag = Track.GetFlag();
-                    if (flag != null)
-                    {
-                        Track.Camera.SetFrameCenter(flag.State.CalculateCenter());
-                        Invalidate();
-                    }
-                    return true;
-                }
-                if (InputUtils.Check(Hotkey.EditorFocusRider))
-                {
-                    Track.Camera.SetFrameCenter(Track.RenderRider.CalculateCenter());
+                    Track.Camera.SetFrameCenter(flag.State.CalculateCenter());
                     Invalidate();
                 }
-                return true;
-            }
-            return false;
+            });
+            InputUtils.RegisterHotkey(Hotkey.EditorFocusRider, () => !Track.Playing, () =>
+            {
+                Track.Camera.SetFrameCenter(Track.RenderRider.CalculateCenter());
+                Invalidate();
+            });
         }
     }
 }
