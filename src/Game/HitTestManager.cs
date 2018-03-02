@@ -79,39 +79,38 @@ namespace linerider
 
         public HashSet<int> SetFrame(int newframe)
         {
-            using (_sync.AcquireWrite())
+            using (var sync = _sync.AcquireUpgradableRead())
             {
                 var ret = new HashSet<int>();
                 foreach (var v in _changed)
                 {
                     ret.Add(v);
                 }
-                _changed.Clear();
+                var current = _currentframe;
                 if (!Settings.Local.HitTest)
                 {
-                    if (_currentframe != Disabled)
+                    newframe = Disabled;
+                    if (current != Disabled)
                     {
                         foreach (var v in _allcollisions)
                         {
                             ret.Add(v);
                         }
-                        _currentframe = Disabled;
+                        current = Disabled;
                     }
-                    return ret;
                 }
-
-                if (_currentframe != newframe)
+                else if (current != newframe)
                 {
-                    if (_currentframe == Disabled)
-                        _currentframe = 0;
+                    if (current == Disabled)
+                        current = 0;
                     // i'm leaving this in seperate loops for now
                     // it's a lot more readable this way for changes
-                    if (newframe < _currentframe)
+                    if (newframe < current)
                     {
                         // we're moving backwards.
                         // we compare to currentframe because we may have to
                         // remove its hit lines
-                        for (int i = newframe; i <= _currentframe; i++)
+                        for (int i = newframe; i <= current; i++)
                         {
                             foreach (var id in _unique_frame_collisions[i])
                             {
@@ -127,7 +126,7 @@ namespace linerider
                         // we're moving forwards
                         // we ignore currentframe, its render data is
                         // established
-                        for (int i = _currentframe + 1; i <= newframe; i++)
+                        for (int i = current + 1; i <= newframe; i++)
                         {
                             foreach (var id in _unique_frame_collisions[i])
                             {
@@ -135,6 +134,11 @@ namespace linerider
                             }
                         }
                     }
+                }
+                if (_currentframe != newframe || _changed.Count != 0)
+                {
+                    sync.UpgradeToWriter();
+                    _changed.Clear();
                     _currentframe = newframe;
                 }
                 return ret;
