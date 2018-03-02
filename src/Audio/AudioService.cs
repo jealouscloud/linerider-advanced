@@ -200,14 +200,15 @@ namespace linerider.Audio
                 (game.Track.CurrentFrame / (float)Constants.PhysicsRate) +
                 (updatepercent / (float)Constants.PhysicsRate);
 
-            bool shouldplay = (_musicplayer != null &&
-                game.Track.Playing || game.TemporaryPlayback) &&
+            bool shouldplay = 
+                _musicplayer != null &&
+                game.Track.Playing &&
                 expectedtime < _musicplayer.Duration;
 
             if (shouldplay && !game.Canvas.Scrubber.Held)
             {
                 float rate = (updaterate / Constants.PhysicsRate);
-                if (game.TemporaryPlayback && game.ReversePlayback)
+                if (game.ReversePlayback)
                     rate = -rate;
                 if (_musicplayer.Speed != rate || !_musicplayer.Playing)
                 {
