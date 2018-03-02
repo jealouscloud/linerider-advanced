@@ -52,6 +52,7 @@ namespace linerider.Game
         {
             using (_framesync.AcquireWrite())
             {
+                HitTest.Reset();
                 _frames.Empty();
                 _frames.Add(state);
             }
@@ -136,9 +137,9 @@ namespace linerider.Game
                     int currentframe = start + i;
                     var collisions = new LinkedList<int>();
                     current = current.Simulate(
-                        _savedcells, 
-                        bones, 
-                        _activetriggers, 
+                        _savedcells,
+                        bones,
+                        _activetriggers,
                         collisions);
                     steps[i] = current;
                     if (currentframe >= framecount)
