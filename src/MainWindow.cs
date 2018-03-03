@@ -748,21 +748,24 @@ namespace linerider
             btn = createbutton(GameResources.play_icon, GameResources.play_icon_white, "Start (Y)", "start");
             btn.Clicked += (o, e) =>
             {
-                if (Track.PlaybackMode && Track.Paused)
-                {
-                    Track.TogglePause();
-                }
-                else
-                {
-                    Track.StartFromFlag();
-                }
+                StopTools();
+                Track.StartFromFlag();
+                Scheduler.DefaultSpeed();
             };
             pos -= 32; //occupy same space as the start button
             btn = createbutton(GameResources.pause, GameResources.pause_white, null, "pause");
             btn.IsHidden = true;
-            btn.Clicked += (o, e) => { Track.TogglePause(); };
+            btn.Clicked += (o, e) =>
+            {
+                StopTools(); 
+                Track.TogglePause();
+            };
             btn = createbutton(GameResources.stop_icon, GameResources.stop_icon_white, "Stop (U)", "stop");
-            btn.Clicked += (o, e) => { Track.Stop(); };
+            btn.Clicked += (o, e) =>
+            {
+                StopTools(); 
+                Track.Stop();
+            };
             btn = createbutton(GameResources.flag_icon, GameResources.flag_icon_white, "Flag (I)", "flag");
             btn.SetOverride(GameResources.flag_invalid_icon);
             btn.Clicked += (o, e) => { Track.Flag(); };
