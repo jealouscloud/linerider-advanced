@@ -180,6 +180,8 @@ namespace linerider
             var fpslabel = ((Label)FindChildByName("fps", true));
             var ppflabel = ((Label)FindChildByName("ppf", true));
             var labelplayback = ((Label)FindChildByName("labelplayback", true));
+            string formatstring = "mm\\:ss";
+            string longformatstring = "h\\:" + formatstring;
             if (game.Track.PlaybackMode)
             {
                 var currts = TimeSpan.FromSeconds(game.Track.CurrentFrame / 40f);
@@ -194,8 +196,8 @@ namespace linerider
                     fpsorlinecount = fpslabel.Text;
                 }
                 sppf = string.Format("{0:N2}", Math.Round(ppf, 2)) + " P/f ";
-                playback = currts.ToString("mm\\:ss") + ":"
-                + (game.Track.CurrentFrame % 40f) + " " + Math.Round(game.Scheduler.UpdatesPerSecond / 40f, 3) + "x ";
+                playback = currts.ToString(currts.Hours > 0 ? longformatstring : formatstring) + ":"
+                + (game.Track.CurrentFrame % 40).ToString("D2") + " " + Math.Round(game.Scheduler.UpdatesPerSecond / 40f, 3) + "x ";
                 if (Settings.Local.RecordingMode)
                 {
                     if (Settings.Local.ShowFps)
@@ -229,7 +231,9 @@ namespace linerider
                 cam.Y -= 15;
                 var ts = TimeSpan.FromSeconds((flag.FrameID) / 40f);
                 labelflagtime.IsHidden = false;
-                labelflagtime.Text = ts.ToString("mm\\:ss") + ":" + (flag.FrameID % 40f);
+                labelflagtime.Text = ts.ToString(
+                    ts.Hours > 0 ? longformatstring : formatstring) + 
+                    ":" + (flag.FrameID % 40f);
                 labelflagtime.SetPosition((float)(cam.X + game.ScreenTranslation.X) * game.Track.Zoom,
                     (float)(cam.Y + game.ScreenTranslation.Y) * game.Track.Zoom);
             }
