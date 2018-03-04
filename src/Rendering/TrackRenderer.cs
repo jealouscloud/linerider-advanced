@@ -72,10 +72,10 @@ namespace linerider.Rendering
             _scenerylines = new Dictionary<int, int>();
             _decorator = new LineDecorator();
             _physvbo = new LineRenderer(Shaders.LineShader);
-            _physvbo.LineColor = Constants.DefaultLineColor;
+            _physvbo.OverrideColor = Constants.DefaultLineColor;
 
             _sceneryvbo = new LineRenderer(Shaders.LineShader);
-            _sceneryvbo.LineColor = Color.Black;
+            _sceneryvbo.OverrideColor = Color.Black;
         }
         public void Render(DrawOptions options)
         {
@@ -98,17 +98,24 @@ namespace linerider.Rendering
 
                 if (options.NightMode)
                 {
-                    _sceneryvbo.LineColor = Constants.DefaultNightLineColor;
-                    _physvbo.LineColor = Constants.DefaultNightLineColor;
+                    _sceneryvbo.OverrideColor = Constants.DefaultNightLineColor;
+                    _physvbo.OverrideColor = Constants.DefaultNightLineColor;
                 }
                 else
                 {
-                    _sceneryvbo.LineColor = Constants.DefaultLineColor;
-                    _physvbo.LineColor = Constants.DefaultLineColor;
+                    _sceneryvbo.OverrideColor = Constants.DefaultLineColor;
+                    _physvbo.OverrideColor = Constants.DefaultLineColor;
                 }
                 if (options.LineColors)
                 {
-                    _sceneryvbo.LineColor = Constants.SceneryLineColor;
+                    _sceneryvbo.OverrideColor = Constants.SceneryLineColor;
+                    _sceneryvbo.OverridePriority = 1;
+                    _physvbo.OverridePriority = 1;
+                }
+                else
+                {
+                    _sceneryvbo.OverridePriority = 255;//force override
+                    _physvbo.OverridePriority = 255;
                 }
                 _sceneryvbo.Draw();
                 _decorator.DrawUnder(options);
@@ -286,7 +293,11 @@ namespace linerider.Rendering
             }
             int color = 0;
             if (line is StandardLine stl && stl.Trigger != null)
-                color = unchecked((int)0xff4f95ff);
+            {
+                var trigger = Utility.ColorToRGBA_LE(
+                    Constants.TriggerLineColor);
+                color = Utility.ChangeAlpha(trigger, 254);
+            }
             var lineverts = LineRenderer.CreateTrackLine(
                 line.Position,
                 line.Position2,
@@ -305,8 +316,11 @@ namespace linerider.Rendering
             if (coloroverride == 0 && line is StandardLine stl)
             {
                 if (stl.Trigger != null)
-                    coloroverride = Utility.ColorToRGBA_LE(
+                {
+                    var trigger = Utility.ColorToRGBA_LE(
                         Constants.TriggerLineColor);
+                    coloroverride = Utility.ChangeAlpha(trigger,254);
+                }
             }
             var lineverts = LineRenderer.CreateTrackLine(
                 line.Position,

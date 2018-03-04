@@ -14,7 +14,8 @@ namespace linerider.Rendering
     public class LineRenderer : IDisposable
     {
         public const int StartingLineCount = 10000;
-        public Color LineColor = Color.FromArgb(255, 0, 0xCC, 0);
+        public byte OverridePriority = 0;
+        public Color OverrideColor = Color.Black;
         public KnobState KnobState = KnobState.Hidden;
         public float Scale = 1.0f;
         private Shader _shader;
@@ -222,11 +223,11 @@ namespace linerider.Rendering
             GL.VertexAttribPointer(in_circle, 2, VertexAttribPointerType.Float, false, LineVertex.Size, 8);
             GL.VertexAttribPointer(in_ratio, 1, VertexAttribPointerType.Float, false, LineVertex.Size, 8 + 8);
             GL.VertexAttribPointer(in_color, 4, VertexAttribPointerType.UnsignedByte, true, LineVertex.Size, 8 + 8 + 4);
-            var global = LineColor;
+            var global = OverrideColor;
             var u_color = _shader.GetUniform("u_color");
             var u_scale = _shader.GetUniform("u_scale");
             var u_knobstate = _shader.GetUniform("u_knobstate");
-            GL.Uniform4(u_color, global.R / 255f, global.G / 255f, global.B / 255f, global.A / 255f);
+            GL.Uniform4(u_color, global.R / 255f, global.G / 255f, global.B / 255f, OverridePriority / 255f);
             GL.Uniform1(u_scale, Scale);
             GL.Uniform1(_shader.GetUniform("u_alphachannel"), 0);
             GL.Uniform1(u_knobstate, (int)KnobState);

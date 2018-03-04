@@ -181,5 +181,13 @@ namespace linerider
             var color = Color.FromArgb(rgb);
             return (alpha << 24) | (color.B << 16) | (color.G << 8) | color.R;
         }
+        /// <summary>
+        /// Converts the color to a little endian rgba integer
+        /// </summary>
+        public static int ChangeAlpha(int rgba, byte alpha)
+        {
+            rgba &= unchecked((int)0x00FFFFFF);
+            return rgba | (alpha << 24);
+        }
     }
 }

@@ -16,11 +16,8 @@ namespace linerider.Utils
         public static readonly Color BlueLineColor = Color.FromArgb(0, 0x66, 0xFF);
         public static readonly Color SceneryLineColor = Color.FromArgb(0, 0xCC, 0);
         public static readonly Color TriggerLineColor = Color.FromArgb(0xFF, 0x95, 0x4F);
-
-        // the following have an alpha of 254 
-        // so theyre overridden by the shader for hit test
-        public static readonly Color DefaultLineColor = Color.FromArgb(254, 0, 0, 0);
-        public static readonly Color DefaultNightLineColor = Color.FromArgb(254, 255, 255,255);
+        public static readonly Color DefaultLineColor = Color.FromArgb(0, 0, 0);
+        public static readonly Color DefaultNightLineColor = Color.FromArgb(255, 255,255);
         public static readonly string TracksDirectory = Program.UserDirectory + TracksFolderName + System.IO.Path.DirectorySeparatorChar;
         public const string TracksFolderName = "Tracks";
         public const string DefaultTrackName = "<untitled>";
