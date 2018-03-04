@@ -189,7 +189,7 @@ namespace linerider
             drawOptions.ShowMomentumVectors = Settings.Local.MomentumVectors;
             drawOptions.Zoom = Zoom;
             drawOptions.RiderDiagnosis = RenderRiderInfo.Diagnosis;
-            if (Settings.SmoothPlayback && Playing && Offset > 0 && blend < 1)
+            if (Playing && Offset > 0 && blend < 1)
             {
                 //interpolate between last frame and current one
                 drawOptions.Rider = Rider.Lerp(Timeline.GetFrame(Offset - 1), Timeline.GetFrame(Offset), blend);
@@ -328,7 +328,6 @@ namespace linerider
             CancelTriggers();
             _startFrame = 0;
             Timeline.Restart(_track.GetStart());
-            _startFrame = _flag.FrameID;
             FrameCount = 1;
             Start(0);
         }
