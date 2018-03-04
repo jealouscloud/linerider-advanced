@@ -35,8 +35,19 @@ namespace linerider.Drawing
     {
         public static readonly int Size = Marshal.SizeOf(typeof(LineVertex));
         public Vector2 Position;
-        public Vector2 circle_uv;
-        public float ratio;
         public int color;
+        // shorts for alignment or something
+        // who knows
+        /// <summary>
+        /// 0 or 1
+        /// </summary>
+        public short u;
+        /// <summary>
+        /// 0 or 1
+        /// </summary>
+        public short v;
+        
+        public float ratio;
+        public float scale;
     }
 }
