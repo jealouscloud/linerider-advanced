@@ -144,7 +144,7 @@ namespace linerider.Tools
             var gamepos = ScreenToGameCoords(mousepos);
             using (var trk = game.Track.CreateTrackWriter())
             {
-                var line = SelectLine(trk, gamepos);
+                var line = SelectLine(trk, gamepos, out bool knob);
                 if (line != null)
                 {
                     var point = Utility.CloserPoint(
@@ -152,7 +152,7 @@ namespace linerider.Tools
                         line.Position,
                         line.Position2);
                     //is it a knob?
-                    if ((gamepos - point).Length <= line.Width)
+                    if (knob)
                     {
                         _selection = new SelectInfo();
                         _selection.snapped = new List<SelectInfo>();
@@ -201,7 +201,14 @@ namespace linerider.Tools
                     }
                     else
                     {
-                        //select whole line
+                        _selection = new SelectInfo();
+                        _selection.snapped = new List<SelectInfo>();
+                        _selection.line = line;
+                        _selection.clone = line.Clone();
+                        _clickstart = gamepos;
+                        _selection.joint1 = _selection.joint2 = true;
+                        Active = true;
+                        UpdateTooltip();
                     }
                 }
             }
@@ -228,7 +235,7 @@ namespace linerider.Tools
             var gamepos = ScreenToGameCoords(pos);
             using (var trk = game.Track.CreateTrackWriter())
             {
-                var line = SelectLine(trk, gamepos);
+                var line = SelectLine(trk, gamepos, out bool knob);
                 if (line != null)
                 {
                     SelectedLineWindow window = new SelectedLineWindow(game.Canvas, game, line);
@@ -279,8 +286,8 @@ namespace linerider.Tools
                 "angle: " + Math.Round(angle.Degrees, 2) + "° ";
                 if (_selection.line.Type != LineType.Scenery)
                 {
-                    tooltip += " \n" +
-                    "ID: " + _selection.line.ID;
+                    tooltip += "\n" +
+                    "ID: " + _selection.line.ID+" ";
                 }
                 ShowTooltip(tooltip);
             }

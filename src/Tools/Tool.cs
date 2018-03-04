@@ -95,11 +95,16 @@ namespace linerider.Tools
         public virtual void OnChangingTool()
         {
         }
-        protected GameLine SelectLine(TrackWriter trk, Vector2d position)
+        protected GameLine SelectLine(TrackWriter trk, Vector2d position, out bool knob)
         {
-            var ends = LineEndsInRadius(trk, position, 0);
+            knob = false;
+            var zoom = game.Track.Zoom;
+            var ends = LineEndsInRadius(trk, position, SnapRadius);
             if (ends.Length > 0)
+            {
+                knob = true;
                 return ends[0];
+            }
             var lines =
                 trk.GetLinesInRect(
                     new DoubleRect((Vector2d)position - new Vector2d(24, 24),
