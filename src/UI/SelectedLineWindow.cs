@@ -35,6 +35,12 @@ namespace linerider.UI
 {
     class SelectedLineWindow : WindowControl
     {
+        // todo
+        // everything done in here should count as one undo action
+        // also, if a change is made and then unmade, any extension changes
+        // should be undone. currently, if you invert a line then invert it back
+        // if it didnt have an extension it should have had registered. it will 
+        // register and break the track, needing to be undone.
         private MainWindow game;
         public SelectedLineWindow(Gwen.Controls.ControlBase parent, MainWindow glgame, GameLine line) : base(parent, "Line Properties")
         {
@@ -86,6 +92,7 @@ namespace linerider.UI
 
                     using (var trk = game.Track.CreateTrackWriter())
                     {
+                        trk.DisableExtensionUpdating();
                         game.Track.UndoManager.BeginAction();
                         var copy = (StandardLine)stl.Clone();
                         if (enabled.Value == "1")
