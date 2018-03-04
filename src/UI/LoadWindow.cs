@@ -34,6 +34,7 @@ namespace linerider.UI
 {
     class LoadWindow : WindowControl
     {
+        const string DefaultTitle = "Load Track";
         class BadException : Exception
         {
             public BadException(string s) : base(s)
@@ -41,12 +42,13 @@ namespace linerider.UI
             }
         }
         private MainWindow game;
-        public LoadWindow(Gwen.Controls.ControlBase parent, MainWindow glgame) : base(parent, "Load Track")
+        public LoadWindow(Gwen.Controls.ControlBase parent, MainWindow glgame) : base(parent, DefaultTitle)
         {
             game = glgame;
             game.Track.Stop();
             MakeModal(true);
             var tv = new TreeControl(this);
+            tv.Margin = Margin.One;
             tv.Name = "loadtree";
             var files = Program.UserDirectory + "Tracks";
             if (Directory.Exists(files))
@@ -74,6 +76,7 @@ namespace linerider.UI
                     AddTrack(tv, folder, trackfiles);
                 }
             }
+            tv.SelectionChanged += treeview_SelectionChanged;
             var container = new ControlBase(this);
             container.Height = 30;
             container.Dock = Pos.Bottom;
@@ -114,10 +117,38 @@ namespace linerider.UI
             {
                 //a folder of tracks.
                 var rootnode = tv.AddNode(Path.GetFileName(fileroot));
+
                 rootnode.UserData = fileroot;
                 foreach (var child in childpaths)
                 {
                     rootnode.AddNode(Path.GetFileName(child)).UserData = child;
+                }
+            }
+        }
+        private void treeview_SelectionChanged(ControlBase sender, EventArgs e)
+        {
+            var tv = (TreeControl)this.FindChildByName("loadtree", true);
+
+            var en = (List<TreeNode>)tv.SelectedChildren;
+            this.Title = DefaultTitle;
+            if (en.Count == 1)
+            {
+                var selected = en[0];
+                var userdata = selected.UserData;
+                if (userdata is string filepath)
+                {
+                    // track folder
+                    bool folder =selected.Children.Count > 0;
+                    if (folder)
+                    {
+                        filepath = (string)selected.Children[0].UserData;
+                    }
+                    var title = Path.GetFileName(filepath);
+                    if (folder)
+                    {
+                        title = Path.GetFileName((string)userdata)+Path.DirectorySeparatorChar+title;
+                    }
+                    this.Title = DefaultTitle+" -- " + title;
                 }
             }
         }
@@ -191,6 +222,7 @@ namespace linerider.UI
                     {
                         selected.Parent.Parent.RemoveChild(selected.Parent, true);
                     }
+                    this.Title = DefaultTitle;
                     delwindow.Close();
                 };
                 btnok.Dock = Pos.Left;
@@ -225,96 +257,98 @@ namespace linerider.UI
                 var selected = en[0];
                 if (selected.UserData is sol_track sol)
                 {
-                    var data = sol;
-                    try
-                    {
-                        Settings.Local.EnableSong = false;
-                        game.Track.ChangeTrack(SOLLoader.LoadTrack(data));
-                    }
-                    catch (Exception e)
-                    {
-                        if (Program.IsDebugged)
-                            throw e;
-                        window.Close();
-                        PopupWindow.Error("An error occured loading the track.", "Error");
-                        return;
-                    }
+                    LoadSOL(sol);
                 }
                 else if (selected.UserData is string)
                 {
                     var filepath = (string)selected.UserData;
-                    try
+                    if (filepath.EndsWith(".sol", StringComparison.OrdinalIgnoreCase))//unopened sol file
                     {
-                        if (filepath.EndsWith(".sol", StringComparison.OrdinalIgnoreCase))//unopened sol file
-                        {
-                            List<sol_track> tracks = null;
-                            try
-                            {
-                                tracks = SOLLoader.LoadSol(filepath);
-                                if (tracks.Count == 0)
-                                    return;
-                                foreach (var track in tracks)
-                                {
-                                    selected.AddNode(track.name).UserData = track;
-                                }
-                                if (tracks.Count == 1)
-                                {
-                                    Settings.Local.EnableSong = false;
-                                    game.Track.ChangeTrack(SOLLoader.LoadTrack(tracks[0]));
-                                }
-                                else
-                                {
-                                    selected.UserData = tracks[0];
-                                    selected.ExpandAll();
-                                    return;
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                if (Program.IsDebugged)
-                                    throw e;
-                                PopupWindow.Error("An error occured loading the .sol", "Error!");
-                            }
-                        }
-                        else
-                        {
-                            bool trackfolder = selected.Children.Count > 0;
-                            if (trackfolder)
-                            {
-                                // getfilenamewithoutextension interacts weird
-                                // with periods in the directory name.
-                                filepath = (string)selected.Children[0].UserData;
-                            }
-                            Settings.Local.EnableSong = false;
-                            string file = filepath;
-                            string name = TrackIO.GetTrackName(filepath);
-                            if (!ThreadPool.QueueUserWorkItem((o) => LoadTrack(file, name)))
-                            {
-                                LoadTrack(file, name);
-                            }
-                        }
+                        if (!ExpandSOL(filepath, selected))
+                            return;
                     }
-                    catch (TrackIO.TrackLoadException e)
+                    else
                     {
-                        window.Close();
-                        PopupWindow.Error(
-                            "Failed to load the track:" +
-                            Environment.NewLine +
-                            e.Message);
-                        return;
-                    }
-                    catch (Exception e)
-                    {
-                        window.Close();
-                        PopupWindow.Error(
-                            "An unknown error occured while loading the track." +
-                            Environment.NewLine +
-                            e.Message);
-                        return;
+                        bool trackfolder = selected.Children.Count > 0;
+                        if (trackfolder)
+                        {
+                            filepath = (string)selected.Children[0].UserData;
+                        }
+                        Settings.Local.EnableSong = false;
+                        LoadTRK(filepath);
                     }
                 }
                 game.Track.NotifyTrackChanged();
                 window.Close();
+            }
+        }
+        /// <summary>
+        /// Displays all the tracks contained in an sol
+        /// returns true if the window can close.
+        /// </summary>
+        private bool ExpandSOL(string filepath, TreeNode parent)
+        {
+            try
+            {
+                var tracks = SOLLoader.LoadSol(filepath);
+                if (tracks.Count != 0)
+                {
+                    foreach (var track in tracks)
+                    {
+                        parent.AddNode(track.name).UserData = track;
+                    }
+                    if (tracks.Count == 1)
+                    {
+                        Settings.Local.EnableSong = false;
+                        game.Track.ChangeTrack(SOLLoader.LoadTrack(tracks[0]));
+                        return true;
+                    }
+                    else
+                    {
+                        parent.UserData = tracks[0];
+                        parent.ExpandAll();
+                        return false;
+                    }
+                }
+                return false;
+            }
+            catch (Exception e)
+            {
+                if (Program.IsDebugged)
+                    throw e;
+                PopupWindow.QueuedActions.Enqueue(() =>
+                PopupWindow.Error(
+                    "Failed to load the .sol track:" +
+                    Environment.NewLine +
+                    e.Message));
+                return true;
+            }
+        }
+        private void LoadSOL(sol_track sol)
+        {
+            try
+            {
+                Settings.Local.EnableSong = false;
+                game.Track.ChangeTrack(SOLLoader.LoadTrack(sol));
+            }
+            catch (Exception e)
+            {
+                if (Program.IsDebugged)
+                    throw e;
+                PopupWindow.QueuedActions.Enqueue(() =>
+                PopupWindow.Error(
+                    "Failed to load the track:" +
+                    Environment.NewLine +
+                    e.Message));
+                return;
+            }
+        }
+        private void LoadTRK(string filepath)
+        {
+            string name = TrackIO.GetTrackName(filepath);
+            if (!ThreadPool.QueueUserWorkItem((o) => LoadTrack(filepath, name)))
+            {
+                LoadTrack(filepath, name);
             }
         }
         private void LoadTrack(string file, string name)
@@ -346,7 +380,7 @@ namespace linerider.UI
             }
             catch (Exception e)
             {
-                PopupWindow.QueuedActions.Enqueue(()=>
+                PopupWindow.QueuedActions.Enqueue(() =>
                 PopupWindow.Error(
                     "An unknown error occured while loading the track." +
                     Environment.NewLine +
