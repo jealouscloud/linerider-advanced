@@ -8,11 +8,12 @@ varying vec2 v_circle;
 //the ratio height/width of the line
 varying float v_ratio;
 varying vec4 v_color;
+varying float v_scale;
 const float radius = 0.5;
 const float knobradius = 0.4;
 float getedge(float rad)
 {
-    return rad - (rad / u_scale); 
+    return rad - (rad / (u_scale * v_scale)); 
 }
 void main()
 {

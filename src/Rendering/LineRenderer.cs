@@ -213,16 +213,25 @@ namespace linerider.Rendering
             _shader.Use();
             var in_vertex = _shader.GetAttrib("in_vertex");
             var in_circle = _shader.GetAttrib("in_circle");
+            var in_scale = _shader.GetAttrib("in_scale");
             var in_ratio = _shader.GetAttrib("in_ratio");
             var in_color = _shader.GetAttrib("in_color");
             GL.EnableVertexAttribArray(in_vertex);
             GL.EnableVertexAttribArray(in_circle);
             GL.EnableVertexAttribArray(in_ratio);
+            GL.EnableVertexAttribArray(in_scale);
             GL.EnableVertexAttribArray(in_color);
-            GL.VertexAttribPointer(in_vertex, 2, VertexAttribPointerType.Float, false, LineVertex.Size, 0);
-            GL.VertexAttribPointer(in_circle, 2, VertexAttribPointerType.Float, false, LineVertex.Size, 8);
-            GL.VertexAttribPointer(in_ratio, 1, VertexAttribPointerType.Float, false, LineVertex.Size, 8 + 8);
-            GL.VertexAttribPointer(in_color, 4, VertexAttribPointerType.UnsignedByte, true, LineVertex.Size, 8 + 8 + 4);
+            int counter = 0;
+            GL.VertexAttribPointer(in_vertex, 2, VertexAttribPointerType.Float, false, LineVertex.Size, counter);
+            counter += 8;
+            GL.VertexAttribPointer(in_color, 4, VertexAttribPointerType.UnsignedByte, true, LineVertex.Size, counter);
+            counter += 4;
+            GL.VertexAttribPointer(in_circle, 2, VertexAttribPointerType.Short, false, LineVertex.Size, counter);
+            counter += 4;
+            GL.VertexAttribPointer(in_ratio, 1, VertexAttribPointerType.Float, false, LineVertex.Size, counter);
+            counter += 4;
+            GL.VertexAttribPointer(in_scale, 1, VertexAttribPointerType.Float, false, LineVertex.Size, counter);
+            counter += 4;
             var global = OverrideColor;
             var u_color = _shader.GetUniform("u_color");
             var u_scale = _shader.GetUniform("u_scale");
@@ -252,11 +261,13 @@ namespace linerider.Rendering
             var circle = _shader.GetAttrib("in_circle");
             var ratio = _shader.GetAttrib("in_ratio");
             var in_color = _shader.GetAttrib("in_color");
+            var in_scale = _shader.GetAttrib("in_scale");
 
             GL.DisableVertexAttribArray(in_color);
             GL.DisableVertexAttribArray(v);
             GL.DisableVertexAttribArray(circle);
             GL.DisableVertexAttribArray(ratio);
+            GL.DisableVertexAttribArray(in_scale);
             _shader.Stop();
             _vbo.Unbind();
         }
@@ -317,13 +328,13 @@ namespace linerider.Rendering
             var len = (end - start).Length;
 
             var l = Utility.GetThickLine(start, end, angle, size);
-            ret[0] = new LineVertex() { Position = l[0], circle_uv = new Vector2(0, 0), ratio = size / len, color = color };
-            ret[1] = new LineVertex() { Position = l[1], circle_uv = new Vector2(0, 1), ratio = size / len, color = color };
-            ret[2] = new LineVertex() { Position = l[2], circle_uv = new Vector2(1, 1), ratio = size / len, color = color };
+            ret[0] = new LineVertex() { Position = l[0], u = 0, v = 0, ratio = size / len, color = color, scale = size };
+            ret[1] = new LineVertex() { Position = l[1], u = 0, v = 1, ratio = size / len, color = color, scale = size };
+            ret[2] = new LineVertex() { Position = l[2], u = 1, v = 1, ratio = size / len, color = color, scale = size };
 
-            ret[3] = new LineVertex() { Position = l[2], circle_uv = new Vector2(1, 1), ratio = size / len, color = color };
-            ret[4] = new LineVertex() { Position = l[3], circle_uv = new Vector2(1, 0), ratio = size / len, color = color };
-            ret[5] = new LineVertex() { Position = l[0], circle_uv = new Vector2(0, 0), ratio = size / len, color = color };
+            ret[3] = new LineVertex() { Position = l[2], u = 1, v = 1, ratio = size / len, color = color, scale = size };
+            ret[4] = new LineVertex() { Position = l[3], u = 1, v = 0, ratio = size / len, color = color, scale = size };
+            ret[5] = new LineVertex() { Position = l[0], u = 0, v = 0, ratio = size / len, color = color, scale = size };
             return ret;
         }
     }
