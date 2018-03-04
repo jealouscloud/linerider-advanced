@@ -44,24 +44,19 @@ namespace linerider.Game
             {
                 if (zoomcounter == 0)
                 {
-                    if (Math.Abs(game.Track.Zoom - ZoomTarget) < 0.001)
+                    if (game.Track.Zoom == ZoomTarget)
                     {
                         return true;
                     }
                 }
                 zoomcounter++;
-                if (ZoomFrames == 1)
-                {
-                    var diff = ZoomTarget - game.Track.Zoom;
-                    game.Zoom(diff);
-                }
-                else
-                {
-                    var diff = ZoomTarget - game.Track.Zoom;
-                    game.Zoom((float)diff / (ZoomFrames - zoomcounter));
-                }
+                var diff = ZoomTarget - game.Track.Zoom;
+                var add = (float)diff / (ZoomFrames - zoomcounter);
+                game.Zoom(add / game.Track.Zoom);
+
                 if (zoomcounter >= ZoomFrames - 1)
                 {
+                    game.SetZoom(game.Track.Zoom);
                     zoomcounter = 0;
                     return true;
                 }

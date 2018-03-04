@@ -148,8 +148,7 @@ namespace linerider
             vslider.ValueChanged += (o, e) =>
             {
                 var slider = (VerticalSlider)o;
-                var diff = slider.Value - game.Track.Zoom;
-                game.Zoom(diff, false);
+                game.SetZoom(slider.Value, false);
             };
             vslider.SetPosition(0, (int)Height - 150);
             vslider.Name = "vslider";

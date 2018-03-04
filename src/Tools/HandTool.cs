@@ -76,7 +76,7 @@ namespace linerider.Tools
             {
                 if (zoom)
                 {
-                    game.Zoom((float)(0.02 * (lastposition.Y - pos.Y)));
+                    game.Zoom((float)(0.01 * (lastposition.Y - pos.Y)));
                     lastposition = pos;
                 }
                 else

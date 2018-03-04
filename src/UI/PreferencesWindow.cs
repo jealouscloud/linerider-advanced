@@ -49,35 +49,6 @@ namespace linerider.UI
             CreateRecordingTab(tcontainer);
             CreateAboutTab(tcontainer);
         }
-        private void CreateAdvancedTab(TabControl tcontainer)
-        {
-            var container = tcontainer.AddPage("Advanced").Page;
-            PropertyTree tree = new PropertyTree(container);
-            var pt = tree.Add("Advanced");
-            tree.ExpandAll();
-            tree.Dock = Pos.Top;
-
-            var zoom = CreateEditableNumber("Zoom", game.Track.Zoom.ToString(), pt);
-            zoom.MinValue = 0.1;
-            zoom.MaxValue = 200;
-            zoom.ValueChanged += (o, e) =>
-              {
-                  if (!double.IsNaN(zoom.NumValue))
-                  {
-                      game.Zoom((float)zoom.NumValue - game.Track.Zoom);
-                  }
-              };
-            tree.Dock = Pos.Fill;
-            var mar = tree.Margin;
-            mar.Right = 100;
-            tree.Margin = mar;
-            pt.SplitWidth = 200;
-            Button btn = new Button(container);
-            btn.Width = 100;
-            btn.Height = 20;
-            Align.AlignBottom(btn);
-            Align.AlignRight(btn);
-        }
         private void CreateRecordingTab(TabControl tcontainer)
         {
             var container = tcontainer.AddPage("Recording").Page;
