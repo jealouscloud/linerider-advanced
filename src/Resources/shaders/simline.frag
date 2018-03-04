@@ -11,9 +11,9 @@ varying vec4 v_color;
 varying float v_scale;
 const float radius = 0.5;
 const float knobradius = 0.4;
-float getedge(float rad)
+float getedge(float rad, float scale)
 {
-    return rad - (rad / (u_scale * v_scale)); 
+    return rad - (rad / (u_scale * v_scale * scale)); 
 }
 void main()
 {
@@ -26,7 +26,7 @@ void main()
     float alpha;
     if (u_knobstate > 0 && edgedist < knobradius)
     {
-        float knobedgediff = knobradius - getedge(knobradius);
+        float knobedgediff = knobradius - getedge(knobradius, 0.8);
         float step = (knobradius - edgedist) / knobedgediff;
         const vec3 showncolor = vec3(1.0, 1.0, 1.0);
         const vec3 lifelockcolor = vec3(1.0, 0.0, 0.0);
@@ -42,7 +42,7 @@ void main()
     }
     else
     {
-        alpha = smoothstep(radius, getedge(radius), edgedist);
+        alpha = smoothstep(radius, getedge(radius, 1.0), edgedist);
     }
     if (alpha == 0.0)
         discard;
