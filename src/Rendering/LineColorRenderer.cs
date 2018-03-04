@@ -29,7 +29,8 @@ namespace linerider.Rendering
         public LineColorRenderer()
         {
             _linebuffer = new LineRenderer(Shaders.LineShader);
-            _linebuffer.LineColor = Color.FromArgb(0);
+            _linebuffer.OverrideColor = Color.FromArgb(0);
+            _linebuffer.OverridePriority = 0;
             _accelbuffer = new GLBuffer<GenericVertex>(BufferTarget.ArrayBuffer);
             _accelbuffer.Bind();
             _accelbuffer.SetSize((LineRenderer.StartingLineCount / 2) * 3, BufferUsageHint.DynamicDraw);
