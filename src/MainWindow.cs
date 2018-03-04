@@ -1,5 +1,5 @@
 ﻿//#define debuggrid
-#define debugcamera
+//#define debugcamera
 //
 //  GLWindow.cs
 //
@@ -170,11 +170,11 @@ namespace linerider
             Invalidate();
         }
 
-        public void Zoom(float f)
+        public void Zoom(float percent)
         {
-            if (Math.Abs(f) < 0.00001)
+            if (Math.Abs(percent) < 0.00001)
                 return;
-            SetZoom(Track.Zoom + (Track.Zoom * f), true);
+            SetZoom(Track.Zoom + (Track.Zoom * percent), true);
         }
         public void Render(float blend = 1)
         {
@@ -403,7 +403,7 @@ namespace linerider
 
             AddCursor("pencil", GameResources.cursor_pencil, 3, 28);
             AddCursor("line", GameResources.cursor_line, 11, 11);
-            AddCursor("eraser", GameResources.cursor_eraser, 5, 5);
+            AddCursor("eraser", GameResources.cursor_eraser, 8, 8);
             AddCursor("hand", GameResources.cursor_move, 16, 16);
             AddCursor("closed_hand", GameResources.cursor_dragging, 16, 16);
             AddCursor("adjustline", GameResources.cursor_select, 4, 4);
@@ -605,7 +605,7 @@ namespace linerider
                 if (Canvas.GetOpenWindows().Count != 0)
                     return;
                 var delta = (float.IsNaN(e.DeltaPrecise) ? e.Delta : e.DeltaPrecise);
-                    Zoom(delta / 5);
+                Zoom(delta / 5);
             }
             catch (Exception ex)
             {

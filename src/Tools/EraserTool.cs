@@ -36,7 +36,7 @@ namespace linerider.Tools
         }
         private Vector2d _last_erased = Vector2d.Zero;
         // todo, this + the circle function dont work at ultra zoomed out.
-        private float radius => 5 / game.Track.Zoom;
+        private float radius => 8 / game.Track.Zoom;
         public override MouseCursor Cursor
         {
             get { return game.Cursors["eraser"]; }
