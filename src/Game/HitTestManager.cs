@@ -16,7 +16,7 @@ namespace linerider
     {
         private HashSet<int> _allcollisions = new HashSet<int>();
         private List<HashSet<int>> _unique_frame_collisions = new List<HashSet<int>>();
-        private HashSet<int> _changed = new HashSet<int>();
+        private HashSet<int> _renderer_changelist = new HashSet<int>();
         private Dictionary<int, int> _line_framehit = new Dictionary<int, int>();
         private ResourceSync _sync = new ResourceSync();
         private int _currentframe = 0;
@@ -36,7 +36,8 @@ namespace linerider
                     var id = collision;
                     if (_allcollisions.Add(id))
                     {
-                        _changed.Add(id);
+                        if (Settings.Local.HitTest)
+                            _renderer_changelist.Add(id);
                         unique.Add(id);
                         _line_framehit.Add(id, frameid);
                     }
@@ -55,7 +56,8 @@ namespace linerider
                     foreach (var hit in frames[start + i])
                     {
                         _allcollisions.Remove(hit);
-                        _changed.Add(hit);
+                        if (Settings.Local.HitTest)
+                            _renderer_changelist.Add(hit);
                         _line_framehit.Remove(hit);
                     }
                 }
@@ -67,7 +69,8 @@ namespace linerider
                         var id = collision;
                         if (_allcollisions.Add(id))
                         {
-                            _changed.Add(id);
+                            if (Settings.Local.HitTest)
+                                _renderer_changelist.Add(id);
                             unique.Add(id);
                             _line_framehit.Add(id, start + i);
                         }
@@ -76,13 +79,16 @@ namespace linerider
                 }
             }
         }
-
-        public HashSet<int> SetFrame(int newframe)
+        /// <summary>
+        /// Sets the hit test position to the new frame and returns the
+        /// line ids that need updating to the renderer.
+        /// </summary>
+        public HashSet<int> GetChangesForFrame(int newframe)
         {
             using (var sync = _sync.AcquireUpgradableRead())
             {
                 var ret = new HashSet<int>();
-                foreach (var v in _changed)
+                foreach (var v in _renderer_changelist)
                 {
                     ret.Add(v);
                 }
@@ -135,10 +141,10 @@ namespace linerider
                         }
                     }
                 }
-                if (_currentframe != newframe || _changed.Count != 0)
+                if (_currentframe != newframe || _renderer_changelist.Count != 0)
                 {
                     sync.UpgradeToWriter();
-                    _changed.Clear();
+                    _renderer_changelist.Clear();
                     _currentframe = newframe;
                 }
                 return ret;
@@ -175,7 +181,7 @@ namespace linerider
             {
                 foreach (var v in _allcollisions)
                 {
-                    _changed.Add(v);
+                    _renderer_changelist.Add(v);
                 }
                 _unique_frame_collisions.Clear();
                 _unique_frame_collisions.Add(new HashSet<int>());
