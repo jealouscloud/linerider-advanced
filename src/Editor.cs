@@ -194,7 +194,7 @@ namespace linerider
                 //interpolate between last frame and current one
                 drawOptions.Rider = Rider.Lerp(Timeline.GetFrame(Offset - 1), Timeline.GetFrame(Offset), blend);
             }
-            var changes = Timeline.HitTest.SetFrame(Offset);
+            var changes = Timeline.HitTest.GetChangesForFrame(Offset);
             foreach (var change in changes)
             {
                 GameLine line;
