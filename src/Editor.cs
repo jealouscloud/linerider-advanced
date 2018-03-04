@@ -419,13 +419,17 @@ namespace linerider
 
         public void UpdateCamera(bool reverse = false)
         {
-            Camera.SetFrame(RenderRider);
+            if (!reverse)
+                Camera.SetFrame(RenderRider);
+            else
+                Camera.SetFrame(Timeline.GetFrame(Math.Max(0, Offset - 1)));
+
             if (Settings.SmoothCamera)
             {
                 Rider prediction;
                 if (reverse)
                 {
-                    prediction = Timeline.GetFrame(Math.Max(0, Offset - 1));
+                    prediction = RenderRider;
                 }
                 else
                 {

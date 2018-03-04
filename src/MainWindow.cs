@@ -193,10 +193,14 @@ namespace linerider
                 if (blend == 1 && Settings.SmoothPlayback && Track.Playing && !slider.Held)
                 {
                     blend = Math.Min(1, (float)Scheduler.ElapsedPercent);
+                    Track.Camera.BeginFrame(blend);
+                    if (ReversePlayback)
+                        blend = 1 - blend;
                 }
-                Track.Camera.BeginFrame(blend);
-                if (ReversePlayback)
-                    blend = 1 - blend;
+                else
+                {
+                    Track.Camera.BeginFrame(blend);
+                }
                 GL.ClearColor(Settings.NightMode
                    ? Constants.ColorNightMode
                    : (Settings.WhiteBG ? Constants.ColorWhite : Constants.ColorOffwhite));
