@@ -73,7 +73,6 @@ namespace linerider
         private readonly Stopwatch _autosavewatch = Stopwatch.StartNew();
         public GameCanvas Canvas;
         public bool Loading = false;
-        public bool AllowTrackRender;
 
         public bool ReversePlayback = false;
         private bool _handToolOverride;
@@ -344,8 +343,6 @@ namespace linerider
                 }
             }
             AudioService.EnsureSync();
-            if (Track.PlaybackMode && (Track.Paused || Settings.SmoothPlayback))
-                AllowTrackRender = true;
             if (Program.NewVersion != null)
             {
                 Canvas.ShowOutOfDate();
