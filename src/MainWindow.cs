@@ -1,5 +1,5 @@
 ﻿//#define debuggrid
-//#define debugcamera
+#define debugcamera
 //
 //  GLWindow.cs
 //
@@ -155,26 +155,26 @@ namespace linerider
         {
             return Settings.Local.ForceXySnap || InputUtils.Check(Hotkey.ToolXYSnap);
         }
-
-        public void Zoom(float f, bool changezoomslider = true)
+        public void SetZoom(float val, bool changezoomslider = true)
         {
             float maxzoom = Settings.SuperZoom ? 200 : 24;
-            if ((Track.Zoom >= maxzoom && f > 0) || (Track.Zoom <= 0.1f && f < 0) || Math.Abs(f) < 0.001)
-                return;
-            Track.Zoom += f;
-            if (Track.Zoom < 0.1f)
-                Track.Zoom = 0.1f;
-            if (Track.Zoom > maxzoom)
-                Track.Zoom = maxzoom;
-            Invalidate();
-            VerticalSlider vslider = (VerticalSlider)Canvas.FindChildByName("vslider", true);
+            Track.Zoom = val;//MathHelper.Clamp(val,0.1f,maxzoom);
 
+            VerticalSlider vslider = (VerticalSlider)Canvas.FindChildByName("vslider", true);
             if (changezoomslider)
             {
                 if (vslider != null)
                     vslider.Value = Track.Zoom;
             }
             vslider.SetToolTipText(Math.Round(Track.Zoom, 2) + "x");
+            Invalidate();
+        }
+
+        public void Zoom(float f)
+        {
+            if (Math.Abs(f) < 0.00001)
+                return;
+            SetZoom(Track.Zoom + (Track.Zoom * f), true);
         }
         public void Render(float blend = 1)
         {
@@ -198,8 +198,8 @@ namespace linerider
                 if (ReversePlayback)
                     blend = 1 - blend;
                 GL.ClearColor(Settings.NightMode
-                    ? Constants.ColorNightMode
-                    : (Settings.WhiteBG ? Constants.ColorWhite : Constants.ColorOffwhite));
+                   ? Constants.ColorNightMode
+                   : (Settings.WhiteBG ? Constants.ColorWhite : Constants.ColorOffwhite));
                 MSAABuffer.Use(RenderSize.Width, RenderSize.Height);
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
                 GL.Clear(ClearBufferMask.ColorBufferBit);
@@ -209,7 +209,7 @@ namespace linerider
                 GameRenderer.DbgDrawGrid();
 #endif
 #if debugcamera
-               GameRenderer.DbgDrawCamera();
+                GameRenderer.DbgDrawCamera();
 #endif
                 Track.Render(blend);
                 SelectedTool.Render();
@@ -283,6 +283,7 @@ namespace linerider
                     Track.TogglePause();
                 _playbacktemp = false;
                 ReversePlayback = false;
+                Track.UpdateCamera();
             }
         }
         public void GameUpdate()
@@ -295,9 +296,9 @@ namespace linerider
                 if (Track.Playing)
                 {
                     if (InputUtils.Check(Hotkey.PlaybackZoom))
-                        Zoom(Math.Min(Track.Zoom, 12) * (0.08f));
+                        Zoom(0.08f);
                     else if (InputUtils.Check(Hotkey.PlaybackUnzoom))
-                        Zoom(Math.Min(Track.Zoom, 12) * (-0.08f));
+                        Zoom(-0.08f);
                 }
             }
             var qp = (!Track.PlaybackMode) ? InputUtils.Check(Hotkey.EditorQuickPan) : false;
@@ -600,7 +601,7 @@ namespace linerider
                 if (Canvas.GetOpenWindows().Count != 0)
                     return;
                 var delta = (float.IsNaN(e.DeltaPrecise) ? e.Delta : e.DeltaPrecise);
-                Zoom((Track.Zoom / 50) * delta);
+                    Zoom(delta / 5);
             }
             catch (Exception ex)
             {
@@ -757,13 +758,13 @@ namespace linerider
             btn.IsHidden = true;
             btn.Clicked += (o, e) =>
             {
-                StopTools(); 
+                StopTools();
                 Track.TogglePause();
             };
             btn = createbutton(GameResources.stop_icon, GameResources.stop_icon_white, "Stop (U)", "stop");
             btn.Clicked += (o, e) =>
             {
-                StopTools(); 
+                StopTools();
                 Track.Stop();
             };
             btn = createbutton(GameResources.flag_icon, GameResources.flag_icon_white, "Flag (I)", "flag");
