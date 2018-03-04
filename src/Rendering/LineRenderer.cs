@@ -328,13 +328,14 @@ namespace linerider.Rendering
             var len = (end - start).Length;
 
             var l = Utility.GetThickLine(start, end, angle, size);
-            ret[0] = new LineVertex() { Position = l[0], u = 0, v = 0, ratio = size / len, color = color, scale = size };
-            ret[1] = new LineVertex() { Position = l[1], u = 0, v = 1, ratio = size / len, color = color, scale = size };
-            ret[2] = new LineVertex() { Position = l[2], u = 1, v = 1, ratio = size / len, color = color, scale = size };
+            var scale = size/2;
+            ret[0] = new LineVertex() { Position = l[0], u = 0, v = 0, ratio = size / len, color = color, scale = scale };
+            ret[1] = new LineVertex() { Position = l[1], u = 0, v = 1, ratio = size / len, color = color, scale = scale };
+            ret[2] = new LineVertex() { Position = l[2], u = 1, v = 1, ratio = size / len, color = color, scale = scale };
 
-            ret[3] = new LineVertex() { Position = l[2], u = 1, v = 1, ratio = size / len, color = color, scale = size };
-            ret[4] = new LineVertex() { Position = l[3], u = 1, v = 0, ratio = size / len, color = color, scale = size };
-            ret[5] = new LineVertex() { Position = l[0], u = 0, v = 0, ratio = size / len, color = color, scale = size };
+            ret[3] = new LineVertex() { Position = l[2], u = 1, v = 1, ratio = size / len, color = color, scale = scale };
+            ret[4] = new LineVertex() { Position = l[3], u = 1, v = 0, ratio = size / len, color = color, scale = scale };
+            ret[5] = new LineVertex() { Position = l[0], u = 0, v = 0, ratio = size / len, color = color, scale = scale };
             return ret;
         }
     }
