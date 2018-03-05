@@ -108,9 +108,8 @@ namespace linerider.UI
                     trk.Name = txt;
                     try
                     {
-                        //var filepath = trk.SaveTrackTrk(tb.Text, Settings.Local.CurrentSong?.ToString());
                         var filepath = TrackIO.SaveTrackToFile(trk.Track,tb.Text, Settings.Local.CurrentSong?.ToString());
-                        game.Track.OnSaved();
+                        game.Track.ResetTrackChangeCounter();
                         Settings.LastSelectedTrack = filepath;
                         Settings.Save();
                     }
