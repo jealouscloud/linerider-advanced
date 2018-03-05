@@ -73,7 +73,11 @@ namespace linerider.Game
             bool isiteration = iteration != 6 && frame > 0;
             frame = isiteration ? frame - 1 : frame;
 
-            return GetFrame(frame).Diagnose(
+            var rider = GetFrame(frame);
+            if (GetFrame(frame + 1).Crashed == rider.Crashed)
+                return new List<int>();
+                
+            return rider.Diagnose(
                     _track.Grid,
                     _track.Bones,
                     Math.Min(6, iteration + 1));
