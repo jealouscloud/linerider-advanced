@@ -47,12 +47,12 @@ namespace linerider
                 // add line
                 else if (beforeact == null)
                 {
-                    track.AddLine(afteract);
+                    track.AddLine(afteract.Clone());
                 }
                 //move action
                 else
                 {
-                    track.ReplaceLine(beforeact, afteract);
+                    track.ReplaceLine(beforeact, afteract.Clone());
                 }
                 return !(beforeact is SceneryLine);
 
@@ -81,6 +81,19 @@ namespace linerider
                 }
                 if (physchanged)
                     track.NotifyTrackChanged();
+            }
+            public override string ToString()
+            {
+                if (States != null && States.Count != 0)
+                {
+                    string ret = "";
+                    foreach(var state in States)
+                    {
+                        ret += state.ToString()+"|";
+                    }
+                    return ret;
+                }
+                return base.ToString();
             }
         }
         public int ActionPosition { get; private set;}
