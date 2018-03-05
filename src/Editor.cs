@@ -466,8 +466,7 @@ namespace linerider
                     }
                     else
                     {
-                        // make sure were not saving 0 changes
-                        if (UndoManager.HasChanges)
+                        if (TrackChanges > 50)
                         {
                             TrackIO.CreateAutosave(_track, Settings.Local.CurrentSong?.ToString());
                         }
@@ -497,9 +496,9 @@ namespace linerider
                     _cells.AddLine(line);
                 }
                 ActiveTriggers.Clear();
+                Timeline = new Timeline(trk, ActiveTriggers);
+                UndoManager = new UndoManager();
             }
-            Timeline = new Timeline(trk, ActiveTriggers);
-            UndoManager = new UndoManager();
             _refreshtrack = true;
             Stop();
             Reset();
