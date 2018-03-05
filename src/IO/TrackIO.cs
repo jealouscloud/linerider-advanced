@@ -156,6 +156,43 @@ namespace linerider.IO
             track.Name +
             Path.DirectorySeparatorChar;
         }
+        public static string ExtractSaveName(string filepath)
+        {
+            var filename = Path.GetFileName(filepath);
+            var index = filename.IndexOf(" ", StringComparison.Ordinal);
+            if (index != -1)
+            {
+                var id = filename.Remove(index);
+                if (int.TryParse(id, out int pt))
+                {
+                    filename = filename.Remove(0, index + 1);
+                }
+            }
+            var ext = filename.IndexOf(".trk", StringComparison.OrdinalIgnoreCase);
+            if (ext != -1)
+            {
+                filename = filename.Remove(ext);
+            }
+            return filename;
+        }
+        public static bool QuickSave(Track track, string songdata=null)
+        {
+            var dir = GetTrackDirectory(track);
+            if (Directory.Exists(dir))
+            {
+                var files = EnumerateTrackFiles(dir);
+                if (files.Length > 0)
+                {
+                    if (ExtractSaveName(files[0]) == "quicksave")
+                    {
+                        TryMoveAndReplaceFile(files[0],dir+"quicksave_previous.trk");
+                    }
+                }
+                SaveTrackToFile(track,"quicksave",songdata);
+                return true;
+            }
+            return false;
+        }
         public static string SaveTrackToFile(Track track, string savename, string songdata = null)
         {
             var dir = GetTrackDirectory(track);
@@ -179,8 +216,8 @@ namespace linerider.IO
                 }
             }
             saveindex++;
-          //  return JSONWriter.SaveTrack(track,saveindex + " " + savename);
-           return TRKWriter.SaveTrack(track, saveindex + " " + savename, songdata);
+            //  return JSONWriter.SaveTrack(track,saveindex + " " + savename);
+            return TRKWriter.SaveTrack(track, saveindex + " " + savename, songdata);
         }
         private static bool TryMoveAndReplaceFile(string fname, string fname2)
         {
@@ -219,7 +256,7 @@ namespace linerider.IO
                 new List<LineTrigger>());
             timeline.Restart(track.GetStart());
             int framecount = 40 * 60 * 5;
-            
+
             var filename = TRKWriter.SaveTrack(track, track.Name + ".test");
             if (System.IO.File.Exists(filename + ".result"))
                 System.IO.File.Delete(filename + ".result");

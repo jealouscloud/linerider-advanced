@@ -40,6 +40,7 @@ namespace linerider
     /// <summary>The interface for communicating with the game track object</summary>
     public class Editor : GameService
     {
+        private int _prevSaveUndoPos=0;
         private float _oldZoom = 1.0f;
         private RiderFrame _flag;
         private Track _track;
@@ -65,6 +66,13 @@ namespace linerider
         public List<LineTrigger> ActiveTriggers = new List<LineTrigger>();
         public int CurrentFrame => PlaybackMode ? Offset + _startFrame : 0;
         public int LineCount => _track.Lines.Count;
+        public int TrackChanges
+        {
+            get
+            {
+                return Math.Abs(UndoManager.ActionPosition - _prevSaveUndoPos);
+            }
+        }
         private bool _invalidated = false;
         public bool NeedsDraw
         {
@@ -493,10 +501,26 @@ namespace linerider
             Timeline = new Timeline(trk, ActiveTriggers);
             UndoManager = new UndoManager();
             _refreshtrack = true;
+            Stop();
             Reset();
             Camera.SetFrameCenter(trk.StartOffset);
             GC.Collect();//this is the safest place to collect
             Invalidate();
+        }
+        public void QuickSave()
+        {
+            if (!TrackIO.QuickSave(_track, Settings.Local.CurrentSong?.ToString()))
+            {
+                game.Canvas.ShowSaveWindow();
+            }
+            else
+            {
+                OnSaved();
+            }
+        }
+        public void OnSaved()
+        {
+            this._prevSaveUndoPos = UndoManager.ActionPosition;
         }
         public void AutoLoadPrevious()
         {
