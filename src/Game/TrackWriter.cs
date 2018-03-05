@@ -293,25 +293,22 @@ namespace linerider
                         changemade = true;
                     }
                     SaveCells(connected.Position, connected.Position);
-                    if (add)
-                    {
-                        input.Extension |= startlink
+                    
+                    var inputflag = (startlink ^ input.inv)
                         ? StandardLine.Ext.Left
                         : StandardLine.Ext.Right;
-
-                        connected.Extension |= startlink
+                    var connectedflag = (startlink ^ connected.inv)
                         ? StandardLine.Ext.Right
                         : StandardLine.Ext.Left;
+                    if (add)
+                    {
+                        input.Extension |= inputflag;
+                        connected.Extension |= connectedflag;
                     }
                     else
                     {
-                        input.Extension &= ~(startlink
-                        ? StandardLine.Ext.Left
-                        : StandardLine.Ext.Right);
-
-                        connected.Extension &= ~(startlink
-                        ? StandardLine.Ext.Right
-                        : StandardLine.Ext.Left);
+                        input.Extension &= ~inputflag;
+                        connected.Extension &= ~connectedflag;
                     }
                     RegisterUndoAction(clone, connected);
                 }
