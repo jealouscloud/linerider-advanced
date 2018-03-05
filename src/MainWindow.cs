@@ -157,7 +157,7 @@ namespace linerider
         public void SetZoom(float val, bool changezoomslider = true)
         {
             float maxzoom = Settings.SuperZoom ? 200 : 24;
-            Track.Zoom = val;//MathHelper.Clamp(val,0.1f,maxzoom);
+            Track.Zoom = MathHelper.Clamp(val, 0.1f, maxzoom);
 
             VerticalSlider vslider = (VerticalSlider)Canvas.FindChildByName("vslider", true);
             if (changezoomslider)
@@ -1096,10 +1096,10 @@ namespace linerider
                 StopTools();
                 Canvas.ShowPreferences();
             });
-            InputUtils.RegisterHotkey(Hotkey.Quicksave, ()=>true,()=>
-            {
-                Track.QuickSave();
-            });
+            InputUtils.RegisterHotkey(Hotkey.Quicksave, () => true, () =>
+               {
+                   Track.QuickSave();
+               });
         }
         private void RegisterEditorHotkeys()
         {
