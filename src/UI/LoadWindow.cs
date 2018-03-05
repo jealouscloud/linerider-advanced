@@ -42,6 +42,7 @@ namespace linerider.UI
             }
         }
         private MainWindow game;
+        private readonly object _loadsync = new object();
         public LoadWindow(Gwen.Controls.ControlBase parent, MainWindow glgame) : base(parent, DefaultTitle)
         {
             game = glgame;
@@ -138,7 +139,7 @@ namespace linerider.UI
                 if (userdata is string filepath)
                 {
                     // track folder
-                    bool folder =selected.Children.Count > 0;
+                    bool folder = selected.Children.Count > 0;
                     if (folder)
                     {
                         filepath = (string)selected.Children[0].UserData;
@@ -146,9 +147,9 @@ namespace linerider.UI
                     var title = Path.GetFileName(filepath);
                     if (folder)
                     {
-                        title = Path.GetFileName((string)userdata)+Path.DirectorySeparatorChar+title;
+                        title = Path.GetFileName((string)userdata) + Path.DirectorySeparatorChar + title;
                     }
-                    this.Title = DefaultTitle+" -- " + title;
+                    this.Title = DefaultTitle + " -- " + title;
                 }
             }
         }
@@ -326,21 +327,24 @@ namespace linerider.UI
         }
         private void LoadSOL(sol_track sol)
         {
-            try
+            lock (_loadsync)
             {
-                Settings.Local.EnableSong = false;
-                game.Track.ChangeTrack(SOLLoader.LoadTrack(sol));
-            }
-            catch (Exception e)
-            {
-                if (Program.IsDebugged)
-                    throw e;
-                PopupWindow.QueuedActions.Enqueue(() =>
-                PopupWindow.Error(
-                    "Failed to load the track:" +
-                    Environment.NewLine +
-                    e.Message));
-                return;
+                try
+                {
+                    Settings.Local.EnableSong = false;
+                    game.Track.ChangeTrack(SOLLoader.LoadTrack(sol));
+                }
+                catch (Exception e)
+                {
+                    if (Program.IsDebugged)
+                        throw e;
+                    PopupWindow.QueuedActions.Enqueue(() =>
+                    PopupWindow.Error(
+                        "Failed to load the track:" +
+                        Environment.NewLine +
+                        e.Message));
+                    return;
+                }
             }
         }
         private void LoadTRK(string filepath)
@@ -354,42 +358,45 @@ namespace linerider.UI
         private void LoadTrack(string file, string name)
         {
             game.Loading = true;
-            try
+            lock (_loadsync)
             {
-                Track track;
-                if (file.EndsWith(".trk", StringComparison.InvariantCultureIgnoreCase))
+                try
                 {
-                    track = TRKLoader.LoadTrack(file, name);
+                    Track track;
+                    if (file.EndsWith(".trk", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        track = TRKLoader.LoadTrack(file, name);
+                    }
+                    else
+                    {
+                        throw new Exception("Filetype unknown");
+                    }
+                    game.Track.ChangeTrack(track);
+                    Settings.LastSelectedTrack = file;
+                    Settings.Save();
                 }
-                else
+                catch (TrackIO.TrackLoadException e)
                 {
-                    throw new Exception("Filetype unknown");
+                    PopupWindow.QueuedActions.Enqueue(() =>
+                    PopupWindow.Error(
+                        "Failed to load the track:" +
+                        Environment.NewLine +
+                        e.Message));
+                    return;
                 }
-                game.Track.ChangeTrack(track);
-                Settings.LastSelectedTrack = file;
-                Settings.Save();
-            }
-            catch (TrackIO.TrackLoadException e)
-            {
-                PopupWindow.QueuedActions.Enqueue(() =>
-                PopupWindow.Error(
-                    "Failed to load the track:" +
-                    Environment.NewLine +
-                    e.Message));
-                return;
-            }
-            catch (Exception e)
-            {
-                PopupWindow.QueuedActions.Enqueue(() =>
-                PopupWindow.Error(
-                    "An unknown error occured while loading the track." +
-                    Environment.NewLine +
-                    e.Message));
-                return;
-            }
-            finally
-            {
-                game.Loading = false;
+                catch (Exception e)
+                {
+                    PopupWindow.QueuedActions.Enqueue(() =>
+                    PopupWindow.Error(
+                        "An unknown error occured while loading the track." +
+                        Environment.NewLine +
+                        e.Message));
+                    return;
+                }
+                finally
+                {
+                    game.Loading = false;
+                }
             }
         }
     }

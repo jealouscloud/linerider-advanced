@@ -54,6 +54,7 @@ namespace linerider.UI
         PreferenceOnionSkinning,
         PreferencesWindow,
         LoadWindow,
+        Quicksave
 
     }
 

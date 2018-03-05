@@ -134,6 +134,7 @@ namespace linerider
             CreateKeybind(Hotkey.PreferencesWindow, new Keybinding(Key.P, KeyModifiers.Control));
             CreateKeybind(Hotkey.PreferenceOnionSkinning, new Keybinding(Key.O, KeyModifiers.Control));
             CreateKeybind(Hotkey.LoadWindow, new Keybinding(Key.O));
+            CreateKeybind(Hotkey.Quicksave, new Keybinding(Key.S, KeyModifiers.Control));
 
             CreateKeybind(Hotkey.EditorQuickPan, new Keybinding(Key.Space));
         }

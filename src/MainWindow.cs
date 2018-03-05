@@ -1096,6 +1096,10 @@ namespace linerider
                 StopTools();
                 Canvas.ShowPreferences();
             });
+            InputUtils.RegisterHotkey(Hotkey.Quicksave, ()=>true,()=>
+            {
+                Track.QuickSave();
+            });
         }
         private void RegisterEditorHotkeys()
         {

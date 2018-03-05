@@ -83,7 +83,7 @@ namespace linerider
                     track.NotifyTrackChanged();
             }
         }
-        private int pos;
+        public int ActionPosition { get; private set;}
         private List<act> _actions = new List<act>();
         private act _currentaction;
         const int MaximumBufferSize = 10000;
@@ -91,7 +91,7 @@ namespace linerider
         /// Returns true if any changes have currently been made to the track
         /// Basically for autosave.
         /// </summary>
-        public bool HasChanges => (pos != 0 || _actions.Count > 100);
+        public bool HasChanges => (ActionPosition != 0 || _actions.Count > 100);
         public UndoManager()
         {
         }
@@ -115,27 +115,27 @@ namespace linerider
         {
             if (_currentaction == null)
                 throw new Exception("UndoManager current action null");
-            if (pos != _actions.Count)
+            if (ActionPosition != _actions.Count)
             {
-                if (pos < 0)
-                    pos = 0;
-                _actions.RemoveRange(pos, _actions.Count - pos);
+                if (ActionPosition < 0)
+                    ActionPosition = 0;
+                _actions.RemoveRange(ActionPosition, _actions.Count - ActionPosition);
             }
             if (_actions.Count > MaximumBufferSize)
             {
                 _actions.RemoveRange(0, _actions.Count - (MaximumBufferSize / 2));
             }
             _actions.Add(_currentaction);
-            pos = _actions.Count;
+            ActionPosition = _actions.Count;
             _currentaction = null;
         }
 
         public void Undo()
         {
-            if (_actions.Count > 0 && pos > 0)
+            if (_actions.Count > 0 && ActionPosition > 0)
             {
-                pos--;
-                var action = _actions[pos];
+                ActionPosition--;
+                var action = _actions[ActionPosition];
                 using (var trk = game.Track.CreateTrackWriter())
                 {
                     trk.DisableUndo();
@@ -149,12 +149,12 @@ namespace linerider
 
         public void Redo()
         {
-            if (_actions.Count > 0 && pos < _actions.Count)
+            if (_actions.Count > 0 && ActionPosition < _actions.Count)
             {
-                if (pos < 0)
-                    pos = 0;
-                var action = _actions[pos];
-                pos++;
+                if (ActionPosition < 0)
+                    ActionPosition = 0;
+                var action = _actions[ActionPosition];
+                ActionPosition++;
                 using (var trk = game.Track.CreateTrackWriter())
                 {
                     trk.DisableUndo();
