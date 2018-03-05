@@ -16,13 +16,105 @@ namespace linerider.Rendering
         private AutoArray<RiderVertex> Array = new AutoArray<RiderVertex>(500);
         public float Scale = 1.0f;
         private Shader _shader;
+        private LineVAO _lines = new LineVAO();
         public RiderRenderer()
         {
             _shader = Shaders.RiderShader;
         }
-        public void Clear()
+        public void DrawMomentum(Rider rider, float opacity)
         {
-            Array.Empty();
+            var color = Constants.MomentumVectorColor;
+            color = ChangeOpacity(color, opacity);
+            for (int i = 0; i < rider.Body.Length; i++)
+            {
+                var anchor = rider.Body[i];
+                var vec1 = anchor.Location;
+                var vec2 = vec1 + (anchor.Momentum);
+                var line = Line.FromAngle(
+                    vec1,
+                    Angle.FromVector(anchor.Momentum),
+                    2);
+                _lines.AddLine(line.Position, line.Position2, color, 1f / 2.5f);
+            }
+        }
+        public void DrawContacts(Rider rider, List<int> diagnosis, float opacity)
+        {
+            if (diagnosis == null)
+                diagnosis = new List<int>();
+            var bones = RiderConstants.Bones;
+            for (var i = 0; i < bones.Length; i++)
+            {
+                var constraintcolor = bones[i].OnlyRepel
+                ? Constants.ConstraintRepelColor
+                : Constants.ConstraintColor;
+
+                constraintcolor = ChangeOpacity(constraintcolor, opacity);
+
+                if (bones[i].Breakable)
+                {
+                    continue;
+                }
+                else if (bones[i].OnlyRepel)
+                {
+                    _lines.AddLine(
+                        rider.Body[bones[i].joint1].Location,
+                        rider.Body[bones[i].joint2].Location,
+                        constraintcolor,
+                        1f / 4);
+                }
+                else if (i <= 3)
+                {
+                    _lines.AddLine(
+                        rider.Body[bones[i].joint1].Location,
+                        rider.Body[bones[i].joint2].Location,
+                        constraintcolor,
+                        1f / 4);
+                }
+            }
+            if (!rider.Crashed && diagnosis.Count != 0)
+            {
+                Color firstbreakcolor = Constants.ConstraintFirstBreakColor;
+                Color breakcolor = Constants.ConstraintBreakColor;
+                breakcolor = ChangeOpacity(breakcolor, opacity / 2);
+                firstbreakcolor = ChangeOpacity(firstbreakcolor, opacity);
+                for (int i = 1; i < diagnosis.Count; i++)
+                {
+                    var broken = diagnosis[i];
+                    if (broken >= 0)
+                    {
+                        _lines.AddLine(
+                            rider.Body[bones[broken].joint1].Location,
+                            rider.Body[bones[broken].joint2].Location,
+                            breakcolor,
+                            1f / 4);
+                    }
+                }
+                //the first break is most important so we give it a better color, assuming its not just a fakie death
+                if (diagnosis[0] > 0)
+                {
+                    _lines.AddLine(
+                        rider.Body[bones[diagnosis[0]].joint1].Location,
+                        rider.Body[bones[diagnosis[0]].joint2].Location,
+                        firstbreakcolor,
+                        1f / 4);
+                }
+            }
+            for (var i = 0; i < rider.Body.Length; i++)
+            {
+                Color c = Constants.ContactPointColor;
+                if (
+                    ((i == RiderConstants.SledTL || i == RiderConstants.SledBL) && diagnosis.Contains(-1)) ||
+                    ((i == RiderConstants.BodyButt || i == RiderConstants.BodyShoulder) && diagnosis.Contains(-2)))
+                {
+                    c = Constants.ContactPointFakieColor;
+                }
+                c = ChangeOpacity(c, opacity);
+                _lines.AddLine(
+                    rider.Body[i].Location,
+                    rider.Body[i].Location,
+                    c,
+                    1f / 4);
+            }
         }
         public void DrawRider(float opacity, Rider rider, bool scarf = false)
         {
@@ -36,19 +128,21 @@ namespace linerider.Rendering
                  Models.LegRect,
                  Models.LegUV,
                  points[RiderConstants.BodyButt].Location,
-                 points[RiderConstants.BodyFootRight].Location, opacity);
+                 points[RiderConstants.BodyFootRight].Location, 
+                 opacity);
 
             DrawTexture(
                 Tex.Limb,
                 Models.ArmRect,
                 Models.ArmUV,
                 points[RiderConstants.BodyShoulder].Location,
-                points[RiderConstants.BodyHandRight].Location, opacity);
+                points[RiderConstants.BodyHandRight].Location, 
+                opacity);
             if (!rider.Crashed)
                 DrawLine(
                     points[RiderConstants.BodyHandRight].Location,
                     points[RiderConstants.SledTR].Location,
-                    Color.Black,
+                    ChangeOpacity(Color.Black, opacity),
                     0.1f);
 
             if (rider.SledBroken)
@@ -124,7 +218,7 @@ namespace linerider.Rendering
                 DrawLine(
                     points[RiderConstants.BodyHandLeft].Location,
                     points[RiderConstants.SledTR].Location,
-                    Color.Black,
+                    ChangeOpacity(Color.Black,opacity),
                     0.1f);
 
             DrawTexture(
@@ -134,6 +228,11 @@ namespace linerider.Rendering
                 points[RiderConstants.BodyShoulder].Location,
                 points[RiderConstants.BodyHandLeft].Location,
                 opacity);
+        }
+        public void Clear()
+        {
+            Array.Empty();
+            _lines.Clear();
         }
         protected unsafe void BeginDraw()
         {
@@ -179,6 +278,11 @@ namespace linerider.Rendering
                 GL.DrawArrays(PrimitiveType.Triangles, 0, Array.Count);
             }
             EndDraw();
+            if (_lines.Array.Count != 0)
+            {
+                _lines.Scale = Scale;
+                _lines.Draw(PrimitiveType.Triangles);
+            }
             GameDrawingMatrix.Exit();
         }
         protected void EndDraw()
@@ -316,6 +420,10 @@ namespace linerider.Rendering
                 Array.Add(verts[2]);
                 Array.Add(verts[0]);
             }
+        }
+        private Color ChangeOpacity(Color c, float opacity)
+        {
+            return Color.FromArgb((int)(opacity * c.A), c);
         }
         private enum Tex
         {
