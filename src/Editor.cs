@@ -523,6 +523,8 @@ namespace linerider
             if (TrackIO.QuickSave(_track, Settings.Local.CurrentSong?.ToString()))
             {
                 ResetTrackChangeCounter();
+                Settings.LastSelectedTrack = _track.Filename;
+                Settings.Save();
             }
             else
             {
