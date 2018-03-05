@@ -19,7 +19,7 @@ namespace linerider
         private HashSet<int> _renderer_changelist = new HashSet<int>();
         private Dictionary<int, int> _line_framehit = new Dictionary<int, int>();
         private ResourceSync _sync = new ResourceSync();
-        private int _currentframe = 0;
+        private int _currentframe = Disabled;
         const int Disabled = -1;
         public HitTestManager()
         {
@@ -88,10 +88,6 @@ namespace linerider
             using (var sync = _sync.AcquireUpgradableRead())
             {
                 var ret = new HashSet<int>();
-                foreach (var v in _renderer_changelist)
-                {
-                    ret.Add(v);
-                }
                 var current = _currentframe;
                 if (!Settings.Local.HitTest)
                 {
@@ -107,6 +103,10 @@ namespace linerider
                 }
                 else if (current != newframe)
                 {
+                    foreach (var v in _renderer_changelist)
+                    {
+                        ret.Add(v);
+                    }
                     if (current == Disabled)
                         current = 0;
                     // i'm leaving this in seperate loops for now
@@ -187,7 +187,7 @@ namespace linerider
                 _unique_frame_collisions.Add(new HashSet<int>());
                 _line_framehit.Clear();
                 _allcollisions.Clear();
-                _currentframe = 0;
+                _currentframe = Disabled;
             }
         }
     }

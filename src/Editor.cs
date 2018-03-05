@@ -40,7 +40,8 @@ namespace linerider
     /// <summary>The interface for communicating with the game track object</summary>
     public class Editor : GameService
     {
-        private int _prevSaveUndoPos=0;
+        private bool _loadingTrack = false;
+        private int _prevSaveUndoPos = 0;
         private float _oldZoom = 1.0f;
         private RiderFrame _flag;
         private Track _track;
@@ -170,7 +171,10 @@ namespace linerider
             _invalidated = false;
             if (_refreshtrack)
             {
-                _renderer.RefreshTrack(_track);
+                using (_tracksync.AcquireRead())
+                {
+                    _renderer.RefreshTrack(_track);
+                }
                 _refreshtrack = false;
             }
             DrawOptions drawOptions = new DrawOptions();
@@ -202,13 +206,16 @@ namespace linerider
                 //interpolate between last frame and current one
                 drawOptions.Rider = Rider.Lerp(Timeline.GetFrame(Offset - 1), Timeline.GetFrame(Offset), blend);
             }
-            var changes = Timeline.HitTest.GetChangesForFrame(Offset);
-            foreach (var change in changes)
+            if (!_loadingTrack)
             {
-                GameLine line;
-                if (_track.LineLookup.TryGetValue(change, out line))
+                var changes = Timeline.HitTest.GetChangesForFrame(Offset);
+                foreach (var change in changes)
                 {
-                    _renderer.RedrawLine(line);
+                    GameLine line;
+                    if (_track.LineLookup.TryGetValue(change, out line))
+                    {
+                        _renderer.RedrawLine(line);
+                    }
                 }
             }
 
@@ -488,24 +495,28 @@ namespace linerider
         {
             using (_tracksync.AcquireWrite())
             {
+                _loadingTrack = true;
+                Stop();
+                ActiveTriggers.Clear();
                 _flag = null;
                 _track = trk;
-                _cells.Clear();
-                foreach (var line in trk.LineLookup.Values)
-                {
-                    _cells.AddLine(line);
-                }
-                ActiveTriggers.Clear();
+
                 Timeline = new Timeline(trk, ActiveTriggers);
                 UndoManager = new UndoManager();
+                ResetTrackChangeCounter();
+                _refreshtrack = true;
             }
-            _refreshtrack = true;
-            Stop();
+
+            _cells.Clear();
+            foreach (var line in trk.LineLookup.Values)
+            {
+                _cells.AddLine(line);
+            }
             Reset();
             Camera.SetFrameCenter(trk.StartOffset);
+            _loadingTrack = false;
             GC.Collect();//this is the safest place to collect
             Invalidate();
-            ResetTrackChangeCounter();
         }
         public void QuickSave()
         {

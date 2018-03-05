@@ -187,6 +187,7 @@ namespace linerider.Rendering
             RequiresUpdate = true;
             using (_sync.AcquireWrite())
             {
+                Debug.Assert(line is StandardLine ?_physlines.ContainsKey(line.ID) : _scenerylines.ContainsKey(line.ID));
                 _lineactions.Enqueue(
                     new Tuple<LineActionType, GameLine>(
                         LineActionType.Change,
