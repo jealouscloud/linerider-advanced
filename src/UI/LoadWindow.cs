@@ -145,9 +145,12 @@ namespace linerider.UI
                         filepath = (string)selected.Children[0].UserData;
                     }
                     var title = Path.GetFileName(filepath);
-                    if (folder)
+                    // if it's a folder container or it's inside one
+                    if (!(selected.IsRoot && selected.Children.Count == 0))
                     {
-                        title = Path.GetFileName((string)userdata) + Path.DirectorySeparatorChar + title;
+                        title = TrackIO.GetTrackName(filepath) + 
+                        Path.DirectorySeparatorChar + 
+                        title;
                     }
                     this.Title = DefaultTitle + " -- " + title;
                 }
