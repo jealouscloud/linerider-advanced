@@ -31,10 +31,8 @@ namespace linerider.Rendering
                 _trackrenderer.RequiresUpdate = value;
             }
         }
-        private LineVAO _linevao;
         public SimulationRenderer()
         {
-            _linevao = new LineVAO();
             _trackrenderer = new TrackRenderer();
             _riderrenderer = new RiderRenderer();
         }
@@ -53,10 +51,19 @@ namespace linerider.Rendering
                     var frame = game.Track.Offset + i;
                     if (frame > 0 && frame < game.Track.FrameCount && i != 0)
                     {
+                        var onionskin = timeline.GetFrame(frame);
                         _riderrenderer.DrawRider(
-                            0.3f,
-                            timeline.GetFrame(frame),
-                            true);
+                            0.2f,
+                            onionskin,
+                            false);
+                        if (options.ShowMomentumVectors)
+                        {
+                            _riderrenderer.DrawMomentum(onionskin, 0.5f);
+                        }
+                        if (options.ShowContactLines)
+                        {
+                            _riderrenderer.DrawContacts(onionskin, timeline.DiagnoseFrame(frame), 0.5f);
+                        }
                     }
                 }
             }
@@ -72,7 +79,7 @@ namespace linerider.Rendering
                 true);
             if (options.ShowMomentumVectors)
             {
-                GameRenderer.DrawMomentum(options.Rider, _linevao);
+                _riderrenderer.DrawMomentum(options.Rider, 1);
                 // todo create a preference and uncommon this feature:
                 /*if (!options.IsRunning)
                 {
@@ -82,19 +89,11 @@ namespace linerider.Rendering
             }
             if (options.ShowContactLines)
             {
-                GameRenderer.DrawContactPoints(options.Rider, options.RiderDiagnosis, _linevao);
+                _riderrenderer.DrawContacts(options.Rider, options.RiderDiagnosis, 1);
             }
+            _riderrenderer.Scale = options.Zoom;
             _riderrenderer.Draw();
             _riderrenderer.Clear();
-            if (_linevao.Array.Count > 0)
-            {
-                GameDrawingMatrix.Enter();
-                _linevao.Scale = GameDrawingMatrix.Scale;
-                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-                _linevao.Draw(PrimitiveType.Triangles);
-                GameDrawingMatrix.Exit();
-                _linevao.Clear();
-            }
         }
         public void AddLine(GameLine l)
         {
