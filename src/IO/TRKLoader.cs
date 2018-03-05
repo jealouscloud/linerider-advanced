@@ -30,6 +30,7 @@ namespace linerider.IO
         public static Track LoadTrack(string trackfile, string trackname)
         {
             var ret = new Track();
+            ret.Filename = trackfile;
             ret.Name = trackname;
             var addedlines = new Dictionary<int, StandardLine>();
             var location = trackfile;
