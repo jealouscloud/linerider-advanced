@@ -30,7 +30,7 @@ namespace linerider.IO
         }
         public static Track LoadTrack(sol_track trackdata)
         {
-            var ret = new Track { Name = trackdata.name };
+            var ret = new Track { Name = trackdata.name, Filename = trackdata.filename };
             var buffer = (List<Amf0Object>)trackdata.get_property("data");
             List<GameLine> lineslist = new List<GameLine>(buffer.Count);
             var addedlines = new Dictionary<int, StandardLine>(buffer.Count);

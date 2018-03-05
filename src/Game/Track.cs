@@ -39,6 +39,7 @@ namespace linerider
         public Dictionary<int, GameLine> LineLookup = new Dictionary<int, GameLine>();
 
         public string Name = Constants.DefaultTrackName;
+        public string Filename = null;
         private Vector2d _start = Vector2d.Zero;
         public Bone[] Bones = new Bone[RiderConstants.Bones.Length];
         public Vector2d StartOffset

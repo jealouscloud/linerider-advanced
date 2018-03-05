@@ -175,9 +175,18 @@ namespace linerider.IO
             }
             return filename;
         }
-        public static bool QuickSave(Track track, string songdata=null)
+        public static bool QuickSave(Track track, string songdata = null)
         {
             var dir = GetTrackDirectory(track);
+            if (track.Filename != null)
+            {
+                // if we loaded this file from /Tracks and not 
+                // /Tracks/{trackname}/file.trk then it doesnt have a folder
+                // the user will have to decide one. we will not quicksave it.
+                if (!track.Filename.StartsWith(dir, StringComparison.OrdinalIgnoreCase))
+                    return false;
+
+            }
             if (Directory.Exists(dir))
             {
                 var files = EnumerateTrackFiles(dir);
@@ -185,10 +194,19 @@ namespace linerider.IO
                 {
                     if (ExtractSaveName(files[0]) == "quicksave")
                     {
-                        TryMoveAndReplaceFile(files[0],dir+"quicksave_previous.trk");
+                        TryMoveAndReplaceFile(files[0], dir + "quicksave_old.trk");
                     }
                 }
-                SaveTrackToFile(track,"quicksave",songdata);
+                try
+                {
+                    SaveTrackToFile(track, "quicksave", songdata);
+                }
+                catch (Exception e)
+                {
+                    Program.NonFatalError("An error occured during quicksave" +
+                    Environment.NewLine +
+                    e.Message);
+                }
                 return true;
             }
             return false;
@@ -216,8 +234,10 @@ namespace linerider.IO
                 }
             }
             saveindex++;
-            //  return JSONWriter.SaveTrack(track,saveindex + " " + savename);
-            return TRKWriter.SaveTrack(track, saveindex + " " + savename, songdata);
+
+            var filename = TRKWriter.SaveTrack(track, saveindex + " " + savename, songdata);
+            track.Filename = filename;
+            return filename;
         }
         private static bool TryMoveAndReplaceFile(string fname, string fname2)
         {
