@@ -47,7 +47,7 @@ namespace linerider.Tools
         public bool Snapped = false;
         private Vector2d _start;
         private Vector2d _end;
-        const float MINIMUM_LINE = 0.5f;
+        const float MINIMUM_LINE = 0.6f;
         private bool _addflip = false;
         private Vector2d _mouseshadow;
         private bool DrawingScenery
@@ -119,7 +119,9 @@ namespace linerider.Tools
             {
                 _end = ScreenToGameCoords(pos);
                 var diff = _end - _start;
-                if (DrawingScenery || diff.Length >= MINIMUM_LINE)
+                var len = diff.Length;
+
+                if ((DrawingScenery && len >= (MINIMUM_LINE / 2)) || len >= MINIMUM_LINE)
                 {
                     AddLine();
                     _start = _end;
