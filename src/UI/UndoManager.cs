@@ -87,11 +87,6 @@ namespace linerider
         private List<act> _actions = new List<act>();
         private act _currentaction;
         const int MaximumBufferSize = 10000;
-        /// <summary>
-        /// Returns true if any changes have currently been made to the track
-        /// Basically for autosave.
-        /// </summary>
-        public bool HasChanges => (ActionPosition != 0 || _actions.Count > 100);
         public UndoManager()
         {
         }
