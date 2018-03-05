@@ -172,7 +172,23 @@ namespace linerider
             if (game.Loading)
                 SpriteLoading.Rotation = (Environment.TickCount % 1000) / 1000f;
             var trackname = (Label)FindChildByName("trackname");
-            trackname.Text = game.Track.Name;
+            string name = game.Track.Name;
+            var changes = Math.Min(999, game.Track.TrackChanges);
+            if (changes > 0)
+            {
+                name += " (*)\n";
+                if (changes > 50)
+                {
+                    int rounded = (changes / 50) * 50;
+                    if (changes >= 200 && changes != 999)
+                    {
+                        rounded = (changes / 100) * 100;
+                    }
+                    name += (rounded) + "+ changes";
+                }
+            }
+            trackname.Text = name;
+
             var sppf = "";
             var playback = "";
             var fpsorlinecount = "";
@@ -231,7 +247,7 @@ namespace linerider
                 var ts = TimeSpan.FromSeconds((flag.FrameID) / 40f);
                 labelflagtime.IsHidden = false;
                 labelflagtime.Text = ts.ToString(
-                    ts.Hours > 0 ? longformatstring : formatstring) + 
+                    ts.Hours > 0 ? longformatstring : formatstring) +
                     ":" + (flag.FrameID % 40f);
                 labelflagtime.SetPosition((float)(cam.X + game.ScreenTranslation.X) * game.Track.Zoom,
                     (float)(cam.Y + game.ScreenTranslation.Y) * game.Track.Zoom);

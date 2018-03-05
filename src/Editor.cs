@@ -506,19 +506,20 @@ namespace linerider
             Camera.SetFrameCenter(trk.StartOffset);
             GC.Collect();//this is the safest place to collect
             Invalidate();
+            ResetTrackChangeCounter();
         }
         public void QuickSave()
         {
-            if (!TrackIO.QuickSave(_track, Settings.Local.CurrentSong?.ToString()))
+            if (TrackIO.QuickSave(_track, Settings.Local.CurrentSong?.ToString()))
             {
-                game.Canvas.ShowSaveWindow();
+                ResetTrackChangeCounter();
             }
             else
             {
-                OnSaved();
+                game.Canvas.ShowSaveWindow();
             }
         }
-        public void OnSaved()
+        public void ResetTrackChangeCounter()
         {
             this._prevSaveUndoPos = UndoManager.ActionPosition;
         }
