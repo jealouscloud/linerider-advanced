@@ -112,7 +112,7 @@ namespace linerider
             {
                 TextColor = System.Drawing.Color.Black,
                 Dock = Pos.Left,
-                Margin = new Margin(5, 0, 0, 0),
+                Margin = new Margin(5, 0, 0, 20),
                 Name = "trackname"
             };
             Label labeliteration = new Label(this);
