@@ -128,6 +128,10 @@ namespace linerider.Utils
         private Angle()
         {
         }
+        public Vector2d MovePoint(Vector2d input, double length)
+        {
+            return new Vector2d(input.X + (length * Cos),input.Y + (length * Sin));
+        }
         public static Angle FromRadians(double radians)
         {
             return new Angle() { Radians = radians };
@@ -150,6 +154,10 @@ namespace linerider.Utils
         public static Angle FromLine(Vector2d p1, Vector2d p2)
         {
             return FromVector(p2 - p1);
+        }
+        public static Angle FromLine(Line line)
+        {
+            return FromVector(line.Position2 - line.Position);
         }
 
         public static Angle FromVector(Vector2 p1)
