@@ -60,7 +60,7 @@ namespace linerider.Rendering
                 var acc = redshapes[idx];
                 var entry = new accelentry()
                 {
-                    start = _indices.Count,
+                    start = shapepos,
                     shapes = acc.Length / ShapeSize
                 };
                 for (int i = 0; i < acc.Length; i++)
@@ -112,7 +112,7 @@ namespace linerider.Rendering
         {
             if (_lookup.ContainsKey(line.ID))
             {
-                LineChanged(line);
+                LineChanged(line, false);
                 return;
             }
             _lookup.Add(
@@ -122,12 +122,12 @@ namespace linerider.Rendering
                     start = _indices.Count,
                     shapes = 0
                 });
-            DrawAccel(line);
+            DrawAccel(line, false);
 
         }
-        public void LineChanged(RedLine line)
+        public void LineChanged(RedLine line, bool hit)
         {
-            DrawAccel(line);
+            DrawAccel(line, hit);
         }
         public void RemoveLine(RedLine line)
         {
@@ -157,10 +157,10 @@ namespace linerider.Rendering
         /// <summary>
         /// Redraws the red line accel indicator.
         /// </summary>
-        private void DrawAccel(RedLine line)
+        private void DrawAccel(RedLine line, bool hide)
         {
             var entry = _lookup[line.ID];
-            var newdecor = GetAccelDecor(line);
+            var newdecor = hide ? new GenericVertex[ShapeSize * line.Multiplier] : GetAccelDecor(line);
             int shapes = newdecor.Length / ShapeSize;
 
             for (int ix = 0; ix < entry.shapes; ix++)

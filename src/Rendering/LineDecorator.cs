@@ -62,7 +62,7 @@ namespace linerider.Rendering
             if (!hit)
             {
                 if (line is RedLine red)
-                    _lineaccelrenderer.LineChanged(red);
+                    _lineaccelrenderer.LineChanged(red, false);
                 _linecolorrenderer.LineChanged(line, false);
             }
             else
