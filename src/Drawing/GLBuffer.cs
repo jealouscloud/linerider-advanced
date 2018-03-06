@@ -112,6 +112,9 @@ namespace linerider.Drawing
             if (srcstart + count > input.Length)
                 throw new IndexOutOfRangeException(
                     "SetData failed, count larger than srcbuffer");
+            // not technically an error, but dont get a ptr.
+            if (input.Length == 0)
+                return;
             var cast = Unsafe.As<Pinnable>(input);
             fixed (void* pinned = &cast.PinMe)
             {
