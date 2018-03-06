@@ -91,7 +91,7 @@ namespace linerider.Utils
         /// </summary>
         public void UnsafeSetCount(int count)
         {
-            //todo bad func
+            EnsureCapacity(count);
             _size = count;
         }
         public void Add(T item)

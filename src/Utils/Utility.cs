@@ -126,7 +126,6 @@ namespace linerider
         /// </summary>
         public static Vector2d[] GetThickLine(Vector2d p, Vector2d p1, Angle angle, double width)
         {
-
             angle.Radians -= 1.5708f; //90 degrees
             var t = new Vector2d(
                 angle.Cos * (width / 2),
