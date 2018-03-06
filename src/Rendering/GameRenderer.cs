@@ -36,160 +36,47 @@ namespace linerider.Rendering
     {
         public static MainWindow Game;
         private static LineVAO _linevao = null;
-        public static void DrawMomentum(Rider rider, LineVAO vao)
-        {
-            for (int i = 0; i < rider.Body.Length; i++)
-            {
-                var anchor = rider.Body[i];
-                var vec1 = anchor.Location;
-                var vec2 = vec1 + (anchor.Momentum);
-                var line = Line.FromAngle(
-                    vec1,
-                    Angle.FromVector(anchor.Momentum),
-                    2);
-                vao.AddLine(line.Position, line.Position2, Color.Red, 1f / 2.5f);
-            }
-        }
-        public static void DrawContactPoints(Rider rider, List<int> diagnosis, LineVAO vao)
-        {
-            if (diagnosis == null)
-                diagnosis = new List<int>();
-            var bones = RiderConstants.Bones;
-            for (var i = 0; i < bones.Length; i++)
-            {
-                var c = Color.FromArgb(unchecked((int)0xFFCC72B7));
-                if (bones[i].Breakable)
-                {
-                    continue;
-                }
-                else if (bones[i].OnlyRepel)
-                {
-                    c = Color.CornflowerBlue;
-                    vao.AddLine(
-                        rider.Body[bones[i].joint1].Location,
-                        rider.Body[bones[i].joint2].Location,
-                        c,
-                        1f / 4);
-                }
-                else if (i <= 3)
-                {
-                    vao.AddLine(
-                        rider.Body[bones[i].joint1].Location,
-                        rider.Body[bones[i].joint2].Location,
-                        c,
-                        1f / 4);
-                }
-            }
-            if (!rider.Crashed && diagnosis.Count != 0)
-            {
-                Color firstbreakcolor = Color.FromArgb(unchecked((int)0xFFFF8C00));
-                Color breakcolor = Color.FromArgb(unchecked((int)0xff909090)); ;
-                for (int i = 1; i < diagnosis.Count; i++)
-                {
-                    var broken = diagnosis[i];
-                    if (broken >= 0)
-                    {
-                        vao.AddLine(
-                        rider.Body[bones[broken].joint1].Location,
-                        rider.Body[bones[broken].joint2].Location,
-                        breakcolor,
-                        1f / 4);
-                    }
-                }
-                //the first break is most important so we give it a better color, assuming its not just a fakie death
-                if (diagnosis[0] > 0)
-                {
-                    vao.AddLine(
-                    rider.Body[bones[diagnosis[0]].joint1].Location,
-                    rider.Body[bones[diagnosis[0]].joint2].Location,
-                    firstbreakcolor,
-                    1f / 4);
-                }
-            }
-            for (var i = 0; i < rider.Body.Length; i++)
-            {
-                Color c = Color.Cyan;
-                if (
-                    ((i == RiderConstants.SledTL || i == RiderConstants.SledBL) && diagnosis.Contains(-1)) ||
-                    ((i == RiderConstants.BodyButt || i == RiderConstants.BodyShoulder) && diagnosis.Contains(-2)))
-                {
-                    c = Color.Blue;
-                }
-                vao.AddLine(
-                    rider.Body[i].Location,
-                    rider.Body[i].Location,
-                    c,
-                    1f / 4);
-            }
-        }
 
-        public static void DrawTrackLine(StandardLine line, Color color, bool drawwell, bool drawcolor, bool drawknobs, bool redknobs = false)
+        public static void DrawTrackLine(StandardLine line, Color color, bool drawwell, bool drawcolor)
         {
-            var thickness = 2;
-            Color color2;
-            var type = line.Type;
-            switch (type)
-            {
-                case LineType.Blue:
-                    color2 = Color.FromArgb(0, 0x66, 0xFF);
-                    break;
-
-                case LineType.Red:
-                    color2 = Color.FromArgb(0xCC, 0, 0);
-                    break;
-
-                default:
-                    throw new Exception("Rendering Invalid Line");
-            }
+            var lv = new AutoArray<LineVertex>(24);
+            var verts = new AutoArray<GenericVertex>(30);
             if (drawcolor)
             {
-                var loc3 = line.DiffNormal.X > 0 ? (Math.Ceiling(line.DiffNormal.X)) : (Math.Floor(line.DiffNormal.X));
-                var loc4 = line.DiffNormal.Y > 0 ? (Math.Ceiling(line.DiffNormal.Y)) : (Math.Floor(line.DiffNormal.Y));
-                if (type == LineType.Red)
+                if (line is RedLine redline)
                 {
-                    var redline = line as RedLine;
-                    GameDrawingMatrix.Enter();
-                    GL.Color3(color2);
-                    GL.Begin(PrimitiveType.Triangles);
-                    var basepos = line.Position2;
-                    for (int ix = 0; ix < redline.Multiplier; ix++)
-                    {
-                        var angle = MathHelper.RadiansToDegrees(Math.Atan2(line.Difference.Y, line.Difference.X));
-                        Turtle t = new Turtle(line.Position2);
-                        var basex = 8 + (ix * 2);
-                        t.Move(angle, -basex);
-                        GL.Vertex2(new Vector2((float)t.X, (float)t.Y));
-                        t.Move(90, line.inv ? -8 : 8);
-                        GL.Vertex2(new Vector2((float)t.X, (float)t.Y));
-                        t.Point = line.Position2;
-                        t.Move(angle, -(ix * 2));
-                        GL.Vertex2(new Vector2((float)t.X, (float)t.Y));
-                    }
-                    GL.End();
-                    GameDrawingMatrix.Exit();
+                    verts.AddRange(LineAccelRenderer.GetAccelDecor(redline));
                 }
-                RenderRoundedLine(new Vector2d(line.Position.X + loc3, line.Position.Y + loc4),
-                    new Vector2d(line.Position2.X + loc3, line.Position2.Y + loc4), color2, thickness);
+                lv.AddRange(LineColorRenderer.CreateDecorationLine(line, line.Color));
             }
-            RenderRoundedLine(line.Position, line.Position2, color, thickness, drawknobs, redknobs);
+            lv.AddRange(
+                LineRenderer.CreateTrackLine(
+                    line.Start, 
+                    line.End, 
+                    line.Width * 2, 
+                    Utility.ColorToRGBA_LE(color)));
             if (drawwell)
             {
-                using (new GLEnableCap(EnableCap.Blend))
-                {
-                    GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-                    GameDrawingMatrix.Enter();
-                    GL.Begin(PrimitiveType.Quads);
-                    GL.Color4(new Color4(0, 0, 0, 40));
-                    var rect = Utility.GetThickLine((Vector2)line.Start, (Vector2)line.End, Angle.FromLine(line.Start, line.End), (float)(StandardLine.Zone * 2));
-
-                    GL.Vertex2(line.Start);
-                    GL.Vertex2(line.End);
-                    GL.Vertex2(rect[3]);
-                    GL.Vertex2(rect[0]);
-                    GL.End();
-                    GL.PopMatrix();
-                }
+                verts.AddRange(WellRenderer.GetWell(line));
             }
+            var vao = GetLineVAO();
+            vao.Scale = Game.Track.Zoom;
+            foreach (var v in lv.unsafe_array)
+            {
+                vao.AddVertex(v);
+            }
+            GameDrawingMatrix.Enter();
+            if (verts.Count != 0)
+            {
+                GenericVAO gvao = new GenericVAO();
+                foreach (var v in verts.unsafe_array)
+                {
+                    gvao.AddVertex(v);
+                }
+                gvao.Draw(PrimitiveType.Triangles);
+            }
+            vao.Draw(PrimitiveType.Triangles);
+            GameDrawingMatrix.Exit();
         }
         private static LineVAO GetLineVAO()
         {
