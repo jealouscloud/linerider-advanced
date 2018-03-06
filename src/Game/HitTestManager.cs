@@ -89,6 +89,10 @@ namespace linerider
             {
                 var ret = new HashSet<int>();
                 var current = _currentframe;
+                foreach (var v in _renderer_changelist)
+                {
+                    ret.Add(v);
+                }
                 if (!Settings.Local.HitTest)
                 {
                     newframe = Disabled;
@@ -103,10 +107,6 @@ namespace linerider
                 }
                 else if (current != newframe)
                 {
-                    foreach (var v in _renderer_changelist)
-                    {
-                        ret.Add(v);
-                    }
                     if (current == Disabled)
                         current = 0;
                     // i'm leaving this in seperate loops for now
