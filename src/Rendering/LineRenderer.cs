@@ -87,30 +87,20 @@ namespace linerider.Rendering
             EnsureVBOSize(_vertexcount);
             return ret;
         }
-        public Dictionary<int, int> AddLines(List<GameLine> lines, Color color)
+        public Dictionary<int, int> AddLines(List<GameLine> lines, LineVertex[] vertices)
         {
             Dictionary<int, int> ret = new Dictionary<int, int>(lines.Count);
-            LineVertex[] vertices = new LineVertex[lines.Count * linesize];
-            int rgba = Utility.ColorToRGBA_LE(color);
             int startidx = _indices.Count;
             int startvert = _vertexcount;
+            _indices.EnsureCapacity(vertices.Length);
             for (int ix = 0; ix < lines.Count; ix++)
             {
                 var baseoffset = (ix * linesize);
-                var line = lines[ix];
-                float width = 2 * line.Width;
-
-                var lineverts = CreateTrackLine(
-                    line.Position,
-                    line.Position2,
-                    width,
-                    rgba);
                 for (int i = 0; i < linesize; i++)
                 {
                     _indices.Add(startvert + baseoffset + i);
-                    vertices[baseoffset + i] = lineverts[i];
                 }
-                ret.Add(line.ID, startidx + baseoffset);
+                ret.Add(lines[ix].ID, startidx + baseoffset);
             }
             _vbo.Bind();
             EnsureVBOSize(_vertexcount + vertices.Length);
@@ -328,7 +318,7 @@ namespace linerider.Rendering
             var len = (end - start).Length;
 
             var l = Utility.GetThickLine(start, end, angle, size);
-            var scale = size/2;
+            var scale = size / 2;
             ret[0] = new LineVertex() { Position = l[0], u = 0, v = 0, ratio = size / len, color = color, scale = scale };
             ret[1] = new LineVertex() { Position = l[1], u = 0, v = 1, ratio = size / len, color = color, scale = scale };
             ret[2] = new LineVertex() { Position = l[2], u = 1, v = 1, ratio = size / len, color = color, scale = scale };
