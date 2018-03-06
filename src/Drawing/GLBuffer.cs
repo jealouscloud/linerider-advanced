@@ -61,9 +61,11 @@ namespace linerider.Drawing
         /// <summary>
         /// Resizes the buffer object, copying its existing data
         /// </summary>
-        public void SetSize(int newsize, BufferUsageHint usageHint)
+        public void SetSize(int newsize, BufferUsageHint usageHint, bool shouldcopy = true)
         {
-            var copy = GetData(0, BufferSize);
+            T[] copy = new T[0];
+            if (shouldcopy)
+                copy = GetData(0, BufferSize);
             GL.BufferData(
                 _target,
                 newsize * _objectsize,
@@ -73,11 +75,7 @@ namespace linerider.Drawing
             BufferSize = newsize;
             if (copy.Length != 0)
             {
-          //      if (_is_size4_valuetype)
-         //           Map();
                 SetData(copy, 0, 0, Math.Min(newsize, copy.Length));
-        //        if (_is_size4_valuetype)
-      //              Unmap();
             }
         }
         public T[] GetData(int start, int length)
