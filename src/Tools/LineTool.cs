@@ -162,27 +162,36 @@ namespace linerider.Tools
                 var diff = _end - _start;
                 var x = diff.X;
                 var y = diff.Y;
-                Color c = Color.FromArgb(200, 150, 150,150);
+                Color c = Color.FromArgb(200, 150, 150, 150);
                 if (Math.Abs(x) + Math.Abs(y) < MINIMUM_LINE)
-                    c = Color.Red;
-                switch (game.Canvas.ColorControls.Selected)
                 {
-                    case LineType.Blue:
-                        StandardLine sl = new StandardLine(_start, _end, _addflip);
-                        sl.CalculateConstants();
-                        GameRenderer.DrawTrackLine(sl, c, Settings.Local.RenderGravityWells, true, false, false);
-                        break;
+                    c = Color.Red;
+                    var sz = 2f;
+                    if (game.Canvas.ColorControls.Selected == LineType.Scenery)
+                        sz *= game.Canvas.ColorControls.GreenMultiplier;
+                    GameRenderer.RenderRoundedLine(_start, _end, c, sz);
+                }
+                else
+                {
+                    switch (game.Canvas.ColorControls.Selected)
+                    {
+                        case LineType.Blue:
+                            StandardLine sl = new StandardLine(_start, _end, _addflip);
+                            sl.CalculateConstants();
+                            GameRenderer.DrawTrackLine(sl, c, Settings.Local.RenderGravityWells, true);
+                            break;
 
-                    case LineType.Red:
-                        RedLine rl = new RedLine(_start, _end, _addflip);
-                        rl.Multiplier = game.Canvas.ColorControls.RedMultiplier;
-                        rl.CalculateConstants();
-                        GameRenderer.DrawTrackLine(rl, c, Settings.Local.RenderGravityWells, true, false, false);
-                        break;
+                        case LineType.Red:
+                            RedLine rl = new RedLine(_start, _end, _addflip);
+                            rl.Multiplier = game.Canvas.ColorControls.RedMultiplier;
+                            rl.CalculateConstants();
+                            GameRenderer.DrawTrackLine(rl, c, Settings.Local.RenderGravityWells, true);
+                            break;
 
-                    case LineType.Scenery:
-                        GameRenderer.RenderRoundedLine(_start, _end, c, 1);
-                        break;
+                        case LineType.Scenery:
+                            GameRenderer.RenderRoundedLine(_start, _end, c, 2 * game.Canvas.ColorControls.GreenMultiplier);
+                            break;
+                    }
                 }
             }
         }
