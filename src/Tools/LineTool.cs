@@ -142,11 +142,11 @@ namespace linerider.Tools
                     {
                         game.Track.UndoManager.BeginAction();
                         var added = CreateLine(trk, _start, _end, _addflip, Snapped, game.EnableSnap);
+                        game.Track.UndoManager.EndAction();
                         if (added is StandardLine)
                         {
                             game.Track.NotifyTrackChanged();
                         }
-                        game.Track.UndoManager.EndAction();
                     }
                     game.Invalidate();
                 }
