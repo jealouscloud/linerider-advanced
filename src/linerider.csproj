@@ -75,6 +75,7 @@
     <Compile Include="Rendering\GameDrawingMatrix.cs" />
     <Compile Include="Rendering\GameRenderer.cs" />
     <Compile Include="Rendering\LineColorRenderer.cs" />
+    <Compile Include="Rendering\LineAccelRenderer.cs" />
     <Compile Include="Rendering\WellRenderer.cs" />
     <Compile Include="Rendering\LineRenderer.cs" />
     <Compile Include="Rendering\LineDecorator.cs" />
