@@ -2,6 +2,7 @@ using OpenTK.Graphics.OpenGL;
 using System;
 using System.Drawing;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using OpenTK;
 using linerider.Drawing;
@@ -44,6 +45,35 @@ namespace linerider.Rendering
                 _vbo.Unbind();
             }
         }
+        public void Initialize(List<GameLine> lines)
+        {
+            Clear();
+            ResourceSync initsync = new ResourceSync();
+            GenericVertex[] vertices = new GenericVertex[lines.Count * wellsize];
+            System.Threading.Tasks.Parallel.For(0, lines.Count, (idx) =>
+              {
+                  var line = (StandardLine)lines[idx];
+                  var well = GetWell(line);
+                  for (int i = 0; i < wellsize; i++)
+                  {
+                      vertices[idx * wellsize + i] = well[i];
+                  }
+                  try
+                  {
+                      initsync.UnsafeEnterWrite();
+                      _lines.Add(line.ID, idx * wellsize);
+                  }
+                  finally
+                  {
+                      initsync.UnsafeExitWrite();
+                  }
+              });
+            _vertexcounter = vertices.Length;
+            _vbo.Bind();
+            EnsureVBOSize(vertices.Length, false);
+            _vbo.SetData(vertices, 0, 0, vertices.Length);
+            _vbo.Unbind();
+        }
         public void AddLine(StandardLine line)
         {
             if (_lines.ContainsKey(line.ID))
@@ -81,11 +111,11 @@ namespace linerider.Rendering
             EnsureVBOSize(_vertexcounter);
             return ret;
         }
-        private void EnsureVBOSize(int size)
+        private void EnsureVBOSize(int size, bool copyonresize = true)
         {
             if (size > _vbo.BufferSize)
             {
-                _vbo.SetSize(size * 2, BufferUsageHint.DynamicDraw);
+                _vbo.SetSize(size * 2, BufferUsageHint.DynamicDraw, copyonresize);
             }
         }
         public void Dispose()
@@ -93,14 +123,16 @@ namespace linerider.Rendering
             _vbo.Dispose();
         }
 
-        private static GenericVertex[] GetWell(StandardLine line)
+        public static GenericVertex[] GetWell(StandardLine line)
         {
-            var t = Utility.GetThickLine(line.Start, line.End, Angle.FromLine(line.Start, line.End), StandardLine.Zone * 2);
+            var angle = Angle.FromLine(line);
+            angle.Radians += 1.5708f; //90 degrees
+            var offset = angle.MovePoint(Vector2d.Zero, StandardLine.Zone);
             var wellcolor = Color.FromArgb(40, 0, 0, 0);
             var tl = new GenericVertex((Vector2)(line.Start), wellcolor);
             var tr = new GenericVertex((Vector2)(line.End), wellcolor);
-            var bl = new GenericVertex((Vector2)(t[3]), wellcolor);
-            var br = new GenericVertex((Vector2)(t[0]), wellcolor);
+            var bl = new GenericVertex((Vector2)(line.End + offset), wellcolor);
+            var br = new GenericVertex((Vector2)(line.Start + offset), wellcolor);
             return new GenericVertex[]
                 {
                     tl, tr, bl,

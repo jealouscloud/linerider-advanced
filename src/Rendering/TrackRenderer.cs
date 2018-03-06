@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Diagnostics;
 using linerider.Utils;
 using linerider.Drawing;
@@ -64,6 +65,7 @@ namespace linerider.Rendering
         /// </summary>
         private Queue<Tuple<LineActionType, GameLine>> _lineactions;
         private ResourceSync _sync;
+        const int linesize = 6;
         public TrackRenderer()
         {
             _sync = new ResourceSync();
@@ -128,6 +130,9 @@ namespace linerider.Rendering
         /// </summary>
         public void InitializeTrack(Track track)
         {
+            List<GameLine> scenery = new List<GameLine>(track.SceneryLines);
+            List<GameLine> phys = new List<GameLine>(track.BlueLines + track.RedLines);
+            var sorted = track.GetSortedLines();
             using (_sync.AcquireWrite())
             {
                 _lineactions.Clear();
@@ -137,39 +142,57 @@ namespace linerider.Rendering
                 _physlines.Clear();
                 _scenerylines.Clear();
                 _physlines.Clear();
-            }
-            List<GameLine> scenery = new List<GameLine>(track.SceneryLines);
-            List<GameLine> phys = new List<GameLine>(track.BlueLines + track.RedLines);
-            var sorted = track.GetSortedLines();
+                RequiresUpdate = true;
 
-            // iterate backwards for render order on top.
-            // list is returned by id 3 2 1, we want 3 on top.
-            for (int i = sorted.Length - 1; i >= 0; i--)
-            {
-                var line = sorted[i];
-                if (line.Type == LineType.Scenery)
+                // iterate backwards for render order on top.
+                // list is returned by id 3 2 1, we want 3 on top.
+                for (int i = sorted.Length - 1; i >= 0; i--)
                 {
-                    scenery.Add(line);
+                    var line = sorted[i];
+                    if (line.Type == LineType.Scenery)
+                    {
+                        scenery.Add(line);
+                    }
+                    else
+                    {
+                        phys.Add(line);
+                    }
                 }
-                else
+                if (scenery.Count != 0)
                 {
-                    phys.Add(line);
-                    _decorator.AddLine((StandardLine)line);
+                    LineVertex[] sceneryverts = new LineVertex[scenery.Count * linesize];
+                    System.Threading.Tasks.Parallel.For(0, scenery.Count, (index) =>
+                      {
+                          int counter = 0;
+                          var verts = (GenerateLine(scenery[index], false));
+                          foreach (var vert in verts)
+                          {
+                              sceneryverts[index * linesize + counter++] = vert;
+                          }
+                      });
+                    _scenerylines = _sceneryvbo.AddLines(
+                        scenery,
+                        sceneryverts);
                 }
+                if (phys.Count != 0)
+                {
+                    LineVertex[] physverts = new LineVertex[phys.Count * linesize];
+                    System.Threading.Tasks.Parallel.For(0, phys.Count, (index) =>
+                      {
+                          int counter = 0;
+                          var verts = (GenerateLine(phys[index], false));
+                          foreach (var vert in verts)
+                          {
+                              physverts[index * linesize + counter++] = vert;
+                          }
+                      });
+                    _physlines = _physvbo.AddLines(
+                        phys,
+                        physverts);
+                    _decorator.Initialize(phys);
+                }
+                RequiresUpdate = true;
             }
-            if (scenery.Count != 0)
-            {
-                _scenerylines = _sceneryvbo.AddLines(
-                    scenery,
-                    Color.FromArgb(0));
-            }
-            if (phys.Count != 0)
-            {
-                _physlines = _physvbo.AddLines(
-                    phys,
-                    Color.FromArgb(0));
-            }
-            RequiresUpdate = true;
         }
         public void AddLine(GameLine line)
         {
@@ -187,7 +210,6 @@ namespace linerider.Rendering
             RequiresUpdate = true;
             using (_sync.AcquireWrite())
             {
-                Debug.Assert(line is StandardLine ?_physlines.ContainsKey(line.ID) : _scenerylines.ContainsKey(line.ID));
                 _lineactions.Enqueue(
                     new Tuple<LineActionType, GameLine>(
                         LineActionType.Change,
@@ -256,25 +278,20 @@ namespace linerider.Rendering
                                 LineChanged(
                                     line,
                                     _sceneryvbo,
-                                    _scenerylines);
+                                    _scenerylines,
+                                    false);
                             }
                             else
                             {
-                                int color = 0;
-                                var stl = (StandardLine)line;
                                 bool hit = Settings.Local.HitTest
-                                    ? game.Track.Timeline.HitTest.IsHit(stl.ID)
+                                    ? game.Track.Timeline.HitTest.IsHit(line.ID)
                                     : false;
-                                if (hit)
-                                    color = Utility.ColorToRGBA_LE(stl.Color);
-
                                 LineChanged(
                                     line,
                                     _physvbo,
                                     _physlines,
-                                    color);
-
-                                _decorator.LineChanged(stl, hit);
+                                    hit);
+                                _decorator.LineChanged((StandardLine)line, hit);
                             }
                             break;
                     }
@@ -289,21 +306,10 @@ namespace linerider.Rendering
         {
             if (lookup.ContainsKey(line.ID))
             {
-                LineChanged(line, renderer, lookup);
+                LineChanged(line, renderer, lookup, false);
                 return;
             }
-            int color = 0;
-            if (line is StandardLine stl && stl.Trigger != null)
-            {
-                var trigger = Utility.ColorToRGBA_LE(
-                    Constants.TriggerLineColor);
-                color = Utility.ChangeAlpha(trigger, 254);
-            }
-            var lineverts = LineRenderer.CreateTrackLine(
-                line.Position,
-                line.Position2,
-                2 * line.Width,
-                color);
+            var lineverts = GenerateLine(line, false);
             int start = renderer.AddLine(lineverts);
             lookup.Add(line.ID, start);
         }
@@ -311,23 +317,9 @@ namespace linerider.Rendering
             GameLine line,
             LineRenderer renderer,
             Dictionary<int, int> lookup,
-            int coloroverride = 0)
+            bool hit)
         {
-            float width = 2 * line.Width;
-            if (coloroverride == 0 && line is StandardLine stl)
-            {
-                if (stl.Trigger != null)
-                {
-                    var trigger = Utility.ColorToRGBA_LE(
-                        Constants.TriggerLineColor);
-                    coloroverride = Utility.ChangeAlpha(trigger,254);
-                }
-            }
-            var lineverts = LineRenderer.CreateTrackLine(
-                line.Position,
-                line.Position2,
-                width,
-                coloroverride);
+            var lineverts = GenerateLine(line, hit);
             renderer.ChangeLine(lookup[line.ID], lineverts);
         }
         private void RemoveLine(
@@ -338,6 +330,29 @@ namespace linerider.Rendering
             int start = lookup[line.ID];
             renderer.RemoveLine(start);
             // preserve the id in the lookup in event of undo
+        }
+        private static LineVertex[] GenerateLine(GameLine line, bool hit)
+        {
+            int color = 0;
+            if (line is StandardLine stl)
+            {
+                if (hit)
+                {
+                    color = Utility.ColorToRGBA_LE(line.Color);
+                }
+                else if (stl.Trigger != null)
+                {
+                    var trigger = Utility.ColorToRGBA_LE(
+                        Constants.TriggerLineColor);
+                    color = Utility.ChangeAlpha(trigger, 254);
+                }
+            }
+            var lineverts = LineRenderer.CreateTrackLine(
+                line.Position,
+                line.Position2,
+                2 * line.Width,
+                color);
+            return lineverts;
         }
     }
 }
