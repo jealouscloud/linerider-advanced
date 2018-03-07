@@ -179,10 +179,17 @@ namespace linerider
                 name += " (*)\n";
                 if (changes > 50)
                 {
-                    int rounded = (changes / 50) * 50;
-                    if (changes >= 200 && changes != 999)
+                    int rounded = changes;
+                    if (changes < 999)
                     {
-                        rounded = (changes / 100) * 100;
+                        if (changes >= 200)
+                        {
+                            rounded = (changes / 100) * 100;
+                        }
+                        else
+                        {
+                            rounded = (changes / 50) * 50;
+                        }
                     }
                     name += (rounded) + "+ changes";
                 }
