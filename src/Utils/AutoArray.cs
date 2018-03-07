@@ -82,6 +82,11 @@ namespace linerider.Utils
                 return _size;
             }
         }
+        public AutoArray()
+        {
+            //i picked this arbitrarily
+            unsafe_array = new T[4];
+        }
         public AutoArray(int capacity)
         {
             unsafe_array = new T[capacity];

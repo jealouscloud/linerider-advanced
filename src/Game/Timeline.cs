@@ -36,7 +36,7 @@ namespace linerider.Game
     {
         private HitTestManager _hittest = new HitTestManager();
         private ResourceSync _framesync = new ResourceSync();
-        private AutoArray<Rider> _frames = new AutoArray<Rider>(2 * 60 * 40);
+        private AutoArray<Rider> _frames = new AutoArray<Rider>();
         private Track _track;
         private List<LineTrigger> _activetriggers = null;
         public Timeline(Track track, List<LineTrigger> triggerlist)
