@@ -15,7 +15,7 @@ namespace linerider
     public class HitTestManager
     {
         private HashSet<int> _allcollisions = new HashSet<int>();
-        private List<HashSet<int>> _unique_frame_collisions = new List<HashSet<int>>();
+        private AutoArray<HashSet<int>> _unique_frame_collisions = new AutoArray<HashSet<int>>(4000);
         private HashSet<int> _renderer_changelist = new HashSet<int>();
         private Dictionary<int, int> _line_framehit = new Dictionary<int, int>();
         private ResourceSync _sync = new ResourceSync();
@@ -25,35 +25,14 @@ namespace linerider
         {
             Reset();
         }
-        public void AddFrame(LinkedList<int> collisions)
+        public void MarkFirstInvalid(int frame)
         {
-            int frameid = _unique_frame_collisions.Count;
             using (_sync.AcquireWrite())
             {
-                HashSet<int> unique = new HashSet<int>();
-                foreach (var collision in collisions)
+                for (int i = frame; i < _unique_frame_collisions.Count; i++)
                 {
-                    var id = collision;
-                    if (_allcollisions.Add(id))
-                    {
-                        if (Settings.Local.HitTest)
-                            _renderer_changelist.Add(id);
-                        unique.Add(id);
-                        _line_framehit.Add(id, frameid);
-                    }
-                }
-                _unique_frame_collisions.Add(unique);
-            }
-        }
-        public void ChangeFrames(int start, List<LinkedList<int>> collisions)
-        {
-            Debug.Assert(start != 0, "Attempt to change frame 0 from hit test");
-            using (_sync.AcquireWrite())
-            {
-                var frames = _unique_frame_collisions;
-                for (int i = 0; i < collisions.Count; i++)
-                {
-                    foreach (var hit in frames[start + i])
+                    var unique = _unique_frame_collisions[i];
+                    foreach (var hit in unique)
                     {
                         _allcollisions.Remove(hit);
                         if (Settings.Local.HitTest)
@@ -61,10 +40,27 @@ namespace linerider
                         _line_framehit.Remove(hit);
                     }
                 }
-                for (int i = 0; i < collisions.Count; i++)
+                _unique_frame_collisions.RemoveRange(
+                    frame,
+                    _unique_frame_collisions.Count - frame);
+                _currentframe = Math.Min(frame - 1, _currentframe);
+            }
+        }
+        public void AddFrame(LinkedList<int> collisions)
+        {
+            var list = new List<LinkedList<int>>();
+            list.Add(collisions);
+            AddFrames(list);
+        }
+        public void AddFrames(List<LinkedList<int>> collisionlist)
+        {
+            using (_sync.AcquireWrite())
+            {
+                foreach (var collisions in collisionlist)
                 {
+                    int frameid = _unique_frame_collisions.Count;
                     HashSet<int> unique = new HashSet<int>();
-                    foreach (var collision in collisions[i])
+                    foreach (var collision in collisions)
                     {
                         var id = collision;
                         if (_allcollisions.Add(id))
@@ -72,10 +68,10 @@ namespace linerider
                             if (Settings.Local.HitTest)
                                 _renderer_changelist.Add(id);
                             unique.Add(id);
-                            _line_framehit.Add(id, start + i);
+                            _line_framehit.Add(id, frameid);
                         }
                     }
-                    frames[start + i] = unique;
+                    _unique_frame_collisions.Add(unique);
                 }
             }
         }

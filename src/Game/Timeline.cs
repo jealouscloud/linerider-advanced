@@ -53,7 +53,7 @@ namespace linerider.Game
             using (_framesync.AcquireWrite())
             {
                 HitTest.Reset();
-                _frames.Empty();
+                _frames.Clear();
                 _frames.Add(state);
             }
         }
@@ -72,11 +72,11 @@ namespace linerider.Game
         {
             bool isiteration = iteration != 6 && frame > 0;
             frame = isiteration ? frame - 1 : frame;
-
+            var next = GetFrame(frame + 1);
             var rider = GetFrame(frame);
-            if (GetFrame(frame + 1).Crashed == rider.Crashed)
+            if (next.Crashed == rider.Crashed)
                 return new List<int>();
-                
+
             return rider.Diagnose(
                     _track.Grid,
                     _track.Bones,
@@ -120,7 +120,7 @@ namespace linerider.Game
         private void ThreadUnsafeRunFrames(int start, int count)
         {
             var steps = new Rider[count];
-            var changedcollision = new List<LinkedList<int>>(count);
+            var collisionlist = new List<LinkedList<int>>(count);
             Rider current = _frames[start - 1];
             int framecount = _frames.Count;
             var bones = _track.Bones;
@@ -136,6 +136,7 @@ namespace linerider.Game
             }
             using (var sync = changesync.AcquireRead())
             {
+                HitTest.MarkFirstInvalid(start);
                 for (int i = 0; i < count; i++)
                 {
                     int currentframe = start + i;
@@ -146,10 +147,7 @@ namespace linerider.Game
                         _activetriggers,
                         collisions);
                     steps[i] = current;
-                    if (currentframe >= framecount)
-                        HitTest.AddFrame(collisions);
-                    else
-                        changedcollision.Add(collisions);
+                    collisionlist.Add(collisions);
                     // 3 seconds of frames, 
                     // couldnt hurt to check?
                     if (i % 120 == 0)
@@ -157,6 +155,7 @@ namespace linerider.Game
                         sync.ReleaseWaiting();
                     }
                 }
+                HitTest.AddFrames(collisionlist);
             }
             if (start + count > framecount)
             {
@@ -167,8 +166,6 @@ namespace linerider.Game
             {
                 _frames.unsafe_array[start + i] = steps[i];
             }
-            if (changedcollision.Count != 0)
-                HitTest.ChangeFrames(start, changedcollision);
         }
     }
 }
