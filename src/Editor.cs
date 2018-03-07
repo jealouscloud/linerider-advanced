@@ -205,14 +205,18 @@ namespace linerider
             drawOptions.ShowMomentumVectors = Settings.Local.MomentumVectors;
             drawOptions.Zoom = Zoom;
             drawOptions.RiderDiagnosis = RenderRiderInfo.Diagnosis;
+            int renderframe = Offset;
             if (Playing && Offset > 0 && blend < 1)
             {
                 //interpolate between last frame and current one
-                drawOptions.Rider = Rider.Lerp(Timeline.GetFrame(Offset - 1), Timeline.GetFrame(Offset), blend);
+                var current = Timeline.GetFrame(Offset);
+                var prev = Timeline.GetFrame(Offset - 1);
+                drawOptions.Rider = Rider.Lerp(prev, current, blend);
+                renderframe = Offset - 1;
             }
             if (!_loadingTrack)
             {
-                var changes = Timeline.RequestFrameForRender(Offset);
+                var changes = Timeline.RequestFrameForRender(renderframe);
                 foreach (var change in changes)
                 {
                     GameLine line;
