@@ -541,22 +541,19 @@ namespace linerider
             {
                 try
                 {
-                    using (_tracksync.AcquireWrite())
+                    game.Loading = true;
+                    var lasttrack = Settings.LastSelectedTrack;
+                    var trdr = Constants.TracksDirectory;
+                    if (!lasttrack.StartsWith(trdr))
+                        return;
+                    if (string.Equals(
+                        Path.GetExtension(lasttrack),
+                        ".trk",
+                        StringComparison.InvariantCultureIgnoreCase))
                     {
-                        game.Loading = true;
-                        var lasttrack = Settings.LastSelectedTrack;
-                        var trdr = Constants.TracksDirectory;
-                        if (!lasttrack.StartsWith(trdr))
-                            return;
-                        if (string.Equals(
-                            Path.GetExtension(lasttrack),
-                            ".trk",
-                            StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            var trackname = TrackIO.GetTrackName(lasttrack);
-
-                            ChangeTrack(TRKLoader.LoadTrack(lasttrack, trackname));
-                        }
+                        var trackname = TrackIO.GetTrackName(lasttrack);
+                        var track = TRKLoader.LoadTrack(lasttrack, trackname);
+                        ChangeTrack(track);
                     }
                 }
                 catch (Exception e)
