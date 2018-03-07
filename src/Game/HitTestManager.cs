@@ -15,7 +15,7 @@ namespace linerider
     public class HitTestManager
     {
         private HashSet<int> _allcollisions = new HashSet<int>();
-        private AutoArray<HashSet<int>> _unique_frame_collisions = new AutoArray<HashSet<int>>(4000);
+        private AutoArray<HashSet<int>> _unique_frame_collisions = new AutoArray<HashSet<int>>();
         private HashSet<int> _renderer_changelist = new HashSet<int>();
         private Dictionary<int, int> _line_framehit = new Dictionary<int, int>();
         private int _currentframe = Disabled;
