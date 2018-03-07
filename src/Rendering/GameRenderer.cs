@@ -51,9 +51,9 @@ namespace linerider.Rendering
             }
             lv.AddRange(
                 LineRenderer.CreateTrackLine(
-                    line.Start, 
-                    line.End, 
-                    line.Width * 2, 
+                    line.Start,
+                    line.End,
+                    line.Width * 2,
                     Utility.ColorToRGBA_LE(color)));
             if (drawwell)
             {
@@ -66,16 +66,19 @@ namespace linerider.Rendering
                 vao.AddVertex(v);
             }
             GameDrawingMatrix.Enter();
-            if (verts.Count != 0)
+            using (new GLEnableCap(EnableCap.Blend))
             {
-                GenericVAO gvao = new GenericVAO();
-                foreach (var v in verts.unsafe_array)
+                if (verts.Count != 0)
                 {
-                    gvao.AddVertex(v);
+                    GenericVAO gvao = new GenericVAO();
+                    foreach (var v in verts.unsafe_array)
+                    {
+                        gvao.AddVertex(v);
+                    }
+                    gvao.Draw(PrimitiveType.Triangles);
                 }
-                gvao.Draw(PrimitiveType.Triangles);
+                vao.Draw(PrimitiveType.Triangles);
             }
-            vao.Draw(PrimitiveType.Triangles);
             GameDrawingMatrix.Exit();
         }
         private static LineVAO GetLineVAO()
