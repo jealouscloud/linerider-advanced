@@ -55,6 +55,10 @@ namespace linerider
         private bool _refreshtrack = false;
         private EditorGrid _cells = new EditorGrid();
 
+        /// <summary>
+        /// A sync object for loading track files
+        /// </summary>
+        public readonly object LoadSync = new object();
         public readonly Stopwatch FramerateWatch = new Stopwatch();
         public readonly FPSCounter FramerateCounter = new FPSCounter();
         /// <summary>
@@ -493,30 +497,32 @@ namespace linerider
 
         public void ChangeTrack(Track trk)
         {
-            using (_tracksync.AcquireWrite())
+            lock (LoadSync)
             {
-                _loadingTrack = true;
-                Stop();
-                ActiveTriggers.Clear();
-                _flag = null;
-                _track = trk;
+                using (_tracksync.AcquireWrite())
+                {
+                    _loadingTrack = true;
+                    Stop();
+                    ActiveTriggers.Clear();
+                    _flag = null;
+                    _track = trk;
 
-                Timeline = new Timeline(trk, ActiveTriggers);
-                UndoManager = new UndoManager();
-                ResetTrackChangeCounter();
-                _refreshtrack = true;
+                    Timeline = new Timeline(trk, ActiveTriggers);
+                    UndoManager = new UndoManager();
+                    ResetTrackChangeCounter();
+                    _refreshtrack = true;
+                    _cells.Clear();
+                    foreach (var line in trk.LineLookup.Values)
+                    {
+                        _cells.AddLine(line);
+                    }
+                    Reset();
+                    Camera.SetFrameCenter(trk.StartOffset);
+                    _loadingTrack = false;
+                }
             }
-
-            _cells.Clear();
-            foreach (var line in trk.LineLookup.Values)
-            {
-                _cells.AddLine(line);
-            }
-            Reset();
-            Camera.SetFrameCenter(trk.StartOffset);
-            _loadingTrack = false;
-            GC.Collect();//this is the safest place to collect
             Invalidate();
+            GC.Collect();//this is probably safest place to make the gc work
         }
         public void QuickSave()
         {
@@ -539,32 +545,39 @@ namespace linerider
         {
             ThreadPool.QueueUserWorkItem((o) =>
             {
-                try
+                AutoLoad();
+            });
+        }
+        private void AutoLoad()
+        {
+            try
+            {
+                game.Loading = true;
+                var lasttrack = Settings.LastSelectedTrack;
+                var trdr = Constants.TracksDirectory;
+                if (!lasttrack.StartsWith(trdr))
+                    return;
+                if (string.Equals(
+                    Path.GetExtension(lasttrack),
+                    ".trk",
+                    StringComparison.InvariantCultureIgnoreCase))
                 {
-                    game.Loading = true;
-                    var lasttrack = Settings.LastSelectedTrack;
-                    var trdr = Constants.TracksDirectory;
-                    if (!lasttrack.StartsWith(trdr))
-                        return;
-                    if (string.Equals(
-                        Path.GetExtension(lasttrack),
-                        ".trk",
-                        StringComparison.InvariantCultureIgnoreCase))
+                    var trackname = TrackIO.GetTrackName(lasttrack);
+                    lock (LoadSync)
                     {
-                        var trackname = TrackIO.GetTrackName(lasttrack);
                         var track = TRKLoader.LoadTrack(lasttrack, trackname);
                         ChangeTrack(track);
                     }
                 }
-                catch (Exception e)
-                {
-                    Debug.WriteLine("Autoload failure: " + e.ToString());
-                }
-                finally
-                {
-                    game.Loading = false;
-                }
-            });
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Autoload failure: " + e.ToString());
+            }
+            finally
+            {
+                game.Loading = false;
+            }
         }
         public TrackWriter CreateTrackWriter()
         {
