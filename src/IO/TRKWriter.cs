@@ -56,7 +56,7 @@ namespace linerider.IO
                 {
                     saved_features[ZEROSTART_INDEX] = true;
                 }
-                var lines = trk.GetSortedLines();
+                var lines = trk.GetLines();
                 foreach (GameLine l in lines)
                 {
                     var scenery = l as SceneryLine;

@@ -66,17 +66,24 @@ namespace linerider
         {
             GenerateBones();
         }
+        public GameLine[] GetLines()
+        {
+            GameLine[] ret = new GameLine[LineLookup.Count];
+            int index = ret.Length - 1;
+            foreach (var id in Lines)
+            {
+                ret[index] = LineLookup[id];
+                index--;
+            }
+            return ret;
+        }
         public GameLine[] GetSortedLines()
         {
             GameLine[] ret = new GameLine[LineLookup.Count];
-            SortedSet<int> temp = new SortedSet<int>();
-            foreach (var id in Lines)
-            {
-                temp.Add(id);
-            }
+            SortedSet<int> temp = new SortedSet<int>(Lines);
             int index = 0;
-            // sorted as -2 -1 0 1 2, we want the reverse.
-            foreach (var line in temp.Reverse())
+            // sorted as -2 -1 0 1 2
+            foreach (var line in temp)
             {
                 ret[index++] = LineLookup[line];
             }
@@ -139,6 +146,9 @@ namespace linerider
                 !LineLookup.ContainsKey(line.ID),
                 "Lines occupying the same ID -- really bad");
             LineLookup.Add(line.ID, line);
+            // here is where using a linkedlist shines:
+            // we can make the most recent change at the front so if it gets
+            // looked up it's easier and faster to find
             Lines.AddFirst(line.ID);
 
             if (line is StandardLine stl)

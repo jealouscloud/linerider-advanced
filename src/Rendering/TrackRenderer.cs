@@ -144,9 +144,7 @@ namespace linerider.Rendering
                 _physlines.Clear();
                 RequiresUpdate = true;
 
-                // iterate backwards for render order on top.
-                // list is returned by id 3 2 1, we want 3 on top.
-                for (int i = sorted.Length - 1; i >= 0; i--)
+                for (int i = 0; i < sorted.Length; i++)
                 {
                     var line = sorted[i];
                     if (line.Type == LineType.Scenery)
