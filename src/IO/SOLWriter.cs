@@ -71,7 +71,7 @@ namespace linerider.IO
             trackdata.Add(dataobj);
 
             SortedList<int, GameLine> list = new SortedList<int, GameLine>();
-            var lines = trk.GetSortedLines();
+            var lines = trk.GetLines();
             for (int i = lines.Length - 1; i >= 0; i--)
             {
                 var id = lines[i].ID;
