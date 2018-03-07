@@ -231,7 +231,7 @@ namespace linerider.Rendering
         }
         public void Clear()
         {
-            Array.Empty();
+            Array.Clear();
             _lines.Clear();
         }
         protected unsafe void BeginDraw()

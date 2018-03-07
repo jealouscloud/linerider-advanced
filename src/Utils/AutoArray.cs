@@ -105,7 +105,7 @@ namespace linerider.Utils
             InsertRange(_size, collection);
         }
 
-        public void Empty()
+        public void Clear()
         {
             if (_size > 0)
             {

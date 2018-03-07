@@ -50,7 +50,7 @@ namespace linerider.Drawing
         }
         public void Clear()
         {
-            Array.Empty();
+            Array.Clear();
         }
         protected virtual void BeginDraw()
         {

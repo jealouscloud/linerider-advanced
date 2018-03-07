@@ -104,7 +104,7 @@ namespace linerider.Rendering
         public void Clear()
         {
             _vertcount = 0;
-            _indices.Empty();
+            _indices.Clear();
             _freeverts.Clear();
             _lookup.Clear();
         }
