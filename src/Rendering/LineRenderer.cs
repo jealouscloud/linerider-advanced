@@ -70,7 +70,7 @@ namespace linerider.Rendering
         public void Clear()
         {
             _vertexcount = 0;
-            _indices.Empty();
+            _indices.Clear();
             freevertices.Clear();
         }
         public void Dispose()
