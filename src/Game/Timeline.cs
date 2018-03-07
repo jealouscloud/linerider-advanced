@@ -34,8 +34,7 @@ namespace linerider.Game
 {
     public partial class Timeline
     {
-        public HitTestManager HitTest { get; private set; } = new HitTestManager();
-
+        private HitTestManager _hittest = new HitTestManager();
         private ResourceSync _framesync = new ResourceSync();
         private AutoArray<Rider> _frames = new AutoArray<Rider>(2 * 60 * 40);
         private Track _track;
@@ -48,11 +47,34 @@ namespace linerider.Game
             Restart(track.GetStart());
             _activetriggers = triggerlist;
         }
+        public bool IsLineHit(int id)
+        {
+            using (_framesync.AcquireWrite())
+            {
+                return _hittest.IsHit(id);
+            }
+        }      
+        public bool IsLineHit(int id, int frame)
+        {
+            using (_framesync.AcquireWrite())
+            {
+                UnsafeEnsureFrameValid(frame);
+                return _hittest.IsHitBy(id, frame);
+            }
+        }
+        public HashSet<int> RequestFrameForRender(int frameid)
+        {
+            using (_framesync.AcquireWrite())
+            {
+                UnsafeEnsureFrameValid(frameid);
+                return _hittest.GetChangesForFrame(frameid);
+            }
+        }
         public void Restart(Rider state)
         {
             using (_framesync.AcquireWrite())
             {
-                HitTest.Reset();
+                _hittest.Reset();
                 _frames.Clear();
                 _frames.Add(state);
             }
@@ -100,21 +122,25 @@ namespace linerider.Game
         {
             using (_framesync.AcquireWrite())
             {
-                int start;
-                int count;
-                int invalid;
-                using (changesync.AcquireRead())
-                {
-                    invalid = _first_invalid_frame;
-                    start = Math.Min(_frames.Count, invalid);
-                    count = frame - (start - 1);
-                    _first_invalid_frame = Math.Max(invalid, frame + 1);
-                }
-                if (count > 0)
-                {
-                    ThreadUnsafeRunFrames(start, count);
-                }
+                UnsafeEnsureFrameValid(frame);
                 return _frames[frame];
+            }
+        }
+        private void UnsafeEnsureFrameValid(int frame)
+        {
+            int start;
+            int count;
+            int invalid;
+            using (changesync.AcquireRead())
+            {
+                invalid = _first_invalid_frame;
+                start = Math.Min(_frames.Count, invalid);
+                count = frame - (start - 1);
+                _first_invalid_frame = Math.Max(invalid, frame + 1);
+            }
+            if (count > 0)
+            {
+                ThreadUnsafeRunFrames(start, count);
             }
         }
         private void ThreadUnsafeRunFrames(int start, int count)
@@ -136,7 +162,7 @@ namespace linerider.Game
             }
             using (var sync = changesync.AcquireRead())
             {
-                HitTest.MarkFirstInvalid(start);
+                _hittest.MarkFirstInvalid(start);
                 for (int i = 0; i < count; i++)
                 {
                     int currentframe = start + i;
@@ -148,14 +174,14 @@ namespace linerider.Game
                         collisions);
                     steps[i] = current;
                     collisionlist.Add(collisions);
-                    // 3 seconds of frames, 
+                    // 10 seconds of frames, 
                     // couldnt hurt to check?
-                    if (i % 120 == 0)
+                    if ((i +1) % 400 == 0)
                     {
                         sync.ReleaseWaiting();
                     }
                 }
-                HitTest.AddFrames(collisionlist);
+                _hittest.AddFrames(collisionlist);
             }
             if (start + count > framecount)
             {

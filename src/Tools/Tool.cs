@@ -277,7 +277,7 @@ namespace linerider.Tools
                             return false;
                     }
                 }
-                if (timeline.HitTest.IsHitBy(line.ID, game.Track.Offset))
+                if (timeline.IsLineHit(line.ID, game.Track.Offset))
                     return true;
             }
             return false;

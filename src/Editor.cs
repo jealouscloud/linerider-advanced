@@ -208,7 +208,7 @@ namespace linerider
             }
             if (!_loadingTrack)
             {
-                var changes = Timeline.HitTest.GetChangesForFrame(Offset);
+                var changes = Timeline.RequestFrameForRender(Offset);
                 foreach (var change in changes)
                 {
                     GameLine line;
