@@ -47,13 +47,19 @@ namespace linerider.Game
             Restart(track.GetStart());
             _activetriggers = triggerlist;
         }
+        /// <summary>
+        /// Returns true if the line id is hit by the current "working" frame
+        /// </summary>
         public bool IsLineHit(int id)
         {
             using (_framesync.AcquireWrite())
             {
                 return _hittest.IsHit(id);
             }
-        }      
+        }
+        /// <summary>
+        /// Returns true if the line id is hit by the specifed frame
+        /// </summary>        
         public bool IsLineHit(int id, int frame)
         {
             using (_framesync.AcquireWrite())
@@ -62,6 +68,11 @@ namespace linerider.Game
                 return _hittest.IsHitBy(id, frame);
             }
         }
+        /// <summary>
+        /// Sets the specified frame to be the "working" frame and returns the
+        /// list of lines that may need to be updated by the renderer.
+        /// </summary>
+        /// <returns>A collection of line IDs to be redrawn</returns>
         public HashSet<int> RequestFrameForRender(int frameid)
         {
             using (_framesync.AcquireWrite())
@@ -70,6 +81,11 @@ namespace linerider.Game
                 return _hittest.GetChangesForFrame(frameid);
             }
         }
+        /// <summary>
+        /// Clears the timeline of pre-calculated frames and starts at the
+        /// new provided state.
+        /// </summary>
+        /// <param name="state">The start position, frame 0</param>
         public void Restart(Rider state)
         {
             using (_framesync.AcquireWrite())
@@ -79,6 +95,9 @@ namespace linerider.Game
                 _frames.Add(state);
             }
         }
+        /// <summary>
+        /// Extracts the rider and death details of the specified frame.
+        /// </summary>
         public RiderFrame ExtractFrame(int frame, int iteration = 6)
         {
             Rider rider;
@@ -90,6 +109,10 @@ namespace linerider.Game
             }
             return new RiderFrame(frame, rider, diagnosis, iteration);
         }
+        /// <summary>
+        /// Gets an up to date diagnosis state for the frame, recomputing if
+        /// necessary.
+        /// </summary>
         public List<int> DiagnoseFrame(int frame, int iteration = 6)
         {
             bool isiteration = iteration != 6 && frame > 0;
@@ -104,6 +127,10 @@ namespace linerider.Game
                     _track.Bones,
                     Math.Min(6, iteration + 1));
         }
+        /// <summary>
+        /// Gets an up to date rider state for the frame, recomputing if
+        /// necessary.
+        /// </summary>
         public Rider GetFrame(int frame, int iteration = 6)
         {
             bool isiteration = iteration != 6 && frame > 0;
@@ -118,6 +145,10 @@ namespace linerider.Game
             }
             return GetFrame(frame);
         }
+        /// <summary>
+        /// Gets an up to date rider state for the frame, recomputing if
+        /// necessary
+        /// </summary>
         public Rider GetFrame(int frame)
         {
             using (_framesync.AcquireWrite())
@@ -143,6 +174,10 @@ namespace linerider.Game
                 ThreadUnsafeRunFrames(start, count);
             }
         }
+        /// <summary>
+        /// The meat of the recompute engine, updating hit test and the
+        /// cached frames.
+        /// </summary>
         private void ThreadUnsafeRunFrames(int start, int count)
         {
             var steps = new Rider[count];
@@ -176,7 +211,7 @@ namespace linerider.Game
                     collisionlist.Add(collisions);
                     // 10 seconds of frames, 
                     // couldnt hurt to check?
-                    if ((i +1) % 400 == 0)
+                    if ((i + 1) % 400 == 0)
                     {
                         sync.ReleaseWaiting();
                     }
