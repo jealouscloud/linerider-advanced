@@ -49,6 +49,9 @@ namespace linerider.Game
         private HashSet<GridPoint> _changedcells = new HashSet<GridPoint>();
         private SimulationGridOverlay _savedcells = new SimulationGridOverlay();
         private int _first_invalid_frame = 1;
+        /// <summary>
+        /// Backs up all the grid cells on a line for the recompute engine.
+        /// </summary>
         public void SaveCells(Vector2d start, Vector2d end)
         {
             var positions = SimulationGrid.GetGridPositions(start, end, _track.Grid.GridVersion);
@@ -61,6 +64,10 @@ namespace linerider.Game
                 }
             }
         }
+        /// <summary>
+        /// Checks for the earliest changed frame and notifies the recompute 
+        /// engine if necessary.
+        /// </summary>
         public void NotifyChanged()
         {
             using (changesync.AcquireWrite())
