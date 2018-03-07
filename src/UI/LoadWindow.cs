@@ -42,7 +42,11 @@ namespace linerider.UI
             }
         }
         private MainWindow game;
-        private readonly object _loadsync = new object();
+        // while there should only be one load window at a time, in extreme 
+        // cases the user could load a track, the window closes, the track
+        // is loading, and opens another one. we want to consider the other
+        // loading window a sister, and wait for its actions to complete.
+        private static readonly object _loadsync = new object();
         public LoadWindow(Gwen.Controls.ControlBase parent, MainWindow glgame) : base(parent, DefaultTitle)
         {
             game = glgame;
@@ -148,8 +152,8 @@ namespace linerider.UI
                     // if it's a folder container or it's inside one
                     if (!(selected.IsRoot && selected.Children.Count == 0))
                     {
-                        title = TrackIO.GetTrackName(filepath) + 
-                        Path.DirectorySeparatorChar + 
+                        title = TrackIO.GetTrackName(filepath) +
+                        Path.DirectorySeparatorChar +
                         title;
                     }
                     this.Title = DefaultTitle + " -- " + title;
@@ -158,6 +162,9 @@ namespace linerider.UI
         }
         private void btndelete_Clicked(ControlBase sender, ClickedEventArgs arguments)
         {
+            //todo:
+            //button delete could possibly delete a file thats in the process of
+            //being loaded or expanded (sol)
             var window = (WindowControl)sender.Parent.Parent;
             var tv = (TreeControl)window.FindChildByName("loadtree", true);
             var en = (List<TreeNode>)tv.SelectedChildren;
@@ -292,40 +299,42 @@ namespace linerider.UI
         /// </summary>
         private bool ExpandSOL(string filepath, TreeNode parent)
         {
-            try
+            lock (_loadsync)
             {
-                var tracks = SOLLoader.LoadSol(filepath);
-                if (tracks.Count != 0)
+                try
                 {
-                    foreach (var track in tracks)
+                    var tracks = SOLLoader.LoadSol(filepath);
+                    if (tracks.Count != 0)
                     {
-                        parent.AddNode(track.name).UserData = track;
+                        foreach (var track in tracks)
+                        {
+                            parent.AddNode(track.name).UserData = track;
+                        }
+                        if (tracks.Count == 1)
+                        {
+                            LoadSOL(tracks[0]);
+                            return true;
+                        }
+                        else
+                        {
+                            parent.UserData = tracks[0];
+                            parent.ExpandAll();
+                            return false;
+                        }
                     }
-                    if (tracks.Count == 1)
-                    {
-                        Settings.Local.EnableSong = false;
-                        game.Track.ChangeTrack(SOLLoader.LoadTrack(tracks[0]));
-                        return true;
-                    }
-                    else
-                    {
-                        parent.UserData = tracks[0];
-                        parent.ExpandAll();
-                        return false;
-                    }
+                    return false;
                 }
-                return false;
-            }
-            catch (Exception e)
-            {
-                if (Program.IsDebugged)
-                    throw e;
-                PopupWindow.QueuedActions.Enqueue(() =>
-                PopupWindow.Error(
-                    "Failed to load the .sol track:" +
-                    Environment.NewLine +
-                    e.Message));
-                return true;
+                catch (Exception e)
+                {
+                    if (Program.IsDebugged)
+                        throw e;
+                    PopupWindow.QueuedActions.Enqueue(() =>
+                    PopupWindow.Error(
+                        "Failed to load the .sol track:" +
+                        Environment.NewLine +
+                        e.Message));
+                    return true;
+                }
             }
         }
         private void LoadSOL(sol_track sol)
@@ -360,11 +369,11 @@ namespace linerider.UI
         }
         private void LoadTrack(string file, string name)
         {
-            game.Loading = true;
             lock (_loadsync)
             {
                 try
                 {
+                    game.Loading = true;
                     Track track;
                     if (file.EndsWith(".trk", StringComparison.InvariantCultureIgnoreCase))
                     {
