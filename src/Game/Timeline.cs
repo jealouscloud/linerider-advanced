@@ -39,6 +39,7 @@ namespace linerider.Game
         private AutoArray<Rider> _frames = new AutoArray<Rider>();
         private Track _track;
         private List<LineTrigger> _activetriggers = null;
+        public event EventHandler<int> FrameInvalidated;
         public Timeline(Track track, List<LineTrigger> triggerlist)
         {
             _track = track;
@@ -93,6 +94,8 @@ namespace linerider.Game
                 _hittest.Reset();
                 _frames.Clear();
                 _frames.Add(state);
+                //todo changes sync
+                _first_invalid_frame = _frames.Count;
             }
         }
         /// <summary>
@@ -155,6 +158,21 @@ namespace linerider.Game
             {
                 UnsafeEnsureFrameValid(frame);
                 return _frames[frame];
+            }
+        }
+        /// <summary>
+        /// Gets an up to date array of rider states, recomputing if necessary
+        /// </summary>
+        public Rider[] GetFrames(int framestart, int count)
+        {
+            using (_framesync.AcquireWrite())
+            {
+                Rider[] ret = new Rider[count];
+                for (int i = count - 1; i >= 0; i--)
+                {
+                    ret[i] = GetFrame(framestart + i);
+                }
+                return ret;
             }
         }
         private void UnsafeEnsureFrameValid(int frame)
@@ -227,6 +245,7 @@ namespace linerider.Game
             {
                 _frames.unsafe_array[start + i] = steps[i];
             }
+            FrameInvalidated?.Invoke(this, start);
         }
     }
 }
