@@ -93,11 +93,13 @@
     <Compile Include="Game\Lines\StandardLine.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Game\ICamera.cs" />
-    <Compile Include="Game\SmoothCamera.cs" />
-    <Compile Include="Game\ClampCamera.cs" />
-    <Compile Include="Game\CameraBoundingBox.cs" />
-    <Compile Include="Game\CameraLocation.cs" />
+    <Compile Include="Game\Camera\ICamera.cs" />
+    <Compile Include="Game\Camera\SmoothCamera.cs" />
+    <Compile Include="Game\Camera\ClampCamera.cs" />
+    <Compile Include="Game\Camera\CameraBoundingBox.cs" />
+    <Compile Include="Game\Camera\CameraLocation.cs" />
+    </ItemGroup>
+  <ItemGroup>
     <Compile Include="Game\EditorGrid.cs" />
     <Compile Include="Game\FPSCounter.cs" />
     <Compile Include="Game\GameScheduler.cs" />
