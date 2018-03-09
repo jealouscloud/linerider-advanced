@@ -132,6 +132,18 @@ namespace linerider.Utils
         {
             return new Vector2d(input.X + (length * Cos),input.Y + (length * Sin));
         }
+        public static Angle operator +(Angle a1, Angle a2)
+        {
+            return FromDegrees(a1.Degrees + a2.Degrees);
+        }
+        public static Angle operator -(Angle a1, Angle a2)
+        {
+            return FromDegrees(a1.Degrees - a2.Degrees);
+        }
+        public double Difference(Angle a2)
+        {
+            return 180.0 - Math.Abs(Math.Abs(Degrees - a2.Degrees) - 180.0);
+        }
         public static Angle FromRadians(double radians)
         {
             return new Angle() { Radians = radians };
