@@ -12,9 +12,10 @@ namespace linerider.Game
 {
     public class CameraBoundingBox : GameService
     {
-        public const double roundness = 0.8f;
-        public const double legacyratio = 0.125f;
-        public const double maxcamratio = 0.3f;
+        public const double roundness = 0.8;
+        public const double legacyratio = 0.125;
+        public const double maxcamratio = 0.3;
+        public const double mincamratio = 0.1;
         public Vector2d RiderPosition;
         public DoubleRect GetBox(double scale)
         {
@@ -26,17 +27,17 @@ namespace linerider.Game
             width *= scale;
             return new DoubleRect(RiderPosition.X - (width / 2), RiderPosition.Y - (height / 2), width, height);
         }
-        public CameraLocation Clamp(Vector2d camera)
+        public Vector2d Clamp(Vector2d camera)
         {
             var bounds = GetBox(legacyratio);
-            return CameraLocation.FromNewPosition(RiderPosition, bounds.Clamp(camera));
+            return bounds.Clamp(camera);
         }
-        public CameraLocation SmoothClamp(Vector2d camera, double ppf)
+        public Vector2d SmoothClamp(Vector2d camera, double ppf)
         {
             var bounds = GetBox(GetSmoothCamRatio(ppf));
             var oval = bounds.EllipseClamp(camera);
             var square = bounds.Clamp(camera);
-            return CameraLocation.FromNewPosition(RiderPosition, (Vector2d.Lerp(square, oval, roundness)));
+            return (Vector2d.Lerp(square, oval, roundness));
         }
         public bool SmoothIntersects(Vector2d camera, double ppf)
         {
@@ -45,14 +46,14 @@ namespace linerider.Game
         }
         public double GetSmoothCamRatio(double ppf)
         {
-            if (!Camera.ScaleCamera)
+            if (!Constants.ScaleCamera)
                 return maxcamratio;
             const int floor = 5;
-            const int ceil = 30;
+            const int ceil = 50;
 
-            ppf = Math.Max(0, ppf - floor);
-            var scale1 = (Math.Min(ceil, ppf) / ceil);
-            return (double)(maxcamratio - ((maxcamratio * 0.4) * scale1));
+
+            var scale1 = MathHelper.Clamp((ppf - floor) / ceil, 0, 1);
+            return maxcamratio - ((maxcamratio - mincamratio) * scale1);
         }
     }
 }

@@ -161,11 +161,17 @@ namespace linerider.Rendering
             GL.End();
             GL.PopMatrix();
             //visualize rider center
+            // DrawCircle(Game.Track.Camera.GetSmoothPosition(), 5, Color.Red);
+            // DrawCircle(Game.Track.Camera.GetSmoothedCameraOffset(), 5, Color.Blue);
+            DrawCircle(Game.Track.Timeline.GetFrame(Game.Track.Offset).CalculateCenter(), 5, Color.Green);
+        }
+        private static void DrawCircle(Vector2d point, float size, Color color)
+        {
             GameDrawingMatrix.Enter();
-            center = (Vector2)Game.Track.Timeline.GetFrame(Game.Track.Offset).CalculateCenter();
-            var circ = StaticRenderer.GenerateCircle(center.X, center.Y, 10, 360);
+            var center = (Vector2)point;
+            var circ = StaticRenderer.GenerateCircle(center.X, center.Y, size, 360);
             GL.Begin(PrimitiveType.LineStrip);
-            GL.Color3(0, 0, 255);
+            GL.Color3(color);
             for (int i = 0; i < circ.Length; i++)
             {
                 GL.Vertex2((Vector2)circ[i]);
@@ -259,7 +265,10 @@ namespace linerider.Rendering
             {
                 using (var trk = Game.Track.CreateTrackReader())
                 {
-                    foreach (var v in trk.GetLinesInRect(Game.Track.Camera.GetViewport(), false))
+                    foreach (var v in trk.GetLinesInRect(Game.Track.Camera.GetViewport(
+                        Game.Track.Zoom,
+                        Game.RenderSize.Width,
+                        Game.RenderSize.Height), false))
                     {
                         if (v is StandardLine std)
                         {

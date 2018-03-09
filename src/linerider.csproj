@@ -93,7 +93,9 @@
     <Compile Include="Game\Lines\StandardLine.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Game\Camera.cs" />
+    <Compile Include="Game\ICamera.cs" />
+    <Compile Include="Game\SmoothCamera.cs" />
+    <Compile Include="Game\ClampCamera.cs" />
     <Compile Include="Game\CameraBoundingBox.cs" />
     <Compile Include="Game\CameraLocation.cs" />
     <Compile Include="Game\EditorGrid.cs" />

@@ -1,25 +1,29 @@
 ﻿using System;
 using OpenTK;
+using linerider.Utils;
 
 namespace linerider.Game
 {
 
-    public class CameraLocation : GameService
+    public struct CameraEntry
     {
-        private Vector2d _origin;
-        private Vector2d _offset;
-        public CameraLocation(Vector2d origin, Vector2d offset)
+        public Vector2d RiderCenter { get; }
+        public Vector2d Position { get; }
+        public Angle PositionAngle { get; }
+        public double ppf { get; }
+        public CameraEntry(Vector2d origin, Vector2d offset, Vector2d momentum)
         {
-            _origin = origin;
-            _offset = offset;
+            RiderCenter = origin;
+            Position = offset;
+            ppf = momentum.Length;
+            PositionAngle = Angle.FromVector(RiderCenter - Position);
         }
-        public static CameraLocation FromNewPosition(Vector2d origin, Vector2d camera)
+        public CameraEntry(Vector2d origin)
         {
-            return new CameraLocation(origin,(camera - origin) * game.Track.Zoom);
-        }
-        public Vector2d GetPosition()
-        {
-            return _origin + (_offset / game.Track.Zoom );
+            RiderCenter = origin;
+            Position = origin;
+            ppf =0;
+            PositionAngle = Angle.FromVector(Position - RiderCenter);
         }
     }
 }

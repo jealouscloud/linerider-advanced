@@ -67,7 +67,7 @@ namespace linerider
         public bool PlaybackMode { get; private set; }
         private bool _paused = false;
         public float Zoom = Constants.DefaultZoom;
-        public Camera Camera { get; private set; }
+        public ICamera Camera { get; private set; }
         public List<LineTrigger> ActiveTriggers = new List<LineTrigger>();
         public int CurrentFrame => PlaybackMode ? Offset + _startFrame : 0;
         public int LineCount => _track.Lines.Count;
@@ -89,7 +89,16 @@ namespace linerider
         public bool ZeroStart
         {
             get { return _track.ZeroStart; }
-            set { _track.ZeroStart = value; }
+            set
+
+            {
+                if (_track.ZeroStart != value)
+                {
+                    _track.ZeroStart = value;
+                    Stop();
+                    Reset();
+                }
+            }
         }
         public RiderFrame RenderRiderInfo
         {
@@ -164,9 +173,10 @@ namespace linerider
         public Timeline Timeline { get; private set; }
         public Editor()
         {
-            Camera = new Camera();
             _track = new Track();
             Timeline = new Timeline(_track, ActiveTriggers);
+            Timeline.FrameInvalidated += FrameInvalidated;
+            InitCamera();
             Offset = 0;
             UndoManager = new UndoManager();
         }
@@ -327,6 +337,7 @@ namespace linerider
                 game.Canvas.UpdatePauseUI();
                 game.Canvas.UpdateIterationUI();
                 game.Scheduler.Reset();
+                Camera.SetFrameCenter(Camera.GetCenter());
                 Invalidate();
             }
         }
@@ -441,29 +452,7 @@ namespace linerider
 
         public void UpdateCamera(bool reverse = false)
         {
-            if (!reverse)
-                Camera.SetFrame(RenderRider);
-            else
-                Camera.SetFrame(Timeline.GetFrame(Math.Max(0, Offset - 1)));
-
-            if (Settings.SmoothCamera)
-            {
-                Rider prediction;
-                if (reverse)
-                {
-                    prediction = RenderRider;
-                }
-                else
-                {
-                    using (var trk = CreateTrackReader())
-                    {
-                        prediction = trk.TickBasic(Timeline.GetFrame(Offset));
-                    }
-                }
-                Camera.SetPrediction(prediction.CalculateCenter());
-
-            }
-            Invalidate();
+            Camera.SetFrame(Offset);
         }
 
         public void BackupTrack(bool Crash = true)
@@ -512,6 +501,8 @@ namespace linerider
                     _track = trk;
 
                     Timeline = new Timeline(trk, ActiveTriggers);
+                    Timeline.FrameInvalidated += FrameInvalidated;
+                    InitCamera();
                     UndoManager = new UndoManager();
                     ResetTrackChangeCounter();
                     _refreshtrack = true;
@@ -603,6 +594,15 @@ namespace linerider
                 v.Reset();
             }
             ActiveTriggers.Clear();
+        }
+        private void InitCamera()
+        {
+            Camera = new ClampCamera();
+            Camera.SetTimeline(Timeline);
+        }
+        private void FrameInvalidated(object sender, int frame)
+        {
+            Camera.InvalidateFrame(frame);
         }
     }
 }
