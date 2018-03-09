@@ -605,7 +605,7 @@ namespace linerider
                 if (!game.Track.Playing)
                 {
                     //todo maybe real camera pos? how?
-                    game.Track.Camera.SetFrameCenter(game.Track.RenderRider.CalculateCenter());
+                    game.Track.Camera.SetFrame(slider.Value);
                 }
             }
             if (slider.Held)

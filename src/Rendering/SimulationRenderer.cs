@@ -39,7 +39,7 @@ namespace linerider.Rendering
         private void DrawRider(Camera camera, Track track)
         {
         }
-        public void Render(Track track, Timeline timeline, Camera camera, DrawOptions options)
+        public void Render(Track track, Timeline timeline, ICamera camera, DrawOptions options)
         {
             Rider drawrider = options.Rider;
             _trackrenderer.Render(options);

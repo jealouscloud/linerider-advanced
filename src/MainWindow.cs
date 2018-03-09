@@ -101,7 +101,10 @@ namespace linerider
             }
         }
         public Vector2d ScreenPosition
-            => Track.Camera.GetViewport().Vector;
+            => Track.Camera.GetViewport(
+                Track.Zoom,
+                RenderSize.Width,
+                RenderSize.Height).Vector;
 
         public Vector2d ScreenTranslation => -ScreenPosition;
         public Editor Track { get; }
@@ -192,13 +195,13 @@ namespace linerider
                 if (blend == 1 && Settings.SmoothPlayback && Track.Playing && !slider.Held)
                 {
                     blend = Math.Min(1, (float)Scheduler.ElapsedPercent);
-                    Track.Camera.BeginFrame(blend);
                     if (ReversePlayback)
                         blend = 1 - blend;
+                    Track.Camera.BeginFrame(blend, Track.Zoom);
                 }
                 else
                 {
-                    Track.Camera.BeginFrame(blend);
+                    Track.Camera.BeginFrame(1, Track.Zoom);
                 }
                 GL.ClearColor(Settings.NightMode
                    ? Constants.ColorNightMode
@@ -207,14 +210,16 @@ namespace linerider
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
                 GL.Clear(ClearBufferMask.ColorBufferBit);
                 GL.Enable(EnableCap.Blend);
+                GL.Disable(EnableCap.Lighting);
 
 #if debuggrid
                 GameRenderer.DbgDrawGrid();
 #endif
-#if debugcamera
-                GameRenderer.DbgDrawCamera();
-#endif
                 Track.Render(blend);
+#if debugcamera
+                if (this.Keyboard.GetState().IsKeyDown(Key.C))
+                    GameRenderer.DbgDrawCamera();
+#endif
                 SelectedTool.Render();
                 Canvas.RenderCanvas();
                 MSAABuffer.End();
@@ -556,6 +561,7 @@ namespace linerider
                 {
                     var pos = new Vector2d(e.X, e.Y);
                     var gamepos = ScreenPosition + (pos / Track.Zoom);
+                    Track.Stop();
                     using (var trk = Track.CreateTrackWriter())
                     {
                         trk.Track.StartOffset = gamepos;
@@ -1054,7 +1060,7 @@ namespace linerider
                     Track.NextFrame();
                     Track.IterationsOffset = 0;
                 }
-                Track.Camera.SetFrame(Track.RenderRider);
+                Track.UpdateCamera();
                 Track.InvalidateRenderRider();
                 Canvas.UpdateIterationUI();
             },
@@ -1075,7 +1081,7 @@ namespace linerider
                         Track.IterationsOffset = 6;
                         Invalidate();
                     }
-                    Track.Camera.SetFrame(Track.RenderRider);
+                    Track.UpdateCamera();
                     Track.InvalidateRenderRider();
                     Canvas.UpdateIterationUI();
                 }
