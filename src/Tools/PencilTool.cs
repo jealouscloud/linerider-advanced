@@ -149,7 +149,7 @@ namespace linerider.Tools
         public override void Render()
         {
             base.Render();
-            if (DrawingScenery && _mouseshadow != Vector2d.Zero)
+            if (DrawingScenery && _mouseshadow != Vector2d.Zero && !game.Track.Playing)
             {
                 GameRenderer.RenderRoundedLine(_mouseshadow, _mouseshadow, Color.FromArgb(100, 0x00, 0xCC, 0x00), 2f * game.Canvas.ColorControls.GreenMultiplier, false, false);
             }

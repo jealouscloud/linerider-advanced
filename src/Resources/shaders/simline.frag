@@ -2,6 +2,7 @@
 uniform float u_scale;
 uniform int u_knobstate;
 uniform bool u_alphachannel;
+uniform vec4 u_knobcolor;
 
 //basically u/v coordinates to the circle.
 varying vec2 v_circle;
@@ -28,9 +29,8 @@ void main()
     {
         float knobedgediff = knobradius - getedge(knobradius, 0.8);
         float step = (knobradius - edgedist) / knobedgediff;
-        const vec3 showncolor = vec3(1.0, 1.0, 1.0);
         const vec3 lifelockcolor = vec3(1.0, 0.0, 0.0);
-        vec3 knobcolor = showncolor;
+        vec3 knobcolor = u_knobcolor.rgb;
         if (u_knobstate == 2)
             knobcolor = lifelockcolor;
         gl_FragColor = vec4(mix(v_color.rgb, knobcolor, min(step, 1.0)), 1.0);
