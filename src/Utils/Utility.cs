@@ -47,7 +47,19 @@ namespace linerider
         {
             var rad = a.Radians;
             Vector2d scalar = new Vector2d(Math.Cos(rad), Math.Sin(rad));
-            return start + (scalar * Vector2d.Dot(end - start, scalar));
+            var ret = start + (scalar * Vector2d.Dot(end - start, scalar));
+            switch (a.Degrees)
+            {
+                case 270:
+                case 90:
+                    ret.X = start.X;
+                    break;
+                case 0:
+                case 180:
+                    ret.Y = start.Y;
+                    break;
+            }
+            return ret;
         }
 
         public static Vector2d LengthLock(Vector2d start, Vector2d end, double length)
@@ -159,8 +171,8 @@ namespace linerider
         }
         public static bool PointInRectangle(Vector2d[] rect, Vector2d p)
         {
-            return !(isLeft(rect,0,3,ref p) || 
-            isLeft(rect, 3, 2, ref p) || 
+            return !(isLeft(rect, 0, 3, ref p) ||
+            isLeft(rect, 3, 2, ref p) ||
             isLeft(rect, 2, 1, ref p) ||
             isLeft(rect, 1, 0, ref p));
             // return !(isLeft(tl, bl, p) || isLeft(bl, br, p) || isLeft(br, tr, p) || isLeft(tr, tl, p));
