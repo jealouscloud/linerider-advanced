@@ -65,10 +65,10 @@ namespace linerider.Tools
                 if (len >= steplen)
                 {
                     // calculate intermediary lines we might have missed
-                    var v = Angle.FromLine(_last_erased,p);
+                    var v = Angle.FromLine(_last_erased, p);
                     var current = _last_erased;
                     int count = (int)(len / steplen);
-                    for(int i = 0; i < count; i++)
+                    for (int i = 0; i < count; i++)
                     {
                         Erase(current);
                         current += new Vector2d(v.Cos * steplen, v.Sin * steplen);
@@ -97,11 +97,15 @@ namespace linerider.Tools
                 var lines = LinesInRadius(trk, pos, radius);
                 if (lines.Length != 0)
                 {
+                    var linefilter = game.Canvas.ColorControls.Selected;
                     for (int i = 0; i < lines.Length; i++)
                     {
-                        game.Track.UndoManager.BeginAction();
-                        trk.RemoveLine(lines[i]);
-                        game.Track.UndoManager.EndAction();
+                        if (linefilter == LineType.All || lines[i].Type == linefilter)
+                        {
+                            game.Track.UndoManager.BeginAction();
+                            trk.RemoveLine(lines[i]);
+                            game.Track.UndoManager.EndAction();
+                        }
                     }
                     game.Track.NotifyTrackChanged();
                 }
