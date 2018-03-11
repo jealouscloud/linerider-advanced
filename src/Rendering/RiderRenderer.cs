@@ -18,6 +18,7 @@ namespace linerider.Rendering
         private Shader _shader;
         private GLBuffer<RiderVertex> _vbo;
         private LineVAO _lines = new LineVAO();
+        private LineVAO _momentumvao = new LineVAO();
         public RiderRenderer()
         {
             _shader = Shaders.RiderShader;
@@ -36,7 +37,11 @@ namespace linerider.Rendering
                     vec1,
                     Angle.FromVector(anchor.Momentum),
                     2);
-                _lines.AddLine(line.Position, line.Position2, color, 1f / 2.5f);
+                _momentumvao.AddLine(
+                    GameDrawingMatrix.ScreenCoordD(line.Position),
+                    GameDrawingMatrix.ScreenCoordD(line.Position2),
+                    color,
+                    GameDrawingMatrix.Scale / 2.5f);
             }
         }
         public void DrawContacts(Rider rider, List<int> diagnosis, float opacity)
@@ -112,10 +117,10 @@ namespace linerider.Rendering
                 }
                 c = ChangeOpacity(c, opacity);
                 _lines.AddLine(
-                    rider.Body[i].Location,
-                    rider.Body[i].Location,
+                    GameDrawingMatrix.ScreenCoordD(rider.Body[i].Location),
+                    GameDrawingMatrix.ScreenCoordD(rider.Body[i].Location),
                     c,
-                    1f / 4);
+                    GameDrawingMatrix.Scale / 4);
             }
         }
         public void DrawRider(float opacity, Rider rider, bool scarf = false)
@@ -235,6 +240,7 @@ namespace linerider.Rendering
         {
             Array.UnsafeSetCount(0);
             _lines.Clear();
+            _momentumvao.Clear();
         }
         protected unsafe void BeginDraw()
         {
@@ -273,19 +279,22 @@ namespace linerider.Rendering
         }
         public void Draw()
         {
-            GameDrawingMatrix.Enter();
             BeginDraw();
             using (new GLEnableCap(EnableCap.Blend))
             {
                 GL.DrawArrays(PrimitiveType.Triangles, 0, Array.Count);
             }
             EndDraw();
+            if (_momentumvao.Array.Count != 0)
+            {
+                _momentumvao.Scale = 1;
+                _momentumvao.Draw(PrimitiveType.Triangles);
+            }
             if (_lines.Array.Count != 0)
             {
-                _lines.Scale = Scale;
+                _lines.Scale = 1;
                 _lines.Draw(PrimitiveType.Triangles);
             }
-            GameDrawingMatrix.Exit();
         }
         protected void EndDraw()
         {
@@ -320,12 +329,13 @@ namespace linerider.Rendering
         {
             var angle = Angle.FromLine(origin, rotationAnchor);
             var t = Utility.RotateRect(rect, Vector2d.Zero, angle);
-            var texrect = new Vector2[] {
-            (Vector2)(t[0] + origin),// 0 tl
-            (Vector2)(t[1] + origin),// 1 tr
-            (Vector2)(t[2] + origin),  // 2 br
-            (Vector2)(t[3] + origin),  // 3 bl
+            var transform = new Vector2d[] {
+            (t[0] + origin),// 0 tl
+            (t[1] + origin),// 1 tr
+            (t[2] + origin),  // 2 br
+            (t[3] + origin),  // 3 bl
             };
+            var texrect = GameDrawingMatrix.ScreenCoords(transform);
             var color = Color.FromArgb((int)(255f * opacity), Color.White);
             Color[] colors = new Color[] { color, color, color, color };
             if (pretty)
@@ -365,14 +375,15 @@ namespace linerider.Rendering
         {
             DrawLine(p1, p2, Utility.ColorToRGBA_LE(Color), size);
         }
-        private Vector2d[] DrawLine(Vector2d p1, Vector2d p2, int color, float size)
+        private Vector2[] DrawLine(Vector2d p1, Vector2d p2, int color, float size)
         {
-            var t = Utility.GetThickLine(p1, p2, Angle.FromLine(p1, p2), size);
+            var calc = Utility.GetThickLine(p1, p2, Angle.FromLine(p1, p2), size);
+            var t = GameDrawingMatrix.ScreenCoords(calc);
             var verts = new RiderVertex[] {
-                RiderVertex.NoTexture((Vector2)t[0],color),
-                RiderVertex.NoTexture((Vector2)t[1],color),
-                RiderVertex.NoTexture((Vector2)t[2],color),
-                RiderVertex.NoTexture((Vector2)t[3],color)
+                RiderVertex.NoTexture(t[0],color),
+                RiderVertex.NoTexture(t[1],color),
+                RiderVertex.NoTexture(t[2],color),
+                RiderVertex.NoTexture(t[3],color)
             };
             Array.Add(verts[0]);
             Array.Add(verts[1]);
@@ -394,11 +405,11 @@ namespace linerider.Rendering
 
                 if (i != 0)
                 {
-                    altvectors.Add((Vector2)verts[0]);
-                    altvectors.Add((Vector2)verts[1]);
+                    altvectors.Add(verts[0]);
+                    altvectors.Add(verts[1]);
                 }
-                altvectors.Add((Vector2)verts[2]);
-                altvectors.Add((Vector2)verts[3]);
+                altvectors.Add(verts[2]);
+                altvectors.Add(verts[3]);
             }
             for (int i = 0; i < altvectors.Count - 4; i += 4)
             {
