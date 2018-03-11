@@ -99,6 +99,19 @@ namespace linerider.Drawing
             return copy;
         }
         /// <summary>
+        /// Set the size of the buffer and set its contents
+        /// Basically, it calls glBufferData
+        /// </summary>
+        public void BufferData(T[] input, int srcstart, int count, BufferUsageHint hint)
+        {
+            GL.BufferData(
+                _target,
+                count * _objectsize,
+                input,
+                hint);
+        }
+
+        /// <summary>
         /// Sets the specified data in the buffer, if the buffer is mapped
         /// copies to that pointer.
         /// if T is a value type like int uint or float, optimizes further.
