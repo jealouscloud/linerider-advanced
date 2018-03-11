@@ -48,9 +48,9 @@ namespace linerider.UI
 
             popup.Container.Height += 50;
             var btn = popup.Container.FindChildByName("Okay");
-            btn.Margin = new Margin(btn.Margin.Left, btn.Margin.Top + 50, btn.Margin.Right, btn.Margin.Bottom);
+            btn.Margin = new Margin(btn.Margin.Left, btn.Margin.Top + (Settings.Local.EnableSong ? 70 : 50), btn.Margin.Right, btn.Margin.Bottom);
             btn = popup.Container.FindChildByName("Cancel");
-            btn.Margin = new Margin(btn.Margin.Left, btn.Margin.Top + 50, btn.Margin.Right, btn.Margin.Bottom);
+            btn.Margin = new Margin(btn.Margin.Left, btn.Margin.Top + (Settings.Local.EnableSong ? 70 : 50), btn.Margin.Right, btn.Margin.Bottom);
             popup.Layout();
             var radio = new RadioButtonGroup(popup.Container);
             radio.Name = "qualityselector";
@@ -65,8 +65,18 @@ namespace linerider.UI
             smooth.IsChecked = true;
             smooth.Text = "Smooth Playback";
             Align.AlignBottom(smooth);
+
+            LabeledCheckBox music = new LabeledCheckBox(popup.Container);
+            music.Name = "music";
+            music.IsChecked = Settings.Local.EnableSong;
+            music.IsHidden = !Settings.Local.EnableSong;
+            music.Text = "Include Music";
+            if (Settings.Local.EnableSong)
+            {
+                popup.Container.Height += 20;
+                Align.PlaceDownLeft(music, smooth);
+            }
             popup.Layout();
-            //smooth.Y += 30;
 
             popup.SetPosition((game.RenderSize.Width / 2) - (popup.Width / 2), (game.RenderSize.Height / 2) - (popup.Height / 2));
 
@@ -84,7 +94,7 @@ namespace linerider.UI
                     {
                         var radiogrp = radio;
                         bool is1080p = radiogrp.Selected.Text == "1080p";
-                        IO.TrackRecorder.RecordTrack(game, is1080p, smooth.IsChecked);
+                        IO.TrackRecorder.RecordTrack(game, is1080p, smooth.IsChecked, music.IsChecked);
                     }
                 }
             };

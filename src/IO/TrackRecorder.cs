@@ -75,7 +75,7 @@ namespace linerider.IO
 
         public static bool Recording;
         public static bool Recording1080p;
-        public static void RecordTrack(MainWindow game, bool is1080P, bool smooth)
+        public static void RecordTrack(MainWindow game, bool is1080P, bool smooth, bool music)
         {
             Settings.Local.SmoothRecording = smooth;
             var flag = game.Track.GetFlag();
@@ -207,6 +207,15 @@ namespace linerider.IO
                         var parameters = new FFMPEGParameters();
                         parameters.AddOption("framerate", smooth ? "60" : "40");
                         parameters.AddOption("i", "\"" + dir + Path.DirectorySeparatorChar + "tmp%d.png" + "\"");
+                        if (music)
+                        {
+                            var fn = Program.UserDirectory + "Songs" +
+                                     Path.DirectorySeparatorChar +
+                                     Settings.Local.CurrentSong.Location;
+
+                            parameters.AddOption("i", "\"" + fn + "\"");
+                            parameters.AddOption("shortest");
+                        }
                         parameters.AddOption("vf", "vflip");//we save images upside down expecting ffmpeg to flip more efficiently.
                         parameters.AddOption("c:v", "libx264");
                         parameters.AddOption("preset", "veryfast");
