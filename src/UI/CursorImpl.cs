@@ -17,6 +17,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using System;
+using System.Diagnostics;
 using System.Windows.Forms;
 
 namespace linerider.UI
@@ -58,9 +59,9 @@ namespace linerider.UI
             {
                 SetGameCursor(game.Cursors["default"]);
             }
-            else if (Program.IsDebugged)
+            else
             {
-                Program.NonFatalError("Unknown mouse cursor");
+                Debug.WriteLine("Unknown mouse cursor was set");
             }
         }
     }

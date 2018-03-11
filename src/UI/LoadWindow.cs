@@ -326,8 +326,6 @@ namespace linerider.UI
                 }
                 catch (Exception e)
                 {
-                    if (Program.IsDebugged)
-                        throw e;
                     PopupWindow.QueuedActions.Enqueue(() =>
                     PopupWindow.Error(
                         "Failed to load the .sol track:" +
@@ -348,8 +346,6 @@ namespace linerider.UI
                 }
                 catch (Exception e)
                 {
-                    if (Program.IsDebugged)
-                        throw e;
                     PopupWindow.QueuedActions.Enqueue(() =>
                     PopupWindow.Error(
                         "Failed to load the track:" +

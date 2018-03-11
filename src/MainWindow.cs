@@ -117,11 +117,9 @@ namespace linerider
                    "Line Rider: Advanced",
                    GameWindowFlags.Default,
                    DisplayDevice.Default,
-                   Program.LogGL ? 4 : 2,
-                   Program.LogGL ? 6 : 0,
-                   Program.LogGL
-                   ? GraphicsContextFlags.Debug
-                   : GraphicsContextFlags.Default)
+                   2,
+                   0,
+                   GraphicsContextFlags.Default)
         {
             SafeFrameBuffer.Initialize();
             PencilTool = new PencilTool();
@@ -131,7 +129,7 @@ namespace linerider
             MoveTool = new MoveTool();
             SelectedTool = PencilTool;
             Track = new Editor();
-            VSync = VSyncMode.On;//todo change back before rls
+            VSync = VSyncMode.On;
             Context.ErrorChecking = false;
             WindowBorder = WindowBorder.Resizable;
             RenderFrame += (o, e) => { Render(); };
@@ -237,10 +235,6 @@ namespace linerider
             }
             if (!Track.Playing && !Canvas.NeedsRedraw && !Track.NeedsDraw)//if nothing is waiting on us we can let the os breathe
                 Thread.Sleep(1);
-            if (Program.LogGL)
-            {
-                ErrorLog.PrintGLLog();
-            }
         }
         private void GameUpdateHandleInput()
         {
