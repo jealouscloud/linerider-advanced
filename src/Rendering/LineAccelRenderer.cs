@@ -275,17 +275,17 @@ namespace linerider.Rendering
             GenericVertex[] ret = new GenericVertex[3 * multiplier];
             var angle = Angle.FromLine(line.End, line.Start);
             var angle2 = Angle.FromRadians(angle.Radians - 1.5708f);
-            var start = line.End;
+            var start = line.Position2;
             for (int idx = 0; idx < multiplier; idx++)
             {
                 var a = start;
-                var b = angle.MovePoint(start, 8);
+                var b = angle.MovePoint(start, line.inv ? -8 : 8);
                 var c = angle2.MovePoint(b, 8);
                 ret[idx * 3 + 0] = new GenericVertex((Vector2)a, linecolor);
                 ret[idx * 3 + 1] = new GenericVertex((Vector2)b, linecolor);
                 ret[idx * 3 + 2] = new GenericVertex((Vector2)c, linecolor);
                 if (idx + 1 < multiplier)
-                    start = angle.MovePoint(start, 2);
+                    start = angle.MovePoint(start, line.inv ? -2 : 2);
             }
             return ret;
         }
