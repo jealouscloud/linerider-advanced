@@ -67,6 +67,7 @@ namespace linerider
         public static bool PinkLifelock = false;
         public static bool NightMode = false;
         public static bool SmoothCamera = true;
+        public static bool RoundLegacyCamera = true;
         public static bool SmoothPlayback = true;
         public static bool CheckForUpdates = true;
         public static string LastSelectedTrack = "";
@@ -173,6 +174,7 @@ namespace linerider
             LoadBool(GetSetting(lines, nameof(SmoothCamera)), ref SmoothCamera);
             LoadBool(GetSetting(lines, nameof(CheckForUpdates)), ref CheckForUpdates);
             LoadBool(GetSetting(lines, nameof(SmoothPlayback)), ref SmoothPlayback);
+            LoadBool(GetSetting(lines, nameof(RoundLegacyCamera)), ref RoundLegacyCamera);
             var lasttrack = GetSetting(lines, nameof(LastSelectedTrack));
             if (File.Exists(lasttrack) && lasttrack.StartsWith(Constants.TracksDirectory))
             {
@@ -197,6 +199,7 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(CheckForUpdates), CheckForUpdates.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SmoothPlayback), SmoothPlayback.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(LastSelectedTrack), LastSelectedTrack);
+            config += "\r\n" + MakeSetting(nameof(RoundLegacyCamera), RoundLegacyCamera.ToString(Program.Culture));
             foreach (var binds in Keybinds)
             {
                 foreach (var bind in binds.Value)

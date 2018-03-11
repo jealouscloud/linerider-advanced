@@ -13,8 +13,9 @@ namespace linerider.Game
     public class ClampCamera : ICamera
     {
         private AutoArray<CameraEntry> _frames = new AutoArray<CameraEntry>();
-        private AutoArray<Vector2d> _poscache = new AutoArray<Vector2d>();
         private float _cachezoom = 0;
+        private Vector2d _cachepos = Vector2d.Zero;
+        private int _cacheframe = -1;
         public ClampCamera()
         {
             _frames.Add(new CameraEntry(Vector2d.Zero));
@@ -28,15 +29,12 @@ namespace linerider.Game
                 _frames.RemoveRange(
                     frame,
                     _frames.Count - frame);
-                var cache = frame / 40;
-                if (cache < _poscache.Count)
-                {
-                    _poscache.RemoveRange(cache, _poscache.Count - cache);
-                }
+                if (_cacheframe <= frame)
+                    _cacheframe = -1;
             }
             if (frame == 1)
             {
-                var firstframe = _timeline.GetFrame(0);
+                Rider firstframe = _timeline.GetFrame(0);
                 var entry = new CameraEntry(firstframe.CalculateCenter());
                 _frames[0] = entry;
             }
@@ -45,44 +43,86 @@ namespace linerider.Game
         {
             if (_zoom != _cachezoom)
             {
-                _poscache.Clear();
                 _cachezoom = _zoom;
+                _cacheframe = -1;
+                _cachepos = Vector2d.Zero;
             }
-            var framenumber = Settings.SmoothCamera ? frame + 1 : frame;
-            EnsureFrame(framenumber);
-            var ret = Calculate(framenumber);
-            return Clamp(ret, _frames[frame]);
+            Vector2d ret;
+            EnsureFrame(frame);
+            ret = Calculate(frame);
+            _cacheframe = frame;
+            _cachepos = ret;
+            return Clamp(ret, frame);
         }
         private Vector2d Calculate(int frame)
         {
-            Vector2d ret = _frames[0].RiderCenter;
-            int start = 0;
-            var cached = ((_poscache.Count - 1) * 40);
-            if (_poscache.Count != 0)
+            if (_cacheframe != -1 &&
+                _cacheframe <= frame &&
+                (frame - _cacheframe) < 80)
             {
-                ret = _poscache[_poscache.Count - 1];
-                start = cached;
+                return ClampFrames(
+                    _cacheframe,
+                    (frame - _cacheframe),
+                    _cachepos);
             }
-            for (int i = start; i <= frame; i++)
+            Vector2d framecenter = _frames[frame].RiderCenter;
+            var box = new CameraBoundingBox(framecenter);
+            if (Settings.RoundLegacyCamera)
+                box.SetupSmooth(_frames[frame].ppf, _zoom);
+            else
+                box.SetupLegacy(_zoom);
+            var framebounds = box.Bounds;
+            int calcstart = 0;
+            var ret = framecenter;
+            var xfound = false;
+            var yfound = false;
+            for (int i = frame; i >= 0; i--)
             {
-                if (i % 40 == 0 && (i != cached))
+                var current = _frames[i].RiderCenter;
+                var cmp = framecenter - current;
+                // todo, i have no idea why this works.
+                // seriously, ive tried so much stuff, but for the ellipse
+                // camera i can't seem to make it work any better than with
+                // width or height * 2
+                if (Math.Abs(cmp.X) >= framebounds.Width * 2)
                 {
-                    _poscache.Add(ret);
+                    xfound = true;
                 }
-                ret = Clamp(ret, _frames[i]);
+                if (Math.Abs(cmp.Y) >= framebounds.Height * 2)
+                {
+                    yfound = true;
+                }
+                if (xfound && yfound)
+                {
+                    calcstart = i;
+                    break;
+                }
             }
+            var calccount = (frame - calcstart);
+            return ClampFrames(calcstart, calccount, _frames[calcstart].RiderCenter);
+        }
+        private Vector2d ClampFrames(int frame, int count, Vector2d start)
+        {
+            Vector2d ret = start;
+            for (int i = frame; i < frame + count; i++)
+            {
+                ret = Clamp(ret, i);
+            }
+            if (count > 1)
+                Debug.WriteLine("Calculating " + count + " for legacy camera");
             return ret;
         }
-        private Vector2d Clamp(Vector2d pos, CameraEntry entry)
+        private Vector2d Clamp(Vector2d pos, int frame)
         {
-            CameraBoundingBox box = new CameraBoundingBox()
-            {
-                RiderPosition = entry.RiderCenter
-            };
-            var smooth = box.SmoothClamp(pos, entry.ppf);
-            var legacy = box.Clamp(pos);
-            return Settings.SmoothCamera ? smooth : legacy;
+            var entry = _frames[frame];
+            CameraBoundingBox box = new CameraBoundingBox(entry.RiderCenter);
+            if (Settings.RoundLegacyCamera)
+                box.SetupSmooth(entry.ppf, _zoom);
+            else
+                box.SetupLegacy(_zoom);
+            return box.Clamp(pos);
         }
+
         private void EnsureFrame(int frame)
         {
             //ensure timeline has the frames for us
@@ -91,7 +131,6 @@ namespace linerider.Game
             _timeline.GetFrame(frame);
             if (frame >= _frames.Count)
             {
-                //todo handle properly
                 var diff = frame - (_frames.Count - 1);
                 var frames = _timeline.GetFrames(_frames.Count, diff);
                 for (int i = 0; i < diff; i++)
@@ -102,6 +141,11 @@ namespace linerider.Game
                     _frames.Add(entry);
                 }
             }
+        }
+        protected override double GetPPF(int frame)
+        {
+            EnsureFrame(frame);
+            return _frames[frame].ppf;
         }
     }
 }

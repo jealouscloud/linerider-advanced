@@ -337,7 +337,8 @@ namespace linerider
                 game.Canvas.UpdatePauseUI();
                 game.Canvas.UpdateIterationUI();
                 game.Scheduler.Reset();
-                Camera.SetFrameCenter(Camera.GetCenter());
+                Camera.BeginFrame(1, Zoom);
+                Camera.SetFrameCenter(Camera.GetCenter(true));
                 Invalidate();
             }
         }
@@ -512,7 +513,7 @@ namespace linerider
                         _cells.AddLine(line);
                     }
                     Reset();
-                    Camera.SetFrameCenter(trk.StartOffset);
+                    Camera.SetFrameCenter(Timeline.GetFrame(0).CalculateCenter());
                     _loadingTrack = false;
                 }
             }
@@ -595,10 +596,26 @@ namespace linerider
             }
             ActiveTriggers.Clear();
         }
-        private void InitCamera()
+        public void InitCamera()
         {
-            Camera = new ClampCamera();
+            Vector2d start = Rider.Create(
+                _track.StartOffset,
+                Vector2d.Zero).CalculateCenter();//avoid a timeline query
+            if (Camera != null)
+            {
+                Camera.BeginFrame(1, Zoom);
+                start = Camera.GetCenter(true);
+            }
+            if (Settings.SmoothCamera)
+            {
+                Camera = new Camera();
+            }
+            else
+            {
+                Camera = new ClampCamera();
+            }
             Camera.SetTimeline(Timeline);
+            Camera.SetFrameCenter(start);
         }
         private void FrameInvalidated(object sender, int frame)
         {
