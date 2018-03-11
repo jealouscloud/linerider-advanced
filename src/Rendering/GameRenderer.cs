@@ -119,7 +119,7 @@ namespace linerider.Rendering
             clamprect.Top -= rect.Height / 2;
             clamprect.Width = rect.Width;
             clamprect.Height = rect.Height;
-            if (!Settings.SmoothCamera)
+            if (!Settings.SmoothCamera && !Settings.RoundLegacyCamera)
             {
                 GL.Begin(PrimitiveType.LineStrip);
                 GL.Color3(0, 0, 0);

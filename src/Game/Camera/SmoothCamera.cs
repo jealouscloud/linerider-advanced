@@ -35,7 +35,11 @@ namespace linerider.Game
         public override Vector2d GetFrameCamera(int frame)
         {
             EnsureFrame(frame);
-            return Clamp(SmoothFrame(frame), _frames[frame]);
+            return Clamp(CameraMotionReducer(frame), _frames[frame].RiderCenter, GetPPF(frame));
+        }
+        protected override double GetPPF(int frame)
+        {
+            return GetAvgMomentum(frame);
         }
         private Vector2d GetFrame(int frame)
         {
@@ -50,7 +54,6 @@ namespace linerider.Game
             _timeline.GetFrame(frame);
             if (frame >= _frames.Count)
             {
-                //todo handle properly
                 var diff = frame - (_frames.Count - 1);
                 var frames = _timeline.GetFrames(_frames.Count, diff);
                 var camoffset = _frames[_frames.Count - 1];
@@ -73,15 +76,18 @@ namespace linerider.Game
             offset = Vector2d.Lerp(prevoffs, center, 0.15);
             return new CameraEntry(center, offset, rider.CalculateMomentum());
         }
+        private Vector2d Clamp(Vector2d pos, Vector2d center, double ppf)
+        {
+            CameraBoundingBox box = new CameraBoundingBox(center);
+            if (Settings.SmoothCamera)
+                box.SetupSmooth(ppf, _zoom);
+            else
+                box.SetupLegacy(_zoom);
+            return box.Clamp(pos);
+        }
         private Vector2d Clamp(Vector2d pos, CameraEntry entry)
         {
-            CameraBoundingBox box = new CameraBoundingBox()
-            {
-                RiderPosition = entry.RiderCenter
-            };
-            var smooth = box.SmoothClamp(pos, entry.ppf);
-            var legacy = box.Clamp(pos);
-            return Settings.SmoothCamera ? smooth : legacy;
+            return Clamp(pos, entry.RiderCenter, entry.ppf);
         }
         private Vector2d SmoothFrame(int frame)
         {
@@ -92,25 +98,22 @@ namespace linerider.Game
             var anglescale = angle / 45;
             return Vector2d.Lerp(rider, cam, 0.1 + (0.4 * (anglescale * speed)));
         }
-        private double AngleDifference(int frame)
+        private double GetAvgMomentum(int frame)
         {
             int count = 10;
             count = Math.Min(frame, count);
-            if (count == 0)
-                return 0;
             EnsureFrame(frame + count);
-            Vector2d center = Vector2d.Zero;
-            int counter = 0;
-            //unknown magic values
+            if (count == 0)
+                return _frames[frame].ppf;
+            int math = 0;
+            double cam = 0;
             for (int i = count; i >= 0; i--)
             {
                 var f = _frames[frame + i];
-                center += f.PositionAngle.MovePoint(Vector2d.Zero, 1);
-                counter++;
+                cam += f.ppf;
+                math++;
             }
-            center /= counter;
-            var avg = Angle.FromVector(center);
-            return avg.Difference(_frames[frame].PositionAngle);
+            return cam / (math);
         }
         /// <summary>
         /// reduces the amount of movement the camera has to do to capture the
@@ -130,7 +133,7 @@ namespace linerider.Game
             for (int i = count; i >= 0; i--)
             {
                 var f = _frames[frame + i];
-                center += Clamp(f.Position, _frames[frame]);
+                center += Clamp(f.Position, _frames[frame].RiderCenter, GetAvgMomentum(frame + i));
                 math++;
             }
             return center / (math);
@@ -159,6 +162,26 @@ namespace linerider.Game
             }
             center /= math;
             return framedata.RiderCenter + center;
+        }
+        private double AngleDifference(int frame)
+        {
+            int count = 10;
+            count = Math.Min(frame, count);
+            if (count == 0)
+                return 0;
+            EnsureFrame(frame + count);
+            Vector2d center = Vector2d.Zero;
+            int counter = 0;
+            //unknown magic values
+            for (int i = count; i >= 0; i--)
+            {
+                var f = _frames[frame + i];
+                center += f.PositionAngle.MovePoint(Vector2d.Zero, 1);
+                counter++;
+            }
+            center /= counter;
+            var avg = Angle.FromVector(center);
+            return avg.Difference(_frames[frame].PositionAngle);
         }
         //blue
         public Vector2d GetSmoothedCameraOffset()

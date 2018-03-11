@@ -15,41 +15,75 @@ namespace linerider.Game
         public const double roundness = 0.8;
         public const double legacyratio = 0.125;
         public const double maxcamratio = 0.3;
-        public const double mincamratio = 0.1;
+        public const double mincamratio = 0.125;
         public Vector2d RiderPosition;
-        public DoubleRect GetBox(double scale)
+        public DoubleRect Bounds { get; private set; }
+        private bool _initialized = false;
+        private bool _smooth = false;
+        public CameraBoundingBox(Rider rider)
         {
+            RiderPosition = rider.CalculateCenter();
+        }
+        public CameraBoundingBox(Vector2d ridercenter)
+        {
+            RiderPosition = ridercenter;
+        }
+        public void SetupSmooth(double ppf, float zoom)
+        {
+            var scale = GetSmoothCamRatio(ppf);
             var width = (double)game.RenderSize.Width;
             var height = width * (9.0 / 16.0);//16:9 camera
             height /= game.Track.Zoom;
             width /= game.Track.Zoom;
             height *= scale;
             width *= scale;
-            return new DoubleRect(RiderPosition.X - (width / 2), RiderPosition.Y - (height / 2), width, height);
+            Bounds = new DoubleRect(RiderPosition.X - (width / 2), RiderPosition.Y - (height / 2), width, height);
+            _initialized = true;
+            _smooth = true;
+        }
+        public void SetupLegacy(float zoom)
+        {
+            var width = (double)game.RenderSize.Width;
+            var height = width * (9.0 / 16.0);//16:9 camera
+            height /= game.Track.Zoom;
+            width /= game.Track.Zoom;
+            height *= legacyratio;
+            width *= legacyratio;
+            Bounds = new DoubleRect(RiderPosition.X - (width / 2), RiderPosition.Y - (height / 2), width, height);
+            _initialized = true;
+            _smooth = false;
         }
         public Vector2d Clamp(Vector2d camera)
         {
-            var bounds = GetBox(legacyratio);
-            return bounds.Clamp(camera);
+            if (!_initialized)
+                throw new Exception("Camera Box was not initialized properly");
+            var bounds = Bounds;
+            if (_smooth)
+            {
+                var oval = bounds.EllipseClamp(camera);
+                var square = bounds.Clamp(camera);
+                if (oval == square)
+                    return oval;
+                return (Vector2d.Lerp(square, oval, roundness));
+            }
+            else
+            {
+                return bounds.Clamp(camera);
+            }
         }
-        public Vector2d SmoothClamp(Vector2d camera, double ppf)
+        public bool SmoothIntersects(Vector2d camera)
         {
-            var bounds = GetBox(GetSmoothCamRatio(ppf));
-            var oval = bounds.EllipseClamp(camera);
-            var square = bounds.Clamp(camera);
-            return (Vector2d.Lerp(square, oval, roundness));
-        }
-        public bool SmoothIntersects(Vector2d camera, double ppf)
-        {
-            var bounds = GetBox(GetSmoothCamRatio(ppf));
+            if (!_initialized)
+                throw new Exception("Camera Box was not initialized properly");
+            var bounds = Bounds;
             return bounds.Clamp(camera) == camera && bounds.EllipseClamp(camera) == camera;
         }
-        public double GetSmoothCamRatio(double ppf)
+        public static double GetSmoothCamRatio(double ppf)
         {
             if (!Constants.ScaleCamera)
                 return maxcamratio;
             const int floor = 5;
-            const int ceil = 50;
+            const int ceil = 75;
 
 
             var scale1 = MathHelper.Clamp((ppf - floor) / ceil, 0, 1);

@@ -104,7 +104,7 @@ namespace linerider.UI
             var modesgb = gb;
             gb.Text = "Modes";
             gb.Width = 180;
-            gb.Height = 180;
+            gb.Height = 200;
             var marg = tcontainer.Margin;
             marg.Bottom = 5;
             tcontainer.Margin = marg;
@@ -164,9 +164,24 @@ show the lines as black instead");
             {
                 Settings.SmoothCamera = ((LabeledCheckBox)o).IsChecked;
                 Settings.Save();
+                game.Track.Stop();
+                game.Track.InitCamera();
             };
             lcb.Dock = Pos.Top;
-            lcb.SetToolTipText("Enables a smooth predictive camera.\r\nExperimental.");
+            lcb.SetToolTipText("Enables a smooth predictive camera.\r\nExperimental and subject to change.");
+
+            lcb = new LabeledCheckBox(gb);
+            lcb.Text = "Round Legacy Camera";
+            lcb.IsChecked = Settings.RoundLegacyCamera;
+            lcb.CheckChanged += (o, e) =>
+            {
+                Settings.RoundLegacyCamera = ((LabeledCheckBox)o).IsChecked;
+                Settings.Save();
+                game.Track.Stop();
+                game.Track.InitCamera();
+            };
+            lcb.Dock = Pos.Top;
+            lcb.SetToolTipText("If the new camera is disabled\r\nrounds the camera bounds.");
 
             lcb = new LabeledCheckBox(gb);
             lcb.Text = "Smooth Playback";

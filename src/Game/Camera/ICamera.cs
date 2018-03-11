@@ -27,10 +27,13 @@ using linerider.Game;
 using linerider.Rendering;
 using OpenTK;
 using linerider.Utils;
+using System.Diagnostics;
+
 namespace linerider.Game
 {
     public abstract class ICamera
     {
+        private float _cachezoom = 1;
         private float _blend = 1;
         private Vector2d _center = Vector2d.Zero;
         private Stack<Vector2d> _savestack = new Stack<Vector2d>();
@@ -51,21 +54,25 @@ namespace linerider.Game
                 InvalidateFrame(1);
             }
         }
-        public Vector2d GetCenter()
+        public Vector2d GetCenter(bool force = false)
         {
             if (_center == Vector2d.Zero)
             {
+                if (_zoom != _cachezoom || force)
+                    _cachedcenter = Vector2d.Zero;
                 if (_cachedcenter == Vector2d.Zero)
                 {
                     if (_blend != 1)
                     {
-                        _cachedcenter = GetFrameCamera(_currentframe);
                         _cachedprevcenter = GetFrameCamera(Math.Max(0, _currentframe - 1));
+                        _cachedcenter = GetFrameCamera(_currentframe);
+                        _cachezoom = _zoom;
                     }
                     else
                     {
                         _cachedcenter = GetFrameCamera(_currentframe);
                         _cachedprevcenter = _cachedcenter;
+                        _cachezoom = _zoom;
                     }
                 }
                 return Vector2d.Lerp(_cachedprevcenter, _cachedcenter, _blend);
@@ -86,7 +93,6 @@ namespace linerider.Game
             if (_blend != blend)
             {
                 _blend = blend;
-                _cachedcenter = Vector2d.Zero;
             }
             _zoom = zoom;
         }
@@ -102,7 +108,14 @@ namespace linerider.Game
 
         public void Pop()
         {
-            SetFrameCenter(_savestack.Pop());
+            if (_savestack.Count != 0)
+            {
+                SetFrameCenter(_savestack.Pop());
+            }
+            else
+            {
+                Debug.WriteLine("Camera pop stack empty");
+            }
         }
         public DoubleRect GetViewport(
             float zoom,
@@ -118,18 +131,21 @@ namespace linerider.Game
         {
             var ret = GetViewport(zoom, width, height);
             var pos = ret.Vector + (ret.Size / 2);
-            var b = new CameraBoundingBox() { RiderPosition = pos };
-            CameraBoundingBox box = new CameraBoundingBox();
-            box.RiderPosition = _timeline.GetFrame(_currentframe).CalculateCenter();
-            if (Settings.SmoothCamera)
+            var b = new CameraBoundingBox(pos);
+            if (Settings.SmoothCamera || Settings.RoundLegacyCamera)
             {
-                var scale = box.GetSmoothCamRatio((float)_timeline.GetFrame(_currentframe).CalculateMomentum().Length);
-                return b.GetBox(scale);
+                b.SetupSmooth(GetPPF(_currentframe), _zoom);
+                return b.Bounds;
             }
             else
             {
-                return box.GetBox(CameraBoundingBox.legacyratio);
+                b.SetupLegacy(_zoom);
+                return b.Bounds;
             }
+        }
+        protected virtual double GetPPF(int frame)
+        {
+            return 0;
         }
     }
 }
