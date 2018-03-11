@@ -74,7 +74,7 @@ namespace linerider.UI
             if (Settings.Local.EnableSong)
             {
                 popup.Container.Height += 20;
-                Align.AlignBottom(music);
+                Align.PlaceDownLeft(music, smooth);
             }
             popup.Layout();
 
