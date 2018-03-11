@@ -33,13 +33,6 @@ namespace linerider.Rendering
 				return game.Track.Zoom;
 			}
         }
-        public static Vector2d Offset
-        {
-            get
-            {
-                return game.ScreenTranslation;
-            }
-        }
 		public static void Enter()
 		{
 			GL.PushMatrix();
@@ -63,7 +56,7 @@ namespace linerider.Rendering
         /// </summary>
         public static Vector2d ScreenCoordD(Vector2d coords)
         {
-            return (coords + Offset) * Scale;
+            return (coords + game.ScreenTranslation) * Scale;
         }
         /// <summary>
         /// Converts the input Vector2d in game coordinates to a screen coord
