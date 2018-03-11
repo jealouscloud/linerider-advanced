@@ -263,6 +263,12 @@ namespace linerider
             {
                 labelflagtime.IsHidden = true;
             }
+            var textcolor = Settings.NightMode ? Color.White : Color.Black;
+            fpslabel.TextColor = textcolor;
+            ppflabel.TextColor = textcolor;
+            labelplayback.TextColor = textcolor;
+            trackname.TextColor = textcolor;
+            labelflagtime.TextColor = textcolor;
             base.Render(skin);
         }
 
