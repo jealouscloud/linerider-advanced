@@ -311,11 +311,15 @@ namespace linerider.Tools
                     var snap = Utility.CloserPoint(endpoint, curr.Position, curr.Position2);
                     if (line.Position == endpoint)
                     {
-                        trk.MoveLine(line, snap, line.Position2);
+                        // don't snap to the same point.
+                        if (line.Position2 != snap)
+                            trk.MoveLine(line, snap, line.Position2);
                     }
                     else if (line.Position2 == endpoint)
                     {
-                        trk.MoveLine(line, line.Position, snap);
+                        // don't snap to the same point.
+                        if (line.Position != snap)
+                            trk.MoveLine(line, line.Position, snap);
                     }
                     else
                     {

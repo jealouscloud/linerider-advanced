@@ -99,7 +99,7 @@ namespace linerider.Tools
                     using (var trk = game.Track.CreateTrackReader())
                     {
                         var snap = TrySnapPoint(trk, _end, out bool snapped);
-                        if (snapped)
+                        if (snapped && snap != _start)
                         {
                             _end = snap;
                         }
@@ -130,7 +130,7 @@ namespace linerider.Tools
                     using (var trk = game.Track.CreateTrackWriter())
                     {
                         var snap = TrySnapPoint(trk, _end, out bool snapped);
-                        if (snapped)
+                        if (snapped && snap != _start)
                         {
                             _end = snap;
                         }
