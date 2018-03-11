@@ -11,15 +11,17 @@ using System.Diagnostics;
 
 namespace linerider.Rendering
 {
-    public class RiderRenderer : GameService
+    public class RiderRenderer
     {
         private AutoArray<RiderVertex> Array = new AutoArray<RiderVertex>(500);
         public float Scale = 1.0f;
         private Shader _shader;
+        private GLBuffer<RiderVertex> _vbo;
         private LineVAO _lines = new LineVAO();
         public RiderRenderer()
         {
             _shader = Shaders.RiderShader;
+            _vbo = new GLBuffer<RiderVertex>(BufferTarget.ArrayBuffer);
         }
         public void DrawMomentum(Rider rider, float opacity)
         {
@@ -56,7 +58,7 @@ namespace linerider.Rendering
                 }
                 else if (bones[i].OnlyRepel)
                 {
-                    _lines.AddLine(
+                    DrawLine(
                         rider.Body[bones[i].joint1].Location,
                         rider.Body[bones[i].joint2].Location,
                         constraintcolor,
@@ -64,7 +66,7 @@ namespace linerider.Rendering
                 }
                 else if (i <= 3)
                 {
-                    _lines.AddLine(
+                    DrawLine(
                         rider.Body[bones[i].joint1].Location,
                         rider.Body[bones[i].joint2].Location,
                         constraintcolor,
@@ -82,7 +84,7 @@ namespace linerider.Rendering
                     var broken = diagnosis[i];
                     if (broken >= 0)
                     {
-                        _lines.AddLine(
+                        DrawLine(
                             rider.Body[bones[broken].joint1].Location,
                             rider.Body[bones[broken].joint2].Location,
                             breakcolor,
@@ -92,7 +94,7 @@ namespace linerider.Rendering
                 //the first break is most important so we give it a better color, assuming its not just a fakie death
                 if (diagnosis[0] > 0)
                 {
-                    _lines.AddLine(
+                    DrawLine(
                         rider.Body[bones[diagnosis[0]].joint1].Location,
                         rider.Body[bones[diagnosis[0]].joint2].Location,
                         firstbreakcolor,
@@ -128,7 +130,7 @@ namespace linerider.Rendering
                  Models.LegRect,
                  Models.LegUV,
                  points[RiderConstants.BodyButt].Location,
-                 points[RiderConstants.BodyFootRight].Location, 
+                 points[RiderConstants.BodyFootRight].Location,
                  opacity);
 
             DrawTexture(
@@ -136,7 +138,7 @@ namespace linerider.Rendering
                 Models.ArmRect,
                 Models.ArmUV,
                 points[RiderConstants.BodyShoulder].Location,
-                points[RiderConstants.BodyHandRight].Location, 
+                points[RiderConstants.BodyHandRight].Location,
                 opacity);
             if (!rider.Crashed)
                 DrawLine(
@@ -218,7 +220,7 @@ namespace linerider.Rendering
                 DrawLine(
                     points[RiderConstants.BodyHandLeft].Location,
                     points[RiderConstants.SledTR].Location,
-                    ChangeOpacity(Color.Black,opacity),
+                    ChangeOpacity(Color.Black, opacity),
                     0.1f);
 
             DrawTexture(
@@ -231,12 +233,14 @@ namespace linerider.Rendering
         }
         public void Clear()
         {
-            Array.Clear();
+            Array.UnsafeSetCount(0);
             _lines.Clear();
         }
         protected unsafe void BeginDraw()
         {
+            _vbo.Bind();
             _shader.Use();
+            EnsureBufferSize(Array.Count);
             var in_vertex = _shader.GetAttrib("in_vertex");
             var in_texcoord = _shader.GetAttrib("in_texcoord");
             var in_unit = _shader.GetAttrib("in_unit");
@@ -245,16 +249,16 @@ namespace linerider.Rendering
             GL.EnableVertexAttribArray(in_texcoord);
             GL.EnableVertexAttribArray(in_unit);
             GL.EnableVertexAttribArray(in_color);
-            fixed (float* ptr1 = &Array.unsafe_array[0].Position.X)
-            fixed (float* ptr2 = &Array.unsafe_array[0].tex_coord.X)
-            fixed (float* ptr3 = &Array.unsafe_array[0].texture_unit)
-            fixed (int* ptr4 = &Array.unsafe_array[0].color)
-            {
-                GL.VertexAttribPointer(in_vertex, 2, VertexAttribPointerType.Float, false, RiderVertex.Size, (IntPtr)ptr1);
-                GL.VertexAttribPointer(in_texcoord, 2, VertexAttribPointerType.Float, false, RiderVertex.Size, (IntPtr)ptr2);
-                GL.VertexAttribPointer(in_unit, 1, VertexAttribPointerType.Float, false, RiderVertex.Size, (IntPtr)ptr3);
-                GL.VertexAttribPointer(in_color, 4, VertexAttribPointerType.UnsignedByte, true, RiderVertex.Size, (IntPtr)ptr4);
-            }
+            _vbo.SetData(Array.unsafe_array, 0, 0, Array.Count);
+            int offset = 0;
+            GL.VertexAttribPointer(in_vertex, 2, VertexAttribPointerType.Float, false, RiderVertex.Size, offset);
+            offset += 8;
+            GL.VertexAttribPointer(in_texcoord, 2, VertexAttribPointerType.Float, false, RiderVertex.Size, offset);
+            offset += 8;
+            GL.VertexAttribPointer(in_unit, 1, VertexAttribPointerType.Float, false, RiderVertex.Size, offset);
+            offset += 4;
+            GL.VertexAttribPointer(in_color, 4, VertexAttribPointerType.UnsignedByte, true, RiderVertex.Size, offset);
+            offset += 4;
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, Models.BodyTexture);
             GL.ActiveTexture(TextureUnit.Texture1);
@@ -271,8 +275,6 @@ namespace linerider.Rendering
         {
             GameDrawingMatrix.Enter();
             BeginDraw();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
             using (new GLEnableCap(EnableCap.Blend))
             {
                 GL.DrawArrays(PrimitiveType.Triangles, 0, Array.Count);
@@ -303,7 +305,7 @@ namespace linerider.Rendering
             //end on unit 0
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, 0);
-
+            _vbo.Unbind();
             _shader.Stop();
         }
         private void DrawTexture(
@@ -359,24 +361,18 @@ namespace linerider.Rendering
             Array.Add(verts[2]);
             Array.Add(verts[0]);
         }
-        private Vector2[] DrawLine(Vector2d p1, Vector2d p2, Color Color, float size)
+        private void DrawLine(Vector2d p1, Vector2d p2, Color Color, float size)
         {
-            return DrawLine(p1, p2, Utility.ColorToRGBA_LE(Color), size);
+            DrawLine(p1, p2, Utility.ColorToRGBA_LE(Color), size);
         }
-        private Vector2[] DrawLine(Vector2d p1, Vector2d p2, int color, float size)
+        private Vector2d[] DrawLine(Vector2d p1, Vector2d p2, int color, float size)
         {
             var t = Utility.GetThickLine(p1, p2, Angle.FromLine(p1, p2), size);
-            var texrect = new Vector2[] {
-                (Vector2)(t[0]),
-                (Vector2)(t[1]),
-                (Vector2)(t[2]),
-                (Vector2)(t[3]),
-                };
             var verts = new RiderVertex[] {
-                RiderVertex.NoTexture(texrect[0],color),
-                RiderVertex.NoTexture(texrect[1],color),
-                RiderVertex.NoTexture(texrect[2],color),
-                RiderVertex.NoTexture(texrect[3],color)
+                RiderVertex.NoTexture((Vector2)t[0],color),
+                RiderVertex.NoTexture((Vector2)t[1],color),
+                RiderVertex.NoTexture((Vector2)t[2],color),
+                RiderVertex.NoTexture((Vector2)t[3],color)
             };
             Array.Add(verts[0]);
             Array.Add(verts[1]);
@@ -385,7 +381,7 @@ namespace linerider.Rendering
             Array.Add(verts[3]);
             Array.Add(verts[2]);
             Array.Add(verts[0]);
-            return texrect;
+            return t;
         }
         private void DrawScarf(Line[] lines, float opacity)
         {
@@ -398,11 +394,11 @@ namespace linerider.Rendering
 
                 if (i != 0)
                 {
-                    altvectors.Add(verts[0]);
-                    altvectors.Add(verts[1]);
+                    altvectors.Add((Vector2)verts[0]);
+                    altvectors.Add((Vector2)verts[1]);
                 }
-                altvectors.Add(verts[2]);
-                altvectors.Add(verts[3]);
+                altvectors.Add((Vector2)verts[2]);
+                altvectors.Add((Vector2)verts[3]);
             }
             for (int i = 0; i < altvectors.Count - 4; i += 4)
             {
@@ -419,6 +415,13 @@ namespace linerider.Rendering
                 Array.Add(verts[3]);
                 Array.Add(verts[2]);
                 Array.Add(verts[0]);
+            }
+        }
+        private void EnsureBufferSize(int size)
+        {
+            if (_vbo.BufferSize < size)
+            {
+                _vbo.SetSize(size * 2, BufferUsageHint.StreamDraw);
             }
         }
         private Color ChangeOpacity(Color c, float opacity)
