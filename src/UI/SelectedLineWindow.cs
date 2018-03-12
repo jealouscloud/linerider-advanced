@@ -42,11 +42,14 @@ namespace linerider.UI
         // if it didnt have an extension it should have had registered. it will 
         // register and break the track, needing to be undone.
         private MainWindow game;
-        public SelectedLineWindow(Gwen.Controls.ControlBase parent, MainWindow glgame, GameLine line) : base(parent, "Line Properties")
+        private bool _closing = false;
+        private bool _linechanged = false;
+        private const string DefaultTitle = "Line Properties";
+        public SelectedLineWindow(Gwen.Controls.ControlBase parent, MainWindow glgame, GameLine line) : base(parent, DefaultTitle)
         {
             game = glgame;
             this.MakeModal(true);
-            this.Height = 170;
+            this.Height = 190;
             this.Width = 150;
             ControlBase container1 = new ControlBase(this);
             container1.Dock = Gwen.Pos.Fill;
@@ -61,13 +64,12 @@ namespace linerider.UI
                 {
                     using (var trk = game.Track.CreateTrackWriter())
                     {
-                        game.Track.UndoManager.BeginAction();
+                        LineChanging();
                         var copy = (StandardLine)stl.Clone();
                         var caller = (LabeledCheckBox)o;
                         copy.inv = caller.IsChecked;
                         copy.CalculateConstants();
                         trk.ReplaceLine(stl, copy);
-                        game.Track.UndoManager.EndAction();
                         game.Track.NotifyTrackChanged();
                         game.Invalidate();
                     }
@@ -92,8 +94,8 @@ namespace linerider.UI
 
                     using (var trk = game.Track.CreateTrackWriter())
                     {
+                        LineChanging();
                         trk.DisableExtensionUpdating();
-                        game.Track.UndoManager.BeginAction();
                         var copy = (StandardLine)stl.Clone();
                         if (enabled.Value == "1")
                         {
@@ -111,7 +113,6 @@ namespace linerider.UI
                             }
                         }
                         trk.ReplaceLine(stl, copy);
-                        game.Track.UndoManager.EndAction();
                         game.Track.NotifyTrackChanged();
                     }
                 };
@@ -153,9 +154,12 @@ namespace linerider.UI
 
             if (line.Type == LineType.Red)
             {
+                ControlBase optioncontainer = new ControlBase(container1);
+                optioncontainer.Dock = Pos.Top;
+                optioncontainer.Height = 30;
                 var redstl = (RedLine)line;
                 Height += 30;
-                NoDecimalNUD nud = new NoDecimalNUD(container1);
+                NoDecimalNUD nud = new NoDecimalNUD(optioncontainer);
                 var marg = nud.Margin;
                 marg.Top = 5;
                 marg.Left = marg.Right = 1;
@@ -168,13 +172,15 @@ namespace linerider.UI
                 nud.Value = (line as RedLine).Multiplier;
                 nud.ValueChanged += nud_redlinemultiplier_ValueChanged;
                 nud.UserData = line;
-                Label l = new Label(container1);
-                l.Y = 137;
+                Label l = new Label(optioncontainer);
+                l.Y = 5;
                 l.Text = "Multiplier";
                 Height += 25;
 
-
-                nud = new NoDecimalNUD(container1);
+                optioncontainer = new ControlBase(container1);
+                optioncontainer.Dock = Pos.Top;
+                optioncontainer.Height = 30;
+                nud = new NoDecimalNUD(optioncontainer);
                 marg = nud.Margin;
                 marg.Top = 5;
                 marg.Left = marg.Right = 1;
@@ -207,7 +213,7 @@ namespace linerider.UI
                     {
                         using (var trk = game.Track.CreateTrackWriter())
                         {
-                            game.Track.UndoManager.BeginAction();
+                            LineChanging();
                             if (diff < 0)
                             {
                                 for (int i = 0; i > diff; i--)
@@ -226,17 +232,60 @@ namespace linerider.UI
                                     redlines.AddLine(red);
                                 }
                             }
-                            game.Track.UndoManager.EndAction();
                         }
                         game.Track.NotifyTrackChanged();
                     }
                 };
                 nud.UserData = line;
-                l = new Label(container1);
-                l.Y = 137 + 35;
+                l = new Label(optioncontainer);
+                l.Y = 5;
                 l.Text = "Multilines";
             }
+            Button saveandquit = new Button(container1);
+            saveandquit.Name = "saveandquit";
+            saveandquit.Disable();
+            saveandquit.Dock = Pos.Bottom;
+            saveandquit.Text = "Save changes";
+            saveandquit.Clicked += (o, e) =>
+            {
+                if (!_closing)
+                {
+                    _closing = true;
+                    if (_linechanged)
+                    {
+                        game.Track.UndoManager.EndAction();
+                    }
+                    if (!this.IsHidden)
+                        Close();
+                }
+            };
+            RecurseLayout(Skin);
+            this.MinimumSize = new System.Drawing.Point(Width, Height);
             game.Cursor = OpenTK.MouseCursor.Default;
+        }
+        protected override void CloseButtonPressed(ControlBase control, EventArgs args)
+        {
+            if (!_closing)
+            {
+                _closing = true;
+                if (_linechanged)
+                {
+                    game.Track.UndoManager.CancelAction();
+                }
+            }
+            base.CloseButtonPressed(control, args);
+        }
+        private void LineChanging()
+        {
+            if (!_linechanged)
+            {
+                _linechanged = true;
+                var btn = (Button)FindChildByName("saveandquit", true);
+                btn.Enable();
+                btn.UpdateColors();
+                Title = DefaultTitle + " *";
+                game.Track.UndoManager.BeginAction();
+            }
         }
         private void nud_redlinemultiplier_ValueChanged(ControlBase sender, EventArgs arguments)
         {
@@ -245,12 +294,11 @@ namespace linerider.UI
             {
                 using (var trk = game.Track.CreateTrackWriter())
                 {
-                    game.Track.UndoManager.BeginAction();
+                    LineChanging();
                     var copy = (RedLine)l.Clone();
                     copy.Multiplier = (int)Math.Round(((NumericUpDown)sender).Value);
                     copy.CalculateConstants();
                     trk.ReplaceLine(l, copy);
-                    game.Track.UndoManager.EndAction();
                     game.Track.NotifyTrackChanged();
                 }
             }
