@@ -64,6 +64,7 @@ namespace linerider.Tools
         public PencilTool() : base() { }
         public override void OnMouseDown(Vector2d pos)
         {
+            Stop();
             Active = true;
 
             if (game.EnableSnap)
@@ -92,6 +93,7 @@ namespace linerider.Tools
             _addflip = UI.InputUtils.Check(UI.Hotkey.LineToolFlipLine);
             _end = _start;
             game.Invalidate();
+            game.Track.UndoManager.BeginAction();
             base.OnMouseDown(pos);
         }
         public override void OnChangingTool()
@@ -103,13 +105,11 @@ namespace linerider.Tools
         {
             using (var trk = game.Track.CreateTrackWriter())
             {
-                game.Track.UndoManager.BeginAction();
                 var added = CreateLine(trk, _start, _end, false, Snapped, false);
                 if (added is StandardLine)
                 {
                     game.Track.NotifyTrackChanged();
                 }
-                game.Track.UndoManager.EndAction();
             }
             game.Invalidate();
         }
@@ -138,11 +138,15 @@ namespace linerider.Tools
             game.Invalidate();
             if (Active)
             {
-                Active = false;
+                _end = ScreenToGameCoords(pos);
                 var diff = _end - _start;
-                if (!DrawingScenery && diff.Length < MINIMUM_LINE)
-                    return;
-                AddLine();
+                var len = diff.Length;
+
+                if ((DrawingScenery && len >= (MINIMUM_LINE / 2)) || len >= MINIMUM_LINE)
+                {
+                    AddLine();
+                }
+                Stop();
             }
             base.OnMouseUp(pos);
         }
@@ -156,7 +160,11 @@ namespace linerider.Tools
         }
         public override void Stop()
         {
-            Active = false;
+            if (Active)
+            {
+                Active = false;
+                game.Track.UndoManager.EndAction();
+            }
             _mouseshadow = Vector2d.Zero;
         }
     }
