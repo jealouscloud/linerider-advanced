@@ -255,9 +255,12 @@
     <EmbeddedResource Include="Resources\cursors\zoom.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\rider\limbs.png" />
-    <EmbeddedResource Include="Resources\rider\sled.png" />
     <EmbeddedResource Include="Resources\rider\body.png" />
+    <EmbeddedResource Include="Resources\rider\bodydead.png" />
+    <EmbeddedResource Include="Resources\rider\sled.png" />
+    <EmbeddedResource Include="Resources\rider\brokensled.png" />
+    <EmbeddedResource Include="Resources\rider\arm.png" />
+    <EmbeddedResource Include="Resources\rider\leg.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\gamefont_15_0.png" />

@@ -20,35 +20,43 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using OpenTK;
 using linerider.Utils;
+using linerider.Rendering;
 
 namespace linerider
 {
     public static class Models
     {
-        const float half_uv = 0.499023438f;
         public static int SledTexture;
+        public static int BrokenSledTexture;
         public static int BodyTexture;
-        public static int LimbsTexture;
+        public static int BodyDeadTexture;
+        public static int ArmTexture;
+        public static int LegTexture;
         public static readonly DoubleRect SledRect = new DoubleRect(-0.6875, -2.3125, 17.9195, 8.95975);
         public static readonly DoubleRect BrokenSledRect = new DoubleRect(-0.3645, -2.3125, 17.477, 8.7385);
         public static readonly DoubleRect BodyRect = new DoubleRect(0.026, -3.145, 13.944, 6.972);
         public static readonly DoubleRect ArmRect = new DoubleRect(-0.657, -1.2305, 7.82, 3.91);
         public static readonly DoubleRect LegRect = new DoubleRect(-0.6535, -2.013, 8.02, 4.01);
 
-        public static readonly FloatRect BodyUV = new FloatRect(0, 0, 1, half_uv);
-        public static readonly FloatRect DeadBodyUV = new FloatRect(0, 0.5f, 1, 0.5f);
+        public static readonly FloatRect BodyUV = new FloatRect(0, 0, 1, 1);
+        public static readonly FloatRect DeadBodyUV = new FloatRect(0, 0, 1, 1);
 
-        public static readonly FloatRect SledUV = new FloatRect(0, 0, 1, half_uv);
-        public static readonly FloatRect BrokenSledUV = new FloatRect(0, 0.5f, 1, 0.5f);
+        public static readonly FloatRect SledUV = new FloatRect(0, 0, 1, 1);
+        public static readonly FloatRect BrokenSledUV = new FloatRect(0, 0, 1, 1);
 
-        public static readonly FloatRect ArmUV = new FloatRect(0, 0, 1, half_uv);
-        public static readonly FloatRect LegUV = new FloatRect(0, 0.5f, 1, 0.5f);
+        public static readonly FloatRect ArmUV = new FloatRect(0, 0, 1, 1);
+        public static readonly FloatRect LegUV = new FloatRect(0, 0, 1, 1);
 
         public static void LoadModels()
         {
-            SledTexture = Rendering.StaticRenderer.LoadTexture(GameResources.sled_img);
-            BodyTexture = Rendering.StaticRenderer.LoadTexture(GameResources.body_img);
-            LimbsTexture = Rendering.StaticRenderer.LoadTexture(GameResources.limbs_img);
+            BodyTexture = StaticRenderer.LoadTexture(GameResources.body_img);
+            BodyDeadTexture = StaticRenderer.LoadTexture(GameResources.bodydead_img);
+            
+            SledTexture = StaticRenderer.LoadTexture(GameResources.sled_img);
+            BrokenSledTexture = StaticRenderer.LoadTexture(GameResources.brokensled_img);
+
+            ArmTexture = StaticRenderer.LoadTexture(GameResources.arm_img);
+            LegTexture = StaticRenderer.LoadTexture(GameResources.leg_img);
         }
     }
 }

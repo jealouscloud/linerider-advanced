@@ -131,7 +131,7 @@ namespace linerider.Rendering
             }
             var points = rider.Body;
             DrawTexture(
-                 Tex.Limb,
+                 Tex.Leg,
                  Models.LegRect,
                  Models.LegUV,
                  points[RiderConstants.BodyButt].Location,
@@ -139,7 +139,7 @@ namespace linerider.Rendering
                  opacity);
 
             DrawTexture(
-                Tex.Limb,
+                Tex.Arm,
                 Models.ArmRect,
                 Models.ArmUV,
                 points[RiderConstants.BodyShoulder].Location,
@@ -161,7 +161,7 @@ namespace linerider.Rendering
                     var olduv = Models.BrokenSledUV;
                     //we're upside down
                     DrawTexture(
-                        Tex.Sled,
+                        Tex.BrokenSled,
                         Models.BrokenSledRect,
                         FloatRect.FromLRTB(
                             olduv.Left,
@@ -174,7 +174,7 @@ namespace linerider.Rendering
                 else
                 {
                     DrawTexture(
-                        Tex.Sled,
+                        Tex.BrokenSled,
                         Models.BrokenSledRect,
                         Models.BrokenSledUV,
                         points[RiderConstants.SledTL].Location,
@@ -194,7 +194,7 @@ namespace linerider.Rendering
             }
 
             DrawTexture(
-                Tex.Limb,
+                Tex.Leg,
                 Models.LegRect,
                     Models.LegUV,
                 points[RiderConstants.BodyButt].Location,
@@ -202,7 +202,6 @@ namespace linerider.Rendering
                 opacity);
             if (!rider.Crashed)
             {
-                var uv = Models.BodyUV;
                 DrawTexture(
                     Tex.Body,
                     Models.BodyRect,
@@ -214,7 +213,7 @@ namespace linerider.Rendering
             else
             {
                 DrawTexture(
-                    Tex.Body,
+                    Tex.BodyDead,
                     Models.BodyRect,
                     Models.DeadBodyUV,
                     points[RiderConstants.BodyButt].Location,
@@ -229,7 +228,7 @@ namespace linerider.Rendering
                     0.1f);
 
             DrawTexture(
-                Tex.Limb,
+                Tex.Arm,
                 Models.ArmRect,
                 Models.ArmUV,
                 points[RiderConstants.BodyShoulder].Location,
@@ -268,13 +267,22 @@ namespace linerider.Rendering
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, Models.BodyTexture);
             GL.ActiveTexture(TextureUnit.Texture1);
-            GL.BindTexture(TextureTarget.Texture2D, Models.LimbsTexture);
+            GL.BindTexture(TextureTarget.Texture2D, Models.BodyDeadTexture);
             GL.ActiveTexture(TextureUnit.Texture2);
+            GL.BindTexture(TextureTarget.Texture2D, Models.ArmTexture);
+            GL.ActiveTexture(TextureUnit.Texture3);
+            GL.BindTexture(TextureTarget.Texture2D, Models.LegTexture);
+            GL.ActiveTexture(TextureUnit.Texture4);
             GL.BindTexture(TextureTarget.Texture2D, Models.SledTexture);
+            GL.ActiveTexture(TextureUnit.Texture5);
+            GL.BindTexture(TextureTarget.Texture2D, Models.BrokenSledTexture);
 
             GL.Uniform1(_shader.GetUniform("u_bodytex"), 0);
-            GL.Uniform1(_shader.GetUniform("u_limbtex"), 1);
-            GL.Uniform1(_shader.GetUniform("u_sledtex"), 2);
+            GL.Uniform1(_shader.GetUniform("u_bodydeadtex"), 1);
+            GL.Uniform1(_shader.GetUniform("u_armtex"), 2);
+            GL.Uniform1(_shader.GetUniform("u_legtex"), 3);
+            GL.Uniform1(_shader.GetUniform("u_sledtex"), 4);
+            GL.Uniform1(_shader.GetUniform("u_brokensledtex"), 5);
 
         }
         public void Draw()
@@ -307,6 +315,12 @@ namespace linerider.Rendering
             GL.DisableVertexAttribArray(in_unit);
             GL.DisableVertexAttribArray(in_color);
 
+            GL.ActiveTexture(TextureUnit.Texture5);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.ActiveTexture(TextureUnit.Texture4);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.ActiveTexture(TextureUnit.Texture3);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
             GL.ActiveTexture(TextureUnit.Texture2);
             GL.BindTexture(TextureTarget.Texture2D, 0);
             GL.ActiveTexture(TextureUnit.Texture1);
@@ -443,8 +457,11 @@ namespace linerider.Rendering
         {
             None = 0,
             Body = 1,
-            Limb = 2,
-            Sled = 3,
+            BodyDead = 2,
+            Arm = 3,
+            Leg = 4,
+            Sled = 5,
+            BrokenSled = 6,
         }
         /// <summary>
         /// A vertex meant for the simulation line shader
