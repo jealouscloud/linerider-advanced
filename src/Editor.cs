@@ -224,6 +224,7 @@ namespace linerider
                 drawOptions.Rider = Rider.Lerp(prev, current, blend);
                 renderframe = Offset - 1;
             }
+            drawOptions.Iteration = IterationsOffset;
             if (!_loadingTrack)
             {
                 var changes = Timeline.RequestFrameForRender(renderframe);

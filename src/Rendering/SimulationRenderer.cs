@@ -81,11 +81,19 @@ namespace linerider.Rendering
             {
                 _riderrenderer.DrawMomentum(options.Rider, 1);
                 // todo create a preference and uncommon this feature:
-                /*if (!options.IsRunning)
+                if (
+                    !options.IsRunning &&
+                    options.Iteration != 6 &&
+                    options.Iteration != 0 &&
+                    !Settings.Local.OnionSkinning)
                 {
                     var frame = timeline.GetFrame(game.Track.Offset + 1, 0);
                     _riderrenderer.DrawRider(0.1f, frame);
-                }*/
+                    if (options.ShowContactLines)
+                    {
+                        _riderrenderer.DrawContacts(frame, timeline.DiagnoseFrame(game.Track.Offset + 1, 0), 0.5f);
+                    }
+                }
             }
             if (options.ShowContactLines)
             {
