@@ -38,7 +38,7 @@ namespace linerider.Audio
         }
         public override string ToString()
         {
-            return Location + "\r\n" + Offset;
+            return Location + "\r\n" + Offset.ToString(Program.Culture);;
         }
     }
 }
