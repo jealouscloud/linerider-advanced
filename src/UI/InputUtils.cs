@@ -173,6 +173,26 @@ namespace linerider.UI
         {
             return CheckInternal(hotkey) != null;
         }
+        public static bool CheckPressed(Hotkey hotkey)
+        {
+            List<Keybinding> keybindings;
+            if (Settings.Keybinds.TryGetValue(hotkey, out keybindings))
+            {
+                using (_lock.AcquireRead())
+                {
+                    foreach (var bind in keybindings)
+                    {
+                        if (bind.IsEmpty)
+                        {
+                            continue;
+                        }
+                        if (CheckPressed(bind, ref _kbstate))
+                            return true;
+                    }
+                }
+            }
+            return false;
+        }
         /// <summary>
         /// Returns true if no key has been pressed that changes the definition
         /// of the "currently pressed" keybind.
