@@ -125,9 +125,10 @@ namespace linerider.Rendering
         public static GenericVertex[] GetWell(StandardLine line)
         {
             var angle = Angle.FromLine(line);
-            angle.Radians += 1.5708f; //90 degrees
+            
+            angle.Radians += line.inv ? -1.5708 : 1.5708; //90 degrees
             var offset = angle.MovePoint(Vector2d.Zero, StandardLine.Zone);
-            var wellcolor = Color.FromArgb(40, 0, 0, 0);
+            var wellcolor = Color.FromArgb(80, 80, 80, 80);
             var tl = new GenericVertex((Vector2)(line.Start), wellcolor);
             var tr = new GenericVertex((Vector2)(line.End), wellcolor);
             var bl = new GenericVertex((Vector2)(line.End + offset), wellcolor);

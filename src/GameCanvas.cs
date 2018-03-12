@@ -202,6 +202,7 @@ namespace linerider
             var fpslabel = ((Label)FindChildByName("fps", true));
             var ppflabel = ((Label)FindChildByName("ppf", true));
             var labelplayback = ((Label)FindChildByName("labelplayback", true));
+            var labeliterations = ((Label)FindChildByName("labeliterations", true));
             string formatstring = "mm\\:ss";
             string longformatstring = "h\\:" + formatstring;
             if (game.Track.PlaybackMode)
@@ -269,6 +270,7 @@ namespace linerider
             labelplayback.TextColor = textcolor;
             trackname.TextColor = textcolor;
             labelflagtime.TextColor = textcolor;
+            labeliterations.TextColor = textcolor;
             base.Render(skin);
         }
 
