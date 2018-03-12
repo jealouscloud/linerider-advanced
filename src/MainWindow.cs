@@ -199,7 +199,7 @@ namespace linerider
                 }
                 else
                 {
-                    Track.Camera.BeginFrame(1, Track.Zoom);
+                    Track.Camera.BeginFrame(blend, Track.Zoom);
                 }
                 GL.ClearColor(Settings.NightMode
                    ? Constants.ColorNightMode
