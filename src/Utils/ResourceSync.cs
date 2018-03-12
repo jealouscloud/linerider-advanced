@@ -96,14 +96,8 @@ namespace linerider.Utils
             public void ReleaseWaiting()
             {
                 int count = 0;
-                bool dbg = false;//todo remove this 
                 while (WaitedOn)
                 {
-                    if (!dbg)
-                    {
-                        dbg = true;
-                        Debug.WriteLine("Letting waiters run");
-                    }
                     Debug.Assert(count++ != 10000,"Wait release in possible infinite loop");
                     Release();
                     Acquire();
