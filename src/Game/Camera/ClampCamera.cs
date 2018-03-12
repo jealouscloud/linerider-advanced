@@ -108,7 +108,7 @@ namespace linerider.Game
             {
                 ret = Clamp(ret, i);
             }
-            if (count > 1)
+            if (count > 40)
                 Debug.WriteLine("Calculating " + count + " for legacy camera");
             return ret;
         }
