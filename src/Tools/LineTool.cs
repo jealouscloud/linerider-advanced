@@ -94,7 +94,7 @@ namespace linerider.Tools
                 {
                     _end = Utility.SnapToDegrees(_start, _end);
                 }
-                if (game.EnableSnap)
+                else if (game.EnableSnap)
                 {
                     using (var trk = game.Track.CreateTrackReader())
                     {
