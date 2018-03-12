@@ -233,8 +233,11 @@ namespace linerider
                 Track.FramerateCounter.AddFrame(seconds);
                 Track.FramerateWatch.Restart();
             }
-            if (!Track.Playing && !Canvas.NeedsRedraw && !Track.NeedsDraw)//if nothing is waiting on us we can let the os breathe
-                Thread.Sleep(1);
+            if (!Track.Playing &&
+                !Canvas.NeedsRedraw &&
+                !Track.NeedsDraw &&
+                !SelectedTool.Active)//if nothing is waiting on us we can let the os breathe
+                Thread.Sleep(10);
         }
         private void GameUpdateHandleInput()
         {
