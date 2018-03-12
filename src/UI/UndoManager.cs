@@ -87,16 +87,16 @@ namespace linerider
                 if (States != null && States.Count != 0)
                 {
                     string ret = "";
-                    foreach(var state in States)
+                    foreach (var state in States)
                     {
-                        ret += state.ToString()+"|";
+                        ret += state.ToString() + "|";
                     }
                     return ret;
                 }
                 return base.ToString();
             }
         }
-        public int ActionPosition { get; private set;}
+        public int ActionPosition { get; private set; }
         private List<act> _actions = new List<act>();
         private act _currentaction;
         const int MaximumBufferSize = 10000;
@@ -118,6 +118,13 @@ namespace linerider
             if (_currentaction != null)
                 throw new Exception("Attempt to overwrite current undo state");
             _currentaction = new act();
+        }
+        public void CancelAction()
+        {
+            if (_currentaction == null)
+                throw new Exception("UndoManager current action null");
+            DoAction(_currentaction, true);
+            _currentaction = null;
         }
         public void EndAction()
         {
@@ -144,14 +151,7 @@ namespace linerider
             {
                 ActionPosition--;
                 var action = _actions[ActionPosition];
-                using (var trk = game.Track.CreateTrackWriter())
-                {
-                    trk.DisableUndo();
-                    trk.DisableExtensionUpdating();
-                    action.Undo(trk);
-                }
-                game.Track.NotifyTrackChanged();
-                game.Track.Invalidate();
+                DoAction(action, true);
             }
         }
 
@@ -163,14 +163,22 @@ namespace linerider
                     ActionPosition = 0;
                 var action = _actions[ActionPosition];
                 ActionPosition++;
-                using (var trk = game.Track.CreateTrackWriter())
-                {
-                    trk.DisableUndo();
-                    trk.DisableExtensionUpdating();
-                    action.Redo(trk);
-                }
-                game.Track.Invalidate();
+                DoAction(action, false);
             }
+        }
+        private void DoAction(act action, bool undo)
+        {
+            using (var trk = game.Track.CreateTrackWriter())
+            {
+                trk.DisableUndo();
+                trk.DisableExtensionUpdating();
+                if (undo)
+                    action.Undo(trk);
+                else
+                    action.Redo(trk);
+            }
+            game.Track.NotifyTrackChanged();
+            game.Track.Invalidate();
         }
     }
 }
