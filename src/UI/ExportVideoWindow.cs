@@ -90,6 +90,12 @@ namespace linerider.UI
                             "No flag detected, place one at the end of the track so the recorder knows where to stop.",
                             "Error", true, false);
                     }
+                    else if (game.Track.Name == Utils.Constants.DefaultTrackName)
+                    {
+                        var pop = PopupWindow.Create(
+                            "Please name your track before recording.",
+                            "Error", true, false);
+                    }
                     else
                     {
                         var radiogrp = radio;

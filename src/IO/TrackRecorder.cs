@@ -213,12 +213,12 @@ namespace linerider.IO
                                      Path.DirectorySeparatorChar +
                                      Settings.Local.CurrentSong.Location;
 
-                            parameters.AddOption("ss", Settings.Local.CurrentSong.Offset.ToString());
+                            parameters.AddOption("ss", Settings.Local.CurrentSong.Offset.ToString(Program.Culture));
                             parameters.AddOption("i", "\"" + fn + "\"");
                             parameters.AddOption("acodec", "copy");
                         }
                         double duration = framecount / (smooth ? 60.0 : 40.0);
-                        parameters.AddOption("t", duration.ToString());
+                        parameters.AddOption("t", duration.ToString(Program.Culture));
                         parameters.AddOption("vf", "vflip");//we save images upside down expecting ffmpeg to flip more efficiently.
                         // ffmpeg x264 encoding doc:
                         // https://trac.ffmpeg.org/wiki/Encode/H.264
