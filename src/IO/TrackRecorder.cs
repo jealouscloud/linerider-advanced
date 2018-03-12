@@ -220,11 +220,18 @@ namespace linerider.IO
                         double duration = framecount / (smooth ? 60.0 : 40.0);
                         parameters.AddOption("t", duration.ToString());
                         parameters.AddOption("vf", "vflip");//we save images upside down expecting ffmpeg to flip more efficiently.
+                        // ffmpeg x264 encoding doc:
+                        // https://trac.ffmpeg.org/wiki/Encode/H.264
                         parameters.AddOption("c:v", "libx264");
-                        parameters.AddOption("preset", "veryfast");
-                        parameters.AddOption("qp", "0");
+                        // we don't care _too_ much about filesize
+                        parameters.AddOption("preset", "fast");
+                        parameters.AddOption("crf", "17");
+                        // increase player compatibility:
+                        parameters.AddOption("pix_fmt", "yuv420p");
+                        // this optimizes the encoding for animation
+                        // how well lr fits into that category i'm not sure.
+                        parameters.AddOption("tune", "animation");
 
-                        //    parameters.AddOption("scale",is1080p?"1920:1080":"1280:720");
                         parameters.OutputFilePath = filename;
                         var failed = false;
                         if (File.Exists(filename))
