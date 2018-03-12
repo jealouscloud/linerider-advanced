@@ -287,7 +287,7 @@ namespace linerider.Tools
                 if (_selection.line.Type != LineType.Scenery)
                 {
                     tooltip += "\n" +
-                    "ID: " + _selection.line.ID+" ";
+                    "ID: " + _selection.line.ID + " ";
                 }
                 ShowTooltip(tooltip);
             }
@@ -299,8 +299,13 @@ namespace linerider.Tools
             {
                 if (UI.InputUtils.Check(Hotkey.ToolAngleLock))
                 {
-                    joint1 = Utility.AngleLock(_selection.line.Position, joint1, Angle.FromVector(_selection.clone.GetVector()));
-                    joint2 = Utility.AngleLock(_selection.line.Position2, joint2, Angle.FromVector(_selection.clone.GetVector()));
+                    var angle = Angle.FromVector(_selection.clone.GetVector());
+                    if (UI.InputUtils.CheckPressed(Hotkey.ToolXYSnap))
+                    {
+                        angle.Degrees -= 90;
+                    }
+                    joint1 = Utility.AngleLock(_selection.line.Position, joint1, angle);
+                    joint2 = Utility.AngleLock(_selection.line.Position2, joint2, angle);
                 }
             }
             else
@@ -311,7 +316,7 @@ namespace linerider.Tools
                 {
                     end = Utility.AngleLock(start, end, Angle.FromVector(_selection.clone.GetVector()));
                 }
-                if (UI.InputUtils.Check(Hotkey.ToolXYSnap))
+                if (UI.InputUtils.CheckPressed(Hotkey.ToolXYSnap))
                 {
                     end = Utility.SnapToDegrees(start, end);
                 }
