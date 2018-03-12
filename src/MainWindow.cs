@@ -211,7 +211,8 @@ namespace linerider
                 GL.Disable(EnableCap.Lighting);
 
 #if debuggrid
-                GameRenderer.DbgDrawGrid();
+                if (this.Keyboard.GetState().IsKeyDown(Key.C))
+                    GameRenderer.DbgDrawGrid();
 #endif
                 Track.Render(blend);
 #if debugcamera
@@ -1056,8 +1057,8 @@ namespace linerider
                 {
                     Track.NextFrame();
                     Track.IterationsOffset = 0;
+                    Track.Camera.SetFrameCenter(Track.RenderRider.CalculateCenter());
                 }
-                Track.UpdateCamera();
                 Track.InvalidateRenderRider();
                 Canvas.UpdateIterationUI();
             },
@@ -1077,8 +1078,8 @@ namespace linerider
                         Track.PreviousFrame();
                         Track.IterationsOffset = 6;
                         Invalidate();
+                        Track.Camera.SetFrameCenter(Track.RenderRider.CalculateCenter());
                     }
-                    Track.UpdateCamera();
                     Track.InvalidateRenderRider();
                     Canvas.UpdateIterationUI();
                 }
