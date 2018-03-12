@@ -236,7 +236,7 @@ namespace linerider.Tools
             using (var trk = game.Track.CreateTrackWriter())
             {
                 var line = SelectLine(trk, gamepos, out bool knob);
-                if (line != null)
+                if (line != null && line.Type != LineType.Scenery)
                 {
                     SelectedLineWindow window = new SelectedLineWindow(game.Canvas, game, line);
                     window.Show();
