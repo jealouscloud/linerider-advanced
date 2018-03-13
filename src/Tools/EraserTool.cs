@@ -37,6 +37,7 @@ namespace linerider.Tools
         private Vector2d _last_erased = Vector2d.Zero;
         // todo, this + the circle function dont work at ultra zoomed out.
         private float radius => 8 / game.Track.Zoom;
+        private bool _actionmade;
         public override MouseCursor Cursor
         {
             get { return game.Cursors["eraser"]; }
@@ -48,8 +49,10 @@ namespace linerider.Tools
 
         public override void OnMouseDown(Vector2d pos)
         {
+            Stop();
             Active = true;
             var p = ScreenToGameCoords(pos);
+            game.Track.UndoManager.BeginAction();
             Erase(p);
             base.OnMouseDown(pos);
         }
@@ -83,9 +86,9 @@ namespace linerider.Tools
         {
             if (Active)
             {
-                Active = false;
                 var p = ScreenToGameCoords(pos);
                 Erase(p);
+                Stop();
             }
             base.OnMouseUp(pos);
         }
@@ -102,9 +105,8 @@ namespace linerider.Tools
                     {
                         if (linefilter == LineType.All || lines[i].Type == linefilter)
                         {
-                            game.Track.UndoManager.BeginAction();
+                            _actionmade = true;
                             trk.RemoveLine(lines[i]);
-                            game.Track.UndoManager.EndAction();
                         }
                     }
                     game.Track.NotifyTrackChanged();
@@ -115,6 +117,18 @@ namespace linerider.Tools
 
         public override void Stop()
         {
+            if (Active)
+            {
+                if (_actionmade)
+                {
+                    game.Track.UndoManager.EndAction();
+                }
+                else
+                {
+                    game.Track.UndoManager.CancelAction();
+                }
+                _actionmade = false;
+            }
             Active = false;
         }
     }
