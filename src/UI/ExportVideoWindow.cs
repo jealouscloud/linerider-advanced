@@ -72,7 +72,7 @@ namespace linerider.UI
             }
             LabeledCheckBox smooth = new LabeledCheckBox(popup.Container);
             smooth.Name = "smooth";
-            smooth.IsChecked = true;
+            smooth.IsChecked = Settings.RenderSmooth;
             smooth.Text = "Smooth Playback";
             Align.AlignBottom(smooth);
 
@@ -110,7 +110,9 @@ namespace linerider.UI
                     {
                         var radiogrp = radio;
                         bool is1080p = radiogrp.Selected.Text == "1080p";
+
                         Settings.Render1080p = is1080p;
+                        Settings.RenderSmooth = smooth.IsChecked;
                         Settings.Save();
                         IO.TrackRecorder.RecordTrack(game, is1080p, smooth.IsChecked, music.IsChecked);
                     }

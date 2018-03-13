@@ -71,6 +71,7 @@ namespace linerider
         public static bool SmoothPlayback = true;
         public static bool CheckForUpdates = true;
         public static bool Render1080p = false;
+        public static bool RenderSmooth = true;
         public static string LastSelectedTrack = "";
         static Settings()
         {
@@ -180,6 +181,7 @@ namespace linerider
             LoadBool(GetSetting(lines, nameof(SmoothPlayback)), ref SmoothPlayback);
             LoadBool(GetSetting(lines, nameof(RoundLegacyCamera)), ref RoundLegacyCamera);
             LoadBool(GetSetting(lines, nameof(Render1080p)), ref Render1080p);
+            LoadBool(GetSetting(lines, nameof(RenderSmooth)), ref RenderSmooth);
             var lasttrack = GetSetting(lines, nameof(LastSelectedTrack));
             if (File.Exists(lasttrack) && lasttrack.StartsWith(Constants.TracksDirectory))
             {
@@ -206,6 +208,7 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(LastSelectedTrack), LastSelectedTrack);
             config += "\r\n" + MakeSetting(nameof(RoundLegacyCamera), RoundLegacyCamera.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(Render1080p), Render1080p.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(RenderSmooth), RenderSmooth.ToString(Program.Culture));
             foreach (var binds in Keybinds)
             {
                 foreach (var bind in binds.Value)
