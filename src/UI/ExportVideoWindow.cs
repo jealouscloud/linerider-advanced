@@ -54,8 +54,18 @@ namespace linerider.UI
             popup.Layout();
             var radio = new RadioButtonGroup(popup.Container);
             radio.Name = "qualityselector";
-            radio.AddOption("720p").Select();
-            radio.AddOption("1080p");
+
+            if (Settings.Render1080p)
+            {
+                radio.AddOption("720p");
+                radio.AddOption("1080p").Select();
+            }
+            else
+            {
+                radio.AddOption("720p").Select();
+                radio.AddOption("1080p");
+            }
+            
             if (!SafeFrameBuffer.CanRecord)
             {
                 radio.IsHidden = true;
@@ -100,6 +110,8 @@ namespace linerider.UI
                     {
                         var radiogrp = radio;
                         bool is1080p = radiogrp.Selected.Text == "1080p";
+                        Settings.Render1080p = is1080p;
+                        Settings.Save();
                         IO.TrackRecorder.RecordTrack(game, is1080p, smooth.IsChecked, music.IsChecked);
                     }
                 }
