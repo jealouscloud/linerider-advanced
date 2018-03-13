@@ -67,7 +67,6 @@ namespace linerider.Tools
         {
             Stop();
             Active = true;
-            _drawn = false;
 
             if (game.EnableSnap)
             {
@@ -145,7 +144,7 @@ namespace linerider.Tools
                 var diff = _end - _start;
                 var len = diff.Length;
 
-                if ((DrawingScenery && len >= (MINIMUM_LINE / 2)) || len >= MINIMUM_LINE)
+                if (DrawingScenery || len >= MINIMUM_LINE)
                 {
                     AddLine();
                 }
@@ -175,6 +174,7 @@ namespace linerider.Tools
                 {
                     game.Track.UndoManager.CancelAction();
                 }
+                _drawn = false;
             }
             _mouseshadow = Vector2d.Zero;
         }
