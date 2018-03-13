@@ -213,7 +213,7 @@ namespace linerider.IO
                                      Path.DirectorySeparatorChar +
                                      Settings.Local.CurrentSong.Location;
 
-                            parameters.AddOption("ss", Settings.Local.CurrentSong.Offset.ToString());
+                            parameters.AddOption("ss", (Settings.Local.CurrentSong.Offset - 0.07).ToString());
                             parameters.AddOption("i", "\"" + fn + "\"");
                             parameters.AddOption("acodec", "copy");
                         }
