@@ -45,6 +45,7 @@ namespace linerider.Tools
             }
         }
         public bool Snapped = false;
+        private bool _drawn;
         private Vector2d _start;
         private Vector2d _end;
         const float MINIMUM_LINE = 0.6f;
@@ -66,6 +67,7 @@ namespace linerider.Tools
         {
             Stop();
             Active = true;
+            _drawn = false;
 
             if (game.EnableSnap)
             {
@@ -103,6 +105,7 @@ namespace linerider.Tools
         }
         private void AddLine()
         {
+            _drawn = true;
             using (var trk = game.Track.CreateTrackWriter())
             {
                 var added = CreateLine(trk, _start, _end, false, Snapped, false);
@@ -163,7 +166,15 @@ namespace linerider.Tools
             if (Active)
             {
                 Active = false;
-                game.Track.UndoManager.EndAction();
+
+                if (_drawn)
+                {
+                    game.Track.UndoManager.EndAction();
+                }
+                else
+                {
+                    game.Track.UndoManager.CancelAction();
+                }
             }
             _mouseshadow = Vector2d.Zero;
         }
