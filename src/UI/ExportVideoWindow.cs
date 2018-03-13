@@ -78,7 +78,7 @@ namespace linerider.UI
 
             LabeledCheckBox music = new LabeledCheckBox(popup.Container);
             music.Name = "music";
-            music.IsChecked = Settings.Local.EnableSong;
+            music.IsChecked = Settings.Local.EnableSong && Settings.RenderMusic;
             music.IsHidden = !Settings.Local.EnableSong;
             music.Text = "Include Music";
             if (Settings.Local.EnableSong)
@@ -113,6 +113,10 @@ namespace linerider.UI
 
                         Settings.Render1080p = is1080p;
                         Settings.RenderSmooth = smooth.IsChecked;
+                        if (Settings.Local.EnableSong)
+                        {
+                            Settings.RenderMusic = music.IsChecked;
+                        }
                         Settings.Save();
                         IO.TrackRecorder.RecordTrack(game, is1080p, smooth.IsChecked, music.IsChecked);
                     }
