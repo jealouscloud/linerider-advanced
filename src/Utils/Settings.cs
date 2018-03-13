@@ -137,6 +137,9 @@ namespace linerider
             CreateKeybind(Hotkey.LoadWindow, new Keybinding(Key.O));
             CreateKeybind(Hotkey.Quicksave, new Keybinding(Key.S, KeyModifiers.Control));
 
+            CreateKeybind(Hotkey.PlayButtonIgnoreFlag, new Keybinding(Key.AltLeft));
+            CreateKeybind(Hotkey.PlayButtonIgnoreFlag, new Keybinding(Key.AltRight));
+
             CreateKeybind(Hotkey.EditorQuickPan, new Keybinding(Key.Space));
         }
         private static void CreateKeybind(Hotkey hotkey, Keybinding keybinding)
