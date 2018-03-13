@@ -757,7 +757,14 @@ namespace linerider
             btn.Clicked += (o, e) =>
             {
                 StopTools();
-                Track.StartFromFlag();
+                if (UI.InputUtils.Check(Hotkey.PlayButtonIgnoreFlag))
+                {
+                    Track.StartIgnoreFlag();
+                }
+                else
+                {
+                    Track.StartFromFlag();
+                }
                 Scheduler.DefaultSpeed();
             };
             pos -= 32; //occupy same space as the start button
