@@ -215,7 +215,7 @@ namespace linerider.IO
 
                             parameters.AddOption("ss", Settings.Local.CurrentSong.Offset.ToString(Program.Culture));
                             parameters.AddOption("i", "\"" + fn + "\"");
-                            parameters.AddOption("acodec", "copy");
+                            parameters.AddOption("c:a", "aac");
                         }
                         double duration = framecount / (smooth ? 60.0 : 40.0);
                         parameters.AddOption("t", duration.ToString(Program.Culture));
