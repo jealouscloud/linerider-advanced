@@ -158,7 +158,7 @@ show the lines as black instead");
             lcb.SetToolTipText(@"Starts the track with 0 momentum");
 
             lcb = new LabeledCheckBox(gb);
-            lcb.Text = "New Camera";
+            lcb.Text = "Smooth Camera";
             lcb.IsChecked = Settings.SmoothCamera;
             lcb.CheckChanged += (o, e) =>
             {
@@ -166,11 +166,17 @@ show the lines as black instead");
                 Settings.Save();
                 game.Track.Stop();
                 game.Track.InitCamera();
+                var round = FindChildByName("roundlegacycamera", true);
+                foreach (var c in round.Children)
+                {
+                    c.IsDisabled = Settings.SmoothCamera;
+                }
             };
             lcb.Dock = Pos.Top;
             lcb.SetToolTipText("Enables a smooth predictive camera.\r\nExperimental and subject to change.");
 
             lcb = new LabeledCheckBox(gb);
+            lcb.Name = "roundlegacycamera";
             lcb.Text = "Round Legacy Camera";
             lcb.IsChecked = Settings.RoundLegacyCamera;
             lcb.CheckChanged += (o, e) =>
@@ -181,8 +187,12 @@ show the lines as black instead");
                 game.Track.InitCamera();
             };
             lcb.Dock = Pos.Top;
-            lcb.SetToolTipText("If the new camera is disabled\r\nrounds the camera bounds.");
+            lcb.SetToolTipText("If the new camera is disabled\r\nmakes the camera bounds round\r\ninstead of rectangle");
 
+            foreach (var c in lcb.Children)
+            {
+                c.IsDisabled = Settings.SmoothCamera;
+            }
             lcb = new LabeledCheckBox(gb);
             lcb.Text = "Smooth Playback";
             lcb.IsChecked = Settings.SmoothPlayback;
