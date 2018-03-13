@@ -465,6 +465,7 @@ namespace linerider
         {
             if (GetOpenWindows().Count != 0)
                 return;
+            game.StopTools();
             var loadwindow = new UI.LoadWindow(this, game);
             ShowCenteredWindow(loadwindow);
         }
@@ -472,6 +473,7 @@ namespace linerider
         {
             if (GetOpenWindows().Count != 0)
                 return;
+            game.StopTools();
             UI.SaveWindow sw = new UI.SaveWindow(this, game);
             ShowCenteredWindow(sw);
         }
@@ -480,11 +482,13 @@ namespace linerider
             if (GetOpenWindows().Count != 0)
                 return;
             game.Track.Stop();
+            game.StopTools();
             var songs = new UI.SongWindow(this, game);
             ShowCenteredWindow(songs);
         }
         public void ShowNewTrack()
         {
+            game.StopTools();
             var window = PopupWindow.Create("Do you want to start a new track? Your current progress will not be saved.", "New Track", true, true);
             window.Dismissed += (o, e) =>
             {
@@ -505,6 +509,7 @@ namespace linerider
             }
             if (GetOpenWindows().Count != 0)
                 return;
+            game.StopTools();
             ShowCenteredWindow(new UI.PreferencesWindow(this, game));
         }
         private void ShowCenteredWindow(WindowControl win)

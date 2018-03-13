@@ -445,6 +445,8 @@ namespace linerider
                 if (linerider.IO.TrackRecorder.Recording)
                     return;
                 var r = _input.ProcessMouseMessage(e);
+                if (Canvas.GetOpenWindows().Count != 0)
+                    return;
 
                 if (!r && !Track.Playing)
                 {
@@ -849,6 +851,14 @@ namespace linerider
             }
         }
 
+        public void StopTools()
+        {
+            if (_handToolOverride)
+                HandTool.Stop();
+            else
+                SelectedTool?.Stop();
+        }
+        
         private void BeginOrtho()
         {
             if (RenderSize.Height > 0 && RenderSize.Width > 0)
@@ -921,13 +931,6 @@ namespace linerider
                 ImageLockMode.ReadOnly,
                 PixelFormat.Format32bppPArgb);
             Cursors[name] = new MouseCursor(hotx, hoty, image.Width, image.Height, data.Scan0);
-        }
-        private void StopTools()
-        {
-            if (_handToolOverride)
-                HandTool.Stop();
-            else
-                SelectedTool?.Stop();
         }
         private void RegisterHotkeys()
         {
