@@ -94,8 +94,10 @@ namespace linerider.Game
                 _hittest.Reset();
                 _frames.Clear();
                 _frames.Add(state);
-                //todo changes sync
-                _first_invalid_frame = _frames.Count;
+                using (changesync.AcquireWrite())
+                {
+                    _first_invalid_frame = _frames.Count;
+                }
             }
         }
         /// <summary>

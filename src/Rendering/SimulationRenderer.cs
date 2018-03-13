@@ -80,7 +80,6 @@ namespace linerider.Rendering
             if (options.ShowMomentumVectors)
             {
                 _riderrenderer.DrawMomentum(options.Rider, 1);
-                // todo create a preference and uncommon this feature:
                 if (
                     !options.IsRunning &&
                     options.Iteration != 6 &&
