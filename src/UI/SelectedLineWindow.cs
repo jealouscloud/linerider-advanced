@@ -38,10 +38,12 @@ namespace linerider.UI
         private MainWindow game;
         private bool _closing = false;
         private bool _linechanged = false;
+        private GameLine _ownerline;
         private const string DefaultTitle = "Line Properties";
         public SelectedLineWindow(Gwen.Controls.ControlBase parent, MainWindow glgame, GameLine line) : base(parent, DefaultTitle)
         {
             game = glgame;
+            _ownerline = line;
             this.MakeModal(true);
             this.Height = 190;
             this.Width = 150;
@@ -85,7 +87,6 @@ namespace linerider.UI
                 enabled.Value = tr.Zoomtrigger ? "1" : "0";
                 enabled.ValueChanged += (o, e) =>
                 {
-
                     using (var trk = game.Track.CreateTrackWriter())
                     {
                         LineChanging();
@@ -182,52 +183,16 @@ namespace linerider.UI
                 marg.Bottom = 10;
                 nud.Margin = marg;
                 nud.Dock = Gwen.Pos.Top;
-                SimulationCell redlines = new SimulationCell();
-                using (var trk = game.Track.CreateTrackReader())
-                {
-                    var lines = trk.GetLinesInRect(new Utils.DoubleRect(line.Position, new Vector2d(1, 1)), false);
-                    foreach (var red in lines)
-                    {
-                        if (
-                            red is RedLine stl &&
-                            red.Position == line.Position &&
-                            red.Position2 == line.Position2)
-                        {
-                            redlines.AddLine(stl);
-                        }
-                    }
-                }
+                SimulationCell redlines = GetMultiLines();
                 nud.Min = 1;
                 nud.Max = 9999;
                 nud.Value = redlines.Count;
                 nud.ValueChanged += (o, e) =>
                 {
-                    var diff = nud.Value - redlines.Count;
-                    if (diff != 0)
+                    var val = (int)nud.Value;
+                    if (val > 0)
                     {
-                        using (var trk = game.Track.CreateTrackWriter())
-                        {
-                            LineChanging();
-                            if (diff < 0)
-                            {
-                                for (int i = 0; i > diff; i--)
-                                {
-                                    trk.RemoveLine(redlines.First());
-                                    redlines.RemoveLine(redlines.First().ID);
-                                }
-                            }
-                            else
-                            {
-                                for (int i = 0; i < diff; i++)
-                                {
-                                    var red = new RedLine(line.Position, line.Position2, redstl.inv) { Multiplier = ((RedLine)line).Multiplier };
-                                    red.CalculateConstants();
-                                    trk.AddLine(red);
-                                    redlines.AddLine(red);
-                                }
-                            }
-                        }
-                        game.Track.NotifyTrackChanged();
+                        Multiline(val);
                     }
                 };
                 nud.UserData = line;
@@ -242,15 +207,18 @@ namespace linerider.UI
             saveandquit.Text = "Save changes";
             saveandquit.Clicked += (o, e) =>
             {
-                if (!_closing)
+                if (!saveandquit.IsDisabled)
                 {
-                    _closing = true;
-                    if (_linechanged)
+                    if (!_closing)
                     {
-                        game.Track.UndoManager.EndAction();
+                        _closing = true;
+                        if (_linechanged)
+                        {
+                            game.Track.UndoManager.EndAction();
+                        }
+                        if (!this.IsHidden)
+                            Close();
                     }
-                    if (!this.IsHidden)
-                        Close();
                 }
             };
             RecurseLayout(Skin);
@@ -281,20 +249,72 @@ namespace linerider.UI
                 game.Track.UndoManager.BeginAction();
             }
         }
+        private SimulationCell GetMultiLines()
+        {
+            SimulationCell redlines = new SimulationCell();
+            using (var trk = game.Track.CreateTrackReader())
+            {
+                var owner = (StandardLine)_ownerline;
+                var lines = trk.GetLinesInRect(new Utils.DoubleRect(owner.Position, new Vector2d(1, 1)), false);
+                foreach (var red in lines)
+                {
+                    if (
+                        red is RedLine stl &&
+                        red.Position == owner.Position &&
+                        red.Position2 == owner.Position2 &&
+                        red.ID != owner.ID)
+                    {
+                        redlines.AddLine(stl);
+                    }
+                }
+            }
+            return redlines;
+        }
+        private void Multiline(int count)
+        {
+            SimulationCell redlines = GetMultiLines();
+            using (var trk = game.Track.CreateTrackWriter())
+            {
+                var owner = (StandardLine)_ownerline;
+                LineChanging();
+                var diff = count - redlines.Count;
+                if (diff < 0)
+                {
+                    for (int i = 0; i > diff; i--)
+                    {
+                        trk.RemoveLine(redlines.First());
+                        redlines.RemoveLine(redlines.First().ID);
+                    }
+                }
+                else if (diff > 0)
+                {
+                    for (int i = 0; i < diff; i++)
+                    {
+                        var red = new RedLine(owner.Position, owner.Position2, owner.inv) { Multiplier = ((RedLine)owner).Multiplier };
+                        red.CalculateConstants();
+                        trk.AddLine(red);
+                        redlines.AddLine(red);
+                    }
+                }
+            }
+            game.Track.NotifyTrackChanged();
+        }
         private void nud_redlinemultiplier_ValueChanged(ControlBase sender, EventArgs arguments)
         {
-            var l = (StandardLine)sender.UserData;
-            if (l is RedLine)
+            var lines = GetMultiLines();
+            LineChanging();
+            using (var trk = game.Track.CreateTrackWriter())
             {
-                using (var trk = game.Track.CreateTrackWriter())
+                var multiplier = (int)Math.Round(((NumericUpDown)sender).Value);
+                lines.AddLine((StandardLine)_ownerline);
+                foreach (var line in lines)
                 {
-                    LineChanging();
-                    var copy = (RedLine)l.Clone();
-                    copy.Multiplier = (int)Math.Round(((NumericUpDown)sender).Value);
+                    var copy = (RedLine)line.Clone();
+                    copy.Multiplier = multiplier;
                     copy.CalculateConstants();
-                    trk.ReplaceLine(l, copy);
-                    game.Track.NotifyTrackChanged();
+                    trk.ReplaceLine(line, copy);
                 }
+                game.Track.NotifyTrackChanged();
             }
         }
         private class NoDecimalNUD : NumericUpDown
