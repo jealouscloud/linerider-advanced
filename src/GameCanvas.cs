@@ -612,7 +612,6 @@ namespace linerider
                 game.Track.SetFrame(slider.Value, false);
                 if (!game.Track.Playing)
                 {
-                    //todo maybe real camera pos? how?
                     game.Track.Camera.SetFrame(slider.Value);
                 }
             }

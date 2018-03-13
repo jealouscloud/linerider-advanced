@@ -35,12 +35,6 @@ namespace linerider.UI
 {
     class SelectedLineWindow : WindowControl
     {
-        // todo
-        // everything done in here should count as one undo action
-        // also, if a change is made and then unmade, any extension changes
-        // should be undone. currently, if you invert a line then invert it back
-        // if it didnt have an extension it should have had registered. it will 
-        // register and break the track, needing to be undone.
         private MainWindow game;
         private bool _closing = false;
         private bool _linechanged = false;

@@ -256,10 +256,6 @@ namespace linerider.Tools
         }
         protected bool LifeLock(TrackReader track, Timeline timeline, StandardLine line)
         {
-            // todo
-            // currently, this feature does not handle 
-            // the target line being collided
-            // with on different frames.
             int offset = game.Track.Offset;
             int iteration = game.Track.IterationsOffset;
             if (offset == 0)
