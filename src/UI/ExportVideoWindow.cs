@@ -94,6 +94,17 @@ namespace linerider.UI
             {
                 if (popup.Result == System.Windows.Forms.DialogResult.OK)
                 {
+                    var radiogrp = radio;
+                    bool is1080p = radiogrp.Selected.Text == "1080p";
+
+                    Settings.Render1080p = is1080p;
+                    Settings.RenderSmooth = smooth.IsChecked;
+                    if (Settings.Local.EnableSong)
+                    {
+                        Settings.RenderMusic = music.IsChecked;
+                    }
+                    Settings.Save();
+
                     if (game.Track.GetFlag() == null)
                     {
                         var pop = PopupWindow.Create(
@@ -108,16 +119,6 @@ namespace linerider.UI
                     }
                     else
                     {
-                        var radiogrp = radio;
-                        bool is1080p = radiogrp.Selected.Text == "1080p";
-
-                        Settings.Render1080p = is1080p;
-                        Settings.RenderSmooth = smooth.IsChecked;
-                        if (Settings.Local.EnableSong)
-                        {
-                            Settings.RenderMusic = music.IsChecked;
-                        }
-                        Settings.Save();
                         IO.TrackRecorder.RecordTrack(game, is1080p, smooth.IsChecked, music.IsChecked);
                     }
                 }
