@@ -400,8 +400,8 @@ namespace linerider
             Canvas.ShouldDrawBackground = false;
             InitControls();
             Models.LoadModels();
-            
-            AddCursor("pencil", GameResources.cursor_pencil, 3, 28);
+
+            AddCursor("pencil", GameResources.cursor_pencil, 6, 25);
             AddCursor("line", GameResources.cursor_line, 11, 11);
             AddCursor("eraser", GameResources.cursor_eraser, 8, 8);
             AddCursor("hand", GameResources.cursor_move, 16, 16);
