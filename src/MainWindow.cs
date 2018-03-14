@@ -451,7 +451,7 @@ namespace linerider
                 if (!r && !Track.Playing)
                 {
                     bool dragstart = false;
-                    if (!Track.Paused && 
+                    if (!Track.Paused &&
                         e.Button == MouseButton.Left &&
                         OpenTK.Input.Keyboard.GetState()[Key.D])
                     {
@@ -1138,7 +1138,9 @@ namespace linerider
                 Canvas.ShowLoadWindow();
             });
 
-            InputUtils.RegisterHotkey(Hotkey.PreferencesWindow, () => true, () =>
+            InputUtils.RegisterHotkey(Hotkey.PreferencesWindow, 
+            () =>(_handToolOverride) ? !HandTool.Active : !SelectedTool.Active,
+            () =>
             {
                 StopTools();
                 Canvas.ShowPreferences();
@@ -1268,6 +1270,13 @@ namespace linerider
             InputUtils.RegisterHotkey(Hotkey.EditorFocusRider, () => !Track.Playing, () =>
             {
                 Track.Camera.SetFrameCenter(Track.RenderRider.CalculateCenter());
+                Invalidate();
+            });
+            InputUtils.RegisterHotkey(Hotkey.EditorCancelTool, 
+            () => (_handToolOverride) ? HandTool.Active : SelectedTool.Active,
+            () =>
+            {
+                StopTools();
                 Invalidate();
             });
         }
