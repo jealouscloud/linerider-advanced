@@ -38,6 +38,9 @@ namespace linerider.UI
         private MainWindow game;
         private bool _closing = false;
         private bool _linechanged = false;
+        // todo owner should be saved by id because we might make modifications
+        // this is acceptable currently, breaking only inv change + multiline
+        // but we want more features soon
         private GameLine _ownerline;
         private const string DefaultTitle = "Line Properties";
         public SelectedLineWindow(Gwen.Controls.ControlBase parent, MainWindow glgame, GameLine line) : base(parent, DefaultTitle)
@@ -183,10 +186,9 @@ namespace linerider.UI
                 marg.Bottom = 10;
                 nud.Margin = marg;
                 nud.Dock = Gwen.Pos.Top;
-                SimulationCell redlines = GetMultiLines();
                 nud.Min = 1;
                 nud.Max = 9999;
-                nud.Value = redlines.Count;
+                nud.Value = GetMultiLines(true).Count;
                 nud.ValueChanged += (o, e) =>
                 {
                     var val = (int)nud.Value;
@@ -249,7 +251,7 @@ namespace linerider.UI
                 game.Track.UndoManager.BeginAction();
             }
         }
-        private SimulationCell GetMultiLines()
+        private SimulationCell GetMultiLines(bool includeowner)
         {
             SimulationCell redlines = new SimulationCell();
             using (var trk = game.Track.CreateTrackReader())
@@ -262,7 +264,7 @@ namespace linerider.UI
                         red is RedLine stl &&
                         red.Position == owner.Position &&
                         red.Position2 == owner.Position2 &&
-                        red.ID != owner.ID)
+                        (includeowner || red.ID != owner.ID))
                     {
                         redlines.AddLine(stl);
                     }
@@ -272,12 +274,13 @@ namespace linerider.UI
         }
         private void Multiline(int count)
         {
-            SimulationCell redlines = GetMultiLines();
+            SimulationCell redlines = GetMultiLines(false);
             using (var trk = game.Track.CreateTrackWriter())
             {
                 var owner = (StandardLine)_ownerline;
                 LineChanging();
-                var diff = count - redlines.Count;
+                // owner line doesn't count, but our min bounds is 1
+                var diff = (count - 1) - redlines.Count;
                 if (diff < 0)
                 {
                     for (int i = 0; i > diff; i--)
@@ -301,12 +304,11 @@ namespace linerider.UI
         }
         private void nud_redlinemultiplier_ValueChanged(ControlBase sender, EventArgs arguments)
         {
-            var lines = GetMultiLines();
+            var lines = GetMultiLines(true);
             LineChanging();
             using (var trk = game.Track.CreateTrackWriter())
             {
                 var multiplier = (int)Math.Round(((NumericUpDown)sender).Value);
-                lines.AddLine((StandardLine)_ownerline);
                 foreach (var line in lines)
                 {
                     var copy = (RedLine)line.Clone();
