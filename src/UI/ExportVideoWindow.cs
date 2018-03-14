@@ -55,7 +55,7 @@ namespace linerider.UI
             var radio = new RadioButtonGroup(popup.Container);
             radio.Name = "qualityselector";
 
-            if (Settings.Render1080p)
+            if (Settings.Record108p)
             {
                 radio.AddOption("720p");
                 radio.AddOption("1080p").Select();
@@ -72,13 +72,13 @@ namespace linerider.UI
             }
             LabeledCheckBox smooth = new LabeledCheckBox(popup.Container);
             smooth.Name = "smooth";
-            smooth.IsChecked = Settings.RenderSmooth;
+            smooth.IsChecked = Settings.RecordSmooth;
             smooth.Text = "Smooth Playback";
             Align.AlignBottom(smooth);
 
             LabeledCheckBox music = new LabeledCheckBox(popup.Container);
             music.Name = "music";
-            music.IsChecked = Settings.Local.EnableSong && Settings.RenderMusic;
+            music.IsChecked = Settings.Local.EnableSong && Settings.RecordMusic;
             music.IsHidden = !Settings.Local.EnableSong;
             music.Text = "Include Music";
             if (Settings.Local.EnableSong)
@@ -97,11 +97,11 @@ namespace linerider.UI
                     var radiogrp = radio;
                     bool is1080p = radiogrp.Selected.Text == "1080p";
 
-                    Settings.Render1080p = is1080p;
-                    Settings.RenderSmooth = smooth.IsChecked;
+                    Settings.Record108p = is1080p;
+                    Settings.RecordSmooth = smooth.IsChecked;
                     if (Settings.Local.EnableSong)
                     {
-                        Settings.RenderMusic = music.IsChecked;
+                        Settings.RecordMusic = music.IsChecked;
                     }
                     Settings.Save();
 
