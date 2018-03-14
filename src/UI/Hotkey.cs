@@ -24,6 +24,7 @@ namespace linerider.UI
         EditorRedo,
         EditorFocusRider,
         EditorFocusFlag,
+        EditorCancelTool,
 
         ToolLifeLock,
         ToolAngleLock,

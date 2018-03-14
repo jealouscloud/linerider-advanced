@@ -88,6 +88,7 @@ namespace linerider
 
             CreateKeybind(Hotkey.EditorUseTool, new Keybinding(MouseButton.Left));
             CreateKeybind(Hotkey.EditorCycleToolSetting, new Keybinding(Key.Tab));
+            CreateKeybind(Hotkey.EditorCancelTool, new Keybinding(Key.Escape));
 
             CreateKeybind(Hotkey.EditorRemoveLatestLine, new Keybinding(Key.BackSpace));
             CreateKeybind(Hotkey.EditorFocusStart, new Keybinding(Key.Home));
