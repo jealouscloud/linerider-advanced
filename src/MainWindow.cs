@@ -450,16 +450,42 @@ namespace linerider
 
                 if (!r && !Track.Playing)
                 {
-                    if (!Track.Paused && OpenTK.Input.Keyboard.GetState()[Key.D])
+                    bool dragstart = false;
+                    if (!Track.Paused && 
+                        e.Button == MouseButton.Left &&
+                        OpenTK.Input.Keyboard.GetState()[Key.D])
                     {
                         var pos = new Vector2d(e.X, e.Y) / Track.Zoom;
                         var gamepos = (ScreenPosition + pos);
-                        _dragRider = Game.Rider.GetBounds(
+                        dragstart = Game.Rider.GetBounds(
                             Track.GetStart()).Contains(
                                 gamepos.X,
                                 gamepos.Y);
+                        if (dragstart)
+                        {
+                            // 5 is arbitrary, but i assume that's a decent
+                            // place to assume the user has done "work"
+                            if (!Track.MoveStartWarned && Track.LineCount > 5)
+                            {
+                                var popup = PopupWindow.Create(
+                                    "You're about to move the start position of the rider." +
+                                    " This cannot be undone, and may drastically change how your track plays." +
+                                    "\nAre you sure you want to do this?", "Warning", true, true);
+                                popup.Dismissed += (o, args) =>
+                                {
+                                    if (popup.Result == DialogResult.OK)
+                                    {
+                                        Track.MoveStartWarned = true;
+                                    }
+                                };
+                            }
+                            else
+                            {
+                                _dragRider = dragstart;
+                            }
+                        }
                     }
-                    if (!_dragRider)
+                    if (!_dragRider && !dragstart)
                     {
                         if (e.Button == MouseButton.Left)
                         {

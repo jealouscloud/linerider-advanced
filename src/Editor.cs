@@ -171,6 +171,7 @@ namespace linerider
         public int Offset { get; private set; }
 
         public Timeline Timeline { get; private set; }
+        public bool MoveStartWarned = false;
         public Editor()
         {
             _track = new Track();
@@ -520,6 +521,7 @@ namespace linerider
             }
             Invalidate();
             GC.Collect();//this is probably safest place to make the gc work
+            MoveStartWarned = false;
         }
         public void QuickSave()
         {
