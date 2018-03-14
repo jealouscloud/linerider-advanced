@@ -54,21 +54,31 @@ namespace linerider.UI
             popup.Layout();
             var radio = new RadioButtonGroup(popup.Container);
             radio.Name = "qualityselector";
-            radio.AddOption("720p").Select();
-            radio.AddOption("1080p");
+
+            if (Settings.Record108p)
+            {
+                radio.AddOption("720p");
+                radio.AddOption("1080p").Select();
+            }
+            else
+            {
+                radio.AddOption("720p").Select();
+                radio.AddOption("1080p");
+            }
+            
             if (!SafeFrameBuffer.CanRecord)
             {
                 radio.IsHidden = true;
             }
             LabeledCheckBox smooth = new LabeledCheckBox(popup.Container);
             smooth.Name = "smooth";
-            smooth.IsChecked = true;
+            smooth.IsChecked = Settings.RecordSmooth;
             smooth.Text = "Smooth Playback";
             Align.AlignBottom(smooth);
 
             LabeledCheckBox music = new LabeledCheckBox(popup.Container);
             music.Name = "music";
-            music.IsChecked = Settings.Local.EnableSong;
+            music.IsChecked = Settings.Local.EnableSong && Settings.RecordMusic;
             music.IsHidden = !Settings.Local.EnableSong;
             music.Text = "Include Music";
             if (Settings.Local.EnableSong)
@@ -84,6 +94,17 @@ namespace linerider.UI
             {
                 if (popup.Result == System.Windows.Forms.DialogResult.OK)
                 {
+                    var radiogrp = radio;
+                    bool is1080p = radiogrp.Selected.Text == "1080p";
+
+                    Settings.Record108p = is1080p;
+                    Settings.RecordSmooth = smooth.IsChecked;
+                    if (Settings.Local.EnableSong)
+                    {
+                        Settings.RecordMusic = music.IsChecked;
+                    }
+                    Settings.Save();
+
                     if (game.Track.GetFlag() == null)
                     {
                         var pop = PopupWindow.Create(
@@ -98,8 +119,6 @@ namespace linerider.UI
                     }
                     else
                     {
-                        var radiogrp = radio;
-                        bool is1080p = radiogrp.Selected.Text == "1080p";
                         IO.TrackRecorder.RecordTrack(game, is1080p, smooth.IsChecked, music.IsChecked);
                     }
                 }
