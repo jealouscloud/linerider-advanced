@@ -400,7 +400,7 @@ namespace linerider
             Canvas.ShouldDrawBackground = false;
             InitControls();
             Models.LoadModels();
-
+            
             AddCursor("pencil", GameResources.cursor_pencil, 3, 28);
             AddCursor("line", GameResources.cursor_line, 11, 11);
             AddCursor("eraser", GameResources.cursor_eraser, 8, 8);
@@ -865,7 +865,14 @@ namespace linerider
             else
                 SelectedTool?.Stop();
         }
-        
+        public void StopHandTool()
+        {
+            if (_handToolOverride || SelectedTool == HandTool)
+            {
+                HandTool.Stop();
+            }
+        }
+
         private void BeginOrtho()
         {
             if (RenderSize.Height > 0 && RenderSize.Width > 0)
@@ -992,7 +999,7 @@ namespace linerider
 
             InputUtils.RegisterHotkey(Hotkey.PlaybackFrameNext, () => true, () =>
             {
-                StopTools();
+                StopHandTool();
                 if (!Track.PlaybackMode)
                 {
                     Track.StartFromFlag();
@@ -1008,7 +1015,7 @@ namespace linerider
             repeat: true);
             InputUtils.RegisterHotkey(Hotkey.PlaybackFramePrev, () => true, () =>
             {
-                StopTools();
+                StopHandTool();
                 if (!Track.PlaybackMode)
                 {
                     Track.StartFromFlag();
