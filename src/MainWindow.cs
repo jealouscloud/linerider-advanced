@@ -307,7 +307,7 @@ namespace linerider
                         Zoom(-0.08f);
                 }
             }
-            var qp = (!Track.PlaybackMode) ? InputUtils.Check(Hotkey.EditorQuickPan) : false;
+            var qp = (!Track.PlaybackMode) ? InputUtils.Check(Hotkey.EditorQuickPan) || (Focused && Mouse.GetState().IsButtonDown(MouseButton.Middle)) : false;
             if (qp != _handToolOverride)
             {
                 _handToolOverride = qp;
@@ -1138,8 +1138,8 @@ namespace linerider
                 Canvas.ShowLoadWindow();
             });
 
-            InputUtils.RegisterHotkey(Hotkey.PreferencesWindow, 
-            () =>(_handToolOverride) ? !HandTool.Active : !SelectedTool.Active,
+            InputUtils.RegisterHotkey(Hotkey.PreferencesWindow,
+            () => (_handToolOverride) ? !HandTool.Active : !SelectedTool.Active,
             () =>
             {
                 StopTools();
@@ -1272,7 +1272,7 @@ namespace linerider
                 Track.Camera.SetFrameCenter(Track.RenderRider.CalculateCenter());
                 Invalidate();
             });
-            InputUtils.RegisterHotkey(Hotkey.EditorCancelTool, 
+            InputUtils.RegisterHotkey(Hotkey.EditorCancelTool,
             () => (_handToolOverride) ? HandTool.Active : SelectedTool.Active,
             () =>
             {
