@@ -397,7 +397,7 @@ show the lines as black instead");
             pt.Add("Red Color", CreateUneditable(pt), "2").SetToolTipText("Set tool color to red");
             pt.Add("Green Color", CreateUneditable(pt), "3").SetToolTipText("Set tool color to green");
             pt.Add("Disable Line Snap", CreateUneditable(pt), "S").SetToolTipText("Disables line snapping while pressed");
-            pt.Add("45° Line Snap", CreateUneditable(pt), "X").SetToolTipText("Snap lines to the nearest 45 degree angle");
+            pt.Add("15° Line Snap", CreateUneditable(pt), "X").SetToolTipText("Snap lines to the nearest 15 degree angle");
             pt.Add("Move to First Line", CreateUneditable(pt), "HOME");
             pt.Add("Move to Last Line", CreateUneditable(pt), "END");
             pt.Add("Toggle Tool Settings", CreateUneditable(pt), "TAB").SetToolTipText("Shift between current line settings, \r\nlike the red line multiplier if it's the selected line type.");
@@ -405,12 +405,13 @@ show the lines as black instead");
             pt.Add("(Line tool) Flip Line", CreateUneditable(pt), "Shift").SetToolTipText("Flips line while using the line tool");
             pt.Add("(Adjust tool) Lock Angle", CreateUneditable(pt), "Shift").SetToolTipText("Locks the angle of the selected line\r\nwith the line adjust tool");
             pt.Add("(Adjust tool) Move Whole Line", CreateUneditable(pt), "CTRL");
-            pt.Add("(Adjust tool) Lock Length", CreateUneditable(pt), "TAB");
+            pt.Add("(Adjust tool) Move Line On Axis", CreateUneditable(pt), "(CTRL)+Shift");
+            pt.Add("(Adjust tool) Move Line Up/Down", CreateUneditable(pt), "(CTRL)+Shift+X");
+            pt.Add("(Adjust tool) Lock Length", CreateUneditable(pt), "L");
             pt.Add("(Adjust tool) Lifelock", CreateUneditable(pt), "ALT").SetToolTipText("While pressed, move a line until \r\nit no longer kills bosh in that frame");
 
             pt.Add("Focus Start Point", CreateUneditable(pt), "F1");
             pt.Add("Focus on Flag", CreateUneditable(pt), "F2");
-            pt.Add("Update Track File Cache", CreateUneditable(pt), "F5");
 
             pt.Add("Calculate Flag", CreateUneditable(pt), "Right Click Flag Icon").SetToolTipText("Right click the flag icon to calculate the validity of a flag");
             pt.Add("(playback) Pause/Resume", CreateUneditable(pt), "Space");
