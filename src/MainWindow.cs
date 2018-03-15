@@ -1100,7 +1100,7 @@ namespace linerider
                 {
                     Track.NextFrame();
                     Track.IterationsOffset = 0;
-                    Track.Camera.SetFrameCenter(Track.RenderRider.CalculateCenter());
+                    Track.Camera.SetFrame(Track.Offset);
                 }
                 Track.InvalidateRenderRider();
                 Canvas.UpdateIterationUI();
@@ -1121,7 +1121,7 @@ namespace linerider
                         Track.PreviousFrame();
                         Track.IterationsOffset = 6;
                         Invalidate();
-                        Track.Camera.SetFrameCenter(Track.RenderRider.CalculateCenter());
+                        Track.Camera.SetFrame(Track.Offset);
                     }
                     Track.InvalidateRenderRider();
                     Canvas.UpdateIterationUI();
