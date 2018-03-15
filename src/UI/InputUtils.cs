@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OpenTK;
 using OpenTK.Input;
 using linerider.Utils;
 
@@ -19,7 +20,7 @@ namespace linerider.UI
         /// 
         /// if another non mod key is pressed, it's like the previous 
         /// non-modifier key was never pressed.
-        
+
         private class HotkeyHandler
         {
             public Hotkey hotkey = Hotkey.None;
@@ -28,6 +29,7 @@ namespace linerider.UI
             public Action keydownhandler = null;
             public Action keyuphandler = null;
         }
+        private static GameWindow _window;
         private static List<Key> _keysdown = new List<Key>();
         private static KeyboardState _kbstate;
         private static KeyboardState _prev_kbstate;
@@ -76,10 +78,10 @@ namespace linerider.UI
             }
         }
         public static void RegisterHotkey(
-            Hotkey hotkey, 
-            Func<bool> condition, 
-            Action onkeydown, 
-            Action onkeyup = null, 
+            Hotkey hotkey,
+            Func<bool> condition,
+            Action onkeydown,
+            Action onkeyup = null,
             bool repeat = false)
         {
             Handlers.Add(hotkey, new HotkeyHandler()
@@ -237,6 +239,8 @@ namespace linerider.UI
         }
         private static bool CheckPressed(Keybinding bind, ref KeyboardState state)
         {
+            if (_window != null && !_window.Focused)
+                return false;
             if (bind.Key != (Key)(-1))
             {
                 if (!state.IsKeyDown(bind.Key))
@@ -279,6 +283,12 @@ namespace linerider.UI
                     return true;
             }
             return false;
+        }
+        public static void SetWindow(GameWindow window)
+        {
+            if (window == null)
+                throw new NullReferenceException("InputUtils SetWindow cannot be null");
+            _window = window;
         }
     }
 }
