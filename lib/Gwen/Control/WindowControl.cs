@@ -86,7 +86,7 @@ namespace Gwen.Controls
             m_Title.Alignment = Pos.Left | Pos.CenterV;
             m_Title.Text = title;
             m_Title.Dock = Pos.Fill;
-            m_Title.Padding = new Padding(8, 4, 0, 0);
+            m_Title.Margin = new Margin(8, 4, 0, 0);
             m_Title.TextColor = Skin.Colors.Window.TitleInactive;
 
             m_CloseButton = new CloseButton(m_TitleBar, this);
@@ -97,7 +97,7 @@ namespace Gwen.Controls
             m_CloseButton.Name = "closeButton";
             //Create a blank content control, dock it to the top - Should this be a ScrollControl?
             m_InnerPanel = new ControlBase(this);
-           // m_InnerPanel.Padding = new Padding(6,6,6,6);
+            // m_InnerPanel.Padding = new Padding(6,6,6,6);
             m_InnerPanel.Dock = Pos.Fill;
             GetResizer(8).Hide();
             BringToFront();
