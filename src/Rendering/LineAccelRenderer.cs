@@ -137,7 +137,7 @@ namespace linerider.Rendering
                 int offset = accel.start + (ix * ShapeSize);
                 if (IsNulled(offset))
                 {
-                    continue;//nulled out
+                    continue;
                 }
                 _freeverts.Enqueue(_indices.unsafe_array[offset]);
                 for (int i = 0; i < ShapeSize; i++)
