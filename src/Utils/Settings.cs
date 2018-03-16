@@ -74,6 +74,8 @@ namespace linerider
         public static bool RecordSmooth = true;
         public static bool RecordMusic = true;
         public static string LastSelectedTrack = "";
+        public static float ScrollSensitivity = 1;
+        
         static Settings()
         {
 
@@ -173,6 +175,7 @@ namespace linerider
             LoadInt(GetSetting(lines, nameof(PlaybackZoomType)), ref PlaybackZoomType);
             LoadFloat(GetSetting(lines, nameof(PlaybackZoomValue)), ref PlaybackZoomValue);
             LoadFloat(GetSetting(lines, nameof(Volume)), ref Volume);
+            LoadFloat(GetSetting(lines, nameof(ScrollSensitivity)), ref ScrollSensitivity);
             LoadBool(GetSetting(lines, nameof(LiveAdjustment)), ref LiveAdjustment);
             LoadBool(GetSetting(lines, nameof(SuperZoom)), ref SuperZoom);
             LoadBool(GetSetting(lines, nameof(WhiteBG)), ref WhiteBG);
@@ -213,6 +216,7 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(Record108p), Record108p.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(RecordSmooth), RecordSmooth.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(RecordMusic), RecordMusic.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(ScrollSensitivity), ScrollSensitivity.ToString(Program.Culture));
             foreach (var binds in Keybinds)
             {
                 foreach (var bind in binds.Value)

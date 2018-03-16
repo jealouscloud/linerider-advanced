@@ -634,7 +634,8 @@ namespace linerider
                 if (Canvas.GetOpenWindows().Count != 0)
                     return;
                 var delta = (float.IsNaN(e.DeltaPrecise) ? e.Delta : e.DeltaPrecise);
-                Zoom(delta / 5);
+                delta *= Settings.ScrollSensitivity;
+                Zoom(delta / 6);
             }
             catch (Exception ex)
             {
