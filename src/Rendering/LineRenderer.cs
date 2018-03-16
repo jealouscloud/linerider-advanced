@@ -41,32 +41,6 @@ namespace linerider.Rendering
             _ibo.SetSize(StartingLineCount * linesize, BufferUsageHint.DynamicDraw);
             _ibo.Unbind();
         }
-        /*/
-        public void Defragment(Dictionary<int, int> dictionary)
-        {
-            var newdictionary = new Dictionary<int, int>();
-            var newindices = new ArrayWrapper<int>(_indices.Count / 2);
-            for (int ix = 0; ix < _indices.Count; ix += linesize)
-            {
-                if (!IsNulled(ix))
-                {
-                    newdictionary[ix] = _indices.Count;
-                    for (int i = 0; i < linesize; i++)
-                    {
-                        newindices.Add(_indices.Arr[ix + i]);
-                    }
-                }
-            }
-            foreach (var kvp in dictionary)
-            {
-                if (newdictionary.TryGetValue(kvp.Value, out int old))
-                {
-                }
-            }
-
-            _indices = newindices;
-            return;
-        }*/
         public void Clear()
         {
             _vertexcount = 0;
@@ -144,8 +118,9 @@ namespace linerider.Rendering
         }
         public void RemoveLine(int ibo_index)
         {
+            if (IsNulled(ibo_index))
+                return;
             int vertstart = _indices.unsafe_array[ibo_index];
-            bool alreadyremoved = IsNulled(ibo_index);
             for (int i = 0; i < linesize; i++)
             {
                 _indices.unsafe_array[ibo_index + i] = nullindex;
@@ -157,14 +132,7 @@ namespace linerider.Rendering
                 ibo_index,
                 linesize);
             _ibo.Unbind();
-            if (alreadyremoved)
-            {
-                // Debug.WriteLine("linerenderer remove line thats nulled" + ibo_index);
-                return;
-            }
             freevertices.Enqueue(vertstart);
-            // we dont empty from the vbo cause theres no need, the ibo doesnt
-            // point to it and we might need the space later
         }
         public void ChangeLine(int ibo_index, LineVertex[] line)
         {
@@ -173,7 +141,6 @@ namespace linerider.Rendering
                     "Lines are expected to have " + linesize + " vertices");
             int vertbase = _indices.unsafe_array[ibo_index];
             _vbo.Bind();
-            /// nulled out
             bool wasremoved = false;
             if (IsNulled(ibo_index))
             {
@@ -266,8 +233,6 @@ namespace linerider.Rendering
         {
             if (size > _vbo.BufferSize)
             {
-                // double the buffer size. this is expensive, so avoid doing it
-                // as much as possible
                 _vbo.SetSize(size * 2, BufferUsageHint.DynamicDraw);
             }
         }
@@ -275,8 +240,6 @@ namespace linerider.Rendering
         {
             if (size > _ibo.BufferSize)
             {
-                // double the buffer size. this is expensive, so avoid doing it
-                // as much as possible
                 _ibo.SetSize(size * 2, BufferUsageHint.DynamicDraw);
             }
         }
