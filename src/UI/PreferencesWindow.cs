@@ -358,7 +358,25 @@ show the lines as black instead");
                 game.Canvas.ButtonsToggleNightmode();
             };
             lcb.Dock = Pos.Top;
-
+            ComboBox scroll = new ComboBox(gb);
+            scroll.Margin = new Margin(0, 0, 0, 0);
+            scroll.Dock = Pos.Top;
+            scroll.AddItem("Scroll Sensitivity: 0.25x").Name = "0.25";
+            scroll.AddItem("Scroll Sensitivity: 0.5x").Name = "0.5";
+            scroll.AddItem("Scroll Sensitivity: 0.75x").Name = "0.75";
+            scroll.AddItem("Scroll Sensitivity: 1x").Name = "1";
+            scroll.AddItem("Scroll Sensitivity: 2x").Name = "2";
+            scroll.AddItem("Scroll Sensitivity: 3x").Name = "3";
+            scroll.SelectByName("1");//default if user setting fails.
+            scroll.SelectByName(Settings.ScrollSensitivity.ToString(Program.Culture));
+            scroll.ItemSelected += (o, e) =>
+            {
+                if (e.SelectedItem != null)
+                {
+                    Settings.ScrollSensitivity = float.Parse(e.SelectedItem.Name, Program.Culture);
+                    Settings.Save();
+                }
+            };
             lcb = new LabeledCheckBox(container);
             lcb.Text = "Check for Updates";
             lcb.IsChecked = Settings.CheckForUpdates;
