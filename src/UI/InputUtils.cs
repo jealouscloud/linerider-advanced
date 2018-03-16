@@ -37,9 +37,11 @@ namespace linerider.UI
         private static MouseState _last_mouse_state;
         private static bool _hasmoved = false;
         private static ResourceSync _lock = new ResourceSync();
-        private static int _modifiersdown = 0;
+        private static bool _modpressed = false;
         private static Dictionary<Hotkey, HotkeyHandler> Handlers = new Dictionary<Hotkey, HotkeyHandler>();
         private static HotkeyHandler _current_hotkey = null;
+        // macos has to handle ctrl+ combos differently.
+        private static bool _macOS = false;
 
         /// "If a non modifier key was pressed, it's like the previous key 
         /// stopped being pressed"
@@ -59,7 +61,7 @@ namespace linerider.UI
             {
                 _prev_kbstate = _kbstate;
                 _kbstate = ks;
-                _modifiersdown = 0;
+                _modpressed = false;
                 if (ks.IsAnyKeyDown)
                 {
                     //skip key.unknown
@@ -70,7 +72,7 @@ namespace linerider.UI
                         {
                             ret.Add(key);
                             if (IsModifier(key))
-                                _modifiersdown++;
+                                _modpressed = true;
                         }
                     }
                 }
@@ -206,7 +208,7 @@ namespace linerider.UI
             if (allowedkeys > 0 && !IsModifier(bind.Key))
             {
                 if ((bind.UsesModifiers && keysdown > allowedkeys) ||
-                (!bind.UsesModifiers && _modifiersdown != 0) ||
+                (!bind.UsesModifiers && _modpressed) ||
                 bind.Key != LastPressedKey)//someone overrode us
                     return false;
             }
@@ -244,7 +246,32 @@ namespace linerider.UI
             if (bind.Key != (Key)(-1))
             {
                 if (!state.IsKeyDown(bind.Key))
-                    return false;
+                {
+                    if (_macOS)
+                    {
+                        // We remap command to control here.
+                        // Ctrl+ keys aren't working properly on osx
+                        // I don't know of a better way to handle this platform
+                        // issue.
+                        switch (bind.Key)
+                        {
+                            case Key.ControlLeft:
+                                if (!state.IsKeyDown(Key.WinLeft))
+                                    return false;
+                                break;
+                            case Key.ControlRight:
+                                if (!state.IsKeyDown(Key.WinRight))
+                                    return false;
+                                break;
+                            default:
+                                return false;
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
             }
             if (bind.MouseButton != (MouseButton)(-1))
             {
@@ -259,6 +286,13 @@ namespace linerider.UI
                 var ctrl =
                 state.IsKeyDown(Key.ControlLeft) ||
                 state.IsKeyDown(Key.ControlRight);
+                if (_macOS)
+                {
+                    // Remap the command key to ctrl.
+                    ctrl |=
+                    state.IsKeyDown(Key.WinLeft) ||
+                    state.IsKeyDown(Key.WinRight);
+                }
                 var shift =
                 state.IsKeyDown(Key.ShiftLeft) ||
                 state.IsKeyDown(Key.ShiftRight);
@@ -280,6 +314,8 @@ namespace linerider.UI
                 case Key.ShiftRight:
                 case Key.ControlLeft:
                 case Key.ControlRight:
+                case Key.WinLeft:
+                case Key.WinRight:
                     return true;
             }
             return false;
@@ -289,6 +325,7 @@ namespace linerider.UI
             if (window == null)
                 throw new NullReferenceException("InputUtils SetWindow cannot be null");
             _window = window;
+            _macOS = OpenTK.Configuration.RunningOnMacOS;
         }
     }
 }
