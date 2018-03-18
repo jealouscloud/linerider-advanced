@@ -37,12 +37,11 @@ namespace linerider.UI
         private static MouseState _last_mouse_state;
         private static bool _hasmoved = false;
         private static ResourceSync _lock = new ResourceSync();
-        private static bool _modpressed = false;
+        private static KeyModifiers _modifiersdown;
         private static Dictionary<Hotkey, HotkeyHandler> Handlers = new Dictionary<Hotkey, HotkeyHandler>();
         private static HotkeyHandler _current_hotkey = null;
         // macos has to handle ctrl+ combos differently.
         private static bool _macOS = false;
-
         /// "If a non modifier key was pressed, it's like the previous key 
         /// stopped being pressed"
         /// We implement that using LastPressedKey which we update on non-repeat
@@ -52,7 +51,7 @@ namespace linerider.UI
         {
             LastPressedKey = key;
         }
-        public static void UpdateKeysDown(KeyboardState ks)
+        public static void UpdateKeysDown(KeyboardState ks, KeyModifiers modifiers)
         {
             var ret = new List<Key>();
             if (ks == _kbstate)// no thanks, we already did this one
@@ -61,7 +60,7 @@ namespace linerider.UI
             {
                 _prev_kbstate = _kbstate;
                 _kbstate = ks;
-                _modpressed = false;
+                _modifiersdown = modifiers;
                 if (ks.IsAnyKeyDown)
                 {
                     //skip key.unknown
@@ -71,8 +70,6 @@ namespace linerider.UI
                         if (ks.IsKeyDown(key))
                         {
                             ret.Add(key);
-                            if (IsModifier(key))
-                                _modpressed = true;
                         }
                     }
                 }
@@ -204,11 +201,9 @@ namespace linerider.UI
         private static bool IsKeybindExclusive(Keybinding bind)
         {
             int allowedkeys = bind.KeysDown;
-            var keysdown = _keysdown.Count;
             if (allowedkeys > 0 && !IsModifier(bind.Key))
             {
-                if ((bind.UsesModifiers && keysdown > allowedkeys) ||
-                (!bind.UsesModifiers && _modpressed) ||
+                if (_modifiersdown != bind.Modifiers ||
                 bind.Key != LastPressedKey)//someone overrode us
                     return false;
             }

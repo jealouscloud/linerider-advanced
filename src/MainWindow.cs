@@ -654,7 +654,7 @@ namespace linerider
                 {
                     InputUtils.KeyDown(e.Key);
                 }
-                InputUtils.UpdateKeysDown(e.Keyboard);
+                InputUtils.UpdateKeysDown(e.Keyboard, e.Modifiers);
                 if (linerider.IO.TrackRecorder.Recording)
                     return;
                 var openwindows = Canvas.GetOpenWindows();
@@ -726,7 +726,7 @@ namespace linerider
             base.OnKeyUp(e);
             try
             {
-                InputUtils.UpdateKeysDown(e.Keyboard);
+                InputUtils.UpdateKeysDown(e.Keyboard, e.Modifiers);
                 if (linerider.IO.TrackRecorder.Recording)
                     return;
                 if (_input.ProcessKeyUp(e) || Canvas.GetOpenWindows()?.Count > 1)
