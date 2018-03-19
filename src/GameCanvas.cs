@@ -496,6 +496,8 @@ namespace linerider
                 {
                     game.Track.Stop();
                     game.Track.ChangeTrack(new Track() { Name = Utils.Constants.DefaultTrackName });
+                    Settings.LastSelectedTrack = "";
+                    Settings.Save();
                     game.Invalidate();
                 }
             };
