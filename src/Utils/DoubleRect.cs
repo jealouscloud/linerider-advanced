@@ -101,16 +101,14 @@ namespace linerider.Utils
 
         public Vector2d Clamp(Vector2d v)
         {
-            if (!Contains(v.X, v.Y))
-            {
-                var l = Left;
-                var t = Top;
-                var r = l + Width;
-                var b = t + Height;
-                v.X = MathHelper.Clamp(v.X, l, r);
-                v.Y = MathHelper.Clamp(v.Y, t, b);
-            }
-            return v;
+            var l = Left;
+            var t = Top;
+            var r = l + Width;
+            var b = t + Height;
+            return new Vector2d(
+                MathHelper.Clamp(v.X, l, r),
+                MathHelper.Clamp(v.Y, t, b)
+            );
         }
 
         public DoubleRect Inflate(double width, double height)
