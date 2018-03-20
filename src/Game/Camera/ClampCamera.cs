@@ -12,13 +12,16 @@ namespace linerider.Game
 {
     public class ClampCamera : ICamera
     {
+        private const int cacherate = 40;
         private AutoArray<CameraEntry> _frames = new AutoArray<CameraEntry>();
+        private AutoArray<Vector2d> _framecache = new AutoArray<Vector2d>();
         private float _cachezoom = 0;
-        private Vector2d _cachepos = Vector2d.Zero;
-        private int _cacheframe = -1;
+        private Vector2d _prevcamera = Vector2d.Zero;
+        private int _prevframe = -1;
         public ClampCamera()
         {
             _frames.Add(new CameraEntry(Vector2d.Zero));
+            _framecache.Add(Vector2d.Zero);
         }
         public override void InvalidateFrame(int frame)
         {
@@ -29,14 +32,23 @@ namespace linerider.Game
                 _frames.RemoveRange(
                     frame,
                     _frames.Count - frame);
-                if (_cacheframe <= frame)
-                    _cacheframe = -1;
+                if (_prevframe <= frame)
+                    _prevframe = -1;
+            }
+            var cachepos = (frame / cacherate);
+            if (frame % cacherate != 0)
+                cachepos++;
+
+            if (cachepos < _frames.Count)
+            {
+                _framecache.RemoveRange(cachepos, _framecache.Count - cachepos);
             }
             if (frame == 1)
             {
                 Rider firstframe = _timeline.GetFrame(0);
                 var entry = new CameraEntry(firstframe.CalculateCenter());
                 _frames[0] = entry;
+                _framecache[0] = entry.RiderCenter;
             }
         }
         public override Vector2d GetFrameCamera(int frame)
@@ -44,93 +56,41 @@ namespace linerider.Game
             if (_zoom != _cachezoom)
             {
                 _cachezoom = _zoom;
-                _cacheframe = -1;
-                _cachepos = Vector2d.Zero;
+                _prevframe = -1;
+                _framecache.UnsafeSetCount(1);
             }
             EnsureFrame(frame);
             var offset = Calculate(frame);
-            _cacheframe = frame;
-            _cachepos = offset;
-            return Clamp(_frames[frame].RiderCenter + offset, frame);
+            _prevframe = frame;
+            _prevcamera = offset;
+            return _frames[frame].RiderCenter + offset;
         }
         private Vector2d Calculate(int frame)
         {
-            Vector2d next = Vector2d.Zero;
-            if (_cacheframe != -1 &&
-                _cacheframe <= frame &&
-                (frame - _cacheframe) < 80)
+            var box = CameraBoundingBox.Create(Vector2d.Zero, _zoom);
+            if (_prevframe != -1 &&
+                _prevframe <= frame &&
+                (frame - _prevframe) <= 1)
             {
-                if (_cacheframe == frame)
-                    return _cachepos;
-                next = ClampFrames(
-                    _cacheframe + 1,
-                    frame,
-                    _cachepos);
-                return next;
+                if (frame == _prevframe)
+                    return _prevcamera;
+                if (frame % cacherate != 0)
+                    return box.Clamp(_prevcamera + _frames[frame].CameraOffset);
             }
-            Vector2d framecenter = _frames[frame].RiderCenter;
-            var box = CameraBoundingBox.Create(framecenter, _zoom);
-            var framebounds = box.Bounds;
-            int calcstart = FindStart(frame);
-            return ClampFrames(calcstart, frame, Vector2d.Zero);
-        }
-        private Vector2d ClampFrames(int framestart, int frameend, Vector2d origin)
-        {
-            var box = CameraBoundingBox.Create(_frames[0].RiderCenter, _zoom);
-            var width = box.Bounds.Width / 2;
-            var height = box.Bounds.Height / 2;
-            DoubleRect rect = new DoubleRect(-width, -height, width * 2, height * 2);
-            Vector2d start = origin;
-            for (int i = framestart; i <= frameend; i++)
+            int cachepos = Math.Min(frame / cacherate, _framecache.Count - 1);
+            int framestart = cachepos * cacherate;
+            Vector2d start = _framecache[cachepos];
+
+            for (int i = framestart; i <= frame; i++)
             {
-                start = rect.EllipseClamp(start + _frames[i].CameraOffset);
-            }
-            return start;
-        }
-        private int FindStart(int frame)
-        {
-            var box = CameraBoundingBox.Create(_frames[0].RiderCenter, _zoom);
-            var width = box.Bounds.Width / 2;
-            var height = box.Bounds.Height / 2;
-            DoubleRect rect = new DoubleRect(-width, -height, width * 2, height * 2);
-            Vector2d start = Vector2d.Zero;
-            Angle firstbind = null;
-            Vector2d first = Vector2d.Zero;
-            for (int i = frame; i >= 0; i--)
-            {
-                var pos = start + _frames[i].CameraOffset;
-                start = rect.EllipseClamp(pos);
-                if (start != pos)
+                if (i % cacherate == 0 && i / cacherate == _framecache.Count)
                 {
-                    if (firstbind == null)
-                    {
-                        firstbind = Angle.FromVector(start);
-                        first = _frames[i].RiderCenter;
-                    }
-                    else
-                    {
-                        var cmp = _frames[i].RiderCenter - first;
-                        cmp.X = Math.Abs(cmp.X);
-                        cmp.Y = Math.Abs(cmp.Y);
-                        if (cmp.X >= rect.Width &&
-                            cmp.Y >= rect.Height)
-                        {
-                            var a2 = Angle.FromVector(start);
-                            if (a2.Difference(firstbind) >= 90)
-                            {
-                                return i;
-                            }
-                        }
-                    }
+                    _framecache.Add(start);
                 }
+                start = box.Clamp(start + _frames[i].CameraOffset);
             }
-            return 0;
-        }
-        private Vector2d Clamp(Vector2d pos, int frame)
-        {
-            var entry = _frames[frame];
-            CameraBoundingBox box = CameraBoundingBox.Create(entry.RiderCenter, 0);
-            return box.Clamp(pos);
+            // Debug.WriteLine("Calculating " + framestart + "-" + (frame) + " for legacy camera");
+            return start;
         }
 
         private void EnsureFrame(int frame)
@@ -155,12 +115,7 @@ namespace linerider.Game
         {
             var center = rider.CalculateCenter();
             var offset = prev.RiderCenter - center;
-            return new CameraEntry(center, offset, rider.CalculateMomentum());
-        }
-        protected override double GetPPF(int frame)
-        {
-            EnsureFrame(frame);
-            return _frames[frame].ppf;
+            return new CameraEntry(center, offset, Vector2d.Zero);
         }
     }
 }
