@@ -36,9 +36,6 @@ namespace linerider.Rendering
             _trackrenderer = new TrackRenderer();
             _riderrenderer = new RiderRenderer();
         }
-        private void DrawRider(Camera camera, Track track)
-        {
-        }
         public void Render(Track track, Timeline timeline, ICamera camera, DrawOptions options)
         {
             Rider drawrider = options.Rider;

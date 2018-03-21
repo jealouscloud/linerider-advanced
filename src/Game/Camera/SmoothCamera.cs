@@ -8,9 +8,9 @@ using OpenTK;
 using linerider.Utils;
 namespace linerider.Game
 {
-    public class Camera : ClampCamera
+    public class SmoothCamera : ClampCamera
     {
-        public Camera() : base()
+        public SmoothCamera() : base()
         {
         }
         public override Vector2d GetFrameCamera(int frame)

@@ -611,7 +611,7 @@ namespace linerider
             }
             if (Settings.SmoothCamera)
             {
-                Camera = new Camera();
+                Camera = new SmoothCamera();
             }
             else
             {
