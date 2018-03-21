@@ -8,103 +8,17 @@ using OpenTK;
 using linerider.Utils;
 namespace linerider.Game
 {
-    public class Camera : ICamera
+    public class Camera : ClampCamera
     {
-        private AutoArray<CameraEntry> _frames = new AutoArray<CameraEntry>();
-        public Camera()
+        public Camera() : base()
         {
-            _frames.Add(new CameraEntry(Vector2d.Zero));
-        }
-        public override void InvalidateFrame(int frame)
-        {
-            if (frame <= 0)
-                throw new Exception("Cannot invalidate frame 0 for camera");
-            if (frame < _frames.Count)
-            {
-                _frames.RemoveRange(
-                    frame,
-                    _frames.Count - frame);
-            }
-            if (frame == 1)
-            {
-                var firstframe = _timeline.GetFrame(0);
-                var entry = new CameraEntry(firstframe.CalculateCenter());
-                _frames[0] = entry;
-            }
         }
         public override Vector2d GetFrameCamera(int frame)
         {
-            EnsureFrame(frame);
-            return Clamp(CameraMotionReducer(frame), _frames[frame].RiderCenter, GetPPF(frame));
-        }
-        protected override double GetPPF(int frame)
-        {
-            return GetAvgMomentum(frame);
-        }
-        private Vector2d GetFrame(int frame)
-        {
-            EnsureFrame(frame);
-            return _frames[frame].CameraOffset;
-        }
-        private void EnsureFrame(int frame)
-        {
-            //ensure timeline has the frames for us
-            //also timeline might invalidate our prev frames when calling
-            //so we do this at the top so it doesnt invalidate while calculating
-            _timeline.GetFrame(frame);
-            if (frame >= _frames.Count)
-            {
-                var diff = frame - (_frames.Count - 1);
-                var frames = _timeline.GetFrames(_frames.Count, diff);
-                var camoffset = _frames[_frames.Count - 1];
-                for (int i = 0; i < diff; i++)
-                {
-                    camoffset = GetNext(camoffset, frames[i]);
-                    _frames.Add(camoffset);
-                }
-            }
-        }
-        private CameraEntry GetNext(CameraEntry prev, Rider rider)
-        {
-            // todo i really wish this cared about angles
-            // it shouldnt center if the next step is going towards the center 
-            // of the previous
-            // something like that
-            var center = rider.CalculateCenter();
-            var prevoffs = prev.CameraOffset;
-            var offset = (center - prev.CameraOffset);
-            offset = Vector2d.Lerp(prevoffs, center, 0.15);
-            return new CameraEntry(center, offset, rider.CalculateMomentum());
-        }
-        private Vector2d Clamp(Vector2d pos, Vector2d center, double ppf)
-        {
-            CameraBoundingBox box = new CameraBoundingBox(center);
-            if (Settings.SmoothCamera)
-                box.SetupSmooth(ppf, _zoom);
-            else
-                box.SetupLegacy(_zoom);
-            return box.Clamp(pos);
-        }
-        private Vector2d Clamp(Vector2d pos, CameraEntry entry)
-        {
-            return Clamp(pos, entry.RiderCenter, entry.ppf);
-        }
-        private double GetAvgMomentum(int frame)
-        {
-            int count = 10;
-            count = Math.Min(frame, count);
-            EnsureFrame(frame + count);
-            if (count == 0)
-                return _frames[frame].ppf;
-            int math = 0;
-            double cam = 0;
-            for (int i = count; i >= 0; i--)
-            {
-                var f = _frames[frame + i];
-                cam += f.ppf;
-                math++;
-            }
-            return cam / (math);
+            base.GetFrameCamera(frame);
+            
+            var box = CameraBoundingBox.Create(_frames[frame].RiderCenter, _zoom);
+            return box.Clamp(CameraMotionReducer(frame));
         }
         /// <summary>
         /// reduces the amount of movement the camera has to do to capture the
@@ -113,56 +27,34 @@ namespace linerider.Game
         /// <returns>The reduced position in game coords</returns>
         private Vector2d CameraMotionReducer(int frame)
         {
-            int count = 40;
-            count = Math.Min(frame, count);
-            if (count == 0)
-                return GetFrame(frame);
-            EnsureFrame(frame + count);
+            const int forwardcount = 40;
+            EnsureFrame(frame + forwardcount);
+            Vector2d offset = CalculateOffset(frame);
+            var box = CameraBoundingBox.Create(Vector2d.Zero, _zoom);
+            var framebox = CameraBoundingBox.Create(
+                _frames[frame].RiderCenter,
+                _zoom);
+
             Vector2d center = Vector2d.Zero;
             int math = 0;
-            //unknown magic values
-            for (int i = count; i >= 0; i--)
+            for (int i = 0; i < forwardcount; i++)
             {
                 var f = _frames[frame + i];
-                center += Clamp(f.CameraOffset, _frames[frame].RiderCenter, GetAvgMomentum(frame + i));
+                offset = box.Clamp(offset + f.CameraOffset);
+                center += framebox.Clamp(f.RiderCenter + offset);
                 math++;
             }
-            return center / (math);
-        }
-        /// <summary>
-        /// reduces the amount of change the rider can move within the camera
-        /// </summary>
-        /// <returns>The reduced position in game coords</returns>
-        private Vector2d RelativeMotionReducer(int frame)
-        {
-            //currently an avg of rider centers
-            int count = 20;
-            count = Math.Min(frame, count);
-            if (count == 0)
-                return CameraMotionReducer(frame);
-            Vector2d center = Vector2d.Zero;
-            int math = 0;
-            EnsureFrame(frame + count);
-            var min = -Math.Min(20, frame);
-            var framedata = _frames[frame];
-            for (int i = count; i >= min; i--)
+            // force the rider to center at the beginning
+            // it looks awkward to predict heavily at the start.
+            if (frame < forwardcount)
             {
-                var f = _frames[frame + i];
-                center += Clamp(CameraMotionReducer(frame + i), f) - f.RiderCenter;
-                math++;
+                return Vector2d.Lerp(
+                    _frames[frame].RiderCenter,
+                    center / math,
+                    frame / (float)forwardcount);
             }
-            center /= math;
-            return framedata.RiderCenter + center;
+            return center / math;
         }
-        //blue
-        public Vector2d GetSmoothedCameraOffset()
-        {
-            return RelativeMotionReducer(_currentframe);
-        }
-        //red
-        public Vector2d GetSmoothPosition()
-        {
-            return CameraMotionReducer(_currentframe);
-        }
+
     }
 }
