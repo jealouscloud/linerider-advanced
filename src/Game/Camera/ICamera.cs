@@ -93,6 +93,7 @@ namespace linerider.Game
             if (_blend != blend)
             {
                 _blend = blend;
+                _cachedcenter = Vector2d.Zero;
             }
             _zoom = zoom;
         }
