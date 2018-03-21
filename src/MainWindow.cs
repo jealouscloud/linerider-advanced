@@ -208,7 +208,6 @@ namespace linerider
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
                 GL.Clear(ClearBufferMask.ColorBufferBit);
                 GL.Enable(EnableCap.Blend);
-                GL.Disable(EnableCap.Lighting);
 
 #if debuggrid
                 if (this.Keyboard.GetState().IsKeyDown(Key.C))
