@@ -12,8 +12,8 @@ namespace linerider.Game
 {
     public class ClampCamera : ICamera
     {
+        protected AutoArray<CameraEntry> _frames = new AutoArray<CameraEntry>();
         private const int cacherate = 40;
-        private AutoArray<CameraEntry> _frames = new AutoArray<CameraEntry>();
         private AutoArray<Vector2d> _framecache = new AutoArray<Vector2d>();
         private float _cachezoom = 0;
         private Vector2d _prevcamera = Vector2d.Zero;
@@ -48,7 +48,7 @@ namespace linerider.Game
                 Rider firstframe = _timeline.GetFrame(0);
                 var entry = new CameraEntry(firstframe.CalculateCenter());
                 _frames[0] = entry;
-                _framecache[0] = entry.RiderCenter;
+                _framecache[0] = Vector2d.Zero;
             }
         }
         public override Vector2d GetFrameCamera(int frame)
@@ -60,12 +60,12 @@ namespace linerider.Game
                 _framecache.UnsafeSetCount(1);
             }
             EnsureFrame(frame);
-            var offset = Calculate(frame);
+            var offset = CalculateOffset(frame);
             _prevframe = frame;
             _prevcamera = offset;
             return _frames[frame].RiderCenter + offset;
         }
-        private Vector2d Calculate(int frame)
+        protected Vector2d CalculateOffset(int frame)
         {
             var box = CameraBoundingBox.Create(Vector2d.Zero, _zoom);
             if (_prevframe != -1 &&
@@ -93,7 +93,7 @@ namespace linerider.Game
             return start;
         }
 
-        private void EnsureFrame(int frame)
+        protected void EnsureFrame(int frame)
         {
             //ensure timeline has the frames for us
             //also timeline might invalidate our prev frames when calling
@@ -106,16 +106,12 @@ namespace linerider.Game
                 var camoffset = _frames[_frames.Count - 1];
                 for (int i = 0; i < diff; i++)
                 {
-                    camoffset = GetNext(camoffset, frames[i]);
+                    var center = frames[i].CalculateCenter();
+                    var offset = camoffset.RiderCenter - center;
+                    camoffset = new CameraEntry(center, offset, Vector2d.Zero);
                     _frames.Add(camoffset);
                 }
             }
-        }
-        private CameraEntry GetNext(CameraEntry prev, Rider rider)
-        {
-            var center = rider.CalculateCenter();
-            var offset = prev.RiderCenter - center;
-            return new CameraEntry(center, offset, Vector2d.Zero);
         }
     }
 }
