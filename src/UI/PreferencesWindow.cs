@@ -40,6 +40,7 @@ namespace linerider.UI
             game = pgame;
             Width = 400;
             Height = 420;//blaze it---*shot*
+            Height += 10;//i'd set it to 430 at initialization but the above comment is a work of art
             MakeModal(true);
             DisableResizing();
             ///controls
@@ -307,7 +308,7 @@ show the lines as black instead");
             gb = new GroupBox(container);
             gb.Text = "Editor";
             gb.Width = 180;
-            gb.Height = 170;
+            gb.Height = 180;
             marg = gb.Margin;
             marg.Bottom = 5;
             marg.Right = 5;
