@@ -789,7 +789,10 @@ namespace linerider
                 }
                 else
                 {
-                    Track.StartFromFlag();
+                    if (Track.PlaybackMode && Track.Paused)
+                        Track.TogglePause();
+                    else
+                        Track.StartFromFlag();
                 }
                 Scheduler.DefaultSpeed();
             };
@@ -1170,8 +1173,8 @@ namespace linerider
             });
             InputUtils.RegisterHotkey(Hotkey.EditorPanTool, () => !Track.Playing, () =>
             {
-                //bugfix: pushing t wuold cancel panning and youd have to click again
-                if (SelectedTool != HandTool)
+                    //bugfix: pushing t wuold cancel panning and youd have to click again
+                    if (SelectedTool != HandTool)
                 {
                     SetTool(Tools.HandTool);
                 }
