@@ -147,7 +147,12 @@ namespace linerider.UI
             {
                 x = _last_mouse_state.X;
                 y = _last_mouse_state.Y;
-                return _hasmoved;
+                if (_hasmoved)
+                {
+                    _hasmoved = false;
+                    return true;
+                }
+                return false;
             }
         }
         public static void UpdateMouse(MouseState ms)
@@ -169,6 +174,10 @@ namespace linerider.UI
                 }
                 _mousebuttonsdown = ret;
             }
+        }
+        public static Vector2d GetMouse()
+        {
+            return new Vector2d(_last_mouse_state.X,_last_mouse_state.Y);
         }
         public static bool Check(Hotkey hotkey)
         {
