@@ -51,7 +51,7 @@ namespace linerider.Tools
         const float MINIMUM_LINE = 0.6f;
         private bool _addflip = false;
         private Vector2d _mouseshadow;
-        private bool DrawingScenery
+        public bool DrawingScenery
         {
             get
             {
