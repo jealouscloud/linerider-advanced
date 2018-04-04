@@ -153,7 +153,7 @@ namespace linerider
 
         public bool ShouldXySnap()
         {
-            return Settings.Local.ForceXySnap || InputUtils.Check(Hotkey.ToolXYSnap);
+            return Settings.Local.ForceXySnap || InputUtils.CheckPressed(Hotkey.ToolXYSnap);
         }
         public void SetZoom(float val, bool changezoomslider = true)
         {
