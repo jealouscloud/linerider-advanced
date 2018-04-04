@@ -201,6 +201,10 @@ namespace linerider
                 {
                     Track.Camera.BeginFrame(blend, Track.Zoom);
                 }
+                if (Track.Playing && PencilTool.Active)
+                {
+                    PencilTool.OnMouseMoved(InputUtils.GetMouse());
+                }
                 GL.ClearColor(Settings.NightMode
                    ? Constants.ColorNightMode
                    : (Settings.WhiteBG ? Constants.ColorWhite : Constants.ColorOffwhite));
@@ -509,6 +513,13 @@ namespace linerider
                     if (e.Button != MouseButton.Right)
                     {
                         UpdateCursor();
+                    }
+                }
+                else if (!_handToolOverride && SelectedTool == PencilTool && PencilTool.DrawingScenery)
+                {
+                    if (e.Button == MouseButton.Left)
+                    {
+                        PencilTool.OnMouseDown(new Vector2d(e.X, e.Y));
                     }
                 }
                 else
@@ -1173,8 +1184,8 @@ namespace linerider
             });
             InputUtils.RegisterHotkey(Hotkey.EditorPanTool, () => !Track.Playing, () =>
             {
-                    //bugfix: pushing t wuold cancel panning and youd have to click again
-                    if (SelectedTool != HandTool)
+                //bugfix: pushing t wuold cancel panning and youd have to click again
+                if (SelectedTool != HandTool)
                 {
                     SetTool(Tools.HandTool);
                 }
