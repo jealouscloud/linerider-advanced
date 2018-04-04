@@ -40,6 +40,7 @@ namespace linerider.UI
             game = pgame;
             Width = 400;
             Height = 420;//blaze it---*shot*
+            Height += 10;//i'd set it to 430 at initialization but the above comment is a work of art
             MakeModal(true);
             DisableResizing();
             ///controls
@@ -307,7 +308,7 @@ show the lines as black instead");
             gb = new GroupBox(container);
             gb.Text = "Editor";
             gb.Width = 180;
-            gb.Height = 170;
+            gb.Height = 180;
             marg = gb.Margin;
             marg.Bottom = 5;
             marg.Right = 5;
@@ -322,6 +323,12 @@ show the lines as black instead");
             lcb.SetToolTipText(@"I hope you know where the manual is.");
             lcb.IsChecked = Settings.PinkLifelock;
             lcb.CheckChanged += (o, e) => { Settings.PinkLifelock = ((LabeledCheckBox)o).IsChecked; Settings.Save(); };
+            lcb.Dock = Pos.Top;
+            lcb = new LabeledCheckBox(gb);
+            lcb.Text = "No Illegal Fakie Lifelock";
+            lcb.SetToolTipText(@"Dark blue contact points indicate tail or head fakies");
+            lcb.IsChecked = Settings.IllegalFakieLifelock;
+            lcb.CheckChanged += (o, e) => { Settings.IllegalFakieLifelock = ((LabeledCheckBox)o).IsChecked; Settings.Save(); };
             lcb.Dock = Pos.Top;
             lcb = new LabeledCheckBox(gb);
             lcb.Text = "Disable Line Snap";

@@ -273,6 +273,16 @@ namespace linerider.Tools
                             return false;
                     }
                 }
+                if (Settings.IllegalFakieLifelock)
+                {
+                    var diagnosis = timeline.DiagnoseFrame(offset, iteration);
+                    foreach (var v in diagnosis)
+                    {
+                        //the next frame dies from a fakie, so we can't stop here
+                        if (v < 0)
+                            return false;
+                    }
+                }
                 if (timeline.IsLineHit(line.ID, game.Track.Offset))
                     return true;
             }

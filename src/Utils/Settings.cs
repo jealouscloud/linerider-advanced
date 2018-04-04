@@ -65,6 +65,7 @@ namespace linerider
         public static bool SuperZoom = false;
         public static bool WhiteBG = false;
         public static bool PinkLifelock = false;
+        public static bool IllegalFakieLifelock = false;
         public static bool NightMode = false;
         public static bool SmoothCamera = true;
         public static bool RoundLegacyCamera = true;
@@ -180,6 +181,7 @@ namespace linerider
             LoadBool(GetSetting(lines, nameof(SuperZoom)), ref SuperZoom);
             LoadBool(GetSetting(lines, nameof(WhiteBG)), ref WhiteBG);
             LoadBool(GetSetting(lines, nameof(PinkLifelock)), ref PinkLifelock);
+            LoadBool(GetSetting(lines, nameof(IllegalFakieLifelock)), ref IllegalFakieLifelock);
             LoadBool(GetSetting(lines, nameof(NightMode)), ref NightMode);
             LoadBool(GetSetting(lines, nameof(SmoothCamera)), ref SmoothCamera);
             LoadBool(GetSetting(lines, nameof(CheckForUpdates)), ref CheckForUpdates);
@@ -207,6 +209,7 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(SuperZoom), SuperZoom.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(WhiteBG), WhiteBG.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(PinkLifelock), PinkLifelock.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(IllegalFakieLifelock), IllegalFakieLifelock.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(NightMode), NightMode.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SmoothCamera), SmoothCamera.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(CheckForUpdates), CheckForUpdates.ToString(Program.Culture));
