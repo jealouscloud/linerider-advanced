@@ -1,4 +1,4 @@
-﻿//
+//
 //  GLWindow.cs
 //
 //  Author:
@@ -70,7 +70,7 @@ namespace linerider
         public static bool RoundLegacyCamera = true;
         public static bool SmoothPlayback = true;
         public static bool CheckForUpdates = true;
-        public static bool Record108p = false;
+        public static bool Record1080p = false;
         public static bool RecordSmooth = true;
         public static bool RecordMusic = true;
         public static string LastSelectedTrack = "";
