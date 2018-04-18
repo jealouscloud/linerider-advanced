@@ -13,6 +13,10 @@ namespace linerider.Tools
         {
             get
             {
+                if (_quickpan)
+                {
+                    return HandTool;
+                }
                 return _selected;
             }
         }
@@ -30,6 +34,10 @@ namespace linerider.Tools
                     if (value == false)
                     {
                         HandTool.Stop();
+                    }
+                    else
+                    {
+                        SelectedTool.Stop();
                     }
                     _quickpan = value;
                 }
