@@ -78,6 +78,10 @@ namespace linerider.UI
                 UpdateTooltip();
             };
             Value = editor.Zoom;
+            OnThink += (o,e)=>
+            {
+                Value = editor.Zoom;
+            };
         }
         public void UpdateTooltip()
         {
