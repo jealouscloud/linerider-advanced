@@ -243,6 +243,17 @@ namespace linerider
             _renderer.Render(_track, Timeline, Camera, drawOptions);
         }
 
+        public void ZoomBy(float percent)
+        {
+            if (Math.Abs(percent) < 0.00001)
+                return;
+            SetZoom(Zoom + (Zoom * percent));
+        }
+        public void SetZoom(float val)
+        {
+            Zoom = (float)MathHelper.Clamp(val, Constants.MinimumZoom, Settings.Local.MaxZoom);
+            Invalidate();
+        }
         /// <summary>
         /// Function to be called after updating the playback buffer
         /// </summary>

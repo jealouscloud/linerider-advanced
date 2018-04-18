@@ -129,20 +129,6 @@ namespace linerider
         {
             return Settings.Local.ForceXySnap || InputUtils.CheckPressed(Hotkey.ToolXYSnap);
         }
-        public void SetZoom(float val, bool changezoomslider = true)
-        {
-            Track.Zoom = (float)MathHelper.Clamp(val, Constants.MinimumZoom, Settings.Local.MaxZoom);
-            Canvas.ZoomSlider.Value = Track.Zoom;
-            Canvas.ZoomSlider.UpdateTooltip();
-            Invalidate();
-        }
-
-        public void Zoom(float percent)
-        {
-            if (Math.Abs(percent) < 0.00001)
-                return;
-            SetZoom(Track.Zoom + (Track.Zoom * percent), true);
-        }
         public void Render(float blend = 1)
         {
             bool shouldrender = _invalidated ||
@@ -265,9 +251,9 @@ namespace linerider
                 if (Track.Playing)
                 {
                     if (InputUtils.Check(Hotkey.PlaybackZoom))
-                        Zoom(0.08f);
+                        Track.ZoomBy(0.08f);
                     else if (InputUtils.Check(Hotkey.PlaybackUnzoom))
-                        Zoom(-0.08f);
+                        Track.ZoomBy(-0.08f);
                 }
             }
             bool quickpan = false;
@@ -611,7 +597,7 @@ namespace linerider
                 }
                 var delta = (float.IsNaN(e.DeltaPrecise) ? e.Delta : e.DeltaPrecise);
                 delta *= Settings.ScrollSensitivity;
-                Zoom(delta / 6);
+                Track.ZoomBy(delta / 6);
                 UpdateCursor();
             }
             catch (Exception ex)
