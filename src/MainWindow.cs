@@ -222,11 +222,10 @@ namespace linerider
                     if (!Track.PlaybackMode)
                     {
                         Track.StartFromFlag();
-                        Track.Scheduler.DefaultSpeed();
+                        Track.ResetSpeedDefault();
                     }
                     if (Track.Paused)
                         Track.TogglePause();
-                    Track.Scheduler.Reset();
                     ReversePlayback = false;
                     _playbacktemp = true;
                 }
@@ -239,11 +238,10 @@ namespace linerider
                     if (!Track.PlaybackMode)
                     {
                         Track.StartFromFlag();
-                        Track.Scheduler.DefaultSpeed();
+                        Track.ResetSpeedDefault();
                     }
                     if (Track.Paused)
                         Track.TogglePause();
-                    Track.Scheduler.Reset();
                     ReversePlayback = true;
                     _playbacktemp = true;
                 }
@@ -785,19 +783,19 @@ namespace linerider
             {
                 StopTools();
                 Track.StartIgnoreFlag();
-                Track.Scheduler.DefaultSpeed();
+                Track.ResetSpeedDefault();
             });
             InputUtils.RegisterHotkey(Hotkey.PlaybackStartGhostFlag, () => true, () =>
             {
                 StopTools();
                 Track.ResumeFromFlag();
-                Track.Scheduler.DefaultSpeed();
+                Track.ResetSpeedDefault();
             });
             InputUtils.RegisterHotkey(Hotkey.PlaybackStart, () => true, () =>
             {
                 StopTools();
                 Track.StartFromFlag();
-                Track.Scheduler.DefaultSpeed();
+                Track.ResetSpeedDefault();
             });
             InputUtils.RegisterHotkey(Hotkey.PlaybackStop, () => true, () =>
             {
@@ -815,7 +813,7 @@ namespace linerider
                 if (!Track.PlaybackMode)
                 {
                     Track.StartFromFlag();
-                    Track.Scheduler.DefaultSpeed();
+                    Track.ResetSpeedDefault();
                 }
                 if (!Track.Paused)
                     Track.TogglePause();
@@ -831,7 +829,7 @@ namespace linerider
                 if (!Track.PlaybackMode)
                 {
                     Track.StartFromFlag();
-                    Track.Scheduler.DefaultSpeed();
+                    Track.ResetSpeedDefault();
                 }
                 if (!Track.Paused)
                     Track.TogglePause();
@@ -858,7 +856,7 @@ namespace linerider
                 }
                 else
                 {
-                    Track.Scheduler.DefaultSpeed();
+                    Track.ResetSpeedDefault(false);
                 }
             });
             InputUtils.RegisterHotkey(Hotkey.PlaybackTogglePause, () => Track.PlaybackMode, () =>
@@ -874,7 +872,7 @@ namespace linerider
                 if (!Track.PlaybackMode)
                 {
                     Track.StartFromFlag();
-                    Track.Scheduler.DefaultSpeed();
+                    Track.ResetSpeedDefault();
                 }
                 if (!Track.Paused)
                     Track.TogglePause();

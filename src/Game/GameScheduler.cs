@@ -63,6 +63,10 @@ namespace linerider
                 return (float)(elapsed / updateperiod);
             }
         }
+        public GameScheduler()
+        {
+            UpdatesPerSecond=60;
+        }
         public void DefaultSpeed()
         {
             UpdatesPerSecond = (int)Math.Round(Utils.Constants.PhysicsRate * Settings.Local.DefaultPlayback);
@@ -80,7 +84,7 @@ namespace linerider
             {
                 reset = false;
                 lastupdate = totalelapsed;
-                return 1;
+                return 0;
             }
             else
             {

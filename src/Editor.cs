@@ -289,7 +289,14 @@ namespace linerider
         {
             _flag = flag;
         }
-
+        public void ResetSpeedDefault(bool resetscheduler=true)
+        {
+            Scheduler.DefaultSpeed();
+            if (resetscheduler)
+            {
+                Scheduler.Reset();
+            }
+        }
         public void Flag()
         {
             if (PlaybackMode)
