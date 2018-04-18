@@ -272,7 +272,12 @@ namespace linerider
                         Zoom(-0.08f);
                 }
             }
-            var quickpan = (!Track.PlaybackMode) ? InputUtils.Check(Hotkey.EditorQuickPan) || (Focused && Mouse.GetState().IsButtonDown(MouseButton.Middle)) : false;
+            bool quickpan = false;
+            if (!Track.Playing)
+            {
+                quickpan = (!Track.PlaybackMode && InputUtils.Check(Hotkey.EditorQuickPan)) ||
+                    (Focused && Mouse.GetState().IsButtonDown(MouseButton.Middle));
+            }
             if (quickpan != CurrentTools.QuickPan)
             {
                 CurrentTools.QuickPan = quickpan;
