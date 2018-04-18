@@ -65,7 +65,7 @@ namespace linerider
         }
         public GameScheduler()
         {
-            UpdatesPerSecond=60;
+            DefaultSpeed();
         }
         public void DefaultSpeed()
         {
