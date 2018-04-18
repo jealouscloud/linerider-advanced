@@ -115,7 +115,7 @@ namespace linerider.UI
             var currts = TimeSpan.FromSeconds(frameid / 40f);
             var format = currts.ToString(currts.Hours > 0 ? longformatstring : formatstring);
             var frame = (frameid % 40).ToString("D2");
-            return format + ":" + frame;// + " " + Math.Round(_editor.Scheduler.UpdatesPerSecond / 40f, 3) + "x ";
+            return format + ":" + frame;
         }
         private ImageButton CreateButton(ControlBase parent, Bitmap image, string tooltip)
         {

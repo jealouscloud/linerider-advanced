@@ -28,6 +28,7 @@ namespace linerider.UI
     {
         private Editor _editor;
         private TrackLabel _fpslabel;
+        private TrackLabel _playbackratelabel;
         private TrackLabel _riderspeedlabel;
         private Stopwatch _fpswatch = new Stopwatch();
         public RightInfoBar(ControlBase parent, Editor editor) : base(parent)
@@ -43,6 +44,7 @@ namespace linerider.UI
             var rec = IO.TrackRecorder.Recording;
             _fpslabel.IsHidden = rec && !Settings.Recording.ShowFps;
             _riderspeedlabel.IsHidden = rec && !Settings.Recording.ShowPpf;
+            _playbackratelabel.IsHidden = rec || _editor.Scheduler.UpdatesPerSecond == 40;
         }
         private void Setup()
         {
@@ -85,14 +87,22 @@ namespace linerider.UI
                 Margin = new Margin(0, 0, 5, 0),
                 UserData = 0.0,
             };
-        }
-        private ImageButton CreateButton(Bitmap image, string tooltip)
-        {
-            ImageButton btn = new ImageButton(this);
-            btn.SetImage(image);
-            btn.SetSize(32, 32);
-            btn.Tooltip = tooltip;
-            return btn;
+            _playbackratelabel = new TrackLabel(this)
+            {
+                Dock = Dock.Top,
+                Alignment = Pos.Right | Pos.CenterV,
+                TextRequest = (o, e) =>
+                {
+                    var rate = Math.Round(_editor.Scheduler.UpdatesPerSecond / 40.0, 3);
+                    string x = "";
+                    if (rate.ToString() != "1")
+                    {
+                        x = $"{rate}x";
+                    }
+                    return x;
+                },
+                Margin = new Margin(0, 0, 5, 0),
+            };
         }
     }
 }
