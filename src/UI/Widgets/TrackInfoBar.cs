@@ -86,7 +86,7 @@ namespace linerider.UI
             if (changes > 0)
             {
                 name += " (*)";
-                if (changes > 2)
+                if (changes > 50)
                 {
                     int rounded = changes;
                     if (changes < 999)
