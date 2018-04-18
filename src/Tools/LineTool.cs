@@ -34,8 +34,14 @@ namespace linerider.Tools
         {
             get { return game.Cursors["line"]; }
         }
-
-
+        
+        public override bool ShowSwatch
+        {
+            get
+            {
+                return true;
+            }
+        }
         public bool Snapped = false;
         private const float MINIMUM_LINE = 0.01f;
         private bool _addflip;
@@ -167,13 +173,13 @@ namespace linerider.Tools
                 {
                     c = Color.Red;
                     var sz = 2f;
-                    if (game.Canvas.ColorControls.Selected == LineType.Scenery)
-                        sz *= game.Canvas.ColorControls.GreenMultiplier;
+                    if (Swatch.Selected == LineType.Scenery)
+                        sz *= Swatch.GreenMultiplier;
                     GameRenderer.RenderRoundedLine(_start, _end, c, sz);
                 }
                 else
                 {
-                    switch (game.Canvas.ColorControls.Selected)
+                    switch (Swatch.Selected)
                     {
                         case LineType.Blue:
                             StandardLine sl = new StandardLine(_start, _end, _addflip);
@@ -183,13 +189,13 @@ namespace linerider.Tools
 
                         case LineType.Red:
                             RedLine rl = new RedLine(_start, _end, _addflip);
-                            rl.Multiplier = game.Canvas.ColorControls.RedMultiplier;
+                            rl.Multiplier = Swatch.RedMultiplier;
                             rl.CalculateConstants();
                             GameRenderer.DrawTrackLine(rl, c, Settings.Local.RenderGravityWells, true);
                             break;
 
                         case LineType.Scenery:
-                            GameRenderer.RenderRoundedLine(_start, _end, c, 2 * game.Canvas.ColorControls.GreenMultiplier);
+                            GameRenderer.RenderRoundedLine(_start, _end, c, 2 * Swatch.GreenMultiplier);
                             break;
                     }
                 }

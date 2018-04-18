@@ -28,9 +28,12 @@ namespace linerider.IO
                     throw new TrackIO.TrackLoadException("Unsupported Linetype");
             }
         }
-        public static void SaveTrack(Track track)
+        public static string SaveTrack(Track track, string savename)
         {
-            var location = Program.UserDirectory + "Tracks" + Path.DirectorySeparatorChar + track.Name + "savedLines.sol";
+            var dir = TrackIO.GetTrackDirectory(track);
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            var filename = dir + savename + ".sol";
             BigEndianWriter bw = new BigEndianWriter();
             bw.WriteShort(0x00BF);//sol version
             bw.WriteInt(0);//length, placeholder            
@@ -49,7 +52,8 @@ namespace linerider.IO
             bw.WriteByte(0);
             bw.Reset(2);
             bw.WriteInt(bw.Length - 6);
-            File.WriteAllBytes(location, bw.ToArray());
+            File.WriteAllBytes(filename, bw.ToArray());
+            return filename;
         }
         private static void WriteTrack(List<Amf0Object> parent, Track trk)
         {

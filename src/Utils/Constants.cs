@@ -33,5 +33,8 @@ namespace linerider.Utils
         public const float DefaultZoom = 4;
         public const int PhysicsRate = 40;
         public static bool ScaleCamera = true;
+        public const double MinimumZoom = 0.1;
+        public const float MaxZoom = 24;
+        public const float MaxSuperZoom = 200;
     }
 }

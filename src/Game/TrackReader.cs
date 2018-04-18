@@ -113,10 +113,6 @@ namespace linerider
         {
             return state.Simulate(_track.Grid, _track.Bones, null, null, maxiteration);
         }
-        public void SaveTrackAsSol()
-        {
-            SOLWriter.SaveTrack(_track);
-        }
         public string SaveTrackTrk(string savename, string songdata)
         {
             return TRKWriter.SaveTrack(_track, savename, songdata);

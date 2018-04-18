@@ -40,7 +40,29 @@ namespace linerider.Tools
             public bool joint1;
             public bool joint2;
             public List<SelectInfo> snapped;
-
+        }
+        public override string Tooltip
+        {
+            get
+            {
+                if (Active && _selection != null && _selection.line != null)
+                {
+                    var vec = _selection.line.GetVector();
+                    var len = vec.Length;
+                    var angle = Angle.FromVector(vec);
+                    angle.Degrees += 90;
+                    string tooltip = "length: " + Math.Round(len, 2) +
+                    " \n" +
+                    "angle: " + Math.Round(angle.Degrees, 2) + "° ";
+                    if (_selection.line.Type != LineType.Scenery)
+                    {
+                        tooltip += "\n" +
+                        "ID: " + _selection.line.ID + " ";
+                    }
+                    return tooltip;
+                }
+                return "";
+            }
         }
         public override MouseCursor Cursor
         {
@@ -132,8 +154,6 @@ namespace linerider.Tools
                             snapjoint2);
                     }
                 }
-                UpdateTooltip();
-                UpdatePlayback(line);
             }
             game.Invalidate();
         }
@@ -197,7 +217,6 @@ namespace linerider.Tools
                             }
                         }
                         Active = true;
-                        UpdateTooltip();
                     }
                     else
                     {
@@ -208,7 +227,6 @@ namespace linerider.Tools
                         _clickstart = gamepos;
                         _selection.joint1 = _selection.joint2 = true;
                         Active = true;
-                        UpdateTooltip();
                     }
                 }
             }
@@ -238,10 +256,7 @@ namespace linerider.Tools
                 var line = SelectLine(trk, gamepos, out bool knob);
                 if (line != null && line.Type != LineType.Scenery)
                 {
-                    SelectedLineWindow window = new SelectedLineWindow(game.Canvas, game, line);
-                    window.Show();
-                    window.X = (int)pos.X;
-                    window.Y = (int)pos.Y;
+                    game.Canvas.ShowLineWindow(line, (int)pos.X, (int)pos.Y);
                 }
             }
             base.OnMouseRightDown(pos);
@@ -257,7 +272,6 @@ namespace linerider.Tools
             _lifelocking = false;
             if (Active)
             {
-                HideTooltip();
                 if (_selection != null)
                 {
                     game.Track.UndoManager.BeginAction();
@@ -272,25 +286,6 @@ namespace linerider.Tools
             }
             Active = false;
             _selection = null;
-        }
-        private void UpdateTooltip()
-        {
-            if (_selection != null && _selection.line != null)
-            {
-                var vec = _selection.line.GetVector();
-                var len = vec.Length;
-                var angle = Angle.FromVector(vec);
-                angle.Degrees += 90;
-                string tooltip = "length: " + Math.Round(len, 2) +
-                " \n" +
-                "angle: " + Math.Round(angle.Degrees, 2) + "° ";
-                if (_selection.line.Type != LineType.Scenery)
-                {
-                    tooltip += "\n" +
-                    "ID: " + _selection.line.ID + " ";
-                }
-                ShowTooltip(tooltip);
-            }
         }
         private void ApplyModifiers(ref Vector2d joint1, ref Vector2d joint2)
         {

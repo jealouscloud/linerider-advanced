@@ -30,11 +30,37 @@ namespace linerider.Tools
 {
     public abstract class Tool : GameService
     {
+        private static Swatch Default = new Swatch();
+        public virtual Swatch Swatch
+        {
+            get
+            {
+                return Default;
+            }
+        }
+        public virtual bool ShowSwatch
+        {
+            get
+            {
+                return false;
+            }
+        }
         protected virtual double SnapRadius
         {
             get
             {
                 return 2 / game.Track.Zoom;
+            }
+        }
+        /// <summary>
+        /// returns the current tooltip that should be displayed at the
+        /// mouse cursor
+        /// </summary>
+        public virtual string Tooltip
+        {
+            get
+            {
+                return "";
             }
         }
         public bool Active { get; protected set; }
@@ -136,7 +162,7 @@ namespace linerider.Tools
             bool snapend)
         {
             GameLine added = null;
-            switch (game.Canvas.ColorControls.Selected)
+            switch (Swatch.Selected)
             {
                 case LineType.Blue:
                     added = new StandardLine(start, end, inv);
@@ -144,18 +170,18 @@ namespace linerider.Tools
 
                 case LineType.Red:
                     var red = new RedLine(start, end, inv)
-                    { Multiplier = game.Canvas.ColorControls.RedMultiplier };
+                    { Multiplier = Swatch.RedMultiplier };
                     red.CalculateConstants();//multiplier needs to be recalculated
                     added = red;
                     break;
 
                 case LineType.Scenery:
                     added = new SceneryLine(start, end)
-                    { Width = game.Canvas.ColorControls.GreenMultiplier };
+                    { Width = Swatch.GreenMultiplier };
                     break;
             }
             trk.AddLine(added);
-            if (game.Canvas.ColorControls.Selected != LineType.Scenery)
+            if (Swatch.Selected != LineType.Scenery)
             {
                 if (snapstart)
                     SnapLineEnd(trk, added, added.Position);
@@ -263,9 +289,21 @@ namespace linerider.Tools
             var frame = timeline.GetFrame(offset, iteration);
             if (!frame.Crashed)
             {
-                if (Settings.PinkLifelock)
+                List<int> diagnosis = null;
+                if (Settings.LifeLockNoFakie)
                 {
-                    var diagnosis = timeline.DiagnoseFrame(offset, iteration);
+                    diagnosis = timeline.DiagnoseFrame(offset, iteration);
+                    foreach (var v in diagnosis)
+                    {
+                        //the next frame dies on something that isnt a fakie, so we cant stop here
+                        if (v < 0)
+                            return false;
+                    }
+                }
+                if (Settings.LifeLockNoOrange)
+                {
+                    if (diagnosis == null)
+                        diagnosis = timeline.DiagnoseFrame(offset, iteration);
                     foreach (var v in diagnosis)
                     {
                         //the next frame dies on something that isnt a fakie, so we cant stop here
@@ -324,14 +362,6 @@ namespace linerider.Tools
                     break;
                 }
             }
-        }
-        protected void ShowTooltip(string message)
-        {
-            game.Canvas.SetTooltip(null, message);
-        }
-        protected void HideTooltip()
-        {
-            game.Canvas.RemoveTooltip(null);
         }
     }
 }

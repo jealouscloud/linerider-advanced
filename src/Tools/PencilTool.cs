@@ -37,6 +37,13 @@ namespace linerider.Tools
                 return DrawingScenery;
             }
         }
+        public override bool ShowSwatch
+        {
+            get
+            {
+                return true;
+            }
+        }
         public override bool NeedsRender
         {
             get
@@ -55,7 +62,7 @@ namespace linerider.Tools
         {
             get
             {
-                return game.Canvas.ColorControls.Selected == LineType.Scenery;
+                return Swatch.Selected == LineType.Scenery;
             }
         }
         public override MouseCursor Cursor
@@ -157,7 +164,7 @@ namespace linerider.Tools
             base.Render();
             if (DrawingScenery && _mouseshadow != Vector2d.Zero && !game.Track.Playing)
             {
-                GameRenderer.RenderRoundedLine(_mouseshadow, _mouseshadow, Color.FromArgb(100, 0x00, 0xCC, 0x00), 2f * game.Canvas.ColorControls.GreenMultiplier, false, false);
+                GameRenderer.RenderRoundedLine(_mouseshadow, _mouseshadow, Color.FromArgb(100, 0x00, 0xCC, 0x00), 2f * Swatch.GreenMultiplier, false, false);
             }
         }
         public override void Stop()

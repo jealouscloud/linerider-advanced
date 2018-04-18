@@ -128,12 +128,14 @@
     <Compile Include="Game\Physics\SimulationPoint.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Tools\CurrentTools.cs" />
     <Compile Include="Tools\EraserTool.cs" />
     <Compile Include="Tools\HandTool.cs" />
     <Compile Include="Tools\LineTool.cs" />
     <Compile Include="Tools\MoveTool.cs" />
     <Compile Include="Tools\PencilTool.cs" />
     <Compile Include="Tools\Tool.cs" />
+    <Compile Include="Tools\Swatch.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IO\ffmpeg\FFMPEG.cs" />
@@ -155,24 +157,35 @@
     <Compile Include="IO\TRKWriter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="UI\ColorControls.cs" />
-    <Compile Include="UI\CursorImpl.cs" />
-    <Compile Include="UI\ExportVideoWindow.cs" />
+    <Compile Include="UI\PlatformImpl.cs" />
     <Compile Include="UI\Hotkey.cs" />
-    <Compile Include="UI\ImageButton.cs" />
+    <Compile Include="UI\Fonts.cs" />
     <Compile Include="UI\InputUtils.cs" />
     <Compile Include="UI\InputState.cs" />
     <Compile Include="UI\Keybinding.cs" />
-    <Compile Include="UI\LoadWindow.cs" />
-    <Compile Include="UI\NumberProperty.cs" />
-    <Compile Include="UI\PopupWindow.cs" />
-    <Compile Include="UI\PreferencesWindow.cs" />
-    <Compile Include="UI\SaveWindow.cs" />
-    <Compile Include="UI\SongWindow.cs" />
-    <Compile Include="UI\Sprite.cs" />
     <Compile Include="UI\UndoManager.cs" />
-    <Compile Include="UI\Window.cs" />
-    <Compile Include="UI\SelectedLineWindow.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="UI\Dialogs\LoadWindow.cs" />
+    <Compile Include="UI\Dialogs\DialogBase.cs" />
+    <Compile Include="UI\Dialogs\PreferencesWindow.cs" />
+    <Compile Include="UI\Dialogs\ExportWindow.cs" />
+    <Compile Include="UI\Dialogs\LineWindow.cs" />
+    <Compile Include="UI\Dialogs\SaveWindow.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="UI\Widgets\WidgetContainer.cs" />
+    <Compile Include="UI\Widgets\TrackLabel.cs" />
+    <Compile Include="UI\Widgets\Sprite.cs" />
+    <Compile Include="UI\Widgets\TrackInfoBar.cs" />
+    <Compile Include="UI\Widgets\RightInfoBar.cs" />
+    <Compile Include="UI\Widgets\ColorSwatch.cs" />
+    <Compile Include="UI\Widgets\SwatchColorButton.cs" />
+    <Compile Include="UI\Widgets\TimelineWidget.cs" />
+    <Compile Include="UI\Widgets\ImageButton.cs" />
+    <Compile Include="UI\Widgets\Toolbar.cs" />
+    <Compile Include="UI\Widgets\Playhead.cs" />
+    <Compile Include="UI\Widgets\ZoomSlider.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Utils\Angle.cs" />
@@ -212,6 +225,7 @@
     <EmbeddedResource Include="Resources\loading.png" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\icons\swatch.png" />
     <EmbeddedResource Include="Resources\icons\erasertool.png" />
     <EmbeddedResource Include="Resources\icons\fast-forward.png" />
     <EmbeddedResource Include="Resources\icons\flag.png" />
@@ -254,6 +268,7 @@
     <EmbeddedResource Include="Resources\cursors\default.png" />
     <EmbeddedResource Include="Resources\cursors\size_all.png" />
     <EmbeddedResource Include="Resources\cursors\zoom.png" />
+    <EmbeddedResource Include="Resources\cursors\ibeam.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\rider\body.png" />
@@ -264,8 +279,10 @@
     <EmbeddedResource Include="Resources\rider\leg.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\gamefont_15_0.png" />
-    <EmbeddedResource Include="Resources\gamefont_15.fnt" />
+    <EmbeddedResource Include="Resources\fonts\liberation_sans_15_0.png" />
+    <EmbeddedResource Include="Resources\fonts\liberation_sans_15.fnt" />
+    <EmbeddedResource Include="Resources\fonts\liberation_sans_15_bold_0.png" />
+    <EmbeddedResource Include="Resources\fonts\liberation_sans_15_bold.fnt" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\shaders\simline.vert" />
@@ -279,18 +296,22 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <Link>OpenTK.dll.config</Link>
     </None>
+    <None Include="..\lib\gwen-lra\Gwen\bin\Gwen.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Link>Gwen.pdb</Link>
+    </None>
     <None Include="openal32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\lib\Gwen\Gwen.csproj">
+    <ProjectReference Include="..\lib\gwen-lra\Gwen\Gwen.csproj">
       <Project>{ADDA2F43-96C0-497F-8216-29C67ABC9806}</Project>
       <Name>Gwen</Name>
     </ProjectReference>
-    <ProjectReference Include="..\lib\Gwen.Renderer.OpenTK\Gwen.Renderer.OpenTK.csproj">
-      <Project>{41650c82-d630-4e5c-845a-f1513c8fdc99}</Project>
+    <ProjectReference Include="..\lib\gwen-lra\Gwen.Renderer.OpenTK\Gwen.Renderer.OpenTK.csproj">
+      <Project>{41650C82-D630-4E5C-845A-F1513C8FDC99}</Project>
       <Name>Gwen.Renderer.OpenTK</Name>
     </ProjectReference>
   </ItemGroup>

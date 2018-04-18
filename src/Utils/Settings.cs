@@ -1,4 +1,4 @@
-//
+﻿//
 //  GLWindow.cs
 //
 //  Author:
@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using OpenTK;
 using OpenTK.Input;
 using OpenTK.Graphics;
 using linerider.Audio;
@@ -34,6 +35,12 @@ namespace linerider
 {
     static class Settings
     {
+        public static class Recording
+        {
+            public static bool ShowTools = false;
+            public static bool ShowFps = true;
+            public static bool ShowPpf = true;
+        }
         public static class Local
         {
             public static bool HitTest = false;
@@ -48,14 +55,15 @@ namespace linerider
             public static bool ColorPlayback;
             public static bool DrawContactPoints;
             public static bool OnionSkinning;
-            //recording:
-            public static bool RecordingShowTools = false;
-            public static bool ShowFps = true;
-            public static bool ShowPpf = true;
-            public static bool ShowTimer = true;
-            public static bool SmoothRecording = true;
             public static Song CurrentSong = new Song("", 0);
             public static bool EnableSong = false;
+            public static float MaxZoom
+            {
+                get
+                {
+                    return Settings.SuperZoom ? Constants.MaxSuperZoom : Constants.MaxZoom;
+                }
+            }
         }
         public static Dictionary<Hotkey, List<Keybinding>> Keybinds = new Dictionary<Hotkey, List<Keybinding>>();
         public static int PlaybackZoomType = 0;
@@ -75,7 +83,10 @@ namespace linerider
         public static bool RecordMusic = true;
         public static string LastSelectedTrack = "";
         public static float ScrollSensitivity = 1;
-        
+        public static bool LifeLockNoOrange = false;
+        public static bool LifeLockNoFakie = false;
+        public static int SettingsPane = 0;
+
         static Settings()
         {
 
@@ -185,9 +196,12 @@ namespace linerider
             LoadBool(GetSetting(lines, nameof(CheckForUpdates)), ref CheckForUpdates);
             LoadBool(GetSetting(lines, nameof(SmoothPlayback)), ref SmoothPlayback);
             LoadBool(GetSetting(lines, nameof(RoundLegacyCamera)), ref RoundLegacyCamera);
-            LoadBool(GetSetting(lines, nameof(Record108p)), ref Record108p);
+            LoadBool(GetSetting(lines, nameof(Record1080p)), ref Record1080p);
             LoadBool(GetSetting(lines, nameof(RecordSmooth)), ref RecordSmooth);
             LoadBool(GetSetting(lines, nameof(RecordMusic)), ref RecordMusic);
+            LoadBool(GetSetting(lines, nameof(LifeLockNoFakie)), ref LifeLockNoFakie);
+            LoadBool(GetSetting(lines, nameof(LifeLockNoOrange)), ref LifeLockNoOrange);
+            LoadInt(GetSetting(lines, nameof(SettingsPane)), ref SettingsPane);
             var lasttrack = GetSetting(lines, nameof(LastSelectedTrack));
             if (File.Exists(lasttrack) && lasttrack.StartsWith(Constants.TracksDirectory))
             {
@@ -197,6 +211,8 @@ namespace linerider
             {
                 LoadKeybinding(lines, name);
             }
+
+            Volume = MathHelper.Clamp(Settings.Volume, 0, 100);
         }
         public static void Save()
         {
@@ -213,10 +229,13 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(SmoothPlayback), SmoothPlayback.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(LastSelectedTrack), LastSelectedTrack);
             config += "\r\n" + MakeSetting(nameof(RoundLegacyCamera), RoundLegacyCamera.ToString(Program.Culture));
-            config += "\r\n" + MakeSetting(nameof(Record108p), Record108p.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(Record1080p), Record1080p.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(RecordSmooth), RecordSmooth.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(RecordMusic), RecordMusic.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(ScrollSensitivity), ScrollSensitivity.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(LifeLockNoFakie), LifeLockNoFakie.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(LifeLockNoOrange), LifeLockNoOrange.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(SettingsPane), SettingsPane.ToString(Program.Culture));
             foreach (var binds in Keybinds)
             {
                 foreach (var bind in binds.Value)

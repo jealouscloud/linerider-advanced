@@ -27,11 +27,26 @@ namespace linerider.Tools
 {
     public class EraserTool : Tool
     {
+        private Swatch _swatch = new Swatch();
+        public override Swatch Swatch
+        {
+            get
+            {
+                return _swatch;
+            }
+        }
         public override bool RequestsMousePrecision
         {
             get
             {
                 return false;
+            }
+        }
+        public override bool ShowSwatch
+        {
+            get
+            {
+                return true;
             }
         }
         private Vector2d _last_erased = Vector2d.Zero;
@@ -45,6 +60,7 @@ namespace linerider.Tools
 
         public EraserTool() : base()
         {
+            _swatch.Selected = LineType.All;
         }
 
         public override void OnMouseDown(Vector2d pos)
@@ -100,7 +116,7 @@ namespace linerider.Tools
                 var lines = LinesInRadius(trk, pos, radius);
                 if (lines.Length != 0)
                 {
-                    var linefilter = game.Canvas.ColorControls.Selected;
+                    var linefilter = Swatch.Selected;
                     for (int i = 0; i < lines.Length; i++)
                     {
                         if (linefilter == LineType.All || lines[i].Type == linefilter)

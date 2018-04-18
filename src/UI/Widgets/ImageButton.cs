@@ -1,7 +1,4 @@
-﻿//
-//  ImageButton.cs
-//
-//  Author:
+﻿//  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
 //  Copyright (c) 2017 
@@ -29,35 +26,20 @@ namespace linerider.UI
     {
         public byte Alpha = 255;
         private Texture tx1;
-        private Texture tx2;
         private Texture _overridetex = null;
         private bool _override = false;
 
-        public ImageButton(ControlBase canvas) : base(canvas) { }
+        public ImageButton(ControlBase canvas) : base(canvas) { AutoSizeToContents = false; }
 
         public override void Dispose()
         {
             if (tx1 != null)
                 tx1.Dispose();
-            if (tx2 != null)
-                tx2.Dispose();
             if (_overridetex != null)
                 _overridetex.Dispose();
             base.Dispose();
         }
-        public void Nightmode(bool on)
-        {
-            if (on && tx2 != null)
-            {
-                m_texture = tx2;
-            }
-            else
-            {
-                m_texture = tx1;
-            }
-            Invalidate();
-        }
-        public void SetImage(Bitmap bmp, Bitmap bmp2)
+        public void SetImage(Bitmap bmp)
         {
             if (m_texture != null)
                 m_texture.Dispose();
@@ -66,13 +48,6 @@ namespace linerider.UI
             Gwen.Renderer.OpenTK.LoadTextureInternal(tx, bmp);
             m_texture = tx;
             tx1 = tx;
-            if (bmp2 != null)
-            {
-                if (tx2 != null)
-                    tx2.Dispose();
-                tx2 = new Texture(Skin.Renderer);
-                Gwen.Renderer.OpenTK.LoadTextureInternal(tx2, bmp2);
-            }
         }
         public void DisableImageOverride()
         {

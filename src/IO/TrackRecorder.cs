@@ -77,7 +77,6 @@ namespace linerider.IO
         public static bool Recording1080p;
         public static void RecordTrack(MainWindow game, bool is1080P, bool smooth, bool music)
         {
-            Settings.Local.SmoothRecording = smooth;
             var flag = game.Track.GetFlag();
             if (flag == null) return;
             var resolution = new Size(is1080P ? 1920 : 1280, is1080P ? 1080 : 720);
@@ -91,15 +90,11 @@ namespace linerider.IO
                 var frame = flag.FrameID;
                 Recording = true;
                 Recording1080p = is1080P;
-                game.Canvas.SetSize(game.RenderSize.Width, game.RenderSize.Height);
-                game.Canvas.FindChildByName("buttons").Position(Pos.CenterH);
+                game.Canvas.SetCanvasSize(game.RenderSize.Width, game.RenderSize.Height);
+                game.Canvas.Layout();
 
                 if (frame > 400) //many frames, will likely lag the game. Update the window as a fallback.
                 {
-                    if (frame > (20 * (60 * 40))) //too many frames, could lag the game very bad.
-                    {
-                        return;
-                    }
                     game.Title = Program.WindowTitle + " [Validating flag]";
                     game.ProcessEvents();
                 }
@@ -329,7 +324,7 @@ namespace linerider.IO
                     }
                     else
                     {
-                        PopupWindow.Error(errormessage);
+                        game.Canvas.ShowError(errormessage);
                     }
                 }
                 SafeFrameBuffer.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
@@ -339,7 +334,6 @@ namespace linerider.IO
                 Recording = false;
 
                 game.Canvas.SetSize(game.RenderSize.Width, game.RenderSize.Height);
-                game.Canvas.FindChildByName("buttons").Position(Pos.CenterH);
                 _screenshotbuffer = null;
             }
         }

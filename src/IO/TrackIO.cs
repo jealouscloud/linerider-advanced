@@ -60,6 +60,14 @@ namespace linerider.IO
                         return 0;
                     }).ToArray();
         }
+        public static string[] EnumerateSolFiles(string folder)
+        {
+            var ret = Directory.GetFiles(folder, "*.*")
+                .Where(x =>
+                    (x.EndsWith(".sol", StringComparison.OrdinalIgnoreCase))).ToArray();
+            Array.Sort(ret, StringComparer.CurrentCultureIgnoreCase);
+            return ret;
+        }
         public static Dictionary<string, bool> TrackFeatures(Track trk)
         {
             Dictionary<string, bool> ret = new Dictionary<string, bool>();
@@ -211,30 +219,16 @@ namespace linerider.IO
             }
             return false;
         }
+        public static string SaveToSOL(Track track, string savename)
+        {
+            int saveindex = GetSaveIndex(track);
+            var filename = SOLWriter.SaveTrack(track, saveindex + " " + savename);
+            track.Filename = filename;
+            return filename;
+        }
         public static string SaveTrackToFile(Track track, string savename, string songdata = null)
         {
-            var dir = GetTrackDirectory(track);
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-
-            var trackfiles =
-                TrackIO.EnumerateTrackFiles(dir);
-            int saveindex = 0;
-            for (var i = 0; i < trackfiles.Length; i++)
-            {
-                var s = Path.GetFileNameWithoutExtension(trackfiles[i]);
-                var index = s.IndexOf(" ", StringComparison.Ordinal);
-                if (index != -1)
-                {
-                    s = s.Remove(index);
-                }
-                if (int.TryParse(s, out saveindex))
-                {
-                    break;
-                }
-            }
-            saveindex++;
-
+            int saveindex = GetSaveIndex(track);
             var filename = TRKWriter.SaveTrack(track, saveindex + " " + savename, songdata);
             track.Filename = filename;
             return filename;
@@ -323,5 +317,30 @@ namespace linerider.IO
             return true;
         }
 
+        private static int GetSaveIndex(Track track)
+        {
+            var dir = GetTrackDirectory(track);
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            var trackfiles =
+                TrackIO.EnumerateTrackFiles(dir);
+            int saveindex = 0;
+            for (var i = 0; i < trackfiles.Length; i++)
+            {
+                var s = Path.GetFileNameWithoutExtension(trackfiles[i]);
+                var index = s.IndexOf(" ", StringComparison.Ordinal);
+                if (index != -1)
+                {
+                    s = s.Remove(index);
+                }
+                if (int.TryParse(s, out saveindex))
+                {
+                    break;
+                }
+            }
+            saveindex++;
+            return saveindex;
+        }
     }
 }

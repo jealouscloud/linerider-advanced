@@ -194,8 +194,8 @@ namespace linerider.Audio
         {
             if (!Settings.Local.EnableSong)
                 return;
-            var updaterate = (float)game.Scheduler.UpdatesPerSecond;
-            var updatepercent = (float)game.Scheduler.ElapsedPercent;
+            var updaterate = (float)game.Track.Scheduler.UpdatesPerSecond;
+            var updatepercent = (float)game.Track.Scheduler.ElapsedPercent;
             var expectedtime = Settings.Local.CurrentSong.Offset +
                 (game.Track.CurrentFrame / (float)Constants.PhysicsRate) +
                 (updatepercent / (float)Constants.PhysicsRate);
@@ -205,7 +205,7 @@ namespace linerider.Audio
                 game.Track.Playing &&
                 expectedtime < _musicplayer.Duration;
 
-            if (shouldplay && !game.Canvas.Scrubber.Held)
+            if (shouldplay && !game.Canvas.Scrubbing)
             {
                 float rate = (updaterate / Constants.PhysicsRate);
                 if (game.ReversePlayback)

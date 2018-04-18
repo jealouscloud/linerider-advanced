@@ -124,20 +124,36 @@ namespace linerider
                 return GetString("DefaultColors.xml");
             }
         }
-        internal static string gamefont_15_fnt
+        #region fonts
+        internal static string liberation_sans_15_fnt
         {
             get
             {
-                return GetString("gamefont_15.fnt");
+                return GetString("fonts.liberation_sans_15.fnt");
             }
         }
-        internal static System.Drawing.Bitmap gamefont_15_png
+        internal static System.Drawing.Bitmap liberation_sans_15_png
         {
             get
             {
-                return GetBitmap("gamefont_15_0.png");
+                return GetBitmap("fonts.liberation_sans_15_0.png");
             }
         }
+        internal static string liberation_sans_15_bold_fnt
+        {
+            get
+            {
+                return GetString("fonts.liberation_sans_15_bold.fnt");
+            }
+        }
+        internal static System.Drawing.Bitmap liberation_sans_15_bold_png
+        {
+            get
+            {
+                return GetBitmap("fonts.liberation_sans_15_bold_0.png");
+            }
+        }
+        #endregion
         #region rider
         internal static Bitmap sled_img
         {
@@ -266,6 +282,13 @@ namespace linerider
             get
             {
                 return GetBitmap("cursors.zoom.png");
+            }
+        }
+        internal static System.Drawing.Bitmap cursor_ibeam
+        {
+            get
+            {
+                return GetBitmap("cursors.ibeam.png");
             }
         }
         internal static System.Drawing.Bitmap cursor_default
@@ -482,6 +505,13 @@ namespace linerider
             get
             {
                 return GetBitmap("icons.pause.png");
+            }
+        }
+        internal static System.Drawing.Bitmap swatch
+        {
+            get
+            {
+                return GetBitmap("icons.swatch.png");
             }
         }
         #endregion

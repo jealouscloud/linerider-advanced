@@ -33,6 +33,8 @@ namespace linerider
         {
             get
             {
+                if (_queue.Count == 0)
+                    return 1;
                 var avg = _queue.Average();
                 return 1.0 / avg;
             }
