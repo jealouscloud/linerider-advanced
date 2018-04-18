@@ -173,6 +173,29 @@ namespace linerider.UI
             };
             superzoom.Tooltip = "Allows the user to zoom in\nnearly 10x more than usual.";
         }
+        private void PopulateCamera(ControlBase parent)
+        {
+            var camtype = CreateHeaderPanel(parent, "Camera Type");
+            var smooth = AddCheckbox(camtype, "Smooth Camera", Settings.SmoothCamera, (o, e) =>
+            {
+                Settings.SmoothCamera = ((Checkbox)o).IsChecked;
+                _editor.InitCamera();
+                Settings.Save();
+            });
+            var round = AddCheckbox(camtype, "Round Legacy Camera", Settings.RoundLegacyCamera, (o, e) =>
+            {
+                Settings.RoundLegacyCamera = ((Checkbox)o).IsChecked;
+                Settings.Save();
+            });
+            if (smooth.IsChecked)
+            {
+                round.IsDisabled = true;
+            }
+            smooth.CheckChanged += (o, e) =>
+            {
+                round.IsDisabled = smooth.IsChecked;
+            };
+        }
         private void PopulateEditor(ControlBase parent)
         {
             Panel advancedtools = CreateHeaderPanel(parent, "Advanced Visualization");
@@ -304,6 +327,7 @@ namespace linerider.UI
             page = AddPage(cat, "Environment");
             PopulateModes(page);
             page = AddPage(cat, "Camera");
+            PopulateCamera(page);
             page = AddPage(cat, "Keybindings");
             cat = _prefcontainer.Add("Song Sync");
             page = AddPage(cat, "Song");
