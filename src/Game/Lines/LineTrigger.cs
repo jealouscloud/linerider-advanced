@@ -23,54 +23,38 @@ using System;
 
 namespace linerider.Game
 {
-    public class LineTrigger : GameService
+    public class LineTrigger
     {
-        public bool Enabled
+        public bool ZoomTrigger = false;
+        public float ZoomTarget = 4;
+        public int ZoomFrames = 40;
+        public LineTrigger()
         {
-            get
-            {
-                return Zoomtrigger;
-            }
         }
 
-        public bool Zoomtrigger = false;
-        public float ZoomTarget = 1;
-        public int ZoomFrames = 40;
-        private int zoomcounter = 0;
-
-        public bool Activate()
+        public bool Activate(int hitdelta, ref float currentzoom)
         {
-            if (Zoomtrigger)
+            bool handled = false;
+            if (ZoomTrigger)
             {
-                if (zoomcounter == 0)
+                if (currentzoom != ZoomTarget)
                 {
-                    if (game.Track.Zoom == ZoomTarget)
+                    if (hitdelta >= 0 && hitdelta < ZoomFrames)
                     {
-                        return true;
+                        var diff = ZoomTarget - currentzoom;
+                        currentzoom = currentzoom + (diff / (ZoomFrames - hitdelta));
+                        handled = true;
+                    }
+                    else
+                    {
+                        currentzoom = ZoomTarget;
                     }
                 }
-                zoomcounter++;
-                var diff = ZoomTarget - game.Track.Zoom;
-                var add = (float)diff / (ZoomFrames - zoomcounter);
-                game.Zoom(add / game.Track.Zoom);
-
-                if (zoomcounter >= ZoomFrames - 1)
-                {
-                    game.SetZoom(game.Track.Zoom);
-                    zoomcounter = 0;
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
             }
-            return true;
+            return handled;
         }
-
         public void Reset()
         {
-            zoomcounter = 0;
         }
     }
 }

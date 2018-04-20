@@ -1,6 +1,3 @@
-//
-//  Track.cs
-//
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
@@ -34,19 +31,24 @@ namespace linerider.Game
 {
     public partial class Timeline
     {
+        struct frameinfo
+        {
+            public Rider Rider;
+            public int TriggerLineID;
+            public int TriggerHitFrame;
+            public float Zoom;
+        }
         private HitTestManager _hittest = new HitTestManager();
         private ResourceSync _framesync = new ResourceSync();
-        private AutoArray<Rider> _frames = new AutoArray<Rider>();
+        private AutoArray<frameinfo> _frames = new AutoArray<frameinfo>();
         private Track _track;
-        private List<LineTrigger> _activetriggers = null;
         public event EventHandler<int> FrameInvalidated;
-        public Timeline(Track track, List<LineTrigger> triggerlist)
+        public Timeline(Track track)
         {
             _track = track;
             var start = _track.GetStart();
             _savedcells.BaseGrid = _track.Grid;
-            Restart(track.GetStart());
-            _activetriggers = triggerlist;
+            Restart(track.GetStart(), Constants.DefaultZoom);
         }
         /// <summary>
         /// Returns true if the line id is hit by the current "working" frame
@@ -87,13 +89,13 @@ namespace linerider.Game
         /// new provided state.
         /// </summary>
         /// <param name="state">The start position, frame 0</param>
-        public void Restart(Rider state)
+        public void Restart(Rider state, float zoom)
         {
             using (_framesync.AcquireWrite())
             {
                 _hittest.Reset();
                 _frames.Clear();
-                _frames.Add(state);
+                _frames.Add(new frameinfo() { Rider = state, TriggerHitFrame = -1, TriggerLineID = -1, Zoom = zoom });
                 using (changesync.AcquireWrite())
                 {
                     _first_invalid_frame = _frames.Count;
@@ -141,10 +143,11 @@ namespace linerider.Game
             bool isiteration = iteration != 6 && frame > 0;
             if (iteration != 6 && frame > 0)
             {
+                int trig = 0;
                 return GetFrame(frame - 1).Simulate(
                         _track.Grid,
                         _track.Bones,
-                        null,
+                        ref trig,
                         null,
                         iteration);
             }
@@ -159,7 +162,19 @@ namespace linerider.Game
             using (_framesync.AcquireWrite())
             {
                 UnsafeEnsureFrameValid(frame);
-                return _frames[frame];
+                return _frames[frame].Rider;
+            }
+        }
+        /// <summary>
+        /// Gets an up to date rider state for the frame, recomputing if
+        /// necessary
+        /// </summary>
+        public float GetFrameZoom(int frame)
+        {
+            using (_framesync.AcquireWrite())
+            {
+                UnsafeEnsureFrameValid(frame);
+                return _frames[frame].Zoom;
             }
         }
         /// <summary>
@@ -200,9 +215,9 @@ namespace linerider.Game
         /// </summary>
         private void ThreadUnsafeRunFrames(int start, int count)
         {
-            var steps = new Rider[count];
+            var steps = new frameinfo[count];
             var collisionlist = new List<LinkedList<int>>(count);
-            Rider current = _frames[start - 1];
+            frameinfo current = _frames[start - 1];
             int framecount = _frames.Count;
             var bones = _track.Bones;
             using (changesync.AcquireWrite())
@@ -222,13 +237,31 @@ namespace linerider.Game
                 {
                     int currentframe = start + i;
                     var collisions = new LinkedList<int>();
-                    current = current.Simulate(
+                    var oldtrigid = current.TriggerLineID;
+                    var zoom =
+                    current.Rider = current.Rider.Simulate(
                         _savedcells,
                         bones,
-                        _activetriggers,
+                        ref current.TriggerLineID,
                         collisions);
+                    if (current.TriggerLineID != oldtrigid)
+                    {
+                        current.TriggerHitFrame = currentframe;
+                    }
+                    if (current.TriggerLineID != -1)
+                    {
+                        var std = (StandardLine)_track.LineLookup[current.TriggerLineID];
+                        Debug.Assert(std.Trigger != null, "Trigger line proc on line with no trigger");
+                        var delta = currentframe - current.TriggerHitFrame;
+                        if (!std.Trigger.Activate(delta, ref current.Zoom))
+                        {
+                            current.TriggerLineID = -1;
+                            current.TriggerHitFrame = -1;
+                        }
+                    }
                     steps[i] = current;
                     collisionlist.Add(collisions);
+
                     // 10 seconds of frames, 
                     // couldnt hurt to check?
                     if ((i + 1) % 400 == 0)

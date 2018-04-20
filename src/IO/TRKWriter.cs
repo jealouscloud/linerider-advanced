@@ -124,10 +124,10 @@ namespace linerider.IO
                         {
                             if (l.Trigger != null)
                             {
-                                if (l.Trigger.Zoomtrigger) // check other triggers here for at least one
+                                if (l.Trigger.ZoomTrigger) // check other triggers here for at least one
                                 {
-                                    bw.Write(l.Trigger.Zoomtrigger);
-                                    if (l.Trigger.Zoomtrigger)
+                                    bw.Write(l.Trigger.ZoomTrigger);
+                                    if (l.Trigger.ZoomTrigger)
                                     {
                                         bw.Write(l.Trigger.ZoomTarget);
                                         bw.Write((short)l.Trigger.ZoomFrames);

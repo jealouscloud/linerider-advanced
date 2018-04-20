@@ -105,11 +105,11 @@ namespace linerider.Game
             int framecount = _frames.Count;
             for (int frame = 1; frame < framecount; frame++)
             {
-                if (!changebounds.Intersects(_frames[frame].PhysicsBounds))
+                if (!changebounds.Intersects(_frames[frame].Rider.PhysicsBounds))
                     continue;
                 foreach (var change in _changedcells)
                 {
-                    if (_frames[frame].PhysicsBounds.ContainsPoint(change))
+                    if (_frames[frame].Rider.PhysicsBounds.ContainsPoint(change))
                     {
                         if (CheckInteraction(frame))
                             return frame;
@@ -124,14 +124,15 @@ namespace linerider.Game
         {
             // even though its this frame that may need changing, we have to 
             // regenerate it using the previos frame.
-            var newsimulated = _frames[frame - 1].Simulate(
+            int trig = 0;
+            var newsimulated = _frames[frame - 1].Rider.Simulate(
                 _track.Grid,
                 _track.Bones,
-                null,
+                ref trig,
                 null,
                 6,
                 false);
-            if (!newsimulated.Body.CompareTo(_frames[frame].Body))
+            if (!newsimulated.Body.CompareTo(_frames[frame].Rider.Body))
             {
                 return true;
             }

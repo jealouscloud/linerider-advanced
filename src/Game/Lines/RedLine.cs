@@ -69,6 +69,16 @@ namespace linerider.Game
         }
         public override GameLine Clone()
         {
+            LineTrigger trigger = null;
+            if (Trigger != null)
+            {
+                trigger = new LineTrigger()
+                {
+                    ZoomTrigger = Trigger.ZoomTrigger,
+                    ZoomFrames = Trigger.ZoomFrames,
+                    ZoomTarget = Trigger.ZoomTarget
+                };
+            }
             return new RedLine()
             {
                 ID = ID,
@@ -81,7 +91,7 @@ namespace linerider.Game
                 inv = inv,
                 Position = Position,
                 Position2 = Position2,
-                Trigger = Trigger,
+                Trigger = trigger,
                 _acc = _acc,
                 _multiplier = _multiplier
             };

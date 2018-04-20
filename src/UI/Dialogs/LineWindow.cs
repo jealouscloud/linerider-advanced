@@ -115,43 +115,66 @@ namespace linerider.UI
             if (_ownerline is StandardLine physline)
             {
                 var table = tree.Add("Triggers", 120);
-                var trigger = physline.Trigger;
-                var triggerenabled = AddPropertyCheckbox(table, "Enabled", trigger != null);
+                var currenttrigger = physline.Trigger;
+                var triggerenabled = AddPropertyCheckbox(table, "Enabled", currenttrigger != null);
                 var zoom = new NumberProperty(table)
                 {
                     Min = Constants.MinimumZoom,
                     Max = Constants.MaxZoom,
                     NumberValue = 4
                 };
-                if (trigger != null)
-                {
-                    zoom.NumberValue = trigger.ZoomTarget;
-                }
                 table.Add("Target Zoom", zoom);
                 var frames = new NumberProperty(table)
                 {
                     Min = 0,
-                    Max = 40 * 60 * 2,//2 minutes is enough for a zoom trigger, ok.
+                    Max = 40 * 60 * 2,//2 minutes is enough for a zoom trigger, you crazy nuts.
                     NumberValue = 40,
                     OnlyWholeNumbers = true,
                 };
-                if (trigger != null)
+                if (currenttrigger != null)
                 {
-                    frames.NumberValue = trigger.ZoomFrames;
+                    zoom.NumberValue = currenttrigger.ZoomTarget;
+                    frames.NumberValue = currenttrigger.ZoomFrames;
                 }
                 table.Add("Frames", frames);
+                zoom.ValueChanged += (o, e) =>
+                {
+                    using (var trk = _editor.CreateTrackWriter())
+                    {
+                        if (triggerenabled.IsChecked)
+                        {
+                            var cpy = (StandardLine)_ownerline.Clone();
+                            cpy.Trigger.ZoomTarget = (float)zoom.NumberValue;
+                            UpdateLine(trk, _ownerline, cpy);
+                        }
+                    }
+                };
+                frames.ValueChanged += (o, e) =>
+                {
+                    using (var trk = _editor.CreateTrackWriter())
+                    {
+                        if (triggerenabled.IsChecked)
+                        {
+                            var cpy = (StandardLine)_ownerline.Clone();
+                            cpy.Trigger.ZoomFrames = (int)frames.NumberValue;
+                            UpdateLine(trk, _ownerline, cpy);
+                        }
+                    }
+                };
                 triggerenabled.ValueChanged += (o, e) =>
                 {
                     using (var trk = _editor.CreateTrackWriter())
                     {
                         if (triggerenabled.IsChecked)
                         {
-                            var cpy = (StandardLine)physline.Clone();
+                            var cpy = (StandardLine)_ownerline.Clone();
                             cpy.Trigger = new LineTrigger()
                             {
+                                ZoomTrigger = true,
                                 ZoomFrames = (int)frames.NumberValue,
                                 ZoomTarget = (float)zoom.NumberValue
                             };
+
                             UpdateLine(trk, _ownerline, cpy);
                         }
                         else
@@ -171,7 +194,7 @@ namespace linerider.UI
             check.IsChecked = value;
             return check;
         }
-        
+
         private void UpdateLine(TrackWriter trk, GameLine current, GameLine replacement)
         {
             MakingChange();

@@ -139,8 +139,8 @@ namespace linerider.Game
             ISimulationGrid grid,
             SimulationPoint[] body,
             ref RectLRTB physinfo,
-            LinkedList<int> collisions = null,
-            List<LineTrigger> activetriggers = null)
+            ref int activetriggers,
+            LinkedList<int> collisions = null)
         {
             int bodylen = body.Length;
             for (int i = 0; i < bodylen; i++)
@@ -166,11 +166,11 @@ namespace linerider.Game
                             if (line.Interact(ref body[i]))
                             {
                                 collisions?.AddLast(line.ID);
-                                if (line.Trigger != null && activetriggers != null)
+                                if (line.Trigger != null)
                                 {
-                                    if (!activetriggers.Contains(line.Trigger))
+                                    if (activetriggers != line.ID)
                                     {
-                                        activetriggers.Add(line.Trigger);
+                                        activetriggers = line.ID;
                                     }
                                 }
                             }
@@ -248,12 +248,13 @@ namespace linerider.Game
         }
         public Rider Simulate(Track track, int maxiteration = 6, LinkedList<int> collisions = null)
         {
-            return Simulate(track.Grid, track.Bones, null, collisions, maxiteration);
+            int trig = 0;
+            return Simulate(track.Grid, track.Bones, ref trig, collisions, maxiteration);
         }
         public Rider Simulate(
             ISimulationGrid grid,
             Bone[] bones,
-            List<LineTrigger> activetriggers,
+            ref int activetriggers,
             LinkedList<int> collisions,
             int maxiteration = 6,
             bool stepscarf = true)
@@ -268,7 +269,7 @@ namespace linerider.Game
                 for (int i = 0; i < maxiteration; i++)
                 {
                     ProcessBones(bones, body, ref dead);
-                    ProcessLines(grid, body, ref phys, collisions, activetriggers);
+                    ProcessLines(grid, body, ref phys, ref activetriggers, collisions);
                 }
             }
             if (maxiteration == 6)
@@ -320,7 +321,8 @@ namespace linerider.Game
                     {
                         return breaks;
                     }
-                    ProcessLines(grid, body, ref phys);
+                    int trig = 0;
+                    ProcessLines(grid, body, ref phys, ref trig);
                 }
             }
             if (maxiteration == 6)

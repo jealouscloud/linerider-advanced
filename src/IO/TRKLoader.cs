@@ -147,7 +147,7 @@ namespace linerider.IO
                             bool zoomtrigger = br.ReadBoolean();
                             if (zoomtrigger)
                             {
-                                tr.Zoomtrigger = true;
+                                tr.ZoomTrigger = true;
                                 var target = br.ReadSingle();
                                 var frames = br.ReadInt16();
                                 tr.ZoomFrames = frames;

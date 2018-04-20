@@ -62,6 +62,23 @@ namespace linerider
         public readonly object LoadSync = new object();
         public readonly Stopwatch FramerateWatch = new Stopwatch();
         public readonly FPSCounter FramerateCounter = new FPSCounter();
+        private float StartZoom
+        {
+            get
+            {
+                switch (Settings.PlaybackZoomType)
+                {
+                    case 0: //current
+                        return Zoom;
+                    case 1: //default zoom
+                    default:
+                        return Constants.DefaultZoom;
+
+                    case 2: //specific
+                        return Settings.PlaybackZoomValue;
+                }
+            }
+        }
         /// <summary>
         /// indicates if we're in playbackmode
         /// </summary>
@@ -173,10 +190,11 @@ namespace linerider
 
         public Timeline Timeline { get; private set; }
         public bool MoveStartWarned = false;
+        public bool UseUserZoom = false;
         public Editor()
         {
             _track = new Track();
-            Timeline = new Timeline(_track, ActiveTriggers);
+            Timeline = new Timeline(_track);
             Timeline.FrameInvalidated += FrameInvalidated;
             InitCamera();
             Offset = 0;
@@ -247,6 +265,7 @@ namespace linerider
         {
             if (Math.Abs(percent) < 0.00001)
                 return;
+            UseUserZoom = true;
             SetZoom(Zoom + (Zoom * percent));
         }
         public void SetZoom(float val)
@@ -271,7 +290,7 @@ namespace linerider
         }
         public void Reset()
         {
-            Timeline.Restart(_track.GetStart());
+            Timeline.Restart(_track.GetStart(), StartZoom);
             SetFrame(0);
         }
         public bool FastGridCheck(double x, double y)
@@ -300,7 +319,7 @@ namespace linerider
         {
             _flag = flag;
         }
-        public void ResetSpeedDefault(bool resetscheduler=true)
+        public void ResetSpeedDefault(bool resetscheduler = true)
         {
             Scheduler.DefaultSpeed();
             if (resetscheduler)
@@ -361,15 +380,16 @@ namespace linerider
         public void StartFromFlag()
         {
             CancelTriggers();
+            UseUserZoom = false;
             if (_flag == null)
             {
                 _startFrame = 0;
-                Timeline.Restart(_track.GetStart());
+                Timeline.Restart(_track.GetStart(), StartZoom);
             }
             else
             {
                 _startFrame = _flag.FrameID;
-                Timeline.Restart(_flag.State);
+                Timeline.Restart(_flag.State, StartZoom);
             }
             FrameCount = 1;
             Start(0);
@@ -378,7 +398,8 @@ namespace linerider
         {
             CancelTriggers();
             _startFrame = 0;
-            Timeline.Restart(_track.GetStart());
+            UseUserZoom = false;
+            Timeline.Restart(_track.GetStart(), StartZoom);
             FrameCount = 1;
             Start(0);
         }
@@ -386,7 +407,7 @@ namespace linerider
         {
             CancelTriggers();
             _startFrame = 0;
-            Timeline.Restart(_track.GetStart());
+            Timeline.Restart(_track.GetStart(), StartZoom);
             FrameCount = 1;
             if (_flag != null)
             {
@@ -411,20 +432,8 @@ namespace linerider
             Camera.SetFrameCenter(Timeline.GetFrame(frameid).CalculateCenter());
 
             game.UpdateCursor();
-            switch (Settings.PlaybackZoomType)
-            {
-                case 0: //current
-                    break;
-
-                case 1: //default zoom
-                default:
-                    game.Track.Zoom = Constants.DefaultZoom;
-                    break;
-
-                case 2: //specific
-                    game.Track.Zoom = Settings.PlaybackZoomValue;
-                    break;
-            }
+            Zoom = StartZoom;
+            UseUserZoom = false;
             Scheduler.Reset();
             FramerateCounter.Reset();
             InvalidateRenderRider();
@@ -451,7 +460,7 @@ namespace linerider
                 var index = Array.IndexOf(
                     Constants.MotionArray,
                     Scheduler.UpdatesPerSecond);
-                Scheduler.UpdatesPerSecond = 
+                Scheduler.UpdatesPerSecond =
                     Constants.MotionArray[Math.Max(0, index - 1)];
             }
         }
@@ -476,9 +485,8 @@ namespace linerider
             for (var i = 0; i < times; i++)
             {
                 NextFrame();
-                for (var ix = ActiveTriggers.Count - 1; ix >= 0; --ix)
-                    if (ActiveTriggers[ix].Activate())
-                        ActiveTriggers.RemoveAt(ix);
+                if (!UseUserZoom)
+                    SetZoom(Timeline.GetFrameZoom(Offset));
                 UpdateCamera();
             }
         }
@@ -529,11 +537,10 @@ namespace linerider
                 {
                     _loadingTrack = true;
                     Stop();
-                    ActiveTriggers.Clear();
                     _flag = null;
                     _track = trk;
 
-                    Timeline = new Timeline(trk, ActiveTriggers);
+                    Timeline = new Timeline(trk);
                     Timeline.FrameInvalidated += FrameInvalidated;
                     InitCamera();
                     UndoManager = new UndoManager();
