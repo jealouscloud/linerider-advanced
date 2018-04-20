@@ -154,6 +154,7 @@ namespace linerider.Tools
                             snapjoint2);
                     }
                 }
+                UpdatePlayback(line);
             }
             game.Invalidate();
         }
