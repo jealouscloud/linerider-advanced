@@ -145,7 +145,7 @@ namespace linerider.UI
                         {
                             var cpy = (StandardLine)_ownerline.Clone();
                             cpy.Trigger.ZoomTarget = (float)zoom.NumberValue;
-                            UpdateLine(trk, _ownerline, cpy);
+                            UpdateOwnerLine(trk, cpy);
                         }
                     }
                 };
@@ -157,7 +157,7 @@ namespace linerider.UI
                         {
                             var cpy = (StandardLine)_ownerline.Clone();
                             cpy.Trigger.ZoomFrames = (int)frames.NumberValue;
-                            UpdateLine(trk, _ownerline, cpy);
+                            UpdateOwnerLine(trk, cpy);
                         }
                     }
                 };
@@ -165,9 +165,9 @@ namespace linerider.UI
                 {
                     using (var trk = _editor.CreateTrackWriter())
                     {
+                        var cpy = (StandardLine)_ownerline.Clone();
                         if (triggerenabled.IsChecked)
                         {
-                            var cpy = (StandardLine)_ownerline.Clone();
                             cpy.Trigger = new LineTrigger()
                             {
                                 ZoomTrigger = true,
@@ -175,13 +175,12 @@ namespace linerider.UI
                                 ZoomTarget = (float)zoom.NumberValue
                             };
 
-                            UpdateLine(trk, _ownerline, cpy);
+                            UpdateOwnerLine(trk, cpy);
                         }
                         else
                         {
-                            var cpy = (StandardLine)physline.Clone();
                             cpy.Trigger = null;
-                            UpdateLine(trk, _ownerline, cpy);
+                            UpdateOwnerLine(trk, cpy);
                         }
                     }
                 };
@@ -194,7 +193,12 @@ namespace linerider.UI
             check.IsChecked = value;
             return check;
         }
-
+        
+        private void UpdateOwnerLine(TrackWriter trk, GameLine replacement)
+        {
+            UpdateLine(trk, _ownerline, replacement);
+            _ownerline = replacement;
+        }
         private void UpdateLine(TrackWriter trk, GameLine current, GameLine replacement)
         {
             MakingChange();
@@ -214,8 +218,7 @@ namespace linerider.UI
             {
                 var cpy = (RedLine)_ownerline.Clone();
                 cpy.Multiplier = mul;
-                UpdateLine(trk, _ownerline, cpy);
-                _ownerline = cpy;
+                UpdateOwnerLine(trk, cpy);
                 foreach (var line in lines)
                 {
                     var copy = (RedLine)line.Clone();
