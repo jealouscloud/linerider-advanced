@@ -40,7 +40,7 @@ namespace linerider.Rendering
         {
             Rider drawrider = options.Rider;
             _trackrenderer.Render(options);
-            if (Settings.Local.OnionSkinning && options.PlaybackMode)
+            if (Settings.Local.OnionSkinning)
             {
                 const int onions = 20;
                 for (int i = -onions; i < onions; i++)

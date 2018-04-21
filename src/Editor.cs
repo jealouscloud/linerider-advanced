@@ -42,7 +42,6 @@ namespace linerider
     {
         private bool _loadingTrack = false;
         private int _prevSaveUndoPos = 0;
-        private float _oldZoom = 1.0f;
         private RiderFrame _flag;
         private Track _track;
         private int _startFrame;
@@ -53,6 +52,10 @@ namespace linerider
         private ResourceSync _renderridersync = new ResourceSync();
         private SimulationRenderer _renderer = new SimulationRenderer();
         private bool _refreshtrack = false;
+        private Vector2d _savedcamera;
+        private float _savedzoom;
+        private bool _hasstopped = true;
+        private float _zoom = Constants.DefaultZoom;
         private EditorGrid _cells = new EditorGrid();
 
         public readonly GameScheduler Scheduler = new GameScheduler();
@@ -79,15 +82,21 @@ namespace linerider
                 }
             }
         }
-        /// <summary>
-        /// indicates if we're in playbackmode
-        /// </summary>
-        public bool PlaybackMode { get; private set; }
         private bool _paused = false;
-        public float Zoom = Constants.DefaultZoom;
+        public float Zoom
+        {
+            get
+            {
+                return _zoom;
+            }
+            set
+            {
+                _zoom = (float)MathHelper.Clamp(value, Constants.MinimumZoom, Settings.Local.MaxZoom);
+                Invalidate();
+            }
+        }
         public ICamera Camera { get; private set; }
         public List<LineTrigger> ActiveTriggers = new List<LineTrigger>();
-        public int CurrentFrame => PlaybackMode ? Offset + _startFrame : 0;
         public int LineCount => _track.Lines.Count;
         public int TrackChanges
         {
@@ -126,11 +135,6 @@ namespace linerider
                 {
                     _renderriderinvalid = false;
                     _renderrider = Timeline.ExtractFrame(Offset, IterationsOffset);
-
-                    // we dont want it and we dont wanto to continuously
-                    // update the diagnosis.
-                    if (!PlaybackMode)
-                        _renderrider.Diagnosis.Clear();
                 }
                 return _renderrider;
             }
@@ -166,7 +170,7 @@ namespace linerider
         public int FrameCount { get; private set; } = 1;
 
         public UndoManager UndoManager { get; private set; }
-        public bool Playing => PlaybackMode && !Paused;
+        public bool Playing => !Paused;
         /// <summary>
         /// The offset between 0-6 of the currently rendered iteration
         /// </summary>
@@ -199,6 +203,7 @@ namespace linerider
             InitCamera();
             Offset = 0;
             UndoManager = new UndoManager();
+            Paused = true;
         }
         public void Render(float blend)
         {
@@ -229,7 +234,6 @@ namespace linerider
                 : KnobState.Shown;
             }
             drawOptions.Paused = Paused;
-            drawOptions.PlaybackMode = PlaybackMode;
             drawOptions.Rider = RenderRiderInfo.State;
             drawOptions.ShowContactLines = Settings.Local.DrawContactPoints;
             drawOptions.ShowMomentumVectors = Settings.Local.MomentumVectors;
@@ -266,12 +270,7 @@ namespace linerider
             if (Math.Abs(percent) < 0.00001)
                 return;
             UseUserZoom = true;
-            SetZoom(Zoom + (Zoom * percent));
-        }
-        public void SetZoom(float val)
-        {
-            Zoom = (float)MathHelper.Clamp(val, Constants.MinimumZoom, Settings.Local.MaxZoom);
-            Invalidate();
+            Zoom = Zoom + (Zoom * percent);
         }
         /// <summary>
         /// Function to be called after updating the playback buffer
@@ -308,11 +307,8 @@ namespace linerider
         /// </summary>
         public void NotifyTrackChanged()
         {
-            if (PlaybackMode)
-            {
-                Timeline.NotifyChanged();
-                InvalidateRenderRider();
-            }
+            Timeline.NotifyChanged();
+            InvalidateRenderRider();
             Invalidate();
         }
         internal void RestoreFlag(RiderFrame flag)
@@ -329,9 +325,16 @@ namespace linerider
         }
         public void Flag()
         {
-            if (PlaybackMode)
+            if (Playing)
             {
-                _flag = new RiderFrame { State = Timeline.GetFrame(Offset), FrameID = CurrentFrame };
+                if (_flag != null && _flag.FrameID == Offset)
+                {
+                    _flag = null;
+                }
+                else
+                {
+                    _flag = new RiderFrame { State = Timeline.GetFrame(Offset), FrameID = Offset };
+                }
             }
             else
             {
@@ -351,31 +354,20 @@ namespace linerider
             SetFrame(Math.Max(0, Offset - 1));
         }
 
-        public void Stop()
-        {
-            if (PlaybackMode)
-            {
-                PlaybackMode = false;
-                Paused = false;
-
-                Zoom = _oldZoom;
-                Camera.Pop();
-                Reset();
-                CancelTriggers();
-                Invalidate();
-            }
-        }
 
         public void TogglePause()
         {
-            if (PlaybackMode)
+            Paused = !Paused;
+            if (Playing && _hasstopped)
             {
-                Paused = !Paused;
-                Scheduler.Reset();
-                Camera.BeginFrame(1, Zoom);
-                Camera.SetFrameCenter(Camera.GetCenter(true));
-                Invalidate();
+                _savedcamera = Camera.GetCenter();
+                _savedzoom = Zoom;
+                _hasstopped = false;
             }
+            Scheduler.Reset();
+            Camera.BeginFrame(1, Zoom);
+            Camera.SetFrameCenter(Camera.GetCenter(true));
+            Invalidate();
         }
         public void StartFromFlag()
         {
@@ -420,12 +412,12 @@ namespace linerider
         {
             if (frameid >= FrameCount)
                 throw new Exception("Start frame out of range");
-            if (!PlaybackMode)
+            if (_hasstopped)
             {
-                _oldZoom = Zoom;
-                Camera.Push();
+                _savedcamera = Camera.GetCenter();
+                _savedzoom = Zoom;
+                _hasstopped = false;
             }
-            PlaybackMode = true;
             Paused = false;
             Offset = frameid;
             IterationsOffset = 6;
@@ -439,30 +431,40 @@ namespace linerider
             InvalidateRenderRider();
             Invalidate();
         }
+        public void Stop()
+        {
+            Paused = true;
+            if (!_hasstopped)
+            {
+                Zoom = _savedzoom;
+                Camera.SetFrameCenter(_savedcamera);
+                _hasstopped = true;
+            }
+            Reset();
+            CancelTriggers();
+            SetFrame(0);
+            Camera.BeginFrame(1, Zoom);
+            Camera.SetFrameCenter(Camera.GetCenter(true));
+            Invalidate();
+        }
         public void PlaybackSpeedUp()
         {
-            if (PlaybackMode)
-            {
-                var index = Array.IndexOf(
-                    Constants.MotionArray,
-                    Scheduler.UpdatesPerSecond);
-                Scheduler.UpdatesPerSecond = Constants.MotionArray[
-                    Math.Min(
-                    Constants.MotionArray.Length - 1,
-                    index + 1)];
-            }
+            var index = Array.IndexOf(
+                Constants.MotionArray,
+                Scheduler.UpdatesPerSecond);
+            Scheduler.UpdatesPerSecond = Constants.MotionArray[
+                Math.Min(
+                Constants.MotionArray.Length - 1,
+                index + 1)];
         }
 
         public void PlaybackSpeedDown()
         {
-            if (PlaybackMode)
-            {
-                var index = Array.IndexOf(
-                    Constants.MotionArray,
-                    Scheduler.UpdatesPerSecond);
-                Scheduler.UpdatesPerSecond =
-                    Constants.MotionArray[Math.Max(0, index - 1)];
-            }
+            var index = Array.IndexOf(
+                Constants.MotionArray,
+                Scheduler.UpdatesPerSecond);
+            Scheduler.UpdatesPerSecond =
+                Constants.MotionArray[Math.Max(0, index - 1)];
         }
         public void SetFrame(int frame, bool updateslider = true)
         {
@@ -486,7 +488,7 @@ namespace linerider
             {
                 NextFrame();
                 if (!UseUserZoom)
-                    SetZoom(Timeline.GetFrameZoom(Offset));
+                    Zoom = Timeline.GetFrameZoom(Offset);
                 UpdateCamera();
             }
         }
@@ -630,11 +632,7 @@ namespace linerider
         }
         private void CancelTriggers()
         {
-            foreach (var v in ActiveTriggers)
-            {
-                v.Reset();
-            }
-            ActiveTriggers.Clear();
+            //todo
         }
         public void InitCamera()
         {

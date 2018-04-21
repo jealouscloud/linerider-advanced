@@ -36,7 +36,6 @@ namespace linerider.Game
         private float _cachezoom = 1;
         private float _blend = 1;
         private Vector2d _center = Vector2d.Zero;
-        private Stack<Vector2d> _savestack = new Stack<Vector2d>();
         private Vector2d _cachedcenter = Vector2d.Zero;
         private Vector2d _cachedprevcenter = Vector2d.Zero;
         protected Timeline _timeline;
@@ -101,22 +100,6 @@ namespace linerider.Game
         {
             _center = center;
             _cachedcenter = Vector2d.Zero;
-        }
-        public void Push()
-        {
-            _savestack.Push(GetCenter());
-        }
-
-        public void Pop()
-        {
-            if (_savestack.Count != 0)
-            {
-                SetFrameCenter(_savestack.Pop());
-            }
-            else
-            {
-                Debug.WriteLine("Camera pop stack empty");
-            }
         }
         public DoubleRect GetViewport(
             float zoom,

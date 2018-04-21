@@ -96,7 +96,7 @@ namespace linerider.UI
                 }
                 else
                 {
-                    if (_editor.PlaybackMode && _editor.Paused)
+                    if (_editor.Paused)
                         _editor.TogglePause();
                     else
                         _editor.StartFromFlag();
@@ -163,7 +163,7 @@ namespace linerider.UI
         }
         public override void Think()
         {
-            bool showplay = _editor.Paused || !_editor.PlaybackMode;
+            bool showplay = !_editor.Playing;
             _pause.IsHidden = showplay;
             _start.IsHidden = !showplay;
             base.Think();

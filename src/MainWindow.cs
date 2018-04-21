@@ -133,7 +133,7 @@ namespace linerider
         {
             bool shouldrender = _invalidated ||
              Canvas.NeedsRedraw ||
-            (Track.PlaybackMode) ||
+            (Track.Playing) ||
             Canvas.Loading ||
             Track.NeedsDraw ||
             CurrentTools.SelectedTool.NeedsRender;
@@ -205,11 +205,6 @@ namespace linerider
                 if (!_playbacktemp || (ReversePlayback && !InputUtils.Check(Hotkey.PlaybackBackward)))
                 {
                     StopTools();
-                    if (!Track.PlaybackMode)
-                    {
-                        Track.StartFromFlag();
-                        Track.ResetSpeedDefault();
-                    }
                     if (Track.Paused)
                         Track.TogglePause();
                     ReversePlayback = false;
@@ -221,11 +216,6 @@ namespace linerider
                 if (!_playbacktemp || (!ReversePlayback && !InputUtils.Check(Hotkey.PlaybackForward)))
                 {
                     StopTools();
-                    if (!Track.PlaybackMode)
-                    {
-                        Track.StartFromFlag();
-                        Track.ResetSpeedDefault();
-                    }
                     if (Track.Paused)
                         Track.TogglePause();
                     ReversePlayback = true;
@@ -259,7 +249,8 @@ namespace linerider
             bool quickpan = false;
             if (!Track.Playing)
             {
-                quickpan = (!Track.PlaybackMode && InputUtils.Check(Hotkey.EditorQuickPan)) ||
+                //todo review with playbackmode remove
+                quickpan = (InputUtils.Check(Hotkey.EditorQuickPan)) ||
                     (Focused && Mouse.GetState().IsButtonDown(MouseButton.Middle));
             }
             if (quickpan != CurrentTools.QuickPan)
@@ -307,7 +298,7 @@ namespace linerider
 
             if (_uicursor)
                 cursor = Canvas.Platform.CurrentCursor;
-            else if ((Track.PlaybackMode && !Track.Paused) || _dragRider)
+            else if (Track.Playing || _dragRider)
                 cursor = Cursors["default"];
             else if (CurrentTools.SelectedTool != null)
                 cursor = CurrentTools.SelectedTool.Cursor;
@@ -771,12 +762,12 @@ namespace linerider
                 Track.StartIgnoreFlag();
                 Track.ResetSpeedDefault();
             });
-            InputUtils.RegisterHotkey(Hotkey.PlaybackStartGhostFlag, () => true, () =>
-            {
-                StopTools();
-                Track.ResumeFromFlag();
-                Track.ResetSpeedDefault();
-            });
+            // InputUtils.RegisterHotkey(Hotkey.PlaybackStartGhostFlag, () => true, () =>
+            // {
+            //     StopTools();
+            //     Track.ResumeFromFlag();
+            //     Track.ResetSpeedDefault();
+            // });
             InputUtils.RegisterHotkey(Hotkey.PlaybackStart, () => true, () =>
             {
                 StopTools();
@@ -796,11 +787,6 @@ namespace linerider
             InputUtils.RegisterHotkey(Hotkey.PlaybackFrameNext, () => true, () =>
             {
                 StopHandTool();
-                if (!Track.PlaybackMode)
-                {
-                    Track.StartFromFlag();
-                    Track.ResetSpeedDefault();
-                }
                 if (!Track.Paused)
                     Track.TogglePause();
                 Track.NextFrame();
@@ -812,11 +798,6 @@ namespace linerider
             InputUtils.RegisterHotkey(Hotkey.PlaybackFramePrev, () => true, () =>
             {
                 StopHandTool();
-                if (!Track.PlaybackMode)
-                {
-                    Track.StartFromFlag();
-                    Track.ResetSpeedDefault();
-                }
                 if (!Track.Paused)
                     Track.TogglePause();
                 Track.PreviousFrame();
@@ -825,15 +806,15 @@ namespace linerider
             },
             null,
             repeat: true);
-            InputUtils.RegisterHotkey(Hotkey.PlaybackSpeedUp, () => Track.PlaybackMode, () =>
+            InputUtils.RegisterHotkey(Hotkey.PlaybackSpeedUp, () => true, () =>
             {
                 Track.PlaybackSpeedUp();
             });
-            InputUtils.RegisterHotkey(Hotkey.PlaybackSpeedDown, () => Track.PlaybackMode, () =>
+            InputUtils.RegisterHotkey(Hotkey.PlaybackSpeedDown, () => true, () =>
             {
                 Track.PlaybackSpeedDown();
             });
-            InputUtils.RegisterHotkey(Hotkey.PlaybackSlowmo, () => Track.PlaybackMode, () =>
+            InputUtils.RegisterHotkey(Hotkey.PlaybackSlowmo, () => true, () =>
             {
                 if (Track.Scheduler.UpdatesPerSecond !=
                 Settings.Local.SlowmoSpeed)
@@ -845,7 +826,7 @@ namespace linerider
                     Track.ResetSpeedDefault(false);
                 }
             });
-            InputUtils.RegisterHotkey(Hotkey.PlaybackTogglePause, () => Track.PlaybackMode, () =>
+            InputUtils.RegisterHotkey(Hotkey.PlaybackTogglePause, () => true, () =>
             {
                 StopTools();
                 Track.TogglePause();
@@ -855,11 +836,6 @@ namespace linerider
             InputUtils.RegisterHotkey(Hotkey.PlaybackIterationNext, () => !Track.Playing, () =>
             {
                 StopTools();
-                if (!Track.PlaybackMode)
-                {
-                    Track.StartFromFlag();
-                    Track.ResetSpeedDefault();
-                }
                 if (!Track.Paused)
                     Track.TogglePause();
                 if (Track.IterationsOffset != 6)
@@ -956,7 +932,7 @@ namespace linerider
             repeat: true);
             InputUtils.RegisterHotkey(Hotkey.EditorRemoveLatestLine, () => !Track.Playing, () =>
             {
-                if (!Track.PlaybackMode || Track.Paused)
+                if (!Track.Playing)
                 {
                     StopTools();
                     using (var trk = Track.CreateTrackWriter())
