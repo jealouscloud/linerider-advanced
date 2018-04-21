@@ -86,11 +86,13 @@ namespace linerider.UI
         private void Setup()
         {
             _savelist.AddItem(CreateNewTrack);
+            _savelist.SelectByText(CreateNewTrack);
             var directories = GetDirectories();
             foreach (var dir in directories)
             {
                 _savelist.AddItem(dir);
             }
+            _savelist.SelectByText(_editor.Name);
         }
         private void Save()
         {
