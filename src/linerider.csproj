@@ -241,20 +241,6 @@
     <EmbeddedResource Include="Resources\icons\stop.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\icons\white\erasertool.png" />
-    <EmbeddedResource Include="Resources\icons\white\fast-forward.png" />
-    <EmbeddedResource Include="Resources\icons\white\flag.png" />
-    <EmbeddedResource Include="Resources\icons\white\movetool.png" />
-    <EmbeddedResource Include="Resources\icons\white\linetool.png" />
-    <EmbeddedResource Include="Resources\icons\white\menu.png" />
-    <EmbeddedResource Include="Resources\icons\white\pantool.png" />
-    <EmbeddedResource Include="Resources\icons\white\pause.png" />
-    <EmbeddedResource Include="Resources\icons\white\penciltool.png" />
-    <EmbeddedResource Include="Resources\icons\white\play.png" />
-    <EmbeddedResource Include="Resources\icons\white\rewind.png" />
-    <EmbeddedResource Include="Resources\icons\white\stop.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resources\cursors\closed_move.png" />
     <EmbeddedResource Include="Resources\cursors\eraser.png" />
     <EmbeddedResource Include="Resources\cursors\line.png" />

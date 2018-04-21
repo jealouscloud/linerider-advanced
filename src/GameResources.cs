@@ -330,92 +330,6 @@ namespace linerider
         }
         #endregion
         #region Icons
-        #region white
-        internal static System.Drawing.Bitmap pencil_icon_white
-        {
-            get
-            {
-                return GetBitmap("icons.white.penciltool.png");
-            }
-        }
-        internal static System.Drawing.Bitmap line_icon_white
-        {
-            get
-            {
-                return GetBitmap("icons.white.linetool.png");
-            }
-        }
-        internal static System.Drawing.Bitmap eraser_icon_white
-        {
-            get
-            {
-                return GetBitmap("icons.white.erasertool.png");
-            }
-        }
-        internal static System.Drawing.Bitmap movetool_icon_white
-        {
-            get
-            {
-                return GetBitmap("icons.white.movetool.png");
-            }
-        }
-        internal static System.Drawing.Bitmap pantool_icon_white
-        {
-            get
-            {
-                return GetBitmap("icons.white.pantool.png");
-            }
-        }
-        internal static System.Drawing.Bitmap menu_icon_white
-        {
-            get
-            {
-                return GetBitmap("icons.white.menu.png");
-            }
-        }
-        internal static System.Drawing.Bitmap fast_forward_white
-        {
-            get
-            {
-                return GetBitmap("icons.white.fast-forward.png");
-            }
-        }
-        internal static System.Drawing.Bitmap flag_icon_white
-        {
-            get
-            {
-                return GetBitmap("icons.white.flag.png");
-            }
-        }
-        internal static System.Drawing.Bitmap pause_white
-        {
-            get
-            {
-                return GetBitmap("icons.white.pause.png");
-            }
-        }
-        internal static System.Drawing.Bitmap play_icon_white
-        {
-            get
-            {
-                return GetBitmap("icons.white.play.png");
-            }
-        }
-        internal static System.Drawing.Bitmap rewind_white
-        {
-            get
-            {
-                return GetBitmap("icons.white.rewind.png");
-            }
-        }
-        internal static System.Drawing.Bitmap stop_icon_white
-        {
-            get
-            {
-                return GetBitmap("icons.white.stop.png");
-            }
-        }
-        #endregion
         internal static System.Drawing.Bitmap pencil_icon
         {
             get
@@ -512,6 +426,13 @@ namespace linerider
             get
             {
                 return GetBitmap("icons.swatch.png");
+            }
+        }
+        internal static System.Drawing.Bitmap flag_marker
+        {
+            get
+            {
+                return GetBitmap("icons.flagmarker.png");
             }
         }
         #endregion
