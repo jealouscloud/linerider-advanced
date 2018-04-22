@@ -206,6 +206,13 @@ namespace linerider
                 return GetBitmap("cursors.move.png");
             }
         }
+        internal static System.Drawing.Bitmap cursor_hand
+        {
+            get
+            {
+                return GetBitmap("cursors.hand.png");
+            }
+        }
         internal static System.Drawing.Bitmap cursor_dragging
         {
             get

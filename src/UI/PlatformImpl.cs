@@ -109,9 +109,11 @@ namespace linerider.UI
                 case "IBeam":
                     SetGameCursor(game.Cursors["ibeam"]);
                     break;
+                case "Hand":
+                    SetGameCursor(game.Cursors["hand_point"]);
+                    break;
                 case "SizeAll":
                 case "Help":
-                case "Hand":
                 case "No":
                     SetGameCursor(game.Cursors["default"]);
                     break;

@@ -270,7 +270,6 @@ namespace linerider
             {
                 if (ReversePlayback)
                 {
-                    Track.ActiveTriggers.Clear();//we don't want wonky unpredictable behavior
                     for (int i = 0; i < updates; i++)
                     {
                         Track.PreviousFrame();
@@ -355,6 +354,7 @@ namespace linerider
             AddCursor("line", GameResources.cursor_line, 11, 11);
             AddCursor("eraser", GameResources.cursor_eraser, 8, 8);
             AddCursor("hand", GameResources.cursor_move, 16, 16);
+            AddCursor("hand_point", GameResources.cursor_hand, 14, 8);
             AddCursor("closed_hand", GameResources.cursor_dragging, 16, 16);
             AddCursor("adjustline", GameResources.cursor_select, 4, 4);
             AddCursor("size_nesw", GameResources.cursor_size_nesw, 16, 16);
@@ -732,6 +732,7 @@ namespace linerider
                 ImageLockMode.ReadOnly,
                 PixelFormat.Format32bppPArgb);
             Cursors[name] = new MouseCursor(hotx, hoty, image.Width, image.Height, data.Scan0);
+            image.UnlockBits(data);
         }
         private void RegisterHotkeys()
         {
