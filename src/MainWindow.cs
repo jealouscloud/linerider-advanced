@@ -188,11 +188,18 @@ namespace linerider
                 Track.FramerateCounter.AddFrame(seconds);
                 Track.FramerateWatch.Restart();
             }
+            if (!Focused && !TrackRecorder.Recording)
+            {
+                Thread.Sleep(30);
+            }
+            else 
             if (!Track.Playing &&
-                !Canvas.NeedsRedraw &&
-                !Track.NeedsDraw &&
-                !CurrentTools.SelectedTool.Active)//if nothing is waiting on us we can let the os breathe
+                    !Canvas.NeedsRedraw &&
+                    !Track.NeedsDraw &&
+                    !CurrentTools.SelectedTool.Active)
+            {
                 Thread.Sleep(10);
+            }
         }
         private void GameUpdateHandleInput()
         {
