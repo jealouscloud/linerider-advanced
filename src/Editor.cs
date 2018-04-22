@@ -1,4 +1,4 @@
-﻿//
+//
 //  Editor.cs
 //
 //  Author:
@@ -217,7 +217,7 @@ namespace linerider
                 _refreshtrack = false;
             }
             DrawOptions drawOptions = new DrawOptions();
-            drawOptions.DrawFlag = _flag != null;
+            drawOptions.DrawFlag = _flag != null && !TrackRecorder.Recording;
             if (drawOptions.DrawFlag)
             {
                 drawOptions.FlagRider = _flag.State;

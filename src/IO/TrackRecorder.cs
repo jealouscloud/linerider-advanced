@@ -129,7 +129,6 @@ namespace linerider.IO
                     var filename = Program.UserDirectory + game.Track.Name + ".mp4";
                     var flagbackup = flag;
                     var hardexit = false;
-                    game.Track.Flag();
                     var recmodesave = Settings.Local.RecordingMode;
                     Settings.Local.RecordingMode = true;
                     game.Track.StartIgnoreFlag();
@@ -309,7 +308,6 @@ namespace linerider.IO
                     }
                     Settings.Local.RecordingMode = recmodesave;
                     game.Title = Program.WindowTitle;
-                    game.Track.RestoreFlag(flagbackup);
                     game.Track.Stop();
                     game.ProcessEvents();
                     var openwindows = game.Canvas.GetOpenWindows();
