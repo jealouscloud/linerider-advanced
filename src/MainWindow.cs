@@ -44,6 +44,7 @@ using Key = OpenTK.Input.Key;
 using Label = Gwen.Controls.Label;
 using Menu = Gwen.Controls.Menu;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
+using MessageBox = Gwen.Controls.MessageBox;
 
 namespace linerider
 {
@@ -413,12 +414,10 @@ namespace linerider
                     if (!Track.Playing)
                     {
                         bool dragstart = false;
-                        if (!Track.Paused &&
-                            e.Button == MouseButton.Left &&
+                        if (e.Button == MouseButton.Left &&
                             OpenTK.Input.Keyboard.GetState()[Key.D])
                         {
-                            var pos = new Vector2d(e.X, e.Y) / Track.Zoom;
-                            var gamepos = (ScreenPosition + pos);
+                            var gamepos = ScreenPosition + (new Vector2d(e.X,e.Y) / Track.Zoom);
                             dragstart = Game.Rider.GetBounds(
                                 Track.GetStart()).Contains(
                                     gamepos.X,
@@ -429,10 +428,11 @@ namespace linerider
                                 // place to assume the user has done "work"
                                 if (!Track.MoveStartWarned && Track.LineCount > 5)
                                 {
-                                    var popup = Gwen.Controls.MessageBox.Show(Canvas,
+                                    var popup = MessageBox.Show(Canvas,
                                         "You're about to move the start position of the rider." +
                                         " This cannot be undone, and may drastically change how your track plays." +
-                                        "\nAre you sure you want to do this?", "Warning", true);
+                                        "\nAre you sure you want to do this?", "Warning", MessageBox.ButtonType.OkCancel);
+                                    popup.RenameButtons("I understand");
                                     popup.Dismissed += (o, args) =>
                                     {
                                         if (popup.Result == Gwen.DialogResult.OK)
