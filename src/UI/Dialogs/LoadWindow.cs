@@ -127,7 +127,8 @@ namespace linerider.UI
                             _canvas,
                             "Are you sure you want to delete this track folder?\nAll files inside of it will be permanently lost.",
                             "Are you sure?",
-                            true);
+                            MessageBox.ButtonType.OkCancel);
+                        box.RenameButtons("Delete Folder");
                         box.Dismissed +=
                         (o, e) =>
                         {
@@ -145,7 +146,8 @@ namespace linerider.UI
                             _canvas,
                             "Are you sure you want to delete this file?\nAll progress will be permanently lost.",
                             $"Delete {Path.GetFileName(itemdata.Path)}?",
-                            true);
+                            MessageBox.ButtonType.OkCancel);
+                        box.RenameButtons("Delete File");
                         box.Dismissed +=
                         (o, e) =>
                         {
@@ -163,7 +165,8 @@ namespace linerider.UI
                             _canvas,
                             "Are you sure you want to delete this sol file?\nAll tracks contained within it will be permanently lost.",
                             $"Delete {Path.GetFileName(itemdata.Path)}?",
-                            true);
+                            MessageBox.ButtonType.OkCancel);
+                        box.RenameButtons("Delete File");
                         box.Dismissed +=
                         (o, e) =>
                         {

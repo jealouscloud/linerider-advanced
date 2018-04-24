@@ -206,7 +206,8 @@ namespace linerider
         {
             if (Program.NewVersion == null)
                 return;
-            var window = MessageBox.Show(this, "Would you like to download the latest version?", "Update Available! v" + Program.NewVersion, true);
+            var window = MessageBox.Show(this, "Would you like to download the latest version?", "Update Available! v" + Program.NewVersion, MessageBox.ButtonType.OkCancel);
+            window.RenameButtons("Go to Download");
             window.Dismissed += (o, e) =>
             {
                 if (window.Result == DialogResult.OK)
