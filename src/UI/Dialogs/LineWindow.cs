@@ -20,6 +20,7 @@ namespace linerider.UI
         private GameLine _linecopy;
         private bool _linechangemade = false;
         private const string DefaultTitle = "Line Propeties";
+        private bool closing = false;
         public LineWindow(GameCanvas parent, Editor editor, GameLine line) : base(parent, editor)
         {
             _ownerline = line;
@@ -36,13 +37,41 @@ namespace linerider.UI
             MakeModal(true);
             Setup();
             _proptree.ExpandAll();
-            this.IsHiddenChanged += (o, e) =>
+        }
+        public override bool Close()
+        {
+            if (closing || !_linechangemade)
             {
-                if (IsHidden)
+                closing = true;
+                return base.Close();
+            }
+            else
+            {
+                var mbox = MessageBox.Show(
+                    _canvas,
+                    "The line has been modified. Do you want to save your changes?",
+                    "Save Changes?",
+                    MessageBox.ButtonType.YesNoCancel);
+                mbox.RenameButtonsYN("Save", "Discard", "Cancel");
+                mbox.MakeModal(false);
+                mbox.Dismissed += (o, e) =>
                 {
-                    FinishChange();
-                }
-            };
+                    switch (e)
+                    {
+                        case DialogResult.Yes:
+                            FinishChange();
+                            closing = true;
+                            base.Close();
+                            break;
+                        case DialogResult.No:
+                            CancelChange();
+                            closing = true;
+                            base.Close();
+                            break;
+                    }
+                };
+                return false;
+            }
         }
         private void Setup()
         {
@@ -61,11 +90,8 @@ namespace linerider.UI
             };
             cancel.Clicked += (o, e) =>
             {
-                if (_linechangemade)
-                {
-                    _editor.UndoManager.CancelAction();
-                    _linechangemade = false;
-                }
+                CancelChange();
+                closing = true;
                 Close();
             };
             Button ok = new Button(bottom)
@@ -76,6 +102,7 @@ namespace linerider.UI
             };
             ok.Clicked += (o, e) =>
             {
+                closing = true;
                 Close();
             };
         }
@@ -193,7 +220,7 @@ namespace linerider.UI
             check.IsChecked = value;
             return check;
         }
-        
+
         private void UpdateOwnerLine(TrackWriter trk, GameLine replacement)
         {
             UpdateLine(trk, _ownerline, replacement);
@@ -284,6 +311,14 @@ namespace linerider.UI
                 _editor.UndoManager.BeginAction();
                 _linechangemade = true;
                 Title = DefaultTitle + " *";
+            }
+        }
+        private void CancelChange()
+        {
+            if (_linechangemade)
+            {
+                _editor.UndoManager.CancelAction();
+                _linechangemade = false;
             }
         }
         private void FinishChange()
