@@ -124,22 +124,43 @@ namespace linerider.UI
                 menu.AddItem("Load").Clicked += (o2, e2) => { _canvas.ShowLoadDialog(); };
                 menu.AddItem("New").Clicked += (o2, e2) =>
                 {
-                    var msg = MessageBox.Show(
-                        _canvas,
-                        "You are creating a new track. Any unsaved progress will be lost.",
-                        "Are you sure?",
-                        true);
-                    msg.Dismissed += (o3, result) =>
-                      {
-                          if (result == DialogResult.OK)
+                    if (_editor.TrackChanges != 0)
+                    {
+                        var save = MessageBox.Show(
+                            _canvas,
+                            "You are creating a new track.\nDo you want to save your current changes?",
+                            "Create New Track",
+                            MessageBox.ButtonType.YesNoCancel);
+                        save.RenameButtonsYN("Save", "Discard", "Cancel");
+                        save.Dismissed += (o3, result) =>
                           {
-                              _editor.Stop();
-                              _editor.ChangeTrack(new Track() { Name = Utils.Constants.DefaultTrackName });
-                              Settings.LastSelectedTrack = "";
-                              Settings.Save();
-                              _editor.Invalidate();
-                          }
-                      };
+                              switch (result)
+                              {
+                                  case DialogResult.Yes:
+                                      _canvas.ShowSaveDialog();
+                                      break;
+                                  case DialogResult.No:
+                                      NewTrack();
+                                      break;
+                              }
+                          };
+                    }
+                    else
+                    {
+                        var msg = MessageBox.Show(
+                            _canvas,
+                            "Are you sure you want to create a new track?",
+                            "Create New Track",
+                            MessageBox.ButtonType.OkCancel);
+                        msg.RenameButtons("Create");
+                        msg.Dismissed += (o3, result) =>
+                          {
+                              if (result == DialogResult.OK)
+                              {
+                                  NewTrack();
+                              }
+                          };
+                    }
                 };
                 menu.AddItem("Preferences").Clicked += (o2, e2) => _canvas.ShowPreferencesDialog();
                 menu.AddItem("Export Video").Clicked += (o2, e2) => _canvas.ShowExportVideoWindow();
@@ -147,6 +168,14 @@ namespace linerider.UI
                 menu.SetPosition(canvaspos.X, canvaspos.Y + 32);
                 menu.Show();
             };
+        }
+        private void NewTrack()
+        {
+            _editor.Stop();
+            _editor.ChangeTrack(new Track() { Name = Utils.Constants.DefaultTrackName });
+            Settings.LastSelectedTrack = "";
+            Settings.Save();
+            _editor.Invalidate();
         }
         protected override void PostLayout()
         {
