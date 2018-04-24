@@ -1,4 +1,4 @@
-﻿//#define debuggrid
+//#define debuggrid
 //#define debugcamera
 //
 //  GLWindow.cs
@@ -495,6 +495,8 @@ namespace linerider
                 _dragRider = false;
                 var r = _input.ProcessMouseMessage(e);
                 _uicursor = r;
+                if (!r)
+                {
                 if (Canvas.GetOpenWindows().Count != 0)
                 {
                     UpdateCursor();
@@ -516,9 +518,7 @@ namespace linerider
                         CurrentTools.QuickPan = false;
                     }
                 }
-                if (r)
-                    Cursor = Cursors["default"];
-                else
+                }
                     UpdateCursor();
             }
             catch (Exception ex)
