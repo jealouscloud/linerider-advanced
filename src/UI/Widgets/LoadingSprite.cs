@@ -28,38 +28,28 @@ using OpenTK.Graphics.OpenGL;
 
 namespace linerider.UI
 {
-    public class Sprite : ControlBase
+    public class LoadingSprite : Sprite
     {
-        public byte Alpha = 255;
-        protected Texture m_texture;
-        public Sprite(ControlBase canvas)
+        public LoadingSprite(ControlBase canvas)
             : base(canvas)
         {
             IsTabable = false;
             KeyboardInputEnabled = false;
             MouseInputEnabled = false;
         }
-
-        public void SetImage(Bitmap bmp)
-        {
-            if (m_texture != null)
-                m_texture.Dispose();
-
-            Texture tx = new Texture(Skin.Renderer);
-            Gwen.Renderer.OpenTK.LoadTextureInternal(tx, bmp);
-            m_texture = tx;
-            Size = bmp.Size;
-        }
         protected override void Render(Gwen.Skin.SkinBase skin)
         {
+            ((Gwen.Renderer.OpenTK)skin.Renderer).Flush();
+            var rotation = (Environment.TickCount % 1000) / 1000f;
+            var trans = new Vector3d(X + (Width / 2), Y + (Height / 2), 0);
+            GL.PushMatrix();
+            GL.Translate(trans);
+            GL.Rotate(360 * rotation, Vector3d.UnitZ);
+            GL.Translate(-trans);
             skin.Renderer.DrawColor = Color.FromArgb(Alpha, 255, 255, 255);
             skin.Renderer.DrawTexturedRect(m_texture, RenderBounds);
-        }
-        public override void Dispose()
-        {
-            if (m_texture != null)
-                m_texture.Dispose();
-            base.Dispose();
+            ((Gwen.Renderer.OpenTK)skin.Renderer).Flush();
+            GL.PopMatrix();
         }
     }
 }

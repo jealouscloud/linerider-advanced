@@ -24,7 +24,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>7</LangVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Optimize>true</Optimize>
     <OutputPath>..\build</OutputPath>
     <DebugType>portable</DebugType>
@@ -175,8 +175,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="UI\Widgets\WidgetContainer.cs" />
+    <Compile Include="UI\Widgets\HotkeyWidget.cs" />
     <Compile Include="UI\Widgets\TrackLabel.cs" />
     <Compile Include="UI\Widgets\Sprite.cs" />
+    <Compile Include="UI\Widgets\LoadingSprite.cs" />
     <Compile Include="UI\Widgets\TrackInfoBar.cs" />
     <Compile Include="UI\Widgets\RightInfoBar.cs" />
     <Compile Include="UI\Widgets\ColorSwatch.cs" />
@@ -185,6 +187,7 @@
     <Compile Include="UI\Widgets\ImageButton.cs" />
     <Compile Include="UI\Widgets\Toolbar.cs" />
     <Compile Include="UI\Widgets\Playhead.cs" />
+    <Compile Include="UI\Widgets\PlayheadMarker.cs" />
     <Compile Include="UI\Widgets\ZoomSlider.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -241,7 +244,12 @@
     <EmbeddedResource Include="Resources\icons\stop.png" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\ux\flagmarker.png" />
+    <EmbeddedResource Include="Resources\ux\playheadmarker.png" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="Resources\cursors\closed_move.png" />
+    <EmbeddedResource Include="Resources\cursors\hand.png" />
     <EmbeddedResource Include="Resources\cursors\eraser.png" />
     <EmbeddedResource Include="Resources\cursors\line.png" />
     <EmbeddedResource Include="Resources\cursors\move.png" />
@@ -285,6 +293,10 @@
     <None Include="..\lib\gwen-lra\Gwen\bin\Gwen.pdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <Link>Gwen.pdb</Link>
+    </None>
+    <None Include="..\lib\gwen-lra\Gwen.Renderer.OpenTK\bin\Gwen.Renderer.OpenTK.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Link>Gwen.Renderer.OpenTK.pdb</Link>
     </None>
     <None Include="openal32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

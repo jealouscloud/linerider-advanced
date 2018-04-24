@@ -46,7 +46,7 @@ namespace linerider
         private ControlBase _topcontainer;
         private TimelineWidget _timeline;
         private Toolbar _toolbar;
-        private Sprite _loadingsprite;
+        private LoadingSprite _loadingsprite;
         private MainWindow game;
         public PlatformImpl Platform;
         public bool Loading { get; set; }
@@ -87,10 +87,6 @@ namespace linerider
             _toolbar.IsHidden = rec && !Settings.Recording.ShowTools;
             //
             _loadingsprite.IsHidden = rec || !Loading;
-            if (Loading)
-            {
-                _loadingsprite.Rotation = (Environment.TickCount % 1000) / 1000f;
-            }
             var selectedtool = CurrentTools.SelectedTool;
             _usertooltip.IsHidden = !(selectedtool.Active && selectedtool.Tooltip != "");
             if (!_usertooltip.IsHidden)
@@ -114,9 +110,8 @@ namespace linerider
         private void CreateUI()
         {
             _usertooltip = new Tooltip(this) { IsHidden = true };
-            _loadingsprite = new Sprite(this)
+            _loadingsprite = new LoadingSprite(this)
             {
-                RotationPoint = new System.Drawing.Point(16, 16),
                 Positioner = (o) =>
                 {
                     return new System.Drawing.Point(
