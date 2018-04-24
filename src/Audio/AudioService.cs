@@ -197,7 +197,7 @@ namespace linerider.Audio
             var updaterate = (float)game.Track.Scheduler.UpdatesPerSecond;
             var updatepercent = (float)game.Track.Scheduler.ElapsedPercent;
             var expectedtime = Settings.Local.CurrentSong.Offset +
-                (game.Track.CurrentFrame / (float)Constants.PhysicsRate) +
+                (game.Track.Offset / (float)Constants.PhysicsRate) +
                 (updatepercent / (float)Constants.PhysicsRate);
 
             bool shouldplay = 

@@ -1,4 +1,4 @@
-//
+﻿//
 //  Editor.cs
 //
 //  Author:
@@ -44,7 +44,6 @@ namespace linerider
         private int _prevSaveUndoPos = 0;
         private RiderFrame _flag;
         private Track _track;
-        private int _startFrame;
         private int _iteration = 6;
         private bool _renderriderinvalid = true;
         private RiderFrame _renderrider = null;
@@ -96,7 +95,6 @@ namespace linerider
             }
         }
         public ICamera Camera { get; private set; }
-        public List<LineTrigger> ActiveTriggers = new List<LineTrigger>();
         public int LineCount => _track.Lines.Count;
         public int TrackChanges
         {
@@ -323,24 +321,18 @@ namespace linerider
                 Scheduler.Reset();
             }
         }
-        public void Flag()
+        public void Flag(int offset, bool canremove = true)
         {
-            if (Playing)
-            {
-                if (_flag != null && _flag.FrameID == Offset)
-                {
-                    _flag = null;
-                }
-                else
-                {
-                    _flag = new RiderFrame { State = Timeline.GetFrame(Offset), FrameID = Offset };
-                }
-            }
-            else
+            if (offset < 0)
+                throw new ArgumentOutOfRangeException("Cannot set a flag to a negative frame");
+            if (canremove && _flag != null && _flag.FrameID == offset)
             {
                 _flag = null;
             }
-
+            else
+            {
+                _flag = new RiderFrame { State = Timeline.GetFrame(offset), FrameID = offset };
+            }
             Invalidate();
         }
 
@@ -353,8 +345,6 @@ namespace linerider
         {
             SetFrame(Math.Max(0, Offset - 1));
         }
-
-
         public void TogglePause()
         {
             Paused = !Paused;
@@ -373,45 +363,17 @@ namespace linerider
         {
             CancelTriggers();
             UseUserZoom = false;
-            if (_flag == null)
-            {
-                _startFrame = 0;
-                Timeline.Restart(_track.GetStart(), StartZoom);
-            }
-            else
-            {
-                _startFrame = _flag.FrameID;
-                Timeline.Restart(_flag.State, StartZoom);
-            }
-            FrameCount = 1;
-            Start(0);
+            var frame = _flag != null ? _flag.FrameID : 0;
+            Start(frame);
         }
         public void StartIgnoreFlag()
         {
             CancelTriggers();
-            _startFrame = 0;
             UseUserZoom = false;
-            Timeline.Restart(_track.GetStart(), StartZoom);
-            FrameCount = 1;
             Start(0);
-        }
-        public void ResumeFromFlag()
-        {
-            CancelTriggers();
-            _startFrame = 0;
-            Timeline.Restart(_track.GetStart(), StartZoom);
-            FrameCount = 1;
-            if (_flag != null)
-            {
-                var atflag = Timeline.GetFrame(_flag.FrameID);
-                FrameCount = _flag.FrameID + 1;
-            }
-            Start(FrameCount - 1);
         }
         private void Start(int frameid)
         {
-            if (frameid >= FrameCount)
-                throw new Exception("Start frame out of range");
             if (_hasstopped)
             {
                 _savedcamera = Camera.GetCenter();
@@ -440,9 +402,9 @@ namespace linerider
                 Camera.SetFrameCenter(_savedcamera);
                 _hasstopped = true;
             }
-            Reset();
             CancelTriggers();
-            SetFrame(0);
+            int frame = _flag != null ? _flag.FrameID : 0;
+            SetFrame(frame);
             Camera.BeginFrame(1, Zoom);
             Camera.SetFrameCenter(Camera.GetCenter(true));
             Invalidate();

@@ -84,7 +84,7 @@ namespace linerider.UI
             _handbtn.Clicked += (o, e) => CurrentTools.SetTool(CurrentTools.HandTool);
             _flag.Clicked += (o, e) =>
             {
-                _editor.Flag();
+                _editor.Flag(_editor.Offset);
             };
             // _pause.IsHidden = true;
             _start.Clicked += (o, e) =>

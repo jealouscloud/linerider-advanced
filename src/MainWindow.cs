@@ -1,4 +1,4 @@
-//#define debuggrid
+﻿//#define debuggrid
 //#define debugcamera
 //
 //  GLWindow.cs
@@ -192,7 +192,7 @@ namespace linerider
             {
                 Thread.Sleep(30);
             }
-            else 
+            else
             if (!Track.Playing &&
                     !Canvas.NeedsRedraw &&
                     !Track.NeedsDraw &&
@@ -497,29 +497,29 @@ namespace linerider
                 _uicursor = r;
                 if (!r)
                 {
-                if (Canvas.GetOpenWindows().Count != 0)
-                {
-                    UpdateCursor();
-                    return;
-                }
-                if (e.Button == MouseButton.Left)
-                {
-                    CurrentTools.SelectedTool.OnMouseUp(new Vector2d(e.X, e.Y));
-                }
-                else if (e.Button == MouseButton.Right)
-                {
-                    CurrentTools.SelectedTool.OnMouseRightUp(new Vector2d(e.X, e.Y));
-                }
-                else if (e.Button == MouseButton.Middle)
-                {
-                    if (CurrentTools.QuickPan)
+                    if (Canvas.GetOpenWindows().Count != 0)
                     {
-                        CurrentTools.HandTool.OnMouseUp(new Vector2d(e.X, e.Y));
-                        CurrentTools.QuickPan = false;
+                        UpdateCursor();
+                        return;
+                    }
+                    if (e.Button == MouseButton.Left)
+                    {
+                        CurrentTools.SelectedTool.OnMouseUp(new Vector2d(e.X, e.Y));
+                    }
+                    else if (e.Button == MouseButton.Right)
+                    {
+                        CurrentTools.SelectedTool.OnMouseRightUp(new Vector2d(e.X, e.Y));
+                    }
+                    else if (e.Button == MouseButton.Middle)
+                    {
+                        if (CurrentTools.QuickPan)
+                        {
+                            CurrentTools.HandTool.OnMouseUp(new Vector2d(e.X, e.Y));
+                            CurrentTools.QuickPan = false;
+                        }
                     }
                 }
-                }
-                    UpdateCursor();
+                UpdateCursor();
             }
             catch (Exception ex)
             {
@@ -789,7 +789,7 @@ namespace linerider
             });
             InputUtils.RegisterHotkey(Hotkey.PlaybackFlag, () => true, () =>
             {
-                Track.Flag();
+                Track.Flag(Track.Offset);
             });
 
             InputUtils.RegisterHotkey(Hotkey.PlaybackFrameNext, () => true, () =>

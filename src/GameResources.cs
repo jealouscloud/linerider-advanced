@@ -337,6 +337,13 @@ namespace linerider
         }
         #endregion
         #region Icons
+        internal static System.Drawing.Bitmap playheadmarker
+        {
+            get
+            {
+                return GetBitmap("ux.playheadmarker.png");
+            }
+        }
         internal static System.Drawing.Bitmap pencil_icon
         {
             get
@@ -435,11 +442,11 @@ namespace linerider
                 return GetBitmap("icons.swatch.png");
             }
         }
-        internal static System.Drawing.Bitmap flag_marker
+        internal static System.Drawing.Bitmap flagmarker
         {
             get
             {
-                return GetBitmap("icons.flagmarker.png");
+                return GetBitmap("ux.flagmarker.png");
             }
         }
         #endregion

@@ -33,6 +33,8 @@ namespace linerider.UI
         private ImageButton _speedincrease;
         private ImageButton _speeddecrease;
         private TrackLabel _timecurrent;
+        private TrackLabel _iterations;
+        private TrackLabel _timemax;
         public TimelineWidget(ControlBase parent, Editor editor) : base(parent)
         {
             _canvas = (GameCanvas)parent.GetCanvas();
@@ -77,12 +79,11 @@ namespace linerider.UI
                 ShouldDrawBackground = false,
                 MouseInputEnabled = false,
             };
-            _timecurrent = new TrackLabel(time)
+            _iterations = new TrackLabel(time)
             {
                 Dock = Dock.Fill,
                 TextRequest = (o, e) =>
                 {
-                    string ret = GetTimeString(_editor.CurrentFrame);
                     switch (_editor.IterationsOffset)
                     {
                         case 0:
@@ -97,7 +98,28 @@ namespace linerider.UI
                             return "Physics Iteration: 4";
                         case 5:
                             return "Physics Iteration: 5";
+                        default:
+                            return "";
                     }
+                },
+                Alignment = Pos.Center,
+            };
+            _timecurrent = new TrackLabel(time)
+            {
+                Dock = Dock.Left,
+                TextRequest = (o, e) =>
+                {
+                    string ret = GetTimeString((int)Playhead.Value);
+                    return ret;
+                },
+                Alignment = Pos.Center,
+            };
+            _timemax = new TrackLabel(time)
+            {
+                Dock = Dock.Right,
+                TextRequest = (o, e) =>
+                {
+                    string ret = GetTimeString((int)Playhead.DisplayMax);
                     return ret;
                 },
                 Alignment = Pos.Center,
