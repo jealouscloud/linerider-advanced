@@ -57,6 +57,7 @@ namespace linerider.UI
         PlaybackBackward,
         PreferenceOnionSkinning,
         PreferencesWindow,
+        TrackPropertiesWindow,
         LoadWindow,
         Quicksave,
 

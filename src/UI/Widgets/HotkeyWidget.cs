@@ -119,6 +119,7 @@ namespace linerider.UI
             var misctable = _kbtree.Add("Misc", 150);
             AddBinding(misctable, "Quicksave", Hotkey.Quicksave);
             AddBinding(misctable, "Open Preferences", Hotkey.PreferencesWindow);
+            AddBinding(misctable, "Open Track Properties", Hotkey.TrackPropertiesWindow);
             AddBinding(misctable, "Load Track", Hotkey.LoadWindow);
             _kbtree.ExpandAll();
         }

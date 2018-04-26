@@ -896,6 +896,12 @@ namespace linerider
             {
                 Canvas.ShowPreferencesDialog();
             });
+            InputUtils.RegisterHotkey(Hotkey.TrackPropertiesWindow,
+            () => !CurrentTools.SelectedTool.Active,
+            () =>
+            {
+                Canvas.ShowTrackPropertiesDialog();
+            });
             InputUtils.RegisterHotkey(Hotkey.Quicksave, () => true, () =>
                {
                    Track.QuickSave();

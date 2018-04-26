@@ -1,4 +1,4 @@
-//
+﻿//
 //  GLWindow.cs
 //
 //  Author:
@@ -193,6 +193,7 @@ namespace linerider
             SetupDefaultKeybind(Hotkey.PreferencesWindow,
                 new Keybinding(Key.Escape),
                 new Keybinding(Key.P, KeyModifiers.Control));
+            SetupDefaultKeybind(Hotkey.TrackPropertiesWindow, new Keybinding(Key.T, KeyModifiers.Control));
             SetupDefaultKeybind(Hotkey.PreferenceOnionSkinning, new Keybinding(Key.O, KeyModifiers.Control));
             SetupDefaultKeybind(Hotkey.LoadWindow, new Keybinding(Key.O));
             SetupDefaultKeybind(Hotkey.Quicksave, new Keybinding(Key.S, KeyModifiers.Control));
