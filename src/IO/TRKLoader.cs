@@ -1,4 +1,4 @@
-using OpenTK;
+﻿using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -103,8 +103,7 @@ namespace linerider.IO
                         {
                             if (AudioService.LoadFile(ref fn))
                             {
-                                Settings.Local.CurrentSong = new Song(Path.GetFileName(fn), float.Parse(strings[1]));
-                                Settings.Local.EnableSong = true;
+                                ret.Song = new Song(Path.GetFileName(fn), float.Parse(strings[1]));
                             }
                             else
                             {

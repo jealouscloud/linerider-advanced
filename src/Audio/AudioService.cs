@@ -192,17 +192,21 @@ namespace linerider.Audio
         }
         public static void EnsureSync()
         {
-            if (!Settings.Local.EnableSong)
+            var editor = game.Track;
+            if (!Settings.Local.EnableSong || 
+                string.IsNullOrEmpty(editor.Song.Location) || 
+                !editor.Song.Enabled)
                 return;
-            var updaterate = (float)game.Track.Scheduler.UpdatesPerSecond;
-            var updatepercent = (float)game.Track.Scheduler.ElapsedPercent;
-            var expectedtime = Settings.Local.CurrentSong.Offset +
-                (game.Track.Offset / (float)Constants.PhysicsRate) +
+                
+            var updaterate = (float)editor.Scheduler.UpdatesPerSecond;
+            var updatepercent = (float)editor.Scheduler.ElapsedPercent;
+            var expectedtime = editor.Song.Offset +
+                (editor.Offset / (float)Constants.PhysicsRate) +
                 (updatepercent / (float)Constants.PhysicsRate);
 
-            bool shouldplay = 
+            bool shouldplay =
                 _musicplayer != null &&
-                game.Track.Playing &&
+                editor.Playing &&
                 expectedtime < _musicplayer.Duration;
 
             if (shouldplay && !game.Canvas.Scrubbing)
@@ -227,8 +231,8 @@ namespace linerider.Audio
                             rate);
                         _audiosync_timer.Restart();
                         Debug.WriteLine(
-                            "Audio fell out of sync by "+
-                            syncrate+
+                            "Audio fell out of sync by " +
+                            syncrate +
                             " seconds");
                     }
                 }

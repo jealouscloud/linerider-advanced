@@ -26,8 +26,9 @@ using System.Text;
 
 namespace linerider.Audio
 {
-    public class Song
+    public struct Song
     {
+        public bool Enabled;
         public string Location;
         public float Offset;
 
@@ -35,6 +36,7 @@ namespace linerider.Audio
         {
             Location = location;
             Offset = offset;
+            Enabled = true;
         }
         public override string ToString()
         {

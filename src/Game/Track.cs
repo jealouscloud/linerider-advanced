@@ -29,6 +29,7 @@ using System.Threading;
 using linerider.Game;
 using linerider.Utils;
 using System.Diagnostics;
+using linerider.Audio;
 
 namespace linerider
 {
@@ -40,6 +41,7 @@ namespace linerider
 
         public string Name = Constants.DefaultTrackName;
         public string Filename = null;
+        public Song Song;
         private Vector2d _start = Vector2d.Zero;
         public Bone[] Bones = new Bone[RiderConstants.Bones.Length];
         public Vector2d StartOffset

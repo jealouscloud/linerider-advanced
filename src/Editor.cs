@@ -94,6 +94,17 @@ namespace linerider
                 Invalidate();
             }
         }
+        public Song Song
+        {
+            get
+            {
+                return _track.Song;
+            }
+            set
+            {
+                _track.Song = value;
+            }
+        }
         public ICamera Camera { get; private set; }
         public int LineCount => _track.Lines.Count;
         public int TrackChanges

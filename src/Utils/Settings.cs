@@ -55,7 +55,6 @@ namespace linerider
             public static bool ColorPlayback;
             public static bool DrawContactPoints;
             public static bool OnionSkinning;
-            public static Song CurrentSong = new Song("", 0);
             public static bool EnableSong = false;
             public static float MaxZoom
             {
