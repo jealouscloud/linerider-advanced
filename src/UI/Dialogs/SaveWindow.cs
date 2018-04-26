@@ -128,7 +128,7 @@ namespace linerider.UI
                     {
                         case ".trk":
                             {
-                                filepath = TrackIO.SaveTrackToFile(trk.Track, filename, Settings.Local.CurrentSong?.ToString());
+                                filepath = TrackIO.SaveTrackToFile(trk.Track, filename);
                                 Settings.LastSelectedTrack = filepath;
                                 Settings.Save();
                             }
@@ -165,9 +165,9 @@ namespace linerider.UI
             bool six_one;
             bool redmultiplier;
             bool scenerywidth;
-            features.TryGetValue("SIX_ONE", out six_one);
-            features.TryGetValue("REDMULTIPLIER", out redmultiplier);
-            features.TryGetValue("SCENERYWIDTH", out scenerywidth);
+            features.TryGetValue(TrackFeatures.six_one, out six_one);
+            features.TryGetValue(TrackFeatures.redmultiplier, out redmultiplier);
+            features.TryGetValue(TrackFeatures.scenerywidth, out scenerywidth);
             if (six_one || redmultiplier || scenerywidth)
             {
                 var msg = "*Error\nThe following features are incompatible with .sol:\n";

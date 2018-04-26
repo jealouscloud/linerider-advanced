@@ -1,4 +1,4 @@
-﻿//
+//
 //  Editor.cs
 //
 //  Author:
@@ -471,13 +471,13 @@ namespace linerider
                 {
                     if (Crash)
                     {
-                        TrackIO.SaveTrackToFile(_track, "Crash Backup", Settings.Local.CurrentSong?.ToString());
+                        TrackIO.SaveTrackToFile(_track, "Crash Backup");
                     }
                     else
                     {
                         if (TrackChanges > 50)
                         {
-                            TrackIO.CreateAutosave(_track, Settings.Local.CurrentSong?.ToString());
+                            TrackIO.CreateAutosave(_track);
                         }
                     }
                 }
@@ -526,7 +526,7 @@ namespace linerider
         }
         public void QuickSave()
         {
-            if (TrackIO.QuickSave(_track, Settings.Local.CurrentSong?.ToString()))
+            if (TrackIO.QuickSave(_track))
             {
                 ResetTrackChangeCounter();
                 Settings.LastSelectedTrack = _track.Filename;

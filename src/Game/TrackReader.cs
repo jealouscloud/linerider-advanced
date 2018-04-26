@@ -114,13 +114,13 @@ namespace linerider
             int trig = 0;
             return state.Simulate(_track.Grid, _track.Bones, ref trig, null, maxiteration);
         }
-        public string SaveTrackTrk(string savename, string songdata)
+        public string SaveTrackTrk(string savename)
         {
-            return TRKWriter.SaveTrack(_track, savename, songdata);
+            return TRKWriter.SaveTrack(_track, savename);
         }
         public Dictionary<string, bool> GetFeatures()
         {
-            return TrackIO.TrackFeatures(Track);
+            return TrackIO.GetTrackFeatures(Track);
         }
         public void Dispose()
         {

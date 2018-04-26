@@ -68,12 +68,12 @@ namespace linerider.IO
             Array.Sort(ret, StringComparer.CurrentCultureIgnoreCase);
             return ret;
         }
-        public static Dictionary<string, bool> TrackFeatures(Track trk)
+        public static Dictionary<string, bool> GetTrackFeatures(Track trk)
         {
             Dictionary<string, bool> ret = new Dictionary<string, bool>();
             if (trk.ZeroStart)
             {
-                ret["ZEROSTART"] = true;
+                ret[TrackFeatures.zerostart] = true;
             }
             foreach (GameLine l in trk.LineLookup.Values)
             {
@@ -82,7 +82,7 @@ namespace linerider.IO
                 {
                     if (Math.Abs(scenery.Width - 1) > 0.0001f)
                     {
-                        ret["SCENERYWIDTH"] = true;
+                        ret[TrackFeatures.scenerywidth] = true;
                     }
                 }
                 var red = l as RedLine;
@@ -90,7 +90,7 @@ namespace linerider.IO
                 {
                     if (red.Multiplier != 1)
                     {
-                        ret["REDMULTIPLIER"] = true;
+                        ret[TrackFeatures.redmultiplier] = true;
                     }
                 }
                 var stl = l as StandardLine;
@@ -98,13 +98,17 @@ namespace linerider.IO
                 {
                     if (stl.Trigger != null)
                     {
-                        ret["IGNORABLE_TRIGGER"] = true;
+                        ret[TrackFeatures.ignorable_trigger] = true;
                     }
                 }
             }
 
             if (trk.GetVersion() == 61)
-                ret["SIX_ONE"] = true;
+                ret[TrackFeatures.six_one] = true;
+            if (!string.IsNullOrEmpty(trk.Song.Location) && trk.Song.Enabled)
+            {
+                ret[TrackFeatures.songinfo] = true;
+            }
             return ret;
         }
         /// Checks a relative filename for validity
@@ -183,7 +187,7 @@ namespace linerider.IO
             }
             return filename;
         }
-        public static bool QuickSave(Track track, string songdata = null)
+        public static bool QuickSave(Track track)
         {
             var dir = GetTrackDirectory(track);
             if (track.Filename != null)
@@ -207,7 +211,7 @@ namespace linerider.IO
                 }
                 try
                 {
-                    SaveTrackToFile(track, "quicksave", songdata);
+                    SaveTrackToFile(track, "quicksave");
                 }
                 catch (Exception e)
                 {
@@ -226,10 +230,10 @@ namespace linerider.IO
             track.Filename = filename;
             return filename;
         }
-        public static string SaveTrackToFile(Track track, string savename, string songdata = null)
+        public static string SaveTrackToFile(Track track, string savename)
         {
             int saveindex = GetSaveIndex(track);
-            var filename = TRKWriter.SaveTrack(track, saveindex + " " + savename, songdata);
+            var filename = TRKWriter.SaveTrack(track, saveindex + " " + savename);
             track.Filename = filename;
             return filename;
         }
@@ -253,7 +257,7 @@ namespace linerider.IO
             }
             return false;
         }
-        public static void CreateAutosave(Track track, string songdata = null)
+        public static void CreateAutosave(Track track)
         {
             var dir = GetTrackDirectory(track);
             if (!Directory.Exists(dir))
@@ -261,7 +265,7 @@ namespace linerider.IO
             var sn1 = "autosave00";
             var sn2 = "autosave01";
             TryMoveAndReplaceFile(dir + sn1 + ".trk", dir + sn2 + ".trk");
-            TRKWriter.SaveTrack(track, sn1, songdata);
+            TRKWriter.SaveTrack(track, sn1);
         }
         public static void CreateTestFromTrack(Track track)
         {

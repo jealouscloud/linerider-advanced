@@ -1,4 +1,4 @@
-﻿using OpenTK;
+using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -55,27 +55,27 @@ namespace linerider.IO
                 {
                     switch (features[i])
                     {
-                        case "REDMULTIPLIER":
+                        case TrackFeatures.redmultiplier:
                             redmultipier = true;
                             break;
 
-                        case "SCENERYWIDTH":
+                        case TrackFeatures.scenerywidth:
                             scenerywidth = true;
                             break;
 
-                        case "6.1":
+                        case TrackFeatures.six_one:
                             supports61 = true;
                             break;
 
-                        case "SONGINFO":
+                        case TrackFeatures.songinfo:
                             songinfo = true;
                             break;
 
-                        case "IGNORABLE_TRIGGER":
+                        case TrackFeatures.ignorable_trigger:
                             ignorabletrigger = true;
                             break;
 
-                        case "ZEROSTART":
+                        case TrackFeatures.zerostart:
                             ret.ZeroStart = true;
                             break;
                         default:
