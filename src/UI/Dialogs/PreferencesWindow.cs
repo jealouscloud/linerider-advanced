@@ -128,35 +128,35 @@ namespace linerider.UI
         }
         private void PopulateModes(ControlBase parent)
         {
-            var playbackmode = CreateHeaderPanel(parent, "Playback Color");
-            AddCheckbox(playbackmode, "Color Playback", Settings.Local.ColorPlayback, (o, e) =>
+            var playbackmode = GwenHelper.CreateHeaderPanel(parent, "Playback Color");
+            GwenHelper.AddCheckbox(playbackmode, "Color Playback", Settings.Local.ColorPlayback, (o, e) =>
                {
                    Settings.Local.ColorPlayback = ((Checkbox)o).IsChecked;
                    Settings.Save();
                });
-            var preview = AddCheckbox(playbackmode, "Preview Mode", Settings.Local.PreviewMode, (o, e) =>
+            var preview = GwenHelper.AddCheckbox(playbackmode, "Preview Mode", Settings.Local.PreviewMode, (o, e) =>
                {
                    Settings.Local.PreviewMode = ((Checkbox)o).IsChecked;
                    Settings.Save();
                });
-            var background = CreateHeaderPanel(parent, "Background Color");
-            AddCheckbox(background, "Night Mode", Settings.NightMode, (o, e) =>
+            var background = GwenHelper.CreateHeaderPanel(parent, "Background Color");
+            GwenHelper.AddCheckbox(background, "Night Mode", Settings.NightMode, (o, e) =>
                {
                    Settings.NightMode = ((Checkbox)o).IsChecked;
                    Settings.Save();
                });
-            var whitebg = AddCheckbox(background, "Pure White Background", Settings.WhiteBG, (o, e) =>
+            var whitebg = GwenHelper.AddCheckbox(background, "Pure White Background", Settings.WhiteBG, (o, e) =>
                {
                    Settings.WhiteBG = ((Checkbox)o).IsChecked;
                    Settings.Save();
                });
-            var panelgeneral = CreateHeaderPanel(parent, "General");
-            var superzoom = AddCheckbox(panelgeneral, "Superzoom", Settings.SuperZoom, (o, e) =>
+            var panelgeneral = GwenHelper.CreateHeaderPanel(parent, "General");
+            var superzoom = GwenHelper.AddCheckbox(panelgeneral, "Superzoom", Settings.SuperZoom, (o, e) =>
                {
                    Settings.SuperZoom = ((Checkbox)o).IsChecked;
                    Settings.Save();
                });
-            ComboBox scroll = CreateLabeledCombobox(panelgeneral, "Scroll Sensitivity:");
+            ComboBox scroll = GwenHelper.CreateLabeledCombobox(panelgeneral, "Scroll Sensitivity:");
             scroll.Margin = new Margin(0, 0, 0, 0);
             scroll.Dock = Dock.Bottom;
             scroll.AddItem("0.25x").Name = "0.25";
@@ -179,14 +179,14 @@ namespace linerider.UI
         }
         private void PopulateCamera(ControlBase parent)
         {
-            var camtype = CreateHeaderPanel(parent, "Camera Type");
-            var smooth = AddCheckbox(camtype, "Smooth Camera", Settings.SmoothCamera, (o, e) =>
+            var camtype = GwenHelper.CreateHeaderPanel(parent, "Camera Type");
+            var smooth = GwenHelper.AddCheckbox(camtype, "Smooth Camera", Settings.SmoothCamera, (o, e) =>
             {
                 Settings.SmoothCamera = ((Checkbox)o).IsChecked;
                 _editor.InitCamera();
                 Settings.Save();
             });
-            var round = AddCheckbox(camtype, "Round Legacy Camera", Settings.RoundLegacyCamera, (o, e) =>
+            var round = GwenHelper.AddCheckbox(camtype, "Round Legacy Camera", Settings.RoundLegacyCamera, (o, e) =>
             {
                 Settings.RoundLegacyCamera = ((Checkbox)o).IsChecked;
                 Settings.Save();
@@ -202,52 +202,52 @@ namespace linerider.UI
         }
         private void PopulateEditor(ControlBase parent)
         {
-            Panel advancedtools = CreateHeaderPanel(parent, "Advanced Visualization");
+            Panel advancedtools = GwenHelper.CreateHeaderPanel(parent, "Advanced Visualization");
 
-            var contact = AddCheckbox(advancedtools, "Show Contact Points", Settings.Local.DrawContactPoints, (o, e) =>
+            var contact = GwenHelper.AddCheckbox(advancedtools, "Show Contact Points", Settings.Local.DrawContactPoints, (o, e) =>
             {
                 Settings.Local.DrawContactPoints = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            var momentum = AddCheckbox(advancedtools, "Momentum Vectors", Settings.Local.MomentumVectors, (o, e) =>
+            var momentum = GwenHelper.AddCheckbox(advancedtools, "Momentum Vectors", Settings.Local.MomentumVectors, (o, e) =>
             {
                 Settings.Local.MomentumVectors = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            var hitbox = AddCheckbox(advancedtools, "Draw Line Hitbox", Settings.Local.RenderGravityWells, (o, e) =>
+            var hitbox = GwenHelper.AddCheckbox(advancedtools, "Draw Line Hitbox", Settings.Local.RenderGravityWells, (o, e) =>
             {
                 Settings.Local.RenderGravityWells = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            Panel pblifelock = CreateHeaderPanel(parent, "Lifelock Conditions");
-            AddCheckbox(pblifelock, "Next frame constraints", Settings.LifeLockNoOrange, (o, e) =>
+            Panel pblifelock = GwenHelper.CreateHeaderPanel(parent, "Lifelock Conditions");
+            GwenHelper.AddCheckbox(pblifelock, "Next frame constraints", Settings.LifeLockNoOrange, (o, e) =>
             {
                 Settings.LifeLockNoOrange = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            AddCheckbox(pblifelock, "No Fakie Death", Settings.LifeLockNoFakie, (o, e) =>
+            GwenHelper.AddCheckbox(pblifelock, "No Fakie Death", Settings.LifeLockNoFakie, (o, e) =>
             {
                 Settings.LifeLockNoFakie = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            Panel panelSnap = CreateHeaderPanel(parent, "Snapping");
-            var linesnap = AddCheckbox(panelSnap, "Enable Line Snapping", !Settings.Local.DisableSnap, (o, e) =>
+            Panel panelSnap = GwenHelper.CreateHeaderPanel(parent, "Snapping");
+            var linesnap = GwenHelper.AddCheckbox(panelSnap, "Enable Line Snapping", !Settings.Local.DisableSnap, (o, e) =>
             {
                 Settings.Local.DisableSnap = !((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            var forcesnap = AddCheckbox(panelSnap, "Force X/Y snap", Settings.Local.ForceXySnap, (o, e) =>
+            var forcesnap = GwenHelper.AddCheckbox(panelSnap, "Force X/Y snap", Settings.Local.ForceXySnap, (o, e) =>
             {
                 Settings.Local.ForceXySnap = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            Panel panelGeneral = CreateHeaderPanel(parent, "Tools");
-            var onion = AddCheckbox(panelGeneral, "Onion Skinning", Settings.Local.OnionSkinning, (o, e) =>
+            Panel panelGeneral = GwenHelper.CreateHeaderPanel(parent, "Tools");
+            var onion = GwenHelper.AddCheckbox(panelGeneral, "Onion Skinning", Settings.Local.OnionSkinning, (o, e) =>
             {
                 Settings.Local.OnionSkinning = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            var hittest = AddCheckbox(panelGeneral, "Hit Test", Settings.Local.HitTest, (o, e) =>
+            var hittest = GwenHelper.AddCheckbox(panelGeneral, "Hit Test", Settings.Local.HitTest, (o, e) =>
             {
                 Settings.Local.HitTest = ((Checkbox)o).IsChecked;
                 Settings.Save();
@@ -261,7 +261,7 @@ namespace linerider.UI
         }
         private void PopulatePlayback(ControlBase parent)
         {
-            var general = CreateHeaderPanel(parent, "Initial Zoom");
+            var general = GwenHelper.CreateHeaderPanel(parent, "Initial Zoom");
             RadioButtonGroup pbzoom = new RadioButtonGroup(general)
             {
                 Dock = Dock.Left,
@@ -289,13 +289,13 @@ namespace linerider.UI
             };
             pbzoom.SetSelection(Settings.PlaybackZoomType);
             playbackspinner.Value = Settings.PlaybackZoomValue;
-            var framerate = CreateHeaderPanel(parent, "Frame Control");
-            var smooth = AddCheckbox(framerate, "Smooth Playback", Settings.SmoothPlayback, (o, e) =>
+            var framerate = GwenHelper.CreateHeaderPanel(parent, "Frame Control");
+            var smooth = GwenHelper.AddCheckbox(framerate, "Smooth Playback", Settings.SmoothPlayback, (o, e) =>
                {
                    Settings.SmoothPlayback = ((Checkbox)o).IsChecked;
                    Settings.Save();
                });
-            ComboBox pbrate = CreateLabeledCombobox(framerate, "Playback Rate:");
+            ComboBox pbrate = GwenHelper.CreateLabeledCombobox(framerate, "Playback Rate:");
             for (var i = 0; i < Constants.MotionArray.Length; i++)
             {
                 var f = (Constants.MotionArray[i] / (float)Constants.PhysicsRate);
@@ -306,7 +306,7 @@ namespace linerider.UI
             {
                 Settings.Local.DefaultPlayback = (float)e.SelectedItem.UserData;
             };
-            var cbslowmo = CreateLabeledCombobox(framerate, "Slowmo FPS:");
+            var cbslowmo = GwenHelper.CreateLabeledCombobox(framerate, "Slowmo FPS:");
             var fpsarray = new[] { 1, 2, 5, 10, 20 };
             for (var i = 0; i < fpsarray.Length; i++)
             {
@@ -358,87 +358,6 @@ namespace linerider.UI
                 Settings.SettingsPane = (int)_focus.UserData;
                 Settings.Save();
             }
-        }
-        private Checkbox AddCheckbox(ControlBase parent, string text, bool val, GwenEventHandler<EventArgs> checkedchanged, Dock dock = Dock.Top)
-        {
-            Checkbox check = new Checkbox(parent)
-            {
-                Dock = dock,
-                Text = text,
-                IsChecked = val,
-            };
-            check.CheckChanged += checkedchanged;
-            return check;
-        }
-        private Panel CreateHeaderPanel(ControlBase parent, string headertext)
-        {
-            Panel panel = new Panel(parent)
-            {
-                Dock = Dock.Top,
-                Children =
-                {
-                    new Label(parent)
-                    {
-                        Dock = Dock.Top,
-                        Text = headertext,
-                        Alignment = Pos.Left | Pos.CenterV,
-                        Font = _canvas.Fonts.DefaultBold,
-                        Margin = new Margin(-10, 5, 0, 5)
-                    }
-                },
-                AutoSizeToContents = true,
-                Margin = new Margin(0, 0, 0, 10),
-                Padding = new Padding(10, 0, 0, 0),
-                ShouldDrawBackground = false
-            };
-            return panel;
-        }
-        private void CreateLabeledControl(ControlBase parent, string label, ControlBase control)
-        {
-            control.Dock = Dock.Right;
-            ControlBase container = new ControlBase(parent)
-            {
-                Children =
-                {
-                    new Label(null)
-                    {
-                        Text = label,
-                        Dock = Dock.Left,
-                        Alignment = Pos.Left | Pos.CenterV,
-                        Margin = new Margin(0,0,10,0)
-                    },
-                    control
-                },
-                AutoSizeToContents = true,
-                Dock = Dock.Top,
-                Margin = new Margin(0, 1, 0, 1)
-            };
-        }
-        private ComboBox CreateLabeledCombobox(ControlBase parent, string label)
-        {
-            var combobox = new ComboBox(null)
-            {
-                Dock = Dock.Right,
-                Width = 100
-            };
-            ControlBase container = new ControlBase(parent)
-            {
-                Children =
-                {
-                    new Label(null)
-                    {
-                        Text = label,
-                        Dock = Dock.Left,
-                        Alignment = Pos.Left | Pos.CenterV,
-                        Margin = new Margin(0,0,10,0)
-                    },
-                    combobox
-                },
-                AutoSizeToContents = true,
-                Dock = Dock.Top,
-                Margin = new Margin(0, 1, 0, 1)
-            };
-            return combobox;
         }
         private ControlBase AddPage(CollapsibleCategory category, string name)
         {

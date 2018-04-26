@@ -151,6 +151,7 @@
     <Compile Include="IO\SOLLoader.cs" />
     <Compile Include="IO\SOLWriter.cs" />
     <Compile Include="IO\TrackIO.cs" />
+    <Compile Include="IO\TrackFeatures.cs" />
     <Compile Include="IO\TrackRecorder.cs" />
     <Compile Include="IO\TrackSave.cs" />
     <Compile Include="IO\TRKLoader.cs" />
@@ -164,6 +165,7 @@
     <Compile Include="UI\InputState.cs" />
     <Compile Include="UI\Keybinding.cs" />
     <Compile Include="UI\KeyConflict.cs" />
+    <Compile Include="UI\GwenHelper.cs" />
     <Compile Include="UI\UndoManager.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -173,6 +175,7 @@
     <Compile Include="UI\Dialogs\ExportWindow.cs" />
     <Compile Include="UI\Dialogs\LineWindow.cs" />
     <Compile Include="UI\Dialogs\SaveWindow.cs" />
+    <Compile Include="UI\Dialogs\TrackInfoWindow.cs" />
     <Compile Include="UI\Dialogs\RebindHotkeyWindow.cs" />
   </ItemGroup>
   <ItemGroup>

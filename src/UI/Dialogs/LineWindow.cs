@@ -143,7 +143,11 @@ namespace linerider.UI
             {
                 var table = tree.Add("Triggers", 120);
                 var currenttrigger = physline.Trigger;
-                var triggerenabled = AddPropertyCheckbox(table, "Enabled", currenttrigger != null);
+                var triggerenabled = GwenHelper.AddPropertyCheckbox(
+                    table,
+                    "Enabled",
+                    currenttrigger != null);
+                    
                 var zoom = new NumberProperty(table)
                 {
                     Min = Constants.MinimumZoom,
@@ -212,13 +216,6 @@ namespace linerider.UI
                     }
                 };
             }
-        }
-        private CheckProperty AddPropertyCheckbox(PropertyTable prop, string label, bool value)
-        {
-            var check = new CheckProperty(null);
-            prop.Add(label, check);
-            check.IsChecked = value;
-            return check;
         }
 
         private void UpdateOwnerLine(TrackWriter trk, GameLine replacement)
