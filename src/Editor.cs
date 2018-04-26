@@ -1,4 +1,4 @@
-//
+﻿//
 //  Editor.cs
 //
 //  Author:
@@ -107,6 +107,9 @@ namespace linerider
         }
         public ICamera Camera { get; private set; }
         public int LineCount => _track.Lines.Count;
+        public int BlueLines => _track.BlueLines;
+        public int RedLines => _track.RedLines;
+        public int GreenLines => _track.SceneryLines;
         public int TrackChanges
         {
             get

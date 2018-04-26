@@ -31,65 +31,12 @@ namespace linerider.UI
         }
         private void PopulateSong(ControlBase parent)
         {
-            //todo move this to track edit pane
-            var currentpanel = CreateHeaderPanel(parent, "Current Song");
-            currentpanel.Dock = Dock.Fill;
-            ListBox Songs = new ListBox(currentpanel);
-            Songs.RowSelected += (o, e) =>
-             {
-                 var str = (string)e.SelectedItem.UserData;
-                 Settings.Local.CurrentSong.Location = str;
-             };
-            Songs.Dock = Dock.Fill;
-            var filedir = Program.UserDirectory + "Songs";
-            if (Directory.Exists(filedir))
-            {
-                var songfiles = Directory.GetFiles(filedir, "*.*");
-                var supportedfiles = new List<string>();
-                string[] supportedfiletypes = new string[]
-                {
-                    ".mp3",".wav",".wave",".ogg",".wma",".m4a",".aac"
-                };
-
-                foreach (var file in songfiles)
-                {
-                    var lower = file.ToLower(Program.Culture);
-                    foreach (var type in supportedfiletypes)
-                    {
-                        if (lower.EndsWith(type, StringComparison.OrdinalIgnoreCase))
-                        {
-                            supportedfiles.Add(file);
-                            break;
-                        }
-                    }
-                }
-
-                foreach (var sf in supportedfiles)
-                {
-                    var name = Path.GetFileName(sf);
-                    var nodename = name.ToLower().Contains(".ogg") ? name : "[convert] " + name;
-                    var node = Songs.AddRow(nodename);
-                    node.UserData = name;
-                    if (name == Settings.Local.CurrentSong?.Location)
-                        node.IsSelected = true;
-                }
-            }
-            var opts = CreateHeaderPanel(parent, "Sync options");
-            var syncenabled = AddCheckbox(opts, "Enable Song", Settings.Local.EnableSong, (o, e) =>
+            var opts = GwenHelper.CreateHeaderPanel(parent, "Sync options");
+            var syncenabled = GwenHelper.AddCheckbox(opts, "Enable Song", Settings.Local.EnableSong, (o, e) =>
                {
                    Settings.Local.EnableSong = ((Checkbox)o).IsChecked;
                    Settings.Save();
                });
-            Spinner offset = new Spinner(null)
-            {
-                Min = -1000,
-                Value = Settings.Local.CurrentSong.Offset,
-            };
-            offset.ValueChanged += (o, e) =>
-            {
-                Settings.Local.CurrentSong.Offset = (float)offset.Value;
-            };
-            CreateLabeledControl(opts, "Offset", offset);
             HorizontalSlider vol = new HorizontalSlider(null)
             {
                 Min = 0,
@@ -102,25 +49,8 @@ namespace linerider.UI
                   Settings.Volume = (float)vol.Value;
                   Settings.Save();
               };
-            CreateLabeledControl(opts, "Volume", vol);
+            GwenHelper.CreateLabeledControl(opts, "Volume", vol);
             vol.Width = 200;
-
-            this.IsHiddenChanged += (o, e) =>
-            {
-                if (!this.IsHidden) return;
-                if (Settings.Local.EnableSong)
-                {
-                    var fn = Program.UserDirectory + "Songs" +
-                             Path.DirectorySeparatorChar +
-                             Settings.Local.CurrentSong.Location;
-                    if (File.Exists(fn))
-                    {
-                        _canvas.Loading = true;
-                        Audio.AudioService.LoadFile(ref fn);
-                        _canvas.Loading = false;
-                    }
-                }
-            };
         }
         private void PopulateKeybinds(ControlBase parent)
         {
@@ -248,10 +178,10 @@ namespace linerider.UI
                 Settings.Save();
             });
             var hittest = GwenHelper.AddCheckbox(panelGeneral, "Hit Test", Settings.Local.HitTest, (o, e) =>
-            {
-                Settings.Local.HitTest = ((Checkbox)o).IsChecked;
-                Settings.Save();
-            });
+             {
+                 Settings.Local.HitTest = ((Checkbox)o).IsChecked;
+                 Settings.Save();
+             });
             onion.Tooltip = "Visualize the rider before/after\nthe current frame.";
             momentum.Tooltip = "Visualize the direction of\nmomentum for each contact point";
             contact.Tooltip = "Visualize the parts of the rider\nthat interact with lines.";

@@ -268,6 +268,10 @@ namespace linerider
         {
             ShowDialog(new PreferencesWindow(this, game.Track));
         }
+        public void ShowTrackPropertiesDialog()
+        {
+            ShowDialog(new TrackInfoWindow(this, game.Track));
+        }
         public void ShowExportVideoWindow()
         {
             ShowDialog(new ExportWindow(this, game.Track, game));
