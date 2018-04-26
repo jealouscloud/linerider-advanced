@@ -1,4 +1,4 @@
-﻿//
+//
 //  GLWindow.cs
 //
 //  Author:
@@ -199,7 +199,7 @@ namespace linerider
 
             SetupDefaultKeybind(Hotkey.PlayButtonIgnoreFlag, new Keybinding(KeyModifiers.Alt));
 
-            SetupDefaultKeybind(Hotkey.EditorQuickPan, new Keybinding(Key.Space));
+            SetupDefaultKeybind(Hotkey.EditorQuickPan, new Keybinding(Key.Space, KeyModifiers.Shift));
 
             SetupDefaultKeybind(Hotkey.EditorCancelTool, new Keybinding(Key.Escape));
             SetupDefaultKeybind(Hotkey.PlayButtonIgnoreFlag, new Keybinding(KeyModifiers.Alt));
