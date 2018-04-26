@@ -93,6 +93,10 @@ namespace linerider.UI
         {
             MouseButton = mouse;
         }
+        public Keybinding(KeyModifiers modifiers)
+        {
+            Modifiers = modifiers;
+        }
         public Keybinding(MouseButton mouse, KeyModifiers modifiers)
         {
             MouseButton = mouse;

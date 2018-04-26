@@ -18,7 +18,7 @@ namespace linerider.UI
         public PreferencesWindow(GameCanvas parent, Editor editor) : base(parent, editor)
         {
             Title = "Preferences";
-            SetSize(400, 400);
+            SetSize(450, 400);
             _prefcontainer = new CollapsibleList(this)
             {
                 Dock = Dock.Left,
@@ -121,6 +121,10 @@ namespace linerider.UI
                     }
                 }
             };
+        }
+        private void PopulateKeybinds(ControlBase parent)
+        {
+            var hk = new HotkeyWidget(parent);
         }
         private void PopulateModes(ControlBase parent)
         {
@@ -329,6 +333,7 @@ namespace linerider.UI
             page = AddPage(cat, "Camera");
             PopulateCamera(page);
             page = AddPage(cat, "Keybindings");
+            PopulateKeybinds(page);
             cat = _prefcontainer.Add("Song Sync");
             page = AddPage(cat, "Song");
             PopulateSong(page);

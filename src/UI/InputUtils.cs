@@ -44,9 +44,33 @@ namespace linerider.UI
         private static bool _macOS = false;
         /// "If a non modifier key was pressed, it's like the previous key 
         /// stopped being pressed"
-        /// We implement that using LastPressedKey which we update on non-repeat
+        /// We implement that using RepeatKey which we update on non-repeat
         /// keystokes
-        private static Key LastPressedKey = Key.Unknown;
+        private static Key RepeatKey = Key.Unknown;
+        public static List<KeyModifiers> SplitModifiers(KeyModifiers modifiers)
+        {
+            List<KeyModifiers> ret = new List<KeyModifiers>();
+            if (modifiers.HasFlag(KeyModifiers.Control))
+            {
+                ret.Add(KeyModifiers.Control);
+            }
+            if (modifiers.HasFlag(KeyModifiers.Shift))
+            {
+                ret.Add(KeyModifiers.Shift);
+            }
+            if (modifiers.HasFlag(KeyModifiers.Alt))
+            {
+                ret.Add(KeyModifiers.Alt);
+            }
+            return ret;
+        }
+        public static Keybinding ReadHotkey()
+        {
+            var key = RepeatKey;
+            if (!_keysdown.Contains(key))
+                key = (Key)(-1);
+            return new Keybinding(key, _modifiersdown);
+        }
         public static void KeyDown(Key key)
         {
             if (!IsModifier(key))

@@ -163,6 +163,7 @@
     <Compile Include="UI\InputUtils.cs" />
     <Compile Include="UI\InputState.cs" />
     <Compile Include="UI\Keybinding.cs" />
+    <Compile Include="UI\KeyConflict.cs" />
     <Compile Include="UI\UndoManager.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -172,6 +173,7 @@
     <Compile Include="UI\Dialogs\ExportWindow.cs" />
     <Compile Include="UI\Dialogs\LineWindow.cs" />
     <Compile Include="UI\Dialogs\SaveWindow.cs" />
+    <Compile Include="UI\Dialogs\RebindHotkeyWindow.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="UI\Widgets\WidgetContainer.cs" />

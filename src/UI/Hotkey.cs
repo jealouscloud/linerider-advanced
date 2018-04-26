@@ -25,9 +25,12 @@ namespace linerider.UI
         EditorFocusRider,
         EditorFocusFlag,
         EditorCancelTool,
+        EditorMoveStart,
 
         ToolLifeLock,
         ToolAngleLock,
+        ToolAxisLock,
+        ToolPerpendicularAxisLock,
         ToolLengthLock,
         ToolXYSnap,
         ToolDisableSnap,

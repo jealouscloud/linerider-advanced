@@ -65,7 +65,9 @@ namespace linerider
                 }
             }
         }
+        public static Dictionary<Hotkey, KeyConflicts> KeybindConflicts = new Dictionary<Hotkey, KeyConflicts>();
         public static Dictionary<Hotkey, List<Keybinding>> Keybinds = new Dictionary<Hotkey, List<Keybinding>>();
+        private static Dictionary<Hotkey, List<Keybinding>> DefaultKeybinds = new Dictionary<Hotkey, List<Keybinding>>();
         public static int PlaybackZoomType = 0;
         public static float PlaybackZoomValue = 4;
         public static float Volume = 100;
@@ -86,88 +88,197 @@ namespace linerider
         public static bool LifeLockNoOrange = false;
         public static bool LifeLockNoFakie = false;
         public static int SettingsPane = 0;
-
         static Settings()
         {
+            foreach (Hotkey hk in Enum.GetValues(typeof(Hotkey)))
+            {
+                if (hk == Hotkey.None)
+                    continue;
+                KeybindConflicts.Add(hk, KeyConflicts.General);
+                Keybinds.Add(hk, new List<Keybinding>());
+            }
+            //conflicts, for keybinds that depend on a state, so keybinds 
+            //outside of its state can be set as long
+            //as its dependant state (general) doesnt have a keybind set
+            KeybindConflicts[Hotkey.PlaybackZoom] = KeyConflicts.Playback;
+            KeybindConflicts[Hotkey.PlaybackUnzoom] = KeyConflicts.Playback;
+            KeybindConflicts[Hotkey.PlaybackSpeedUp] = KeyConflicts.Playback;
+            KeybindConflicts[Hotkey.PlaybackSpeedDown] = KeyConflicts.Playback;
 
-            CreateKeybind(Hotkey.EditorPencilTool, new Keybinding(Key.Q));
-            CreateKeybind(Hotkey.EditorLineTool, new Keybinding(Key.W));
-            CreateKeybind(Hotkey.EditorEraserTool, new Keybinding(Key.E));
-            CreateKeybind(Hotkey.EditorSelectTool, new Keybinding(Key.R));
-            CreateKeybind(Hotkey.EditorPanTool, new Keybinding(Key.T));
-            CreateKeybind(Hotkey.EditorToolColor1, new Keybinding(Key.Number1));
-            CreateKeybind(Hotkey.EditorToolColor2, new Keybinding(Key.Number2));
-            CreateKeybind(Hotkey.EditorToolColor3, new Keybinding(Key.Number3));
+            KeybindConflicts[Hotkey.LineToolFlipLine] = KeyConflicts.LineTool;
 
-            CreateKeybind(Hotkey.EditorUseTool, new Keybinding(MouseButton.Left));
-            CreateKeybind(Hotkey.EditorCycleToolSetting, new Keybinding(Key.Tab));
-            CreateKeybind(Hotkey.EditorCancelTool, new Keybinding(Key.Escape));
+            KeybindConflicts[Hotkey.ToolXYSnap] = KeyConflicts.Tool;
+            KeybindConflicts[Hotkey.ToolDisableSnap] = KeyConflicts.Tool;
+            KeybindConflicts[Hotkey.EditorCancelTool] = KeyConflicts.Tool;
 
-            CreateKeybind(Hotkey.EditorRemoveLatestLine, new Keybinding(Key.BackSpace));
-            CreateKeybind(Hotkey.EditorFocusStart, new Keybinding(Key.Home));
-            CreateKeybind(Hotkey.EditorFocusLastLine, new Keybinding(Key.End));
-            CreateKeybind(Hotkey.EditorFocusRider, new Keybinding(Key.F1));
-            CreateKeybind(Hotkey.EditorFocusFlag, new Keybinding(Key.F2));
-            CreateKeybind(Hotkey.ToolLifeLock, new Keybinding(Key.AltLeft));
-            CreateKeybind(Hotkey.ToolLifeLock, new Keybinding(Key.AltRight));
-            CreateKeybind(Hotkey.ToolAngleLock, new Keybinding(Key.ShiftLeft));
-            CreateKeybind(Hotkey.ToolAngleLock, new Keybinding(Key.ShiftRight));
-            CreateKeybind(Hotkey.ToolLengthLock, new Keybinding(Key.L));
-            CreateKeybind(Hotkey.ToolXYSnap, new Keybinding(Key.X));
-            CreateKeybind(Hotkey.ToolDisableSnap, new Keybinding(Key.S));
-            CreateKeybind(Hotkey.ToolSelectBothJoints, new Keybinding(Key.ControlLeft));
-            CreateKeybind(Hotkey.ToolSelectBothJoints, new Keybinding(Key.ControlRight));
-            CreateKeybind(Hotkey.LineToolFlipLine, new Keybinding(Key.ShiftLeft));
-            CreateKeybind(Hotkey.LineToolFlipLine, new Keybinding(Key.ShiftRight));
-            CreateKeybind(Hotkey.EditorUndo, new Keybinding(Key.Z, KeyModifiers.Control));
+            KeybindConflicts[Hotkey.ToolLengthLock] = KeyConflicts.SelectTool;
+            KeybindConflicts[Hotkey.ToolAngleLock] = KeyConflicts.SelectTool;
+            KeybindConflicts[Hotkey.ToolAxisLock] = KeyConflicts.SelectTool;
+            KeybindConflicts[Hotkey.ToolPerpendicularAxisLock] = KeyConflicts.SelectTool;
+            KeybindConflicts[Hotkey.ToolLifeLock] = KeyConflicts.SelectTool;
+            KeybindConflicts[Hotkey.ToolLengthLock] = KeyConflicts.SelectTool;
 
-            CreateKeybind(Hotkey.EditorRedo, new Keybinding(Key.Y, KeyModifiers.Control));
-            CreateKeybind(Hotkey.EditorRedo, new Keybinding(Key.Z, KeyModifiers.Control | KeyModifiers.Shift));
-
-            CreateKeybind(Hotkey.PlaybackStartIgnoreFlag, new Keybinding(Key.Y, KeyModifiers.Alt));
-            CreateKeybind(Hotkey.PlaybackStartGhostFlag, new Keybinding(Key.I, KeyModifiers.Shift));
-            CreateKeybind(Hotkey.PlaybackStartSlowmo, new Keybinding(Key.Y, KeyModifiers.Shift));
-            CreateKeybind(Hotkey.PlaybackFlag, new Keybinding(Key.I));
-            CreateKeybind(Hotkey.PlaybackStart, new Keybinding(Key.Y));
-            CreateKeybind(Hotkey.PlaybackStop, new Keybinding(Key.U));
-            CreateKeybind(Hotkey.PlaybackSlowmo, new Keybinding(Key.M));
-            CreateKeybind(Hotkey.PlaybackZoom, new Keybinding(Key.Z));
-            CreateKeybind(Hotkey.PlaybackUnzoom, new Keybinding(Key.X));
-
-            CreateKeybind(Hotkey.PlaybackSpeedUp, new Keybinding(Key.Plus));
-            CreateKeybind(Hotkey.PlaybackSpeedUp, new Keybinding(Key.KeypadPlus));
-
-            CreateKeybind(Hotkey.PlaybackSpeedDown, new Keybinding(Key.Minus));
-            CreateKeybind(Hotkey.PlaybackSpeedDown, new Keybinding(Key.KeypadMinus));
-
-            CreateKeybind(Hotkey.PlaybackFrameNext, new Keybinding(Key.Right));
-            CreateKeybind(Hotkey.PlaybackFramePrev, new Keybinding(Key.Left));
-            CreateKeybind(Hotkey.PlaybackForward, new Keybinding(Key.Right, KeyModifiers.Shift));
-            CreateKeybind(Hotkey.PlaybackBackward, new Keybinding(Key.Left, KeyModifiers.Shift));
-            CreateKeybind(Hotkey.PlaybackIterationNext, new Keybinding(Key.Right, KeyModifiers.Alt));
-            CreateKeybind(Hotkey.PlaybackIterationPrev, new Keybinding(Key.Left, KeyModifiers.Alt));
-            CreateKeybind(Hotkey.PlaybackTogglePause, new Keybinding(Key.Space));
-
-            CreateKeybind(Hotkey.PreferencesWindow, new Keybinding(Key.Escape));
-            CreateKeybind(Hotkey.PreferencesWindow, new Keybinding(Key.P, KeyModifiers.Control));
-            CreateKeybind(Hotkey.PreferenceOnionSkinning, new Keybinding(Key.O, KeyModifiers.Control));
-            CreateKeybind(Hotkey.LoadWindow, new Keybinding(Key.O));
-            CreateKeybind(Hotkey.Quicksave, new Keybinding(Key.S, KeyModifiers.Control));
-
-            CreateKeybind(Hotkey.PlayButtonIgnoreFlag, new Keybinding(Key.AltLeft));
-            CreateKeybind(Hotkey.PlayButtonIgnoreFlag, new Keybinding(Key.AltRight));
-
-            CreateKeybind(Hotkey.EditorQuickPan, new Keybinding(Key.Space));
+            KeybindConflicts[Hotkey.PlayButtonIgnoreFlag] = KeyConflicts.HardCoded;
+            KeybindConflicts[Hotkey.EditorCancelTool] = KeyConflicts.HardCoded;
+            SetupDefaultKeybinds();
         }
-        private static void CreateKeybind(Hotkey hotkey, Keybinding keybinding)
+        public static void ResetKeybindings()
+        {
+            foreach (var kb in Keybinds)
+            {
+                kb.Value.Clear();
+            }
+            LoadDefaultKeybindings();
+        }
+        private static void SetupDefaultKeybinds()
+        {
+            SetupDefaultKeybind(Hotkey.EditorPencilTool, new Keybinding(Key.Q));
+            SetupDefaultKeybind(Hotkey.EditorLineTool, new Keybinding(Key.W));
+            SetupDefaultKeybind(Hotkey.EditorEraserTool, new Keybinding(Key.E));
+            SetupDefaultKeybind(Hotkey.EditorSelectTool, new Keybinding(Key.R));
+            SetupDefaultKeybind(Hotkey.EditorPanTool, new Keybinding(Key.T));
+            SetupDefaultKeybind(Hotkey.EditorToolColor1, new Keybinding(Key.Number1));
+            SetupDefaultKeybind(Hotkey.EditorToolColor2, new Keybinding(Key.Number2));
+            SetupDefaultKeybind(Hotkey.EditorToolColor3, new Keybinding(Key.Number3));
+
+            SetupDefaultKeybind(Hotkey.EditorUseTool, new Keybinding(MouseButton.Left));
+            SetupDefaultKeybind(Hotkey.EditorCycleToolSetting, new Keybinding(Key.Tab));
+            SetupDefaultKeybind(Hotkey.EditorMoveStart, new Keybinding(Key.D));
+
+            SetupDefaultKeybind(Hotkey.EditorRemoveLatestLine, new Keybinding(Key.BackSpace));
+            SetupDefaultKeybind(Hotkey.EditorFocusStart, new Keybinding(Key.Home));
+            SetupDefaultKeybind(Hotkey.EditorFocusLastLine, new Keybinding(Key.End));
+            SetupDefaultKeybind(Hotkey.EditorFocusRider, new Keybinding(Key.F1));
+            SetupDefaultKeybind(Hotkey.EditorFocusFlag, new Keybinding(Key.F2));
+            SetupDefaultKeybind(Hotkey.ToolLifeLock, new Keybinding(KeyModifiers.Alt));
+            SetupDefaultKeybind(Hotkey.ToolAngleLock, new Keybinding(KeyModifiers.Shift));
+            SetupDefaultKeybind(Hotkey.ToolAxisLock, new Keybinding(KeyModifiers.Control | KeyModifiers.Shift));
+            SetupDefaultKeybind(Hotkey.ToolPerpendicularAxisLock, new Keybinding(Key.X, KeyModifiers.Control | KeyModifiers.Shift));
+            SetupDefaultKeybind(Hotkey.ToolLengthLock, new Keybinding(Key.L));
+            SetupDefaultKeybind(Hotkey.ToolXYSnap, new Keybinding(Key.X));
+            SetupDefaultKeybind(Hotkey.ToolDisableSnap, new Keybinding(Key.S));
+            SetupDefaultKeybind(Hotkey.ToolSelectBothJoints, new Keybinding(KeyModifiers.Control));
+            SetupDefaultKeybind(Hotkey.LineToolFlipLine, new Keybinding(KeyModifiers.Shift));
+            SetupDefaultKeybind(Hotkey.EditorUndo, new Keybinding(Key.Z, KeyModifiers.Control));
+
+            SetupDefaultKeybind(Hotkey.EditorRedo,
+                new Keybinding(Key.Y, KeyModifiers.Control),
+                new Keybinding(Key.Z, KeyModifiers.Control | KeyModifiers.Shift));
+
+            SetupDefaultKeybind(Hotkey.PlaybackStartIgnoreFlag, new Keybinding(Key.Y, KeyModifiers.Alt));
+            SetupDefaultKeybind(Hotkey.PlaybackStartGhostFlag, new Keybinding(Key.I, KeyModifiers.Shift));
+            SetupDefaultKeybind(Hotkey.PlaybackStartSlowmo, new Keybinding(Key.Y, KeyModifiers.Shift));
+            SetupDefaultKeybind(Hotkey.PlaybackFlag, new Keybinding(Key.I));
+            SetupDefaultKeybind(Hotkey.PlaybackStart, new Keybinding(Key.Y));
+            SetupDefaultKeybind(Hotkey.PlaybackStop, new Keybinding(Key.U));
+            SetupDefaultKeybind(Hotkey.PlaybackSlowmo, new Keybinding(Key.M));
+            SetupDefaultKeybind(Hotkey.PlaybackZoom, new Keybinding(Key.Z));
+            SetupDefaultKeybind(Hotkey.PlaybackUnzoom, new Keybinding(Key.X));
+
+            SetupDefaultKeybind(Hotkey.PlaybackSpeedUp,
+                new Keybinding(Key.Plus),
+                new Keybinding(Key.KeypadPlus));
+
+            SetupDefaultKeybind(Hotkey.PlaybackSpeedDown,
+                new Keybinding(Key.Minus),
+                new Keybinding(Key.KeypadMinus));
+
+            SetupDefaultKeybind(Hotkey.PlaybackFrameNext, new Keybinding(Key.Right));
+            SetupDefaultKeybind(Hotkey.PlaybackFramePrev, new Keybinding(Key.Left));
+            SetupDefaultKeybind(Hotkey.PlaybackForward, new Keybinding(Key.Right, KeyModifiers.Shift));
+            SetupDefaultKeybind(Hotkey.PlaybackBackward, new Keybinding(Key.Left, KeyModifiers.Shift));
+            SetupDefaultKeybind(Hotkey.PlaybackIterationNext, new Keybinding(Key.Right, KeyModifiers.Alt));
+            SetupDefaultKeybind(Hotkey.PlaybackIterationPrev, new Keybinding(Key.Left, KeyModifiers.Alt));
+            SetupDefaultKeybind(Hotkey.PlaybackTogglePause, new Keybinding(Key.Space));
+
+            SetupDefaultKeybind(Hotkey.PreferencesWindow,
+                new Keybinding(Key.Escape),
+                new Keybinding(Key.P, KeyModifiers.Control));
+            SetupDefaultKeybind(Hotkey.PreferenceOnionSkinning, new Keybinding(Key.O, KeyModifiers.Control));
+            SetupDefaultKeybind(Hotkey.LoadWindow, new Keybinding(Key.O));
+            SetupDefaultKeybind(Hotkey.Quicksave, new Keybinding(Key.S, KeyModifiers.Control));
+
+            SetupDefaultKeybind(Hotkey.PlayButtonIgnoreFlag, new Keybinding(KeyModifiers.Alt));
+
+            SetupDefaultKeybind(Hotkey.EditorQuickPan, new Keybinding(Key.Space));
+
+            SetupDefaultKeybind(Hotkey.EditorCancelTool, new Keybinding(Key.Escape));
+            SetupDefaultKeybind(Hotkey.PlayButtonIgnoreFlag, new Keybinding(KeyModifiers.Alt));
+        }
+        private static void SetupDefaultKeybind(Hotkey hotkey, Keybinding keybinding, Keybinding secondary = null)
         {
             if (keybinding.IsEmpty)
                 return;
-            if (!Keybinds.ContainsKey(hotkey))
+            DefaultKeybinds[hotkey] = new List<Keybinding>();
+            DefaultKeybinds[hotkey].Add(keybinding);
+            if (secondary != null)
             {
-                Keybinds[hotkey] = new List<Keybinding>();
+                DefaultKeybinds[hotkey].Add(secondary);
             }
+        }
+        private static void LoadDefaultKeybindings()
+        {
+            foreach (Hotkey hk in Enum.GetValues(typeof(Hotkey)))
+            {
+                if (hk == Hotkey.None)
+                    continue;
+                LoadDefaultKeybind(hk);
+            }
+        }
+        public static List<Keybinding> GetHotkeyDefault(Hotkey hotkey)
+        {
+            if (!DefaultKeybinds.ContainsKey(hotkey))
+                return null;
+            return DefaultKeybinds[hotkey];
+        }
+        private static void LoadDefaultKeybind(Hotkey hotkey)
+        {
+            if (DefaultKeybinds.ContainsKey(hotkey))
+            {
+                var defaults = DefaultKeybinds[hotkey];
+                if (defaults == null || defaults.Count == 0)
+                    return;
+                var list = Keybinds[hotkey];
+                if (list.Count == 0)
+                    CreateKeybind(hotkey, defaults[0]);
+                if (defaults.Count > 1)
+                {
+                    var secondary = defaults[1];
+                    if (secondary != null && list.Count == 1 && list[0].IsBindingEqual(defaults[0]))
+                        CreateKeybind(hotkey, secondary);
+                }
+            }
+        }
+        private static void CreateKeybind(Hotkey hotkey, Keybinding keybinding)
+        {
+            var conflict = CheckConflicts(keybinding, hotkey);
+            if (keybinding.IsEmpty || conflict != Hotkey.None)
+                return;
             Keybinds[hotkey].Add(keybinding);
+        }
+        public static Hotkey CheckConflicts(Keybinding keybinding, Hotkey hotkey)
+        {
+            if (!keybinding.IsEmpty)
+            {
+                var inputconflicts = Settings.KeybindConflicts[hotkey];
+                foreach (var keybinds in Settings.Keybinds)
+                {
+                    var hk = keybinds.Key;
+                    var conflicts = Settings.KeybindConflicts[hk];
+                    //if the conflicts is equal to or below inputconflicts
+                    //then we can compare for conflict
+                    //if conflicts is above inputconflicts, ignore
+                    if (inputconflicts.HasFlag(conflicts))
+                    {
+                        foreach (var keybind in keybinds.Value)
+                        {
+                            if (keybind.IsBindingEqual(keybinding))
+                                return hk;
+                        }
+                    }
+                }
+            }
+            return Hotkey.None;
         }
         public static void Load()
         {
@@ -207,12 +318,15 @@ namespace linerider
             {
                 LastSelectedTrack = lasttrack;
             }
-            foreach (string name in Enum.GetNames(typeof(Hotkey)))
+            foreach (Hotkey hk in Enum.GetValues(typeof(Hotkey)))
             {
-                LoadKeybinding(lines, name);
+                if (hk == Hotkey.None)
+                    continue;
+                LoadKeybinding(lines, hk);
             }
 
             Volume = MathHelper.Clamp(Settings.Volume, 0, 100);
+            LoadDefaultKeybindings();
         }
         public static void Save()
         {
@@ -240,10 +354,15 @@ namespace linerider
             {
                 foreach (var bind in binds.Value)
                 {
-                    config += "\r\n" + MakeSetting(binds.Key.ToString(),
-                    "Mod=" + bind.Modifiers.ToString() +
-                    ";Key=" + bind.Key.ToString() +
-                    ";Mouse=" + bind.MouseButton.ToString() + ";");
+                    if (KeybindConflicts[binds.Key] == KeyConflicts.HardCoded)
+                        continue;
+                    if (!bind.IsEmpty)
+                    {
+                        config += "\r\n" + MakeSetting(binds.Key.ToString(),
+                        "Mod=" + bind.Modifiers.ToString() +
+                        ";Key=" + bind.Key.ToString() +
+                        ";Mouse=" + bind.MouseButton.ToString() + ";");
+                    }
                 }
             }
             try
@@ -252,10 +371,12 @@ namespace linerider
             }
             catch { }
         }
-        private static void LoadKeybinding(string[] config, string hotkeyname)
+        private static void LoadKeybinding(string[] config, Hotkey hotkey)
         {
-            var hotkey = (Hotkey)Enum.Parse(typeof(Hotkey), hotkeyname);
+            if (KeybindConflicts[hotkey] == KeyConflicts.HardCoded)
+                return;
             int line = 0;
+            var hotkeyname = hotkey.ToString();
             var setting = GetSetting(config, hotkeyname, ref line);
             if (setting != null)
                 Keybinds[hotkey] = new List<Keybinding>();
