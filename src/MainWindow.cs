@@ -1,4 +1,4 @@
-﻿//#define debuggrid
+//#define debuggrid
 //#define debugcamera
 //
 //  GLWindow.cs
@@ -620,6 +620,10 @@ namespace linerider
                     return;
                 var openwindows = Canvas.GetOpenWindows();
                 var mod = e.Modifiers;
+                if (_input.ProcessKeyDown(e))
+                {
+                    return;
+                }
                 if (openwindows != null && openwindows.Count >= 1)
                 {
                     if (e.Key == Key.Escape)
@@ -632,10 +636,8 @@ namespace linerider
                         return;
                     }
                 }
-                if (_input.ProcessKeyDown(e) || Canvas.IsModalOpen)
-                {
+                if (Canvas.IsModalOpen)
                     return;
-                }
                 if (_dragRider || OpenTK.Input.Mouse.GetState().IsButtonDown(MouseButton.Left))
                 {
                     if (!Track.Playing)
