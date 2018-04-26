@@ -49,7 +49,8 @@ namespace linerider.UI
         private static Key LastPressedKey = Key.Unknown;
         public static void KeyDown(Key key)
         {
-            LastPressedKey = key;
+            if (!IsModifier(key))
+                RepeatKey = key;
         }
         public static void UpdateKeysDown(KeyboardState ks, KeyModifiers modifiers)
         {
@@ -177,7 +178,7 @@ namespace linerider.UI
         }
         public static Vector2d GetMouse()
         {
-            return new Vector2d(_last_mouse_state.X,_last_mouse_state.Y);
+            return new Vector2d(_last_mouse_state.X, _last_mouse_state.Y);
         }
         public static bool Check(Hotkey hotkey)
         {
@@ -209,11 +210,12 @@ namespace linerider.UI
         /// </summary>
         private static bool IsKeybindExclusive(Keybinding bind)
         {
-            int allowedkeys = bind.KeysDown;
-            if (allowedkeys > 0 && !IsModifier(bind.Key))
+            if (bind.UsesModifiers && !bind.UsesKeys)
+                return true;
+            if (bind.UsesKeys)
             {
                 if (_modifiersdown != bind.Modifiers ||
-                bind.Key != LastPressedKey)//someone overrode us
+                bind.Key != RepeatKey)//someone overrode us
                     return false;
             }
             if (bind.UsesMouse)
