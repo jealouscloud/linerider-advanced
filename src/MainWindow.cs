@@ -1,4 +1,4 @@
-//#define debuggrid
+﻿//#define debuggrid
 //#define debugcamera
 //
 //  GLWindow.cs
@@ -414,10 +414,9 @@ namespace linerider
                     if (!Track.Playing)
                     {
                         bool dragstart = false;
-                        if (e.Button == MouseButton.Left &&
-                            OpenTK.Input.Keyboard.GetState()[Key.D])
+                        if (e.Button == MouseButton.Left && InputUtils.Check(Hotkey.EditorMoveStart))
                         {
-                            var gamepos = ScreenPosition + (new Vector2d(e.X,e.Y) / Track.Zoom);
+                            var gamepos = ScreenPosition + (new Vector2d(e.X, e.Y) / Track.Zoom);
                             dragstart = Game.Rider.GetBounds(
                                 Track.GetStart()).Contains(
                                     gamepos.X,
