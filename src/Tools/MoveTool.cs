@@ -293,10 +293,12 @@ namespace linerider.Tools
             bool both = _selection.joint1 && _selection.joint2;
             if (both)
             {
-                if (UI.InputUtils.Check(Hotkey.ToolAngleLock))
+                var axis = UI.InputUtils.CheckPressed(Hotkey.ToolAxisLock);
+                var perpendicularaxis = UI.InputUtils.CheckPressed(Hotkey.ToolPerpendicularAxisLock);
+                if (axis || perpendicularaxis)
                 {
                     var angle = Angle.FromVector(_selection.clone.GetVector());
-                    if (UI.InputUtils.CheckPressed(Hotkey.ToolXYSnap))
+                    if (perpendicularaxis)
                     {
                         angle.Degrees -= 90;
                     }
