@@ -128,8 +128,13 @@ namespace linerider.UI
             var table = _tree.Add("Settings", 150);
             NumberProperty startzoom = new NumberProperty(null)
             {
-                Min = Constants.MinimumZoom,
+                Min = 1,
+                NumberValue = _editor.StartZoom,
                 Max = Constants.MaxZoom,
+            };
+            startzoom.ValueChanged += (o,e)=>
+            {
+                _editor.StartZoom = (float)startzoom.NumberValue;
             };
             //todo implement properly^
             table.Add("Start Zoom", startzoom);

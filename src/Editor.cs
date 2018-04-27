@@ -64,23 +64,6 @@ namespace linerider
         public readonly object LoadSync = new object();
         public readonly Stopwatch FramerateWatch = new Stopwatch();
         public readonly FPSCounter FramerateCounter = new FPSCounter();
-        private float StartZoom
-        {
-            get
-            {
-                switch (Settings.PlaybackZoomType)
-                {
-                    case 0: //current
-                        return Zoom;
-                    case 1: //default zoom
-                    default:
-                        return Constants.DefaultZoom;
-
-                    case 2: //specific
-                        return Settings.PlaybackZoomValue;
-                }
-            }
-        }
         private bool _paused = false;
         public float Zoom
         {
@@ -115,6 +98,23 @@ namespace linerider
             get
             {
                 return Math.Abs(UndoManager.ActionPosition - _prevSaveUndoPos);
+            }
+        }
+        public float StartZoom
+        {
+            get
+            {
+                return _track.StartZoom;
+            }
+            set
+            {
+                if (_track.StartZoom != value)
+                {
+                    _track.StartZoom = value;
+                    Timeline.Restart(_track.GetStart(), _track.StartZoom);
+                    Zoom = Timeline.GetFrameZoom(Offset);
+                    UseUserZoom = false;
+                }
             }
         }
         private bool _invalidated = false;
@@ -301,7 +301,7 @@ namespace linerider
         }
         public void Reset()
         {
-            Timeline.Restart(_track.GetStart(), StartZoom);
+            Timeline.Restart(_track.GetStart(), _track.StartZoom);
             SetFrame(0);
         }
         public bool FastGridCheck(double x, double y)
@@ -400,8 +400,8 @@ namespace linerider
             Camera.SetFrameCenter(Timeline.GetFrame(frameid).CalculateCenter());
 
             game.UpdateCursor();
-            Zoom = StartZoom;
             UseUserZoom = false;
+            Zoom = Timeline.GetFrameZoom(Offset);
             Scheduler.Reset();
             FramerateCounter.Reset();
             InvalidateRenderRider();

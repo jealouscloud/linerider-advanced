@@ -56,6 +56,7 @@ namespace linerider
                 GenerateBones();
             }
         }
+        public float StartZoom = Constants.DefaultZoom;
         public int SceneryLines { get; private set; }
         public int BlueLines { get; private set; }
         public int RedLines { get; private set; }
