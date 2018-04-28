@@ -55,6 +55,7 @@ namespace linerider.UI
         PlaybackTogglePause,
         PlaybackForward,
         PlaybackBackward,
+        PlaybackResetCamera,
         PreferenceOnionSkinning,
         PreferencesWindow,
         TrackPropertiesWindow,

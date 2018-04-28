@@ -30,6 +30,8 @@ namespace linerider.UI
         private TrackLabel _fpslabel;
         private TrackLabel _playbackratelabel;
         private TrackLabel _riderspeedlabel;
+        private Panel _iconpanel;
+        private Sprite _usercamerasprite;
         private Stopwatch _fpswatch = new Stopwatch();
         public RightInfoBar(ControlBase parent, Editor editor) : base(parent)
         {
@@ -45,9 +47,19 @@ namespace linerider.UI
             _fpslabel.IsHidden = rec && !Settings.Recording.ShowFps;
             _riderspeedlabel.IsHidden = rec && !Settings.Recording.ShowPpf;
             _playbackratelabel.IsHidden = rec || _editor.Scheduler.UpdatesPerSecond == 40;
+
+            _usercamerasprite.IsHidden = !_editor.UseUserZoom;
+            _iconpanel.IsHidden = _usercamerasprite.IsHidden;
         }
         private void Setup()
         {
+            _iconpanel = new Panel(this)
+            {
+                ShouldDrawBackground = false,
+                Dock = Dock.Top,
+                Width = 32,
+                Height = 32,
+            };
             _fpslabel = new TrackLabel(this)
             {
                 Dock = Dock.Top,
@@ -57,7 +69,7 @@ namespace linerider.UI
                     var rec = IO.TrackRecorder.Recording;
                     if (rec && Settings.Recording.ShowFps)
                     {
-                        return "60 FPS";
+                        return Settings.RecordSmooth ? "60 FPS" : "40 FPS";
                     }
                     else if (!_fpswatch.IsRunning || _fpswatch.ElapsedMilliseconds > 500)
                     {
@@ -103,6 +115,19 @@ namespace linerider.UI
                 },
                 Margin = new Margin(0, 0, 5, 0),
             };
+            _usercamerasprite = new Sprite(_iconpanel)
+            {
+                Dock = Dock.Right,
+                IsHidden = true,
+                Tooltip = "Click to Reset Camera\n(Default hotkey N)",
+                MouseInputEnabled = true,
+            };
+            _usercamerasprite.Clicked += (o,e)=>
+            {
+                _editor.Zoom = _editor.Timeline.GetFrameZoom(_editor.Offset);
+                _editor.UseUserZoom = false;
+            };
+            _usercamerasprite.SetImage(GameResources.camera_need_reset);
         }
     }
 }

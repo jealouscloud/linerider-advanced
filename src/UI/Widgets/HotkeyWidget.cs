@@ -99,6 +99,7 @@ namespace linerider.UI
 
             var pbtable = _kbtree.Add("Playback", 150);
             AddBinding(pbtable, "Toggle Flag", Hotkey.PlaybackFlag);
+            AddBinding(pbtable, "Reset Camera", Hotkey.PlaybackResetCamera);
             AddBinding(pbtable, "Start Track", Hotkey.PlaybackStart);
             AddBinding(pbtable, "Start Track before Flag", Hotkey.PlaybackStartIgnoreFlag);
             AddBinding(pbtable, "Start Track in Slowmo", Hotkey.PlaybackStartSlowmo);

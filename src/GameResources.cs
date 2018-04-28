@@ -337,13 +337,6 @@ namespace linerider
         }
         #endregion
         #region Icons
-        internal static System.Drawing.Bitmap playheadmarker
-        {
-            get
-            {
-                return GetBitmap("ux.playheadmarker.png");
-            }
-        }
         internal static System.Drawing.Bitmap pencil_icon
         {
             get
@@ -442,11 +435,27 @@ namespace linerider
                 return GetBitmap("icons.swatch.png");
             }
         }
+        #endregion
+        #region ux
+        internal static System.Drawing.Bitmap camera_need_reset
+        {
+            get
+            {
+                return GetBitmap("ux.cameraneedreset.png");
+            }
+        }
         internal static System.Drawing.Bitmap flagmarker
         {
             get
             {
                 return GetBitmap("ux.flagmarker.png");
+            }
+        }
+        internal static System.Drawing.Bitmap playheadmarker
+        {
+            get
+            {
+                return GetBitmap("ux.playheadmarker.png");
             }
         }
         #endregion

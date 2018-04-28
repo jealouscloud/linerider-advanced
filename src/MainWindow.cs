@@ -882,6 +882,11 @@ namespace linerider
             },
             null,
             repeat: true);
+            InputUtils.RegisterHotkey(Hotkey.PlaybackResetCamera, () => true, () =>
+            {
+                Track.Zoom = Track.Timeline.GetFrameZoom(Track.Offset);
+                Track.UseUserZoom = false;
+            });
         }
         private void RegisterPopupHotkeys()
         {

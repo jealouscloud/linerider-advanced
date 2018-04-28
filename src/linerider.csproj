@@ -252,6 +252,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\ux\flagmarker.png" />
     <EmbeddedResource Include="Resources\ux\playheadmarker.png" />
+    <EmbeddedResource Include="Resources\ux\cameraneedreset.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\cursors\closed_move.png" />
