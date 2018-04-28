@@ -239,7 +239,13 @@ namespace linerider
                 }
                 else if (child is Gwen.ControlInternal.Modal)
                 {
-                    ret.Add(child.Children.Single(x => x is WindowControl));
+                    foreach(var modalchild in child.Children)
+                    {
+                        if (modalchild is WindowControl w)
+                        {
+                            ret.Add(w);
+                        }
+                    }
                 }
             }
             return ret;
