@@ -144,7 +144,7 @@ namespace linerider.UI
             {
                 if (modifiers > 0)
                     kb += "+";
-                kb += KeyToString(Key);
+                kb += KeyToString(Key).ToLower();
             }
             if (UsesMouse)
             {
