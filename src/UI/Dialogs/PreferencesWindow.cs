@@ -29,7 +29,7 @@ namespace linerider.UI
             MakeModal(true);
             Setup();
         }
-        private void PopulateSong(ControlBase parent)
+        private void PopulateAudio(ControlBase parent)
         {
             var opts = GwenHelper.CreateHeaderPanel(parent, "Sync options");
             var syncenabled = GwenHelper.AddCheckbox(opts, "Mute", Settings.MuteAudio, (o, e) =>
@@ -58,17 +58,6 @@ namespace linerider.UI
         }
         private void PopulateModes(ControlBase parent)
         {
-            var playbackmode = GwenHelper.CreateHeaderPanel(parent, "Playback Color");
-            GwenHelper.AddCheckbox(playbackmode, "Color Playback", Settings.Local.ColorPlayback, (o, e) =>
-               {
-                   Settings.Local.ColorPlayback = ((Checkbox)o).IsChecked;
-                   Settings.Save();
-               });
-            var preview = GwenHelper.AddCheckbox(playbackmode, "Preview Mode", Settings.Local.PreviewMode, (o, e) =>
-               {
-                   Settings.Local.PreviewMode = ((Checkbox)o).IsChecked;
-                   Settings.Save();
-               });
             var background = GwenHelper.CreateHeaderPanel(parent, "Background Color");
             GwenHelper.AddCheckbox(background, "Night Mode", Settings.NightMode, (o, e) =>
                {
@@ -191,34 +180,18 @@ namespace linerider.UI
         }
         private void PopulatePlayback(ControlBase parent)
         {
-            var general = GwenHelper.CreateHeaderPanel(parent, "Initial Zoom");
-            RadioButtonGroup pbzoom = new RadioButtonGroup(general)
-            {
-                Dock = Dock.Left,
-                ShouldDrawBackground = false,
-            };
-            pbzoom.AddOption("Current Zoom");
-            pbzoom.AddOption("Default Zoom");
-            pbzoom.AddOption("Specific Zoom");
-            Spinner playbackspinner = new Spinner(pbzoom)
-            {
-                Dock = Dock.Bottom,
-                Max = 24,
-                Min = 1,
-            };
-            pbzoom.SelectionChanged += (o, e) =>
-            {
-                Settings.PlaybackZoomType = ((RadioButtonGroup)o).SelectedIndex;
-                Settings.Save();
-                playbackspinner.IsHidden = (((RadioButtonGroup)o).SelectedLabel != "Specific Zoom");
-            };
-            playbackspinner.ValueChanged += (o, e) =>
-            {
-                Settings.PlaybackZoomValue = (float)((Spinner)o).Value;
-                Settings.Save();
-            };
-            pbzoom.SetSelection(Settings.PlaybackZoomType);
-            playbackspinner.Value = Settings.PlaybackZoomValue;
+
+            var playbackmode = GwenHelper.CreateHeaderPanel(parent, "Playback Color");
+            GwenHelper.AddCheckbox(playbackmode, "Color Playback", Settings.Local.ColorPlayback, (o, e) =>
+               {
+                   Settings.Local.ColorPlayback = ((Checkbox)o).IsChecked;
+                   Settings.Save();
+               });
+            var preview = GwenHelper.AddCheckbox(playbackmode, "Preview Mode", Settings.Local.PreviewMode, (o, e) =>
+               {
+                   Settings.Local.PreviewMode = ((Checkbox)o).IsChecked;
+                   Settings.Save();
+               });
             var framerate = GwenHelper.CreateHeaderPanel(parent, "Frame Control");
             var smooth = GwenHelper.AddCheckbox(framerate, "Smooth Playback", Settings.SmoothPlayback, (o, e) =>
                {
@@ -262,11 +235,11 @@ namespace linerider.UI
             PopulateModes(page);
             page = AddPage(cat, "Camera");
             PopulateCamera(page);
+            cat = _prefcontainer.Add("Application");
+            page = AddPage(cat, "Audio");
+            PopulateAudio(page);
             page = AddPage(cat, "Keybindings");
             PopulateKeybinds(page);
-            cat = _prefcontainer.Add("Song Sync");
-            page = AddPage(cat, "Song");
-            PopulateSong(page);
             if (Settings.SettingsPane >= _tabscount && _focus == null)
             {
                 Settings.SettingsPane = 0;
