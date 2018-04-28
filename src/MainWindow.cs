@@ -255,7 +255,7 @@ namespace linerider
                 }
             }
             bool quickpan = false;
-            if (!Track.Playing)
+            if (!Track.Playing && !Canvas.IsModalOpen)
             {
                 //todo review with playbackmode remove
                 quickpan = (InputUtils.Check(Hotkey.EditorQuickPan)) ||
