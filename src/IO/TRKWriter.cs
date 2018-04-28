@@ -39,10 +39,12 @@ namespace linerider.IO
                         featurestring += feature.Key + ";";
                     }
                 }
-                bw.Write((short)featurestring.Length);
-                bw.Write(Encoding.ASCII.GetBytes(featurestring));
+                WriteString(bw, featurestring);
                 if (songinfo)
                 {
+                    // unfotrunately this relies on .net to save and parse in
+                    // its own way, and we're kind of stuck with it instead of
+                    // the right way to write strings
                     bw.Write(trk.Song.ToString());
                 }
                 bw.Write(trk.StartOffset.X);
@@ -115,8 +117,22 @@ namespace linerider.IO
                     bw.Write(line.Position2.X);
                     bw.Write(line.Position2.Y);
                 }
+                bw.Write(new byte[] { (byte)'M', (byte)'E', (byte)'T', (byte)'A' });
+                List<string> metadata = new List<string>();
+                metadata.Add("STARTZOOM=" + trk.StartZoom.ToString(Program.Culture));
+
+                bw.Write((short)metadata.Count);
+                foreach (var str in metadata)
+                {
+                    WriteString(bw, str);
+                }
             }
             return filename;
+        }
+        private static void WriteString(BinaryWriter bw, string str)
+        {
+            bw.Write((short)str.Length);
+            bw.Write(Encoding.ASCII.GetBytes(str));
         }
     }
 }

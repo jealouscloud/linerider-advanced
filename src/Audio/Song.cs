@@ -40,6 +40,7 @@ namespace linerider.Audio
         }
         public override string ToString()
         {
+            //note: .trk spec mandates \r\n newline here
             return Location + "\r\n" + Offset.ToString(Program.Culture);;
         }
     }

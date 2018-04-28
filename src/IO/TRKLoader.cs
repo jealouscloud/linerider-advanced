@@ -43,7 +43,7 @@ namespace linerider.IO
                 if (magic != ('T' | 'R' << 8 | 'K' << 16 | 0xF2 << 24))
                     throw new TrackIO.TrackLoadException("File was read as .trk but it is not valid");
                 byte version = br.ReadByte();
-                string[] features = Encoding.ASCII.GetString(br.ReadBytes(br.ReadInt16())).Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] features = ReadString(br).Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
                 if (version != 1)
                     throw new TrackIO.TrackLoadException("Unsupported version");
                 bool redmultipier = false;
@@ -103,7 +103,7 @@ namespace linerider.IO
                         {
                             if (AudioService.LoadFile(ref fn))
                             {
-                                ret.Song = new Song(Path.GetFileName(fn), float.Parse(strings[1]));
+                                ret.Song = new Song(Path.GetFileName(fn), float.Parse(strings[1], Program.Culture));
                             }
                             else
                             {
@@ -219,8 +219,36 @@ namespace linerider.IO
                         ret.AddLine(l);
                     }
                 }
+                if (br.BaseStream.Position != br.BaseStream.Length)
+                {
+                    var meta = br.ReadInt32();
+                    if (meta == ('M' | 'E' << 8 | 'T' << 16 | 'A' << 24))
+                    {
+                        var count = br.ReadInt16();
+                        for (int i = 0; i < count; i++)
+                        {
+                            var metadata = ReadString(br).Split('=');
+                            switch (metadata[0])
+                            {
+                                case TrackMetadata.startzoom:
+                                    if (!float.TryParse(metadata[1], NumberStyles.Float, Program.Culture, out float startzoom))
+                                        throw new TrackIO.TrackLoadException("Startzoom property was invalid");
+                                    ret.StartZoom = startzoom;
+                                    break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        throw new TrackIO.TrackLoadException("Expected metadata tag but got " + meta.ToString("X8"));
+                    }
+                }
             }
             return ret;
+        }
+        private static string ReadString(BinaryReader br)
+        {
+            return Encoding.ASCII.GetString(br.ReadBytes(br.ReadInt16()));
         }
     }
 }

@@ -152,6 +152,7 @@
     <Compile Include="IO\SOLWriter.cs" />
     <Compile Include="IO\TrackIO.cs" />
     <Compile Include="IO\TrackFeatures.cs" />
+    <Compile Include="IO\TrackMetadata.cs" />
     <Compile Include="IO\TrackRecorder.cs" />
     <Compile Include="IO\TrackSave.cs" />
     <Compile Include="IO\TRKLoader.cs" />
