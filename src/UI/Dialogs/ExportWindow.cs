@@ -100,8 +100,8 @@ namespace linerider.UI
             var music = AddPropertyCheckbox(
                 table,
                 "Save Music",
-                Settings.Local.EnableSong && Settings.RecordMusic);
-            if (!Settings.Local.EnableSong)
+                !Settings.MuteAudio && Settings.RecordMusic);
+            if (Settings.MuteAudio)
             {
                 music.Disable();
             }
@@ -175,7 +175,7 @@ namespace linerider.UI
                 _game,
                 Settings.Record1080p,
                 Settings.RecordSmooth,
-                Settings.RecordMusic && Settings.Local.EnableSong);
+                Settings.RecordMusic && !Settings.MuteAudio);
         }
     }
 }

@@ -94,17 +94,14 @@ namespace linerider.UI
             this.IsHiddenChanged += (o, e) =>
             {
                 if (!this.IsHidden) return;
-                if (Settings.Local.EnableSong)
+                var fn = Program.UserDirectory + "Songs" +
+                         Path.DirectorySeparatorChar +
+                         _editor.Song.Location;
+                if (File.Exists(fn))
                 {
-                    var fn = Program.UserDirectory + "Songs" +
-                             Path.DirectorySeparatorChar +
-                             _editor.Song.Location;
-                    if (File.Exists(fn))
-                    {
-                        _canvas.Loading = true;
-                        Audio.AudioService.LoadFile(ref fn);
-                        _canvas.Loading = false;
-                    }
+                    _canvas.Loading = true;
+                    Audio.AudioService.LoadFile(ref fn);
+                    _canvas.Loading = false;
                 }
             };
         }
@@ -132,7 +129,7 @@ namespace linerider.UI
                 NumberValue = _editor.StartZoom,
                 Max = Constants.MaxZoom,
             };
-            startzoom.ValueChanged += (o,e)=>
+            startzoom.ValueChanged += (o, e) =>
             {
                 _editor.StartZoom = (float)startzoom.NumberValue;
             };
@@ -156,7 +153,7 @@ namespace linerider.UI
             AddFeature(table, trackfeatures, "Red Multiplier", TrackFeatures.redmultiplier);
             AddFeature(table, trackfeatures, "Scenery Width", TrackFeatures.scenerywidth);
             AddFeature(table, trackfeatures, "Line Triggers", TrackFeatures.ignorable_trigger);
-            
+
             PopulateSong(song);
             _tree.ExpandAll();
             // table.Add

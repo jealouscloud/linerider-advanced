@@ -280,7 +280,6 @@ namespace linerider.UI
             {
                 try
                 {
-                    Settings.Local.EnableSong = false;
                     _editor.ChangeTrack(SOLLoader.LoadTrack(sol));
                 }
                 catch (Exception e)

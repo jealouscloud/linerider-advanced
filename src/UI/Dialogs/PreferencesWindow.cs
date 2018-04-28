@@ -32,9 +32,9 @@ namespace linerider.UI
         private void PopulateSong(ControlBase parent)
         {
             var opts = GwenHelper.CreateHeaderPanel(parent, "Sync options");
-            var syncenabled = GwenHelper.AddCheckbox(opts, "Enable Song", Settings.Local.EnableSong, (o, e) =>
+            var syncenabled = GwenHelper.AddCheckbox(opts, "Mute", Settings.MuteAudio, (o, e) =>
                {
-                   Settings.Local.EnableSong = ((Checkbox)o).IsChecked;
+                   Settings.MuteAudio = ((Checkbox)o).IsChecked;
                    Settings.Save();
                });
             HorizontalSlider vol = new HorizontalSlider(null)

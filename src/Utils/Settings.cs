@@ -55,7 +55,6 @@ namespace linerider
             public static bool ColorPlayback;
             public static bool DrawContactPoints;
             public static bool OnionSkinning;
-            public static bool EnableSong = false;
             public static float MaxZoom
             {
                 get
@@ -87,6 +86,7 @@ namespace linerider
         public static bool LifeLockNoOrange = false;
         public static bool LifeLockNoFakie = false;
         public static int SettingsPane = 0;
+        public static bool MuteAudio = false;
         static Settings()
         {
             foreach (Hotkey hk in Enum.GetValues(typeof(Hotkey)))
@@ -313,6 +313,7 @@ namespace linerider
             LoadBool(GetSetting(lines, nameof(LifeLockNoFakie)), ref LifeLockNoFakie);
             LoadBool(GetSetting(lines, nameof(LifeLockNoOrange)), ref LifeLockNoOrange);
             LoadInt(GetSetting(lines, nameof(SettingsPane)), ref SettingsPane);
+            LoadBool(GetSetting(lines, nameof(MuteAudio)), ref MuteAudio);
             var lasttrack = GetSetting(lines, nameof(LastSelectedTrack));
             if (File.Exists(lasttrack) && lasttrack.StartsWith(Constants.TracksDirectory))
             {
@@ -350,6 +351,7 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(LifeLockNoFakie), LifeLockNoFakie.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(LifeLockNoOrange), LifeLockNoOrange.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SettingsPane), SettingsPane.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(MuteAudio), SettingsPane.ToString(Program.Culture));
             foreach (var binds in Keybinds)
             {
                 foreach (var bind in binds.Value)

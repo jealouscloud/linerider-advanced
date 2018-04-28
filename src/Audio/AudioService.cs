@@ -193,7 +193,7 @@ namespace linerider.Audio
         public static void EnsureSync()
         {
             var editor = game.Track;
-            if (!Settings.Local.EnableSong || 
+            if (Settings.MuteAudio || 
                 string.IsNullOrEmpty(editor.Song.Location) || 
                 !editor.Song.Enabled)
                 return;
