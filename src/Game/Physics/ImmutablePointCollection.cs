@@ -1,6 +1,3 @@
-//
-//  Rider.cs
-//
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //

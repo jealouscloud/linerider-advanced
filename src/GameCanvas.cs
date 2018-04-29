@@ -1,7 +1,4 @@
-﻿//
-//  GameCanvas.cs
-//
-//  Author:
+﻿//  Author:
 //       Noah Ablaseau <nablaseauhotmail.com>
 //
 //  Copyright (c) 2017 

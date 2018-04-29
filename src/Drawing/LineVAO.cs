@@ -1,6 +1,3 @@
-//
-//  LineVAO.cs
-//
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //

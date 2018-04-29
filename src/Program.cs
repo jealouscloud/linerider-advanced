@@ -1,6 +1,3 @@
-﻿//
-//  Program.cs
-//
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //

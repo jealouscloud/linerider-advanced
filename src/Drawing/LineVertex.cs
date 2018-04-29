@@ -1,6 +1,3 @@
-//
-//  Vertex.cs
-//
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //

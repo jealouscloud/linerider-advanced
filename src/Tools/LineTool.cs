@@ -1,6 +1,3 @@
-//
-//  LineTool.cs
-//
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //

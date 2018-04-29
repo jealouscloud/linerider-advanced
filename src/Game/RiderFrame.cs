@@ -1,6 +1,3 @@
-//
-//  Track.cs
-//
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //

@@ -1,6 +1,3 @@
-//
-//  EraserTool.cs
-//
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //

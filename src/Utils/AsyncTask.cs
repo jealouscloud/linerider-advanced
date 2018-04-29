@@ -1,6 +1,3 @@
-//
-//  ResourceSync.cs
-//
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //

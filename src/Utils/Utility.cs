@@ -1,6 +1,3 @@
-//
-//  Tool.cs
-//
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //

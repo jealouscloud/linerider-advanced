@@ -1,7 +1,4 @@
-﻿//
-//  GameService.cs
-//
-//  Author:
+﻿//  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
 //  Copyright (c) 2017 

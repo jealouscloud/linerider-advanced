@@ -1,8 +1,5 @@
 ﻿//#define debuggrid
 //#define debugcamera
-//
-//  GLWindow.cs
-//
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
