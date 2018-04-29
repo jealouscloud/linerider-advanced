@@ -80,7 +80,7 @@ namespace linerider.UI
                });
             Spinner offset = new Spinner(null)
             {
-                Min = -1000,
+                Min = 0,
                 Value = _editor.Song.Offset
             };
             offset.ValueChanged += (o, e) =>
