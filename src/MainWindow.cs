@@ -62,7 +62,7 @@ namespace linerider
 
         public bool EnableSnap
         {
-            get { return !Settings.Local.DisableSnap && !InputUtils.Check(Hotkey.ToolDisableSnap); }
+            get { return !Settings.Local.DisableSnap && !InputUtils.CheckPressed(Hotkey.ToolDisableSnap); }
         }
 
         public Size RenderSize
