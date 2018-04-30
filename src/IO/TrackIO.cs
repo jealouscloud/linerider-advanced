@@ -186,6 +186,8 @@ namespace linerider.IO
         }
         public static bool QuickSave(Track track)
         {
+            if (track.Name == Constants.DefaultTrackName)
+                return false;
             var dir = GetTrackDirectory(track);
             if (track.Filename != null)
             {
