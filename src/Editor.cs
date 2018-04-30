@@ -510,6 +510,7 @@ namespace linerider
             {
                 using (_tracksync.AcquireWrite())
                 {
+                    CurrentTools.SelectedTool.Stop();
                     _loadingTrack = true;
                     Stop();
                     _flag = null;
@@ -518,7 +519,6 @@ namespace linerider
                     Timeline = new Timeline(trk);
                     Timeline.FrameInvalidated += FrameInvalidated;
                     InitCamera();
-                    UndoManager = new UndoManager();
                     ResetTrackChangeCounter();
                     _refreshtrack = true;
                     _cells.Clear();
@@ -529,6 +529,11 @@ namespace linerider
                     Reset();
                     Camera.SetFrameCenter(Timeline.GetFrame(0).CalculateCenter());
                     _loadingTrack = false;
+                    if (CurrentTools.SelectedTool.Active)
+                    {
+                        CurrentTools.SelectedTool.Stop();
+                    }
+                    UndoManager = new UndoManager();
                 }
             }
             Invalidate();
