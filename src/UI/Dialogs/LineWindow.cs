@@ -30,13 +30,25 @@ namespace linerider.UI
             AutoSizeToContents = true;
             _proptree = new PropertyTree(this)
             {
-                Width = 200,
-                Height = 150
+                Width = 220,
+                Height = 200
             };
             _proptree.Dock = Dock.Top;
             MakeModal(true);
             Setup();
             _proptree.ExpandAll();
+        }
+        protected override void CloseButtonPressed(ControlBase control, EventArgs args)
+        {
+            if (closing || !_linechangemade)
+            {
+                closing = true;
+                base.CloseButtonPressed(control, args);
+            }
+            else
+            {
+                WarnClose();
+            }
         }
         public override bool Close()
         {
@@ -47,31 +59,35 @@ namespace linerider.UI
             }
             else
             {
-                var mbox = MessageBox.Show(
-                    _canvas,
-                    "The line has been modified. Do you want to save your changes?",
-                    "Save Changes?",
-                    MessageBox.ButtonType.YesNoCancel);
-                mbox.RenameButtonsYN("Save", "Discard", "Cancel");
-                mbox.MakeModal(false);
-                mbox.Dismissed += (o, e) =>
-                {
-                    switch (e)
-                    {
-                        case DialogResult.Yes:
-                            FinishChange();
-                            closing = true;
-                            base.Close();
-                            break;
-                        case DialogResult.No:
-                            CancelChange();
-                            closing = true;
-                            base.Close();
-                            break;
-                    }
-                };
+                WarnClose();
                 return false;
             }
+        }
+        private void WarnClose()
+        {
+            var mbox = MessageBox.Show(
+                _canvas,
+                "The line has been modified. Do you want to save your changes?",
+                "Save Changes?",
+                MessageBox.ButtonType.YesNoCancel);
+            mbox.RenameButtonsYN("Save", "Discard", "Cancel");
+            mbox.MakeModal(false);
+            mbox.Dismissed += (o, e) =>
+            {
+                switch (e)
+                {
+                    case DialogResult.Yes:
+                        FinishChange();
+                        closing = true;
+                        base.Close();
+                        break;
+                    case DialogResult.No:
+                        CancelChange();
+                        closing = true;
+                        base.Close();
+                        break;
+                }
+            };
         }
         private void Setup()
         {
@@ -102,6 +118,7 @@ namespace linerider.UI
             };
             ok.Clicked += (o, e) =>
             {
+                FinishChange();
                 closing = true;
                 Close();
             };
@@ -147,7 +164,7 @@ namespace linerider.UI
                     table,
                     "Enabled",
                     currenttrigger != null);
-                    
+
                 var zoom = new NumberProperty(table)
                 {
                     Min = Constants.MinimumZoom,
