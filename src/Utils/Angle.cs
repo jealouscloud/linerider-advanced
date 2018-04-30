@@ -139,6 +139,10 @@ namespace linerider.Utils
         }
         public double Difference(Angle a2)
         {
+            return (360 - (Degrees - a2.Degrees)) % 360;
+        }
+        public double UnsignedDifference(Angle a2)
+        {
             return 180.0 - Math.Abs(Math.Abs(Degrees - a2.Degrees) - 180.0);
         }
         public static Angle FromRadians(double radians)
