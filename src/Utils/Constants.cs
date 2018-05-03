@@ -36,5 +36,8 @@ namespace linerider.Utils
         public const double MinimumZoom = 0.1;
         public const float MaxZoom = 24;
         public const float MaxSuperZoom = 200;
+        public static Color DefaultKnobColor => Settings.NightMode
+        ? Color.FromArgb(ColorNightMode.ToArgb())
+        : Color.FromArgb(ColorWhite.ToArgb());
     }
 }

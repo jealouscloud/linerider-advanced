@@ -197,7 +197,7 @@ namespace linerider.Rendering
             GL.Uniform1(u_scale, Scale);
             GL.Uniform1(_shader.GetUniform("u_alphachannel"), 0);
             GL.Uniform1(u_knobstate, (int)KnobState);
-            GL.Uniform4(_shader.GetUniform("u_knobcolor"), Settings.NightMode ? Constants.ColorNightMode : Constants.ColorWhite);
+            GL.Uniform4(_shader.GetUniform("u_knobcolor"), Constants.DefaultKnobColor);
 
         }
         public void Draw()
