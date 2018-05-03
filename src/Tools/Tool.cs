@@ -60,7 +60,7 @@ namespace linerider.Tools
                 return "";
             }
         }
-        public bool Active { get; protected set; }
+        public virtual bool Active { get; protected set; }
         public virtual bool NeedsRender { get { return false; } }
         public abstract MouseCursor Cursor { get; }
         /// <summary>
@@ -118,7 +118,7 @@ namespace linerider.Tools
         public virtual void OnChangingTool()
         {
         }
-        protected GameLine SelectLine(TrackWriter trk, Vector2d position, out bool knob)
+        protected GameLine SelectLine(TrackReader trk, Vector2d position, out bool knob)
         {
             knob = false;
             var zoom = game.Track.Zoom;
@@ -142,8 +142,7 @@ namespace linerider.Tools
                     line.Position2,
                     angle,
                     lnradius * 2);
-                if (Utility.PointInRectangle(rect,
-                position))
+                if (Utility.PointInRectangle(rect, position))
                 {
                     return line;
                 }
