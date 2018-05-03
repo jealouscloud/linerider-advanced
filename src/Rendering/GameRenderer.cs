@@ -101,6 +101,52 @@ namespace linerider.Rendering
                 }
             }
         }
+        /// <summary>
+        /// Draw a simple render of each track line
+        /// </summary>
+        public static void RenderSelection(IEnumerable<LineSelection> lines, Color color)
+        {
+            using (new GLEnableCap(EnableCap.Blend))
+            {
+                using (new GLEnableCap(EnableCap.Texture2D))
+                {
+                    GameDrawingMatrix.Enter();
+                    var vao = GetLineVAO();
+                    vao.Scale = GameDrawingMatrix.Scale;
+                    foreach (var item in lines)
+                    {
+                        var line = item.line;
+                        vao.AddLine(line.Position, line.Position2, color, line.Width*2);
+                    }
+                    vao.knobstate = 0;
+                    vao.Draw(PrimitiveType.Triangles);
+                    GameDrawingMatrix.Exit();
+                }
+            }
+        }
+        public static void RenderRoundedRectangle(DoubleRect rect, Color color, float thickness)
+        {
+            using (new GLEnableCap(EnableCap.Blend))
+            {
+                using (new GLEnableCap(EnableCap.Texture2D))
+                {
+                    GameDrawingMatrix.Enter();
+                    var vao = GetLineVAO();
+                    vao.Scale = GameDrawingMatrix.Scale;
+                    var vec1 = rect.Vector;
+                    var vec2 = vec1 + new Vector2d(rect.Width, 0);
+                    var vec3 = vec1 + rect.Size;
+                    var vec4 = vec1 + new Vector2d(0, rect.Height);
+                    vao.AddLine(vec1, vec2, color, thickness);
+                    vao.AddLine(vec2, vec3, color, thickness);
+                    vao.AddLine(vec3, vec4, color, thickness);
+                    vao.AddLine(vec4, vec1, color, thickness);
+                    vao.knobstate = 0;
+                    vao.Draw(PrimitiveType.Triangles);
+                    GameDrawingMatrix.Exit();
+                }
+            }
+        }
         public static void DbgDrawCamera()
         {
             GL.PushMatrix();

@@ -1047,6 +1047,20 @@ namespace linerider
                 StopTools();
                 Invalidate();
             });
+            InputUtils.RegisterHotkey(Hotkey.ToolCopy, () => !Track.Playing && CurrentTools.SelectedTool == CurrentTools.MoveTool, () =>
+            {
+                CurrentTools.MoveTool.Copy();
+                Invalidate();
+            },
+            null,
+            repeat: false);
+            InputUtils.RegisterHotkey(Hotkey.ToolPaste, () => !Track.Playing && CurrentTools.SelectedTool == CurrentTools.MoveTool, () =>
+            {
+                CurrentTools.MoveTool.Paste();
+                Invalidate();
+            },
+            null,
+            repeat: false);
         }
     }
 }
