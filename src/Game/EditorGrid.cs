@@ -26,6 +26,8 @@ using System.Drawing;
 using OpenTK;
 using linerider.Utils;
 using linerider.Game;
+using System.Diagnostics;
+
 namespace linerider.Game
 {
     /// <summary>
@@ -36,7 +38,7 @@ namespace linerider.Game
     public class EditorGrid
     {
         private readonly ResourceSync Sync = new ResourceSync();
-        private readonly Dictionary<int, LineContainer<GameLine>> Cells = new Dictionary<int, LineContainer<GameLine>>(4096);
+        private readonly Dictionary<int, EditorCell> Cells = new Dictionary<int, EditorCell>(4096);
         private object _syncRoot = new object();
         public const int CellSize = 32;
         private int GetCellKey(int x, int y)
@@ -53,9 +55,9 @@ namespace linerider.Game
         {
             Cells.Clear();
         }
-        public LineContainer<GameLine> GetCell(int x, int y)
+        public EditorCell GetCell(int x, int y)
         {
-            LineContainer<GameLine> cell;
+            EditorCell cell;
             var pos = GetCellKey(x, y);
             if (!Cells.TryGetValue(pos, out cell))
                 return null;
@@ -63,17 +65,17 @@ namespace linerider.Game
 
         }
 
-        public LineContainer<GameLine> GetCellFromPoint(Vector2d pos)
+        public EditorCell GetCellFromPoint(Vector2d pos)
         {
             return GetCell((int)Math.Floor(pos.X / CellSize), (int)Math.Floor(pos.Y / CellSize));
         }
         private void Register(GameLine l, int x, int y)
         {
             var key = GetCellKey(x, y);
-            LineContainer<GameLine> cell;
+            EditorCell cell;
             if (!Cells.TryGetValue(key, out cell))
             {
-                cell = new LineContainer<GameLine>();
+                cell = new EditorCell();
                 Cells[key] = cell;
             }
             cell.AddLine(l);
@@ -81,7 +83,7 @@ namespace linerider.Game
 
         private void Unregister(GameLine l, int x, int y)
         {
-            LineContainer<GameLine> cell;
+            EditorCell cell;
             var pos = GetCellKey(x, y);
             if (!Cells.TryGetValue(pos, out cell))
                 return;
@@ -116,13 +118,13 @@ namespace linerider.Game
                 }
             }
         }
-        public LineContainer<GameLine> LinesInRect(DoubleRect rect)
+        public EditorCell LinesInRect(DoubleRect rect)
         {
             int starty = (int)Math.Floor(rect.Top / CellSize);
             int startx = (int)Math.Floor(rect.Left / CellSize);
             int endy = (int)Math.Floor((rect.Top + rect.Height) / CellSize);
             int endx = (int)Math.Floor((rect.Left + rect.Width) / CellSize);
-            LineContainer<GameLine> ret = new LineContainer<GameLine>();
+            EditorCell ret = new EditorCell();
             using (Sync.AcquireWrite())
             {
                 for (int x = startx; x <= endx; x++)
