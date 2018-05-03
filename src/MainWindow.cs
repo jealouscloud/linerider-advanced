@@ -632,19 +632,14 @@ namespace linerider
                         return;
                     }
                 }
-                if (Canvas.IsModalOpen)
-                    return;
-                if (_dragRider || OpenTK.Input.Mouse.GetState().IsButtonDown(MouseButton.Left))
+                if (
+                    Canvas.IsModalOpen ||
+                    (!Track.Playing && CurrentTools.SelectedTool.OnKeyDown(e.Key)) ||
+                    _dragRider)
                 {
-                    if (!Track.Playing)
-                    {
-                        if (CurrentTools.SelectedTool.OnKeyDown(e.Key))
-                            return;
-                    }
-                    else
-                    {
-                        return;
-                    }
+                    UpdateCursor();
+                    Invalidate();
+                    return;
                 }
                 InputUtils.ProcessHotkeys();
                 UpdateCursor();
@@ -689,9 +684,11 @@ namespace linerider
                 InputUtils.UpdateKeysDown(e.Keyboard, e.Modifiers);
                 if (linerider.IO.TrackRecorder.Recording)
                     return;
-                if (!_input.ProcessKeyUp(e))
+                if (!_input.ProcessKeyUp(e) &&
+                    !CurrentTools.SelectedTool.OnKeyUp(e.Key))
+                {
                     InputUtils.ProcessKeyup();
-
+                }
                 UpdateCursor();
                 Invalidate();
             }
