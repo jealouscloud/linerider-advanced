@@ -23,6 +23,7 @@ namespace linerider.Utils
 {
     public struct DoubleRect : IEquatable<DoubleRect>
     {
+        public static readonly DoubleRect Empty = new DoubleRect(0, 0, 0, 0);
         public double Left;
         public double Top;
         public double Width;
@@ -33,12 +34,22 @@ namespace linerider.Utils
             {
                 return new Vector2d(Left, Top);
             }
+            set
+            {
+                Left = value.X;
+                Top = value.Y;
+            }
         }
         public Vector2d Size
         {
             get
             {
                 return new Vector2d(Width, Height);
+            }
+            set
+            {
+                Width = value.X;
+                Height = value.Y;
             }
         }
         public double Right
@@ -68,6 +79,20 @@ namespace linerider.Utils
             this.Top = Position.Y;
             this.Width = Size.X;
             this.Height = Size.Y;
+        }
+        /// <summary>
+        /// Forces LRTB layout
+        /// </summary>
+        /// <returns></returns>
+        public DoubleRect MakeLRTB()
+        {
+            var vec1 = Vector;
+            var vec2 = vec1 + Size;
+            var topleft = new Vector2d(
+                Math.Min(vec1.X, vec2.X), Math.Min(vec1.Y, vec2.Y));
+            var bottomright = new Vector2d(
+                Math.Max(vec1.X, vec2.X), Math.Max(vec1.Y, vec2.Y));
+            return new DoubleRect(topleft, bottomright - topleft);
         }
         public static DoubleRect FromLRTB(double left, double right, double top, double bottom)
         {
