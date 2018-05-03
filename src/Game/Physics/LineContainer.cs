@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using linerider.Game;
 using linerider.Rendering;
 using System.Collections;
+using System.Diagnostics;
 
 namespace linerider
 {
@@ -26,6 +27,25 @@ namespace linerider
             }
         }
         bool ICollection<T>.IsReadOnly => false;
+
+        /// <summary>
+        /// return the node that would come right after line.id
+        /// returns null if unsuccessful
+        /// ex: if our state is 1 2 4 and line.id is 3, this function returns 4
+        /// </summary>
+        protected virtual LinkedListNode<T> FindNodeAfter(LinkedListNode<T> node, T line)
+        {
+            while (line.ID < node.Value.ID)
+            {
+                node = node.Next;
+                if (node == null)
+                {
+                    return null;
+                }
+            }
+            return node;
+        }
+
         /// <summary>
         /// Combines all unique lines in a cell in order
         /// </summary>
@@ -39,14 +59,7 @@ namespace linerider
             {
                 if (node != null)
                 {
-                    while (line.ID < node.Value.ID)
-                    {
-                        node = node.Next;
-                        if (node == null)
-                        {
-                            break;
-                        }
-                    }
+                    node = FindNodeAfter(node, line);
                     if (node == null)
                         node = _list.AddLast(line);
                     else if (node.Value.ID != line.ID) // no redundant lines
@@ -63,16 +76,18 @@ namespace linerider
             var node = _list.First;
             if (node != null)
             {
-                while (line.ID < node.Value.ID)
+                node = FindNodeAfter(node, line);
+                if (node == null)
                 {
-                    node = node.Next;
-                    if (node == null)
-                    {
-                        _list.AddLast(line);
-                        return;
-                    }
+                    _list.AddLast(line);
                 }
-                _list.AddBefore(node, line);
+                else
+                {
+                    if (node.Value.ID != line.ID)
+                        _list.AddBefore(node, line);
+                    else
+                        Debug.WriteLine("Line ID collision in line container");
+                }
             }
             else
             {
