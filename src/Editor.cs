@@ -1,4 +1,4 @@
-﻿//  Author:
+//  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
 //  Copyright (c) 2017 
@@ -519,7 +519,6 @@ namespace linerider
                     Timeline = new Timeline(trk);
                     Timeline.FrameInvalidated += FrameInvalidated;
                     InitCamera();
-                    ResetTrackChangeCounter();
                     _refreshtrack = true;
                     _cells.Clear();
                     foreach (var line in trk.LineLookup.Values)
@@ -534,6 +533,7 @@ namespace linerider
                         CurrentTools.SelectedTool.Stop();
                     }
                     UndoManager = new UndoManager();
+                    ResetTrackChangeCounter();
                 }
             }
             Invalidate();
