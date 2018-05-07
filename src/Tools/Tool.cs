@@ -118,6 +118,19 @@ namespace linerider.Tools
         public virtual void OnChangingTool()
         {
         }
+        protected bool IsLineSnappedByKnob(TrackReader trk, Vector2d point, GameLine line, out bool knob1)
+        {
+            var rad = SnapRadius;
+            var closer = Utility.CloserPoint(point, line.Position, line.Position2);
+            if ((point - closer).Length - line.Width < rad)
+            {
+                knob1 = closer == line.Position;
+                return true;
+            }
+
+            knob1 = false;
+            return false;
+        }
         protected GameLine SelectLine(TrackReader trk, Vector2d position, out bool knob)
         {
             knob = false;
@@ -128,6 +141,15 @@ namespace linerider.Tools
                 knob = true;
                 return ends[0];
             }
+
+            return SelectLines(trk, position).FirstOrDefault();
+        }
+        protected IEnumerable<GameLine> SelectLines(TrackReader trk, Vector2d position)
+        {
+            var ends = LineEndsInRadius(trk, position, SnapRadius);
+            foreach (var line in ends)
+                yield return line;
+            var zoom = game.Track.Zoom;
             var lines =
                 trk.GetLinesInRect(
                     new DoubleRect((Vector2d)position - new Vector2d(24, 24),
@@ -135,6 +157,8 @@ namespace linerider.Tools
                     false);
             foreach (var line in lines)
             {
+                if (ends.Contains(line))
+                    continue;
                 double lnradius = line.Width;
                 var angle = Angle.FromLine(line.Position, line.Position2);
                 var rect = Utility.GetThickLine(
@@ -144,10 +168,10 @@ namespace linerider.Tools
                     lnradius * 2);
                 if (Utility.PointInRectangle(rect, position))
                 {
-                    return line;
+                    yield return line;
                 }
             }
-            return null;
+            yield break;
         }
         protected GameLine CreateLine(
             TrackWriter trk,
