@@ -61,7 +61,7 @@ namespace linerider.Rendering
             EnsureVBOSize(_vertexcount);
             return ret;
         }
-        public Dictionary<int, int> AddLines(List<GameLine> lines, LineVertex[] vertices)
+        public Dictionary<int, int> AddLines(AutoArray<GameLine> lines, LineVertex[] vertices)
         {
             Dictionary<int, int> ret = new Dictionary<int, int>(lines.Count);
             int startidx = _indices.Count;
@@ -170,11 +170,13 @@ namespace linerider.Rendering
             _shader.Use();
             var in_vertex = _shader.GetAttrib("in_vertex");
             var in_circle = _shader.GetAttrib("in_circle");
+            var in_selectflags = _shader.GetAttrib("in_selectflags");
             var in_scale = _shader.GetAttrib("in_scale");
             var in_ratio = _shader.GetAttrib("in_ratio");
             var in_color = _shader.GetAttrib("in_color");
             GL.EnableVertexAttribArray(in_vertex);
             GL.EnableVertexAttribArray(in_circle);
+            GL.EnableVertexAttribArray(in_selectflags);
             GL.EnableVertexAttribArray(in_ratio);
             GL.EnableVertexAttribArray(in_scale);
             GL.EnableVertexAttribArray(in_color);
@@ -183,8 +185,12 @@ namespace linerider.Rendering
             counter += 8;
             GL.VertexAttribPointer(in_color, 4, VertexAttribPointerType.UnsignedByte, true, LineVertex.Size, counter);
             counter += 4;
-            GL.VertexAttribPointer(in_circle, 2, VertexAttribPointerType.Short, false, LineVertex.Size, counter);
-            counter += 4;
+            GL.VertexAttribPointer(in_circle, 2, VertexAttribPointerType.Byte, false, LineVertex.Size, counter);
+            counter += 2;
+
+            GL.VertexAttribPointer(in_selectflags, 1, VertexAttribPointerType.Byte, false, LineVertex.Size, counter);
+            counter += 2;
+
             GL.VertexAttribPointer(in_ratio, 1, VertexAttribPointerType.Float, false, LineVertex.Size, counter);
             counter += 4;
             GL.VertexAttribPointer(in_scale, 1, VertexAttribPointerType.Float, false, LineVertex.Size, counter);
@@ -220,10 +226,12 @@ namespace linerider.Rendering
             var ratio = _shader.GetAttrib("in_ratio");
             var in_color = _shader.GetAttrib("in_color");
             var in_scale = _shader.GetAttrib("in_scale");
+            var in_selectflags = _shader.GetAttrib("in_selectflags");
 
             GL.DisableVertexAttribArray(in_color);
             GL.DisableVertexAttribArray(v);
             GL.DisableVertexAttribArray(circle);
+            GL.DisableVertexAttribArray(in_selectflags);
             GL.DisableVertexAttribArray(ratio);
             GL.DisableVertexAttribArray(in_scale);
             _shader.Stop();
@@ -256,7 +264,7 @@ namespace linerider.Rendering
             }
             return true;
         }
-        public static LineVertex[] CreateTrackLine(Vector2d lnstart, Vector2d lnend, float size, int color = 0)
+        public static LineVertex[] CreateTrackLine(Vector2d lnstart, Vector2d lnend, float size, int color = 0, byte selectflags = 0)
         {
             var d = lnend - lnstart;
             var rad = Angle.FromVector(d);
@@ -265,16 +273,16 @@ namespace linerider.Rendering
             lnstart += c * (-1 * (size / 2));
             lnend += c * (1 * (size / 2));
 
-            return CreateLine(lnstart, lnend, size, rad, color);
+            return CreateLine(lnstart, lnend, size, rad, color, selectflags);
         }
-        public static LineVertex[] CreateLine(Vector2d lnstart, Vector2d lnend, float size, int color = 0)
+        public static LineVertex[] CreateLine(Vector2d lnstart, Vector2d lnend, float size, int color = 0, byte selectflags = 0)
         {
             var d = lnend - lnstart;
             var rad = Angle.FromVector(d);
 
-            return CreateLine(lnstart, lnend, size, rad, color);
+            return CreateLine(lnstart, lnend, size, rad, color, selectflags);
         }
-        public static LineVertex[] CreateLine(Vector2d lnstart, Vector2d lnend, float size, Angle angle, int color = 0)
+        public static LineVertex[] CreateLine(Vector2d lnstart, Vector2d lnend, float size, Angle angle, int color = 0, byte selectflags = 0)
         {
             LineVertex[] ret = new LineVertex[6];
             var start = (Vector2)lnstart;
@@ -283,13 +291,13 @@ namespace linerider.Rendering
 
             var l = Utility.GetThickLine(start, end, angle, size);
             var scale = size / 2;
-            ret[0] = new LineVertex() { Position = l[0], u = 0, v = 0, ratio = size / len, color = color, scale = scale };
-            ret[1] = new LineVertex() { Position = l[1], u = 0, v = 1, ratio = size / len, color = color, scale = scale };
-            ret[2] = new LineVertex() { Position = l[2], u = 1, v = 1, ratio = size / len, color = color, scale = scale };
+            ret[0] = new LineVertex() { Position = l[0], u = 0, v = 0, ratio = size / len, color = color, scale = scale, selectionflags = selectflags };
+            ret[1] = new LineVertex() { Position = l[1], u = 0, v = 1, ratio = size / len, color = color, scale = scale, selectionflags = selectflags };
+            ret[2] = new LineVertex() { Position = l[2], u = 1, v = 1, ratio = size / len, color = color, scale = scale, selectionflags = selectflags };
 
-            ret[3] = new LineVertex() { Position = l[2], u = 1, v = 1, ratio = size / len, color = color, scale = scale };
-            ret[4] = new LineVertex() { Position = l[3], u = 1, v = 0, ratio = size / len, color = color, scale = scale };
-            ret[5] = new LineVertex() { Position = l[0], u = 0, v = 0, ratio = size / len, color = color, scale = scale };
+            ret[3] = new LineVertex() { Position = l[2], u = 1, v = 1, ratio = size / len, color = color, scale = scale, selectionflags = selectflags };
+            ret[4] = new LineVertex() { Position = l[3], u = 1, v = 0, ratio = size / len, color = color, scale = scale, selectionflags = selectflags };
+            ret[5] = new LineVertex() { Position = l[0], u = 0, v = 0, ratio = size / len, color = color, scale = scale, selectionflags = selectflags };
             return ret;
         }
     }

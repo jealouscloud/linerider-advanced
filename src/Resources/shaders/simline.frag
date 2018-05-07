@@ -10,6 +10,7 @@ varying vec2 v_circle;
 varying float v_ratio;
 varying vec4 v_color;
 varying float v_scale;
+varying float v_selectflags;
 const float radius = 0.5;
 const float knobradius = 0.4;
 float getedge(float rad, float scale)
@@ -25,7 +26,7 @@ void main()
     float rightdist = distance(scaled, vec2(0.5, 0.5));
     float edgedist = min(leftdist, rightdist);
     float alpha;
-    if (u_knobstate > 0 && edgedist < knobradius)
+    if ((u_knobstate > 0 && v_selectflags <= 0.0) && edgedist < knobradius)
     {
         float knobedgediff = knobradius - getedge(knobradius, 0.8);
         float step = (knobradius - edgedist) / knobedgediff;
@@ -49,5 +50,8 @@ void main()
     float a = alpha;
     if (u_alphachannel)
         a *= v_color.a;
-    gl_FragColor = vec4(v_color.rgb, a);
+    vec3 color = v_color.rgb;
+    if (v_selectflags == 1)
+        color = mix(color,vec3(0.5,0.5,0.5), 0.25);
+    gl_FragColor = vec4(color, a);
 }

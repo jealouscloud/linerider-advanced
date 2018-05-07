@@ -1,4 +1,4 @@
-﻿//  Author:
+//  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
 //  Copyright (c) 2017 
@@ -346,7 +346,8 @@ namespace linerider.Rendering
                 line.Position,
                 line.Position2,
                 2 * line.Width,
-                color);
+                color,
+                (byte)line.SelectionState);
             return lineverts;
         }
     }

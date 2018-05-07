@@ -86,6 +86,7 @@
     <Compile Include="Rendering\TrackRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Game\Lines\SelectionState.cs" />
     <Compile Include="Game\Lines\GameLine.cs" />
     <Compile Include="Game\Lines\LineTrigger.cs" />
     <Compile Include="Game\Lines\LineType.cs" />

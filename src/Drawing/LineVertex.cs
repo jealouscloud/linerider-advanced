@@ -38,12 +38,13 @@ namespace linerider.Drawing
         /// <summary>
         /// 0 or 1
         /// </summary>
-        public short u;
+        public byte u;
         /// <summary>
         /// 0 or 1
         /// </summary>
-        public short v;
-        
+        public byte v;
+        public byte selectionflags;
+        public byte reserved;
         public float ratio;
         public float scale;
     }

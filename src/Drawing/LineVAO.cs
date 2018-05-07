@@ -72,13 +72,13 @@ namespace linerider.Drawing
             GL.EnableVertexAttribArray(in_color);
             GL.EnableVertexAttribArray(in_scale);
             fixed (float* ptr1 = &Array.unsafe_array[0].Position.X)
-            fixed (short* ptr2 = &Array.unsafe_array[0].u)
+            fixed (byte* ptr2 = &Array.unsafe_array[0].u)
             fixed (float* ptr3 = &Array.unsafe_array[0].ratio)
             fixed (int* ptr4 = &Array.unsafe_array[0].color)
             fixed (float* ptr5 = &Array.unsafe_array[0].scale)
             {
                 GL.VertexAttribPointer(in_vertex, 2, VertexAttribPointerType.Float, false, LineVertex.Size, (IntPtr)ptr1);
-                GL.VertexAttribPointer(in_circle, 2, VertexAttribPointerType.Short, false, LineVertex.Size, (IntPtr)ptr2);
+                GL.VertexAttribPointer(in_circle, 2, VertexAttribPointerType.Byte, false, LineVertex.Size, (IntPtr)ptr2);
                 GL.VertexAttribPointer(in_ratio, 1, VertexAttribPointerType.Float, false, LineVertex.Size, (IntPtr)ptr3);
                 GL.VertexAttribPointer(in_color, 4, VertexAttribPointerType.UnsignedByte, true, LineVertex.Size, (IntPtr)ptr4);
                 GL.VertexAttribPointer(in_scale, 1, VertexAttribPointerType.Float, false, LineVertex.Size, (IntPtr)ptr5);
