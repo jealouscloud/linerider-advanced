@@ -20,7 +20,7 @@ namespace linerider.Rendering
             _linebuffer.OverridePriority = 0;
         }
 
-        public void Initialize(List<GameLine> lines)
+        public void Initialize(AutoArray<GameLine> lines)
         {
             Clear();
             LineVertex[] vertices = new LineVertex[lines.Count * linesize];

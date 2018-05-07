@@ -44,7 +44,7 @@ namespace linerider.Rendering
                 _vbo.Unbind();
             }
         }
-        public void Initialize(List<GameLine> lines)
+        public void Initialize(AutoArray<GameLine> lines)
         {
             Clear();
             ResourceSync initsync = new ResourceSync();

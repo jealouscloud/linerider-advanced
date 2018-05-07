@@ -1,4 +1,4 @@
-//  Author:
+﻿//  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
 //  Copyright (c) 2017 
@@ -127,8 +127,9 @@ namespace linerider.Rendering
         /// </summary>
         public void InitializeTrack(Track track)
         {
-            List<GameLine> scenery = new List<GameLine>(track.SceneryLines);
-            List<GameLine> phys = new List<GameLine>(track.BlueLines + track.RedLines);
+            AutoArray<GameLine> scenery = new AutoArray<GameLine>(track.SceneryLines);
+            scenery.UnsafeSetCount(track.SceneryLines);
+            AutoArray<GameLine> phys = new AutoArray<GameLine>(track.BlueLines + track.RedLines);
             var sorted = track.GetSortedLines();
             using (_sync.AcquireWrite())
             {
@@ -141,30 +142,33 @@ namespace linerider.Rendering
                 _physlines.Clear();
                 RequiresUpdate = true;
 
+                int scenerycount = 0;
                 for (int i = 0; i < sorted.Length; i++)
                 {
                     var line = sorted[i];
                     if (line.Type == LineType.Scenery)
                     {
-                        scenery.Add(line);
+                        scenery.unsafe_array[scenery.Count - (1 + scenerycount++)] = line;
                     }
                     else
                     {
                         phys.Add(line);
                     }
                 }
+                Debug.Assert(scenerycount == scenery.Count,
+                    "Predicted scenery count was not accurate");
                 if (scenery.Count != 0)
                 {
                     LineVertex[] sceneryverts = new LineVertex[scenery.Count * linesize];
                     System.Threading.Tasks.Parallel.For(0, scenery.Count, (index) =>
-                      {
-                          int counter = 0;
-                          var verts = (GenerateLine(scenery[index], false));
-                          foreach (var vert in verts)
-                          {
-                              sceneryverts[index * linesize + counter++] = vert;
-                          }
-                      });
+                    {
+                        int counter = 0;
+                        var verts = (GenerateLine(scenery[index], false));
+                        foreach (var vert in verts)
+                        {
+                            sceneryverts[index * linesize + counter++] = vert;
+                        }
+                    });
                     _scenerylines = _sceneryvbo.AddLines(
                         scenery,
                         sceneryverts);

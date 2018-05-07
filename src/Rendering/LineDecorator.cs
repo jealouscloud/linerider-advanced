@@ -38,10 +38,10 @@ namespace linerider.Rendering
             _lineaccelrenderer.Clear();
             _wellrenderer.Clear();
         }
-        public void Initialize(List<GameLine> lines)
+        public void Initialize(AutoArray<GameLine> lines)
         {
             var red = new List<RedLine>(lines.Count / 4);
-            foreach (var line in lines)
+            foreach (var line in lines.unsafe_array)
             {
                 if (line.Type == LineType.Red)
                     red.Add((RedLine)line);
