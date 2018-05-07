@@ -85,6 +85,18 @@ namespace linerider.Rendering
             _linevao.Clear();
             return _linevao;
         }
+        public static void DrawKnob(Vector2d position, bool highlight, float linewidth, float growratio)
+        {
+            var knobdefault = Constants.DefaultKnobColor;
+            var knobhighlight = Color.FromArgb(0x70, 0x70 - 5, 0x70 + 5);
+            var knobsize = (highlight ? (0.8f + (0.1f * growratio)) : 0.8f);
+            var size = linewidth * 2 * knobsize;
+            GameRenderer.RenderRoundedLine(
+                position,
+                position,
+                Color.FromArgb(255, highlight ? knobhighlight : knobdefault),
+                (size));
+        }
         public static void RenderRoundedLine(Vector2d position, Vector2d position2, Color color, float thickness, bool knobs = false, bool redknobs = false)
         {
             using (new GLEnableCap(EnableCap.Blend))
@@ -96,29 +108,6 @@ namespace linerider.Rendering
                     vao.Scale = GameDrawingMatrix.Scale;
                     vao.AddLine(position, position2, color, thickness);
                     vao.knobstate = knobs ? (redknobs ? 2 : 1) : 0;
-                    vao.Draw(PrimitiveType.Triangles);
-                    GameDrawingMatrix.Exit();
-                }
-            }
-        }
-        /// <summary>
-        /// Draw a simple render of each track line
-        /// </summary>
-        public static void RenderSelection(IEnumerable<LineSelection> lines, Color color)
-        {
-            using (new GLEnableCap(EnableCap.Blend))
-            {
-                using (new GLEnableCap(EnableCap.Texture2D))
-                {
-                    GameDrawingMatrix.Enter();
-                    var vao = GetLineVAO();
-                    vao.Scale = GameDrawingMatrix.Scale;
-                    foreach (var item in lines)
-                    {
-                        var line = item.line;
-                        vao.AddLine(line.Position, line.Position2, color, line.Width*2);
-                    }
-                    vao.knobstate = 0;
                     vao.Draw(PrimitiveType.Triangles);
                     GameDrawingMatrix.Exit();
                 }

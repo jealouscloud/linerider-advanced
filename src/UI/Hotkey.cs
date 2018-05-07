@@ -37,6 +37,8 @@ namespace linerider.UI
         ToolSelectBothJoints,
         ToolCopy,
         ToolPaste,
+        ToolAddSelection,
+        ToolToggleSelection,
         LineToolFlipLine,
 
         PlaybackStartSlowmo,

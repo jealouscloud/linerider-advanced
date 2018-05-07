@@ -118,6 +118,8 @@ namespace linerider
 
             KeybindConflicts[Hotkey.PlayButtonIgnoreFlag] = KeyConflicts.HardCoded;
             KeybindConflicts[Hotkey.EditorCancelTool] = KeyConflicts.HardCoded;
+            KeybindConflicts[Hotkey.ToolAddSelection] = KeyConflicts.HardCoded;
+            KeybindConflicts[Hotkey.ToolToggleSelection] = KeyConflicts.HardCoded;
             SetupDefaultKeybinds();
         }
         public static void ResetKeybindings()
@@ -206,6 +208,8 @@ namespace linerider
             SetupDefaultKeybind(Hotkey.PlaybackResetCamera, new Keybinding(Key.N));
             SetupDefaultKeybind(Hotkey.ToolCopy, new Keybinding(Key.C, KeyModifiers.Control));
             SetupDefaultKeybind(Hotkey.ToolPaste, new Keybinding(Key.V, KeyModifiers.Control));
+            SetupDefaultKeybind(Hotkey.ToolAddSelection, new Keybinding(KeyModifiers.Shift));
+            SetupDefaultKeybind(Hotkey.ToolToggleSelection, new Keybinding(KeyModifiers.Control));
         }
         private static void SetupDefaultKeybind(Hotkey hotkey, Keybinding keybinding, Keybinding secondary = null)
         {

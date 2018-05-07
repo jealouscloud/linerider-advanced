@@ -68,6 +68,8 @@ namespace linerider.Tools
         private GameLine _hoverline = null;
         private bool _hoverknob = false;
         private bool _hoverknobjoint1;
+        private Stopwatch _hovertime = new Stopwatch();
+        private bool _hoverclick = false;
         public bool SelectActive
         {
             get
@@ -75,6 +77,7 @@ namespace linerider.Tools
                 return _selecttool.Active;
             }
         }
+        public SelectTool SelectTool => _selecttool;
         public override bool Active
         {
             get
@@ -88,18 +91,6 @@ namespace linerider.Tools
         }
         public MoveTool()
         {
-        }
-        public void Copy()
-        {
-            if (SelectActive)
-            {
-                _selecttool.Copy();
-            }
-        }
-        public void Paste()
-        {
-            Stop();
-            _selecttool.Paste();
         }
         private void UpdatePlayback(GameLine line)
         {
@@ -147,14 +138,15 @@ namespace linerider.Tools
                                 line.Position,
                                 line.Position2);
                             _selection = new LineSelection(line, knobpos);
-
+                            _hoverclick = true;
+                            _hovertime.Restart();
                             foreach (var snap in LineEndsInRadius(trk, knobpos, 1))
                             {
                                 if ((snap.Position == knobpos ||
                                     snap.Position2 == knobpos) &&
                                     snap != line)
                                 {
-                                    _selection.snapped.Add(new LineSelection(snap,knobpos));
+                                    _selection.snapped.Add(new LineSelection(snap, knobpos));
                                 }
                             }
                         }
@@ -206,8 +198,9 @@ namespace linerider.Tools
         }
         private void UpdateHoverline(Vector2d gamepos)
         {
+            var oldhover = _hoverline;
+            var oldhoverknob = _hoverknob;
             _hoverline = null;
-            _hoverknob = false;
             if (!_active)
             {
                 using (var trk = game.Track.CreateTrackReader())
@@ -216,15 +209,25 @@ namespace linerider.Tools
                     if (line != null)
                     {
                         _hoverline = line;
-                    }
-                    if (knob)
-                    {
-                        var point = Utility.CloserPoint(
-                            gamepos,
-                            line.Position,
-                            line.Position2);
-                        _hoverknob = true;
-                        _hoverknobjoint1 = point == line.Position;
+                        if (knob)
+                        {
+                            var point = Utility.CloserPoint(
+                                gamepos,
+                                line.Position,
+                                line.Position2);
+
+                            var joint1 = point == line.Position;
+
+                            if (_hoverline != oldhover ||
+                            _hoverknobjoint1 != joint1 ||
+                            _hoverknob != knob)
+                            {
+                                _hoverclick = false;
+                                _hovertime.Restart();
+                            }
+                            _hoverknobjoint1 = joint1;
+                        }
+                        _hoverknob = knob;
                     }
                 }
             }
@@ -256,7 +259,16 @@ namespace linerider.Tools
                 _selecttool.OnMouseUp(pos);
                 return;
             }
+            var hoverline = _hoverline;
+            if (_active)
+            {
+                hoverline = _selection.line;
+                _hoverknob = !_selection.BothJoints;
+                _hoverknobjoint1 = _selection.joint1;
+            }
             Stop();
+            _hoverline = hoverline;
+            UpdateHoverline(ScreenToGameCoords(pos));
             base.OnMouseUp(pos);
         }
         public override void OnMouseMoved(Vector2d pos)
@@ -332,25 +344,46 @@ namespace linerider.Tools
         private void DrawHover(Vector2d start, Vector2d stop, float width,
             bool knob1, bool knob2, bool selected = false)
         {
+            var elapsed = _hovertime.ElapsedMilliseconds;
+            int animtime = 250;
+            if (_hovertime.IsRunning)
+            {
+                if (elapsed > animtime * 2)
+                {
+                    if (_hoverclick)
+                        _hovertime.Stop();
+                    else
+                        _hovertime.Stop();
+                }
+                game.Track.Invalidate();
+            }
+            float hoverratio;
+            if (_hoverclick)
+            {
+                animtime = 75;
+                elapsed += 75 / 4;
+                hoverratio = Math.Min(animtime, elapsed) / (float)animtime;
+            }
+            else
+            {
+                hoverratio = Math.Min((Math.Min(animtime, elapsed) / (float)animtime), 0.5f);
+            }
+            var both = knob1 == knob2 == true;
+            var linealpha = both ? 64 : 48;
+            if (selected && both)
+                linealpha += 16;
             GameRenderer.RenderRoundedLine(
                 start,
-                start,
-                Color.FromArgb(255, Constants.DefaultKnobColor),
-                (width * 2 * (knob1 ? 0.9f : 0.8f)));
+                stop,
+                Color.FromArgb(linealpha, Color.FromArgb(127, 127, 127)),
+                (width * 2));
 
-            GameRenderer.RenderRoundedLine(
-                stop,
-                stop,
-                Color.FromArgb(255, Constants.DefaultKnobColor),
-                (width * 2 * (knob2 ? 0.9f : 0.8f)));
 
-            GameRenderer.RenderRoundedLine(
-                start,
-                stop,
-                Color.FromArgb(selected ? 64 : 127, Constants.DefaultKnobColor),
-                (width * 2 * 0.8f));
+            GameRenderer.DrawKnob(start, knob1, width, hoverratio);
+            GameRenderer.DrawKnob(stop, knob2, width, hoverratio);
 
         }
+
         public override void Stop()
         {
             if (_selecttool.Active)
@@ -372,10 +405,10 @@ namespace linerider.Tools
                 }
                 game.Invalidate();
             }
-            _hoverline = null;
-            _hoverknob = false;
             _active = false;
             _selection = null;
+            _hoverline = null;
+            _hoverclick = false;
         }
         private void ApplyModifiers(ref Vector2d joint1, ref Vector2d joint2)
         {

@@ -1044,19 +1044,26 @@ namespace linerider
             () => CurrentTools.SelectedTool.Active,
             () =>
             {
-                StopTools();
+                var mv = CurrentTools.MoveTool;
+                if (
+                    CurrentTools.SelectedTool != mv ||
+                    !mv.SelectActive ||
+                    !mv.SelectTool.CancelDrawBox())
+                {
+                    StopTools();
+                }
                 Invalidate();
             });
             InputUtils.RegisterHotkey(Hotkey.ToolCopy, () => !Track.Playing && CurrentTools.SelectedTool == CurrentTools.MoveTool, () =>
             {
-                CurrentTools.MoveTool.Copy();
+                CurrentTools.MoveTool.SelectTool.Copy();
                 Invalidate();
             },
             null,
             repeat: false);
             InputUtils.RegisterHotkey(Hotkey.ToolPaste, () => !Track.Playing && CurrentTools.SelectedTool == CurrentTools.MoveTool, () =>
             {
-                CurrentTools.MoveTool.Paste();
+                CurrentTools.MoveTool.SelectTool.Paste();
                 Invalidate();
             },
             null,
