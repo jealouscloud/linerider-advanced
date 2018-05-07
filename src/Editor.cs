@@ -1,4 +1,4 @@
-//  Author:
+﻿//  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
 //  Copyright (c) 2017 
@@ -273,7 +273,10 @@ namespace linerider
 
             _renderer.Render(_track, Timeline, Camera, drawOptions);
         }
-
+        public void RedrawLine(GameLine line)
+        {
+            _renderer.RedrawLine(line);
+        }
         public void ZoomBy(float percent)
         {
             if (Math.Abs(percent) < 0.00001)
