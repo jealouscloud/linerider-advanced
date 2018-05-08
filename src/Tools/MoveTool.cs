@@ -59,30 +59,22 @@ namespace linerider.Tools
         {
             get { return game.Cursors["adjustline"]; }
         }
-        public bool CanLifelock => UI.InputUtils.Check(Hotkey.ToolLifeLock);
+        public bool CanLifelock => UI.InputUtils.Check(Hotkey.ToolLifeLock) &&
+        CurrentTools.SelectedTool == this;
         private Vector2d _clickstart;
         private bool _lifelocking = false;
         private LineSelection _selection;
-        private SelectTool _selecttool = new SelectTool();
         private bool _active = false;
         private GameLine _hoverline = null;
         private bool _hoverknob = false;
         private bool _hoverknobjoint1;
         private Stopwatch _hovertime = new Stopwatch();
         private bool _hoverclick = false;
-        public bool SelectActive
-        {
-            get
-            {
-                return _selecttool.Active;
-            }
-        }
-        public SelectTool SelectTool => _selecttool;
         public override bool Active
         {
             get
             {
-                return _active || _selecttool.Active;
+                return _active;
             }
             protected set
             {
@@ -232,26 +224,16 @@ namespace linerider.Tools
                 }
             }
         }
-        public override void OnUndoRedo(bool isundo, object undohint)
-        {
-            if (!_active)
-                _selecttool.OnUndoRedo(isundo, undohint);
-        }
 
         public override void OnMouseDown(Vector2d mousepos)
         {
-            if (_selecttool.Active)
-            {
-                _selecttool.OnMouseDown(mousepos);
-                return;
-            }
-
             var gamepos = ScreenToGameCoords(mousepos);
 
             Stop();//double check
             if (!SelectLine(gamepos))
             {
-                _selecttool.OnMouseDown(mousepos);
+                CurrentTools.SetTool(CurrentTools.SelectTool);
+                CurrentTools.SelectTool.OnMouseDown(mousepos);
             }
             UpdateHoverline(gamepos);
 
@@ -259,22 +241,12 @@ namespace linerider.Tools
         }
         public override void OnMouseUp(Vector2d pos)
         {
-            if (_selecttool.Active)
-            {
-                _selecttool.OnMouseUp(pos);
-                return;
-            }
             DropLine();
             UpdateHoverline(ScreenToGameCoords(pos));
             base.OnMouseUp(pos);
         }
         public override void OnMouseMoved(Vector2d pos)
         {
-            if (_selecttool.Active)
-            {
-                _selecttool.OnMouseMoved(pos);
-                return;
-            }
             UpdateHoverline(ScreenToGameCoords(pos));
             if (_active)
             {
@@ -285,11 +257,6 @@ namespace linerider.Tools
 
         public override void OnMouseRightDown(Vector2d pos)
         {
-            if (_selecttool.Active)
-            {
-                _selecttool.OnMouseRightDown(pos);
-                return;
-            }
             Stop();//double check
             var gamepos = ScreenToGameCoords(pos);
             using (var trk = game.Track.CreateTrackWriter())
@@ -305,38 +272,30 @@ namespace linerider.Tools
         public override void OnChangingTool()
         {
             Stop();
-            _selecttool.OnChangingTool();
         }
         public override void Render()
         {
-            if (_selecttool.Active)
+            if (_hoverline != null)
             {
-                _selecttool.Render();
+                DrawHover(
+                    _hoverline.Position,
+                    _hoverline.Position2,
+                    _hoverline.Width,
+                     _hoverknob && _hoverknobjoint1,
+                     _hoverknob && !_hoverknobjoint1,
+                     false);
             }
-            else
+            if (_active)
             {
-                if (_hoverline != null)
-                {
-                    DrawHover(
-                        _hoverline.Position,
-                        _hoverline.Position2,
-                        _hoverline.Width,
-                         _hoverknob && _hoverknobjoint1,
-                         _hoverknob && !_hoverknobjoint1,
-                         false);
-                }
-                if (_active)
-                {
-                    DrawHover(
-                        _selection.line.Position,
-                        _selection.line.Position2,
-                        _selection.line.Width,
-                        _selection.joint1,
-                        _selection.joint2,
-                        true);
-                }
-                base.Render();
+                DrawHover(
+                    _selection.line.Position,
+                    _selection.line.Position2,
+                    _selection.line.Width,
+                    _selection.joint1,
+                    _selection.joint2,
+                    true);
             }
+            base.Render();
         }
         private void DrawHover(Vector2d start, Vector2d stop, float width,
             bool knob1, bool knob2, bool selected = false)
@@ -408,18 +367,10 @@ namespace linerider.Tools
         }
         public override void Cancel()
         {
-            if (_selecttool.Active)
-            {
-                _selecttool.Cancel();
-            }
             DropLine();
         }
         public override void Stop()
         {
-            if (_selecttool.Active)
-            {
-                _selecttool.Stop();
-            }
             Cancel();
             _hoverline = null;
             _hoverclick = false;

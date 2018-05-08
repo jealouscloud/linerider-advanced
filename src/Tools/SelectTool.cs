@@ -34,6 +34,7 @@ namespace linerider.Tools
         private bool _snapknob1 = false;
         private GameLine _hoverline = null;
         private Vector2d _copyorigin;
+        
         public void CancelSelection()
         {
             if (Active)
@@ -45,6 +46,7 @@ namespace linerider.Tools
                 else
                 {
                     Stop();
+                    DeferToMoveTool();
                 }
             }
         }
@@ -53,9 +55,9 @@ namespace linerider.Tools
             if (Active && (_selection.Count != 0 || _boxselection.Count != 0) &&
                 (undohint is int[] lineids))
             {
-                Stop();
                 if (lineids.Length != 0)
                 {
+                    Stop(false);
                     _hoverline = null;
                     Active = true;
                     using (var trk = game.Track.CreateTrackWriter())
@@ -71,12 +73,10 @@ namespace linerider.Tools
                         }
                     }
                     _selectionbox = GetBoxFromSelected(_selection);
+                    return;
                 }
             }
-            else
-            {
-                Stop();
-            }
+            Stop(true);
         }
         public override void OnMouseDown(Vector2d pos)
         {
@@ -130,7 +130,7 @@ namespace linerider.Tools
                 _drawingbox = false;
                 if (_selection.Count == 0 && _boxselection.Count == 0)
                 {
-                    Stop();
+                    Stop(true);
                 }
                 else
                 {
@@ -203,7 +203,7 @@ namespace linerider.Tools
         }
         public override void OnChangingTool()
         {
-            Stop();
+            Stop(false);
         }
 
         public override void Cancel()
@@ -216,6 +216,10 @@ namespace linerider.Tools
             }
         }
         public override void Stop()
+        {
+            Stop(true);
+        }
+        private void Stop(bool defertomovetool)
         {
             if (Active)
             {
@@ -232,6 +236,8 @@ namespace linerider.Tools
             _hoverline = null;
             _snapknob1 = false;
             _snapknob2 = false;
+            if (defertomovetool)
+                DeferToMoveTool();
         }
         public override void Render()
         {
@@ -279,7 +285,7 @@ namespace linerider.Tools
         {
             if (_copybuffer.Count != 0)
             {
-                Stop();
+                Stop(false);
                 var pasteorigin = GetCopyOrigin();
                 var diff = pasteorigin - _copyorigin;
                 Unselect();
@@ -508,6 +514,10 @@ namespace linerider.Tools
                 }
                 game.Invalidate();
             }
+        }
+        private void DeferToMoveTool()
+        {
+            CurrentTools.SetTool(CurrentTools.MoveTool);
         }
         private Vector2d GetCopyOrigin()
         {

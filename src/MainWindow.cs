@@ -1047,10 +1047,10 @@ namespace linerider
             () =>
             {
                 var tool = CurrentTools.SelectedTool;
-                var movetool = CurrentTools.MoveTool;
-                if (tool == movetool && movetool.SelectActive)
+                var selecttool = CurrentTools.SelectTool;
+                if (tool == selecttool)
                 {
-                    movetool.SelectTool.CancelSelection();
+                    selecttool.CancelSelection();
                 }
                 else
                 {
@@ -1058,16 +1058,16 @@ namespace linerider
                 }
                 Invalidate();
             });
-            InputUtils.RegisterHotkey(Hotkey.ToolCopy, () => !Track.Playing && CurrentTools.SelectedTool == CurrentTools.MoveTool, () =>
+            InputUtils.RegisterHotkey(Hotkey.ToolCopy, () => !Track.Playing && CurrentTools.SelectedTool == CurrentTools.SelectTool, () =>
             {
-                CurrentTools.MoveTool.SelectTool.Copy();
+                CurrentTools.SelectTool.Copy();
                 Invalidate();
             },
             null,
             repeat: false);
-            InputUtils.RegisterHotkey(Hotkey.ToolPaste, () => !Track.Playing && CurrentTools.SelectedTool == CurrentTools.MoveTool, () =>
+            InputUtils.RegisterHotkey(Hotkey.ToolPaste, () => !Track.Playing && CurrentTools.SelectedTool == CurrentTools.SelectTool, () =>
             {
-                CurrentTools.MoveTool.SelectTool.Paste();
+                CurrentTools.SelectTool.Paste();
                 Invalidate();
             },
             null,

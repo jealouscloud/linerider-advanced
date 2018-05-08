@@ -6,7 +6,8 @@ namespace linerider.Tools
         public static PencilTool PencilTool { get; private set; }
         public static EraserTool EraserTool { get; private set; }
         public static LineTool LineTool { get; private set; }
-        public static MoveTool MoveTool { get; private set; }
+        public static MoveTool MoveTool{ get; private set; }
+        public static SelectTool SelectTool{ get; private set; }
         public static HandTool HandTool { get; private set; }
         private static Tool _selected;
         public static Tool SelectedTool
@@ -48,8 +49,9 @@ namespace linerider.Tools
             PencilTool = new PencilTool();
             EraserTool = new EraserTool();
             LineTool = new LineTool();
-            MoveTool = new MoveTool();
             HandTool = new HandTool();
+            SelectTool = new SelectTool();
+            MoveTool = new MoveTool();
             _selected = PencilTool;
         }
         public static void SetTool(Tool tool)
@@ -82,6 +84,10 @@ namespace linerider.Tools
             else if (tool == CurrentTools.MoveTool)
             {
                 _selected = MoveTool;
+            }
+            else if (tool == CurrentTools.SelectTool)
+            {
+                _selected = SelectTool;
             }
         }
     }

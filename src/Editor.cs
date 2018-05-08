@@ -236,7 +236,9 @@ namespace linerider
             drawOptions.GravityWells = Settings.Local.RenderGravityWells;
             drawOptions.LineColors = !Settings.Local.PreviewMode && (!Playing || Settings.Local.ColorPlayback);
             drawOptions.KnobState = KnobState.Hidden;
-            if (!Playing && CurrentTools.SelectedTool == CurrentTools.MoveTool)
+            var selectedtool = CurrentTools.SelectedTool;
+            if (!Playing && selectedtool == CurrentTools.MoveTool ||
+                selectedtool == CurrentTools.SelectTool)
             {
                 drawOptions.KnobState = CurrentTools.MoveTool.CanLifelock
                 ? KnobState.LifeLock
