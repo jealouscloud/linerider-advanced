@@ -930,16 +930,18 @@ namespace linerider
             });
             InputUtils.RegisterHotkey(Hotkey.EditorUndo, () => !Track.Playing, () =>
             {
-                StopTools();
-                Track.UndoManager.Undo();
+                CurrentTools.SelectedTool.Cancel();
+                var hint = Track.UndoManager.Undo();
+                CurrentTools.SelectedTool.OnUndoRedo(true, hint);
                 Invalidate();
             },
             null,
             repeat: true);
             InputUtils.RegisterHotkey(Hotkey.EditorRedo, () => !Track.Playing, () =>
             {
-                StopTools();
-                Track.UndoManager.Redo();
+                CurrentTools.SelectedTool.Cancel();
+                var hint = Track.UndoManager.Redo();
+                CurrentTools.SelectedTool.OnUndoRedo(false, hint);
                 Invalidate();
             },
             null,

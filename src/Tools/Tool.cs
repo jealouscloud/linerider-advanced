@@ -1,4 +1,4 @@
-//  Author:
+﻿//  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
 //  Copyright (c) 2017 
@@ -76,6 +76,9 @@ namespace linerider.Tools
         protected Vector2d ScreenToGameCoords(Vector2d mouse)
         {
             return game.ScreenPosition + (mouse / game.Track.Zoom);
+        }
+        public virtual void OnUndoRedo(bool isundo, object undohint)
+        {
         }
         public virtual void OnMouseMoved(Vector2d pos)
         {

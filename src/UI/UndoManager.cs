@@ -26,6 +26,7 @@ namespace linerider
     {
         private class act : GameService
         {
+            public object UserHint = null;
             public List<GameLine> States;
             public act()
             {
@@ -100,6 +101,12 @@ namespace linerider
         public UndoManager()
         {
         }
+        public void SetActionUserHint(object hint)
+        {
+            if (_currentaction == null)
+                throw new Exception("UndoManager current action null");
+            _currentaction.UserHint = hint;
+        }
         /// <summary>
         /// After calling beginaction the current state will be added tothe action
         /// </summary>
@@ -141,18 +148,19 @@ namespace linerider
             ActionPosition = _actions.Count;
             _currentaction = null;
         }
-
-        public void Undo()
+        public object Undo()
         {
             if (_actions.Count > 0 && ActionPosition > 0)
             {
                 ActionPosition--;
                 var action = _actions[ActionPosition];
                 DoAction(action, true);
+                return action.UserHint;
             }
+            return null;
         }
 
-        public void Redo()
+        public object Redo()
         {
             if (_actions.Count > 0 && ActionPosition < _actions.Count)
             {
@@ -161,7 +169,9 @@ namespace linerider
                 var action = _actions[ActionPosition];
                 ActionPosition++;
                 DoAction(action, false);
+                return action.UserHint;
             }
+            return null;
         }
         private void DoAction(act action, bool undo)
         {
