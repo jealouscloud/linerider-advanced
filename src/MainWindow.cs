@@ -1,4 +1,4 @@
-﻿//#define debuggrid
+//#define debuggrid
 //#define debugcamera
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
@@ -704,7 +704,7 @@ namespace linerider
 
         public void StopTools()
         {
-            CurrentTools.StopTools();
+            CurrentTools.SelectedTool.Stop();
         }
         public void StopHandTool()
         {

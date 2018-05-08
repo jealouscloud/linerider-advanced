@@ -160,7 +160,7 @@ namespace linerider
         {
             if (child is Gwen.ControlInternal.Modal || child is WindowControl)
             {
-                CurrentTools.StopTools();
+                CurrentTools.SelectedTool.Stop();
             }
         }
         public override void Think()

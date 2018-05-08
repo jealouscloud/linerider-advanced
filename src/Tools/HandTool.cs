@@ -24,6 +24,7 @@ namespace linerider.Tools
     public class HandTool : Tool
     {
         private Vector2d CameraStart;
+        private float ZoomStart;
         private Vector2d CameraTarget;
         private Vector2d startposition;
         private Vector2d lastposition;
@@ -45,6 +46,15 @@ namespace linerider.Tools
         {
         }
 
+        public override void Cancel()
+        {
+            if (Active)
+            {
+                Active = false;
+                game.Track.Camera.SetFrameCenter(CameraStart);
+                game.Track.Zoom = ZoomStart;
+            }
+        }
         public override void OnMouseRightDown(Vector2d pos)
         {
             zoom = true;
@@ -53,6 +63,7 @@ namespace linerider.Tools
             lastposition = startposition;
             CameraStart = game.Track.Camera.GetCenter();
             CameraTarget = ScreenToGameCoords(pos);
+            ZoomStart = game.Track.Zoom;
             game.Invalidate();
             game.UpdateCursor();
             base.OnMouseRightDown(pos);
@@ -63,6 +74,7 @@ namespace linerider.Tools
             Active = true;
             startposition = pos;
             CameraStart = game.Track.Camera.GetCenter();
+            ZoomStart = game.Track.Zoom;
             game.Invalidate();
             base.OnMouseDown(pos);
         }
@@ -78,9 +90,9 @@ namespace linerider.Tools
                 }
                 else
                 {
-                    var newcenter = 
-                        CameraStart - 
-                        ((pos / game.Track.Zoom) - 
+                    var newcenter =
+                        CameraStart -
+                        ((pos / game.Track.Zoom) -
                         (startposition / game.Track.Zoom));
                     game.Track.Camera.SetFrameCenter(newcenter);
                 }

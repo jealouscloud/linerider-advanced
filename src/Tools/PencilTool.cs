@@ -164,6 +164,10 @@ namespace linerider.Tools
                 GameRenderer.RenderRoundedLine(_mouseshadow, _mouseshadow, Color.FromArgb(100, 0x00, 0xCC, 0x00), 2f * Swatch.GreenMultiplier, false, false);
             }
         }
+        public override void Cancel()
+        {
+            Stop();
+        }
         public override void Stop()
         {
             if (Active)

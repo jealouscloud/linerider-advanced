@@ -1,4 +1,4 @@
-﻿//  Author:
+//  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
 //  Copyright (c) 2017 
@@ -112,6 +112,13 @@ namespace linerider.Tools
         }
 
         public virtual void Stop()
+        {
+        }
+
+        /// <summary>
+        /// Cancels the current action, but not necessarily by deleting state
+        /// </summary>
+        public virtual void Cancel()
         {
         }
 

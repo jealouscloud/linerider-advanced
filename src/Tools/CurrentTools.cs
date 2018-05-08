@@ -52,13 +52,6 @@ namespace linerider.Tools
             HandTool = new HandTool();
             _selected = PencilTool;
         }
-        public static void StopTools()
-        {
-            if (_quickpan)
-                HandTool.Stop();
-            else
-                SelectedTool?.Stop();
-        }
         public static void SetTool(Tool tool)
         {
             if (SelectedTool != null && tool != SelectedTool)

@@ -89,7 +89,7 @@ namespace linerider.UI
             // _pause.IsHidden = true;
             _start.Clicked += (o, e) =>
             {
-                CurrentTools.StopTools();
+                CurrentTools.SelectedTool.Stop();
                 if (UI.InputUtils.Check(Hotkey.PlayButtonIgnoreFlag))
                 {
                     _editor.StartIgnoreFlag();
@@ -107,12 +107,12 @@ namespace linerider.UI
             };
             _stop.Clicked += (o, e) =>
             {
-                CurrentTools.StopTools();
+                CurrentTools.SelectedTool.Stop();
                 _editor.Stop();
             };
             _pause.Clicked += (o, e) =>
             {
-                CurrentTools.StopTools();
+                CurrentTools.SelectedTool.Stop();
                 _editor.TogglePause();
                 _pause.IsHidden = true;
                 _start.IsHidden = false;

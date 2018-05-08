@@ -128,6 +128,11 @@ namespace linerider.Tools
             }
         }
 
+        public override void Cancel()
+        {
+            Stop();
+        }
+        
         public override void Stop()
         {
             if (Active)
