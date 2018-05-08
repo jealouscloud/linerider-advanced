@@ -105,7 +105,7 @@ namespace linerider.Tools
                     }
                     else if (_lifelocking)
                     {
-                        Stop();
+                        DropLine();
                     }
                 }
 
@@ -232,6 +232,11 @@ namespace linerider.Tools
                 }
             }
         }
+        public override void OnUndoRedo(bool isundo, object undohint)
+        {
+            if (!_active)
+                _selecttool.OnUndoRedo(isundo, undohint);
+        }
 
         public override void OnMouseDown(Vector2d mousepos)
         {
@@ -259,15 +264,7 @@ namespace linerider.Tools
                 _selecttool.OnMouseUp(pos);
                 return;
             }
-            var hoverline = _hoverline;
-            if (_active)
-            {
-                hoverline = _selection.line;
-                _hoverknob = !_selection.BothJoints;
-                _hoverknobjoint1 = _selection.joint1;
-            }
-            Stop();
-            _hoverline = hoverline;
+            DropLine();
             UpdateHoverline(ScreenToGameCoords(pos));
             base.OnMouseUp(pos);
         }
@@ -383,12 +380,13 @@ namespace linerider.Tools
             GameRenderer.DrawKnob(stop, knob2, width, hoverratio);
 
         }
-
-        public override void Stop()
+        private void DropLine()
         {
-            if (_selecttool.Active)
+            if (_active)
             {
-                _selecttool.Stop();
+                _hoverline = _selection.line;
+                _hoverknob = !_selection.BothJoints;
+                _hoverknobjoint1 = _selection.joint1;
             }
             _lifelocking = false;
             if (_active)
@@ -407,6 +405,22 @@ namespace linerider.Tools
             }
             _active = false;
             _selection = null;
+        }
+        public override void Cancel()
+        {
+            if (_selecttool.Active)
+            {
+                _selecttool.Cancel();
+            }
+            DropLine();
+        }
+        public override void Stop()
+        {
+            if (_selecttool.Active)
+            {
+                _selecttool.Stop();
+            }
+            Cancel();
             _hoverline = null;
             _hoverclick = false;
         }
