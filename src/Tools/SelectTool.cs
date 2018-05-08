@@ -387,10 +387,6 @@ namespace linerider.Tools
         }
         private Vector2d GetSnapOffset(Vector2d movediff, TrackReader trk)
         {
-            var snap1 = _snapline.Position + movediff;
-            var snap2 = _snapline.Position2 + movediff;
-            var lines1 = LineEndsInRadius(trk, snap1, SnapRadius);
-            var lines2 = (LineEndsInRadius(trk, snap2, SnapRadius));
             Vector2d snapoffset = Vector2d.Zero;
             double distance = -1;
             void checklines(GameLine[] lines, Vector2d snap)
@@ -403,16 +399,23 @@ namespace linerider.Tools
                         var diff = closer - snap;
                         var dist = diff.Length;
                         if (distance == -1 || dist < distance)
+                        {
                             snapoffset = diff;
+                            distance = dist;
+                        }
                     }
                 }
             }
             if (_snapknob1)
             {
+                var snap1 = _snapline.Position + movediff;
+                var lines1 = LineEndsInRadius(trk, snap1, SnapRadius);
                 checklines(lines1, snap1);
             }
             if (_snapknob2)
             {
+                var snap2 = _snapline.Position2 + movediff;
+                var lines2 = (LineEndsInRadius(trk, snap2, SnapRadius));
                 checklines(lines2, snap2);
             }
 
