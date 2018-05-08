@@ -1,4 +1,4 @@
-//#define debuggrid
+﻿//#define debuggrid
 //#define debugcamera
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
@@ -1046,13 +1046,15 @@ namespace linerider
             () => CurrentTools.SelectedTool.Active,
             () =>
             {
-                var mv = CurrentTools.MoveTool;
-                if (
-                    CurrentTools.SelectedTool != mv ||
-                    !mv.SelectActive ||
-                    !mv.SelectTool.CancelDrawBox())
+                var tool = CurrentTools.SelectedTool;
+                var movetool = CurrentTools.MoveTool;
+                if (tool == movetool && movetool.SelectActive)
                 {
-                    StopTools();
+                    movetool.SelectTool.CancelSelection();
+                }
+                else
+                {
+                    tool.Cancel();
                 }
                 Invalidate();
             });

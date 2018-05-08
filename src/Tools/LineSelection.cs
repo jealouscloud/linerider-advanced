@@ -44,6 +44,17 @@ namespace linerider.Tools
             snapped = new List<LineSelection>();
         }
         /// <summary>
+        /// Initialize a lineselection automatically generating clone and applying bothjoints
+        /// </summary>
+        public LineSelection(GameLine Line, bool bothjoints, List<LineSelection> Snapped)
+        {
+            line = Line;
+            clone = line.Clone();
+            joint1 = bothjoints;
+            joint2 = bothjoints;
+            snapped = Snapped;
+        }
+        /// <summary>
         /// Initialize a lineselection automatically generating clone and generating joint snap
         /// </summary>
         public LineSelection(GameLine Line, Vector2d snapjoint)
