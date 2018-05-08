@@ -522,11 +522,14 @@ namespace linerider.Tools
         {
             foreach (var line in SelectLines(trk, gamepos))
             {
-                foreach (var s in _selection)
+                if (_selectedlines.Contains(line.ID))
                 {
-                    if (s.line.ID == line.ID)
+                    foreach (var s in _selection)
                     {
-                        return s;
+                        if (s.line.ID == line.ID)
+                        {
+                            return s;
+                        }
                     }
                 }
             }
