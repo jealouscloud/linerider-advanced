@@ -139,12 +139,22 @@ namespace linerider
         }
         public bool IsHit(int id)
         {
-            if (_line_framehit.TryGetValue(id, out int frameid))
+            var frame = GetHitFrame(id);
+            if (frame != -1)
             {
-                if (_currentframe >= frameid)
+                if (_currentframe >= frame)
                     return true;
             }
             return false;
+
+        }
+        public int GetHitFrame(int id)
+        {
+            if (_line_framehit.TryGetValue(id, out int frameid))
+            {
+                return frameid;
+            }
+            return -1;
 
         }
         public bool IsHitBy(int id, int frame)

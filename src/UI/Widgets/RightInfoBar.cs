@@ -47,8 +47,7 @@ namespace linerider.UI
             _fpslabel.IsHidden = rec && !Settings.Recording.ShowFps;
             _riderspeedlabel.IsHidden = rec && !Settings.Recording.ShowPpf;
             _playbackratelabel.IsHidden = rec || _editor.Scheduler.UpdatesPerSecond == 40;
-
-            _usercamerasprite.IsHidden = !_editor.UseUserZoom;
+            _usercamerasprite.IsHidden = !_editor.UseUserZoom && _editor.Zoom == _editor.Timeline.GetFrameZoom(_editor.Offset);
             _iconpanel.IsHidden = _usercamerasprite.IsHidden;
         }
         private void Setup()

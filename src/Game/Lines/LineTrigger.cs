@@ -28,7 +28,14 @@ namespace linerider.Game
         public LineTrigger()
         {
         }
-
+        public bool CompareTo(LineTrigger other)
+        {
+            if (other == null)
+                return false;
+            return ZoomTrigger == other.ZoomTrigger &&
+            ZoomTarget == other.ZoomTarget &&
+            ZoomFrames == other.ZoomFrames;
+        }
         public bool Activate(int hitdelta, ref float currentzoom)
         {
             bool handled = false;

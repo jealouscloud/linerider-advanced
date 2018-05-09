@@ -174,26 +174,37 @@ namespace linerider
             RegisterUndoAction(oldline, newline);
 
             var std = oldline as StandardLine;
+            bool triggerchange = false;
             if (std != null)
             {
                 SaveCells(oldline.Position, oldline.Position2);
                 SaveCells(newline.Position, newline.Position2);
                 if (_updateextensions)
                     RemoveExtensions(std);
+                var newstd = (StandardLine)newline;
                 using (Track.Grid.Sync.AcquireWrite())
                 {
                     // this could be a moveline, i think.
                     Track.Grid.RemoveLine(std);
-                    Track.Grid.AddLine((StandardLine)newline);
+                    Track.Grid.AddLine(newstd);
                 }
                 if (_updateextensions)
-                    AddExtensions((StandardLine)newline);
+                    AddExtensions(newstd);
+                if (std.Trigger != null || newstd.Trigger != null)
+                {
+                    if (std.Trigger == null)
+                        triggerchange = true;
+                    else if (!std.Trigger.CompareTo(newstd.Trigger))
+                        triggerchange = true;
+                }
             }
 
             _editorcells.RemoveLine(oldline);
             _editorcells.AddLine(newline);
 
             Track.LineLookup[newline.ID] = newline;
+            if (triggerchange)
+                _timeline.TriggerChanged(newline);
             _renderer.RedrawLine(newline);
         }
 
@@ -290,7 +301,7 @@ namespace linerider
                         changemade = true;
                     }
                     SaveCells(connected.Position, connected.Position);
-                    
+
                     var inputflag = (startlink ^ input.inv)
                         ? StandardLine.Ext.Left
                         : StandardLine.Ext.Right;

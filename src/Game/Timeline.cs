@@ -192,6 +192,21 @@ namespace linerider.Game
                 return ret;
             }
         }
+        public void TriggerChanged(GameLine line)
+        {
+            int framehit;
+            using (_framesync.AcquireWrite())
+            {
+                framehit = _hittest.GetHitFrame(line.ID);
+            }
+            if (framehit != -1)
+            {
+                using (changesync.AcquireWrite())
+                {
+                    _first_invalid_frame = Math.Min(framehit, _first_invalid_frame);
+                }
+            }
+        }
         private void UnsafeEnsureFrameValid(int frame)
         {
             int start;
