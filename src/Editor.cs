@@ -465,14 +465,14 @@ namespace linerider
             for (var i = 0; i < times; i++)
             {
                 NextFrame();
-                if (!UseUserZoom)
-                    Zoom = Timeline.GetFrameZoom(Offset);
                 UpdateCamera();
             }
         }
 
         public void UpdateCamera(bool reverse = false)
         {
+            if (!UseUserZoom)
+                Zoom = Timeline.GetFrameZoom(Offset);
             Camera.SetFrame(Offset);
         }
 
