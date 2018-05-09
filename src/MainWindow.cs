@@ -1,4 +1,4 @@
-//#define debuggrid
+﻿//#define debuggrid
 //#define debugcamera
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
@@ -1067,11 +1067,27 @@ namespace linerider
             },
             null,
             repeat: false);
+            InputUtils.RegisterHotkey(Hotkey.ToolCut, () => !Track.Playing &&
+            CurrentTools.SelectedTool == CurrentTools.SelectTool, () =>
+            {
+                CurrentTools.SelectTool.Cut();
+                Invalidate();
+            },
+            null,
+            repeat: false);
             InputUtils.RegisterHotkey(Hotkey.ToolPaste, () => !Track.Playing &&
             (CurrentTools.SelectedTool == CurrentTools.SelectTool ||
             CurrentTools.SelectedTool == CurrentTools.MoveTool), () =>
             {
                 CurrentTools.SelectTool.Paste();
+                Invalidate();
+            },
+            null,
+            repeat: false);
+            InputUtils.RegisterHotkey(Hotkey.ToolDelete, () => !Track.Playing &&
+            CurrentTools.SelectedTool == CurrentTools.SelectTool, () =>
+            {
+                CurrentTools.SelectTool.Delete();
                 Invalidate();
             },
             null,

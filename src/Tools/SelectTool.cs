@@ -272,6 +272,35 @@ namespace linerider.Tools
             }
             return false;
         }
+        public void Delete()
+        {
+            if (Active && !_drawingbox && _selection.Count > 0)
+            {
+                using (var trk = game.Track.CreateTrackWriter())
+                {
+                    game.Track.UndoManager.BeginAction();
+                    foreach (var selected in _selectedlines)
+                    {
+                        var line = trk.Track.LineLookup[selected];
+                        line.SelectionState = SelectionState.None;
+                        trk.RemoveLine(line);
+                    }
+                    game.Track.UndoManager.EndAction();
+                    trk.NotifyTrackChanged();
+                }
+                _selection.Clear();
+                _selectedlines.Clear();
+                Stop();
+            }
+        }
+        public void Cut()
+        {
+            if (Active && !_drawingbox && _selection.Count > 0)
+            {
+                Copy();
+                Delete();
+            }
+        }
         public void Copy()
         {
             _copybuffer.Clear();

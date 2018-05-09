@@ -97,7 +97,9 @@ namespace linerider.UI
             "If you're moving a whole line,\nuse this to keep perpendicular to its plane");
             AddBinding(selecttool, "Lock Length", Hotkey.ToolLengthLock);
             AddBinding(selecttool, "Copy Selection", Hotkey.ToolCopy);
+            AddBinding(selecttool, "Cut", Hotkey.ToolCut);
             AddBinding(selecttool, "Paste", Hotkey.ToolPaste);
+            AddBinding(selecttool, "Delete Selection", Hotkey.ToolDelete);
 
             var pbtable = _kbtree.Add("Playback", 150);
             AddBinding(pbtable, "Toggle Flag", Hotkey.PlaybackFlag);

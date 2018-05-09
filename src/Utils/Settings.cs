@@ -114,7 +114,9 @@ namespace linerider
             KeybindConflicts[Hotkey.ToolLifeLock] = KeyConflicts.SelectTool;
             KeybindConflicts[Hotkey.ToolLengthLock] = KeyConflicts.SelectTool;
             KeybindConflicts[Hotkey.ToolCopy] = KeyConflicts.SelectTool;
+            KeybindConflicts[Hotkey.ToolCut] = KeyConflicts.SelectTool;
             KeybindConflicts[Hotkey.ToolPaste] = KeyConflicts.SelectTool;
+            KeybindConflicts[Hotkey.ToolDelete] = KeyConflicts.SelectTool;
 
             KeybindConflicts[Hotkey.PlayButtonIgnoreFlag] = KeyConflicts.HardCoded;
             KeybindConflicts[Hotkey.EditorCancelTool] = KeyConflicts.HardCoded;
@@ -207,7 +209,9 @@ namespace linerider
             SetupDefaultKeybind(Hotkey.PlayButtonIgnoreFlag, new Keybinding(KeyModifiers.Alt));
             SetupDefaultKeybind(Hotkey.PlaybackResetCamera, new Keybinding(Key.N));
             SetupDefaultKeybind(Hotkey.ToolCopy, new Keybinding(Key.C, KeyModifiers.Control));
+            SetupDefaultKeybind(Hotkey.ToolCut, new Keybinding(Key.X, KeyModifiers.Control));
             SetupDefaultKeybind(Hotkey.ToolPaste, new Keybinding(Key.V, KeyModifiers.Control));
+            SetupDefaultKeybind(Hotkey.ToolDelete, new Keybinding(Key.Delete));
             SetupDefaultKeybind(Hotkey.ToolAddSelection, new Keybinding(KeyModifiers.Shift));
             SetupDefaultKeybind(Hotkey.ToolToggleSelection, new Keybinding(KeyModifiers.Control));
         }
