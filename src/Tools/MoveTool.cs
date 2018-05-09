@@ -227,6 +227,7 @@ namespace linerider.Tools
 
         public override void OnMouseDown(Vector2d mousepos)
         {
+            base.OnMouseDown(mousepos);
             var gamepos = ScreenToGameCoords(mousepos);
 
             Stop();//double check
@@ -234,10 +235,13 @@ namespace linerider.Tools
             {
                 CurrentTools.SetTool(CurrentTools.SelectTool);
                 CurrentTools.SelectTool.OnMouseDown(mousepos);
+                IsMouseDown = false;
+                _hoverline = null;
             }
-            UpdateHoverline(gamepos);
-
-            base.OnMouseDown(gamepos);
+            else
+            {
+                UpdateHoverline(gamepos);
+            }
         }
         public override void OnMouseUp(Vector2d pos)
         {
