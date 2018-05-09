@@ -1,4 +1,4 @@
-﻿//#define debuggrid
+//#define debuggrid
 //#define debugcamera
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
@@ -835,7 +835,7 @@ namespace linerider
                 Track.TogglePause();
             },
             null,
-            repeat: true);
+            repeat: false);
             InputUtils.RegisterHotkey(Hotkey.PlaybackIterationNext, () => !Track.Playing, () =>
             {
                 StopTools();
