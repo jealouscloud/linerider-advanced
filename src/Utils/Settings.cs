@@ -295,11 +295,11 @@ namespace linerider
             string[] lines = null;
             try
             {
-                if (!File.Exists(Program.UserDirectory + "linerider.conf"))
+                if (!File.Exists(Program.UserDirectory + "settings.conf"))
                 {
                     Save();
                 }
-                lines = File.ReadAllLines(Program.UserDirectory + "linerider.conf");
+                lines = File.ReadAllLines(Program.UserDirectory + "settings.conf");
             }
             catch
             {
@@ -379,7 +379,7 @@ namespace linerider
             }
             try
             {
-                File.WriteAllText(Program.UserDirectory + "linerider.conf", config);
+                File.WriteAllText(Program.UserDirectory + "settings.conf", config);
             }
             catch { }
         }
