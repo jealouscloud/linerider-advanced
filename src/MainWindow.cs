@@ -488,12 +488,12 @@ namespace linerider
                 InputUtils.UpdateMouse(e.Mouse);
                 if (linerider.IO.TrackRecorder.Recording)
                     return;
-                _dragRider = false;
-                var r = _input.ProcessMouseMessage(e);
+                _dragRider = false; var r = _input.ProcessMouseMessage(e);
                 _uicursor = r;
-                if (!r)
+                if (!r || CurrentTools.SelectedTool.IsMouseDown)
                 {
-                    if (Canvas.GetOpenWindows().Count != 0)
+                    if (!CurrentTools.SelectedTool.IsMouseDown &&
+                        Canvas.GetOpenWindows().Count != 0)
                     {
                         UpdateCursor();
                         return;
