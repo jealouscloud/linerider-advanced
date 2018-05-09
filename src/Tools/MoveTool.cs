@@ -367,11 +367,11 @@ namespace linerider.Tools
         }
         public override void Cancel()
         {
-            DropLine();
+            Stop();
         }
         public override void Stop()
         {
-            Cancel();
+            DropLine();
             _hoverline = null;
             _hoverclick = false;
         }

@@ -34,7 +34,7 @@ namespace linerider.Tools
         private bool _snapknob1 = false;
         private GameLine _hoverline = null;
         private Vector2d _copyorigin;
-        
+
         public void CancelSelection()
         {
             if (Active)
@@ -217,7 +217,10 @@ namespace linerider.Tools
         }
         public override void Stop()
         {
-            Stop(true);
+            if (Active)
+            {
+                Stop(true);
+            }
         }
         private void Stop(bool defertomovetool)
         {
@@ -290,6 +293,10 @@ namespace linerider.Tools
                 var diff = pasteorigin - _copyorigin;
                 Unselect();
                 Active = true;
+                if (CurrentTools.SelectedTool != this)
+                {
+                    CurrentTools.SetTool(this);
+                }
                 using (var trk = game.Track.CreateTrackWriter())
                 {
                     game.Track.UndoManager.BeginAction();
@@ -303,8 +310,9 @@ namespace linerider.Tools
                             stl.CalculateConstants();
                         add.SelectionState = SelectionState.Selected;
                         trk.AddLine(add);
-                        var selectinfo = new LineSelection(line, true, null);
+                        var selectinfo = new LineSelection(add, true, null);
                         _selection.Add(selectinfo);
+                        _selectedlines.Add(add.ID);
                     }
                     game.Track.UndoManager.EndAction();
                 }
@@ -480,15 +488,18 @@ namespace linerider.Tools
             {
                 using (var trk = game.Track.CreateTrackWriter())
                 {
+                    var lookup = trk.Track.LineLookup;
                     foreach (var sel in _selection)
                     {
                         //prefer the 'real' line, if the track state changed
                         //our sel.line could be out of sync
-                        var line = trk.Track.LineLookup[sel.line.ID];
-                        if (line.SelectionState != SelectionState.None)
+                        if (lookup.TryGetValue(sel.line.ID, out var line))
                         {
-                            line.SelectionState = SelectionState.None;
-                            game.Track.RedrawLine(line);
+                            if (line.SelectionState != SelectionState.None)
+                            {
+                                line.SelectionState = SelectionState.None;
+                                game.Track.RedrawLine(line);
+                            }
                         }
                     }
                     _selection.Clear();
