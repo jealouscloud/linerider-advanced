@@ -125,6 +125,7 @@ namespace linerider.UI
             {
                 _editor.Zoom = _editor.Timeline.GetFrameZoom(_editor.Offset);
                 _editor.UseUserZoom = false;
+                _editor.UpdateCamera();
             };
             _usercamerasprite.SetImage(GameResources.camera_need_reset);
         }

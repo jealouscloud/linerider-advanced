@@ -1,4 +1,4 @@
-﻿//#define debuggrid
+//#define debuggrid
 //#define debugcamera
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
@@ -880,6 +880,7 @@ namespace linerider
             {
                 Track.Zoom = Track.Timeline.GetFrameZoom(Track.Offset);
                 Track.UseUserZoom = false;
+                Track.UpdateCamera();
             });
         }
         private void RegisterPopupHotkeys()
