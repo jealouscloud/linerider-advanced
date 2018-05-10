@@ -53,6 +53,13 @@ namespace linerider
             get { return Track.Name; }
             set { throw new NotSupportedException("Track reader cannot set Name"); }
         }
+        /// <summary>
+        /// The loaded track filename, if any
+        /// </summary>
+        public string Filename
+        {
+            get { return Track.Filename; }
+        }
         protected EditorGrid _editorcells;
         private bool _disposed = false;
         protected TrackReader(ResourceSync.ResourceLock sync, Track track)

@@ -93,12 +93,21 @@ namespace linerider.UI
                     Title = title;
                 }
             };
+            string loadedfn;
+            using (var trk = _editor.CreateTrackReader())
+            {
+                loadedfn = trk.Filename;
+            }
             var dirs = GetDirectories();
             var rootfiles = GetTracks(Constants.TracksDirectory);
             foreach (var file in rootfiles)
             {
                 var filenode = _tree.AddNode(Path.GetFileName(file));
                 filenode.UserData = new ItemData(ItemType.TrackFile, file, Path.GetFileNameWithoutExtension(file));
+                if (loadedfn != null && file == loadedfn)
+                {
+                    filenode.IsSelected = true;
+                }
             }
             foreach (var dir in dirs)
             {
@@ -112,6 +121,11 @@ namespace linerider.UI
                     {
                         var filenode = node.AddNode(Path.GetFileName(file));
                         filenode.UserData = new ItemData(ItemType.TrackFile, file, Path.GetFileNameWithoutExtension(file));
+                        if (loadedfn != null && file == loadedfn)
+                        {
+                            node.ExpandAll();
+                            filenode.IsSelected = true;
+                        }
                     }
                 }
             }
