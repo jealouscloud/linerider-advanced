@@ -849,7 +849,7 @@ namespace linerider
                 {
                     Track.NextFrame();
                     Track.IterationsOffset = 0;
-                    Track.Camera.SetFrame(Track.Offset);
+                    Track.UpdateCamera();
                 }
                 Track.InvalidateRenderRider();
             },
@@ -869,7 +869,7 @@ namespace linerider
                         Track.PreviousFrame();
                         Track.IterationsOffset = 6;
                         Invalidate();
-                        Track.Camera.SetFrame(Track.Offset);
+                        Track.UpdateCamera();
                     }
                     Track.InvalidateRenderRider();
                 }
