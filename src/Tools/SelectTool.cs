@@ -561,12 +561,7 @@ namespace linerider.Tools
         }
         private Vector2d GetCopyOrigin()
         {
-            var zoom = game.Track.Zoom;
-            var viewport = game.Track.Camera.GetViewport(
-                game.Track.Zoom,
-                (int)(Math.Round(game.RenderSize.Width / zoom)),
-                (int)((game.RenderSize.Height / zoom)));
-            return viewport.Vector + (viewport.Size / 2);
+            return game.Track.Camera.GetCenter();
         }
         /// <summary>
         /// Return the line (if any) in the point that we've selected
