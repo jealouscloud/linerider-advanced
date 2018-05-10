@@ -190,11 +190,11 @@ namespace linerider.Audio
         public static void EnsureSync()
         {
             var editor = game.Track;
-            if (Settings.MuteAudio || 
-                string.IsNullOrEmpty(editor.Song.Location) || 
+            if (Settings.MuteAudio ||
+                string.IsNullOrEmpty(editor.Song.Location) ||
                 !editor.Song.Enabled)
                 return;
-                
+
             var updaterate = (float)editor.Scheduler.UpdatesPerSecond;
             var updatepercent = (float)editor.Scheduler.ElapsedPercent;
             var expectedtime = editor.Song.Offset +
@@ -209,28 +209,33 @@ namespace linerider.Audio
             if (shouldplay && !game.Canvas.Scrubbing)
             {
                 float rate = (updaterate / Constants.PhysicsRate);
-                if (game.ReversePlayback)
-                    rate = -rate;
-                if (_musicplayer.Speed != rate || !_musicplayer.Playing)
+                if (rate > 2)
+                    AudioService.Pause();
+                else
                 {
-                    AudioService.Resume(
-                        expectedtime,
-                        rate);
-                }
-                else if (_musicplayer.Playing)
-                {
-                    var sp = _musicplayer.SongPosition;
-                    var syncrate = Math.Abs(expectedtime - sp);
-                    if (syncrate > 0.1)
+                    if (game.ReversePlayback)
+                        rate = -rate;
+                    if (_musicplayer.Speed != rate || !_musicplayer.Playing)
                     {
                         AudioService.Resume(
                             expectedtime,
                             rate);
-                        _audiosync_timer.Restart();
-                        Debug.WriteLine(
-                            "Audio fell out of sync by " +
-                            syncrate +
-                            " seconds");
+                    }
+                    else if (_musicplayer.Playing)
+                    {
+                        var sp = _musicplayer.SongPosition;
+                        var syncrate = Math.Abs(expectedtime - sp);
+                        if (syncrate > 0.1)
+                        {
+                            AudioService.Resume(
+                                expectedtime,
+                                rate);
+                            _audiosync_timer.Restart();
+                            Debug.WriteLine(
+                                "Audio fell out of sync by " +
+                                syncrate +
+                                " seconds");
+                        }
                     }
                 }
             }
