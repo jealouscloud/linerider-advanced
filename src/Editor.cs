@@ -520,6 +520,7 @@ namespace linerider
             {
                 using (_tracksync.AcquireWrite())
                 {
+                    AudioService.Stop();
                     CurrentTools.SelectedTool.Stop();
                     _loadingTrack = true;
                     Stop();
