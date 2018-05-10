@@ -474,6 +474,11 @@ namespace linerider
             if (!UseUserZoom)
                 Zoom = Timeline.GetFrameZoom(Offset);
             Camera.SetFrame(Offset);
+            if (Paused)
+            {
+                Camera.BeginFrame(1, Zoom);
+                Camera.SetFrameCenter(Camera.GetCenter(true));
+            }
         }
 
         public void BackupTrack(bool Crash = true)
