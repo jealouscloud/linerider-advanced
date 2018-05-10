@@ -123,7 +123,7 @@ namespace linerider.UI
         {
             Panel advancedtools = GwenHelper.CreateHeaderPanel(parent, "Advanced Visualization");
 
-            var contact = GwenHelper.AddCheckbox(advancedtools, "Show Contact Points", Settings.Local.DrawContactPoints, (o, e) =>
+            var contact = GwenHelper.AddCheckbox(advancedtools, "Contact Points", Settings.Local.DrawContactPoints, (o, e) =>
             {
                 Settings.Local.DrawContactPoints = ((Checkbox)o).IsChecked;
                 Settings.Save();
@@ -133,7 +133,7 @@ namespace linerider.UI
                 Settings.Local.MomentumVectors = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            var hitbox = GwenHelper.AddCheckbox(advancedtools, "Draw Line Hitbox", Settings.Local.RenderGravityWells, (o, e) =>
+            var hitbox = GwenHelper.AddCheckbox(advancedtools, "Line Hitbox", Settings.Local.RenderGravityWells, (o, e) =>
             {
                 Settings.Local.RenderGravityWells = ((Checkbox)o).IsChecked;
                 Settings.Save();
