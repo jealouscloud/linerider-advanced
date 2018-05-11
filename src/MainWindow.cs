@@ -614,15 +614,15 @@ namespace linerider
                 InputUtils.UpdateKeysDown(e.Keyboard, e.Modifiers);
                 if (linerider.IO.TrackRecorder.Recording)
                     return;
-                var openwindows = Canvas.GetOpenWindows();
                 var mod = e.Modifiers;
                 if (_input.ProcessKeyDown(e))
                 {
                     return;
                 }
-                if (openwindows != null && openwindows.Count >= 1)
+                if (e.Key == Key.Escape && !e.IsRepeat)
                 {
-                    if (e.Key == Key.Escape)
+                    var openwindows = Canvas.GetOpenWindows();
+                    if (openwindows != null && openwindows.Count >= 1)
                     {
                         foreach (var v in openwindows)
                         {
