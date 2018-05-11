@@ -67,7 +67,7 @@ namespace linerider.UI
             _pencilbtn = CreateTool(GameResources.pencil_icon, "Pencil Tool (Q)");
             _linebtn = CreateTool(GameResources.line_icon, "Line Tool (W)");
             _eraserbtn = CreateTool(GameResources.eraser_icon, "Eraser Tool (E)");
-            _selectbtn = CreateTool(GameResources.movetool_icon, "Line Adjustment Tool (R)");
+            _selectbtn = CreateTool(GameResources.movetool_icon, "Select Tool (R)");
             _handbtn = CreateTool(GameResources.pantool_icon, "Hand Tool (Space) (T)");
             _start = CreateTool(GameResources.play_icon, "Start (Y)");
             _pause = CreateTool(GameResources.pause, "Pause (Space)");
