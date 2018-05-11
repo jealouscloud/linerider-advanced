@@ -30,7 +30,6 @@ namespace linerider.UI
             public Action keyuphandler = null;
         }
         private static GameWindow _window;
-        private static List<Key> _keysdown = new List<Key>();
         private static KeyboardState _kbstate;
         private static KeyboardState _prev_kbstate;
         private static List<MouseButton> _mousebuttonsdown = new List<MouseButton>();
@@ -67,7 +66,7 @@ namespace linerider.UI
         public static Keybinding ReadHotkey()
         {
             var key = RepeatKey;
-            if (!_keysdown.Contains(key))
+            if (!_kbstate[key])
                 key = (Key)(-1);
             return new Keybinding(key, _modifiersdown);
         }
@@ -78,27 +77,11 @@ namespace linerider.UI
         }
         public static void UpdateKeysDown(KeyboardState ks, KeyModifiers modifiers)
         {
-            var ret = new List<Key>();
-            if (ks == _kbstate)// no thanks, we already did this one
-                return;
             using (_lock.AcquireWrite())
             {
                 _prev_kbstate = _kbstate;
                 _kbstate = ks;
                 _modifiersdown = modifiers;
-                if (ks.IsAnyKeyDown)
-                {
-                    //skip key.unknown
-                    //opentk.nativewindow.processevents has a similar loop
-                    for (Key key = 0; key < Key.LastKey; key++)
-                    {
-                        if (ks.IsKeyDown(key))
-                        {
-                            ret.Add(key);
-                        }
-                    }
-                }
-                _keysdown = ret;
             }
         }
         public static void RegisterHotkey(
