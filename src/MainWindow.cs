@@ -795,6 +795,10 @@ namespace linerider
                 Track.NextFrame();
                 Invalidate();
                 Track.UpdateCamera();
+                if (CurrentTools.SelectedTool.IsMouseDown)
+                {
+                    CurrentTools.SelectedTool.OnMouseMoved(InputUtils.GetMouse());
+                }
             },
             null,
             repeat: true);
@@ -806,6 +810,10 @@ namespace linerider
                 Track.PreviousFrame();
                 Invalidate();
                 Track.UpdateCamera(true);
+                if (CurrentTools.SelectedTool.IsMouseDown)
+                {
+                    CurrentTools.SelectedTool.OnMouseMoved(InputUtils.GetMouse());
+                }
             },
             null,
             repeat: true);
