@@ -411,7 +411,9 @@ namespace linerider
                     if (!Track.Playing)
                     {
                         bool dragstart = false;
-                        if (e.Button == MouseButton.Left && InputUtils.Check(Hotkey.EditorMoveStart))
+                        if (Track.Offset == 0 &&
+                         e.Button == MouseButton.Left &&
+                        InputUtils.Check(Hotkey.EditorMoveStart))
                         {
                             var gamepos = ScreenPosition + (new Vector2d(e.X, e.Y) / Track.Zoom);
                             dragstart = Game.Rider.GetBounds(
