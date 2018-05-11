@@ -63,19 +63,19 @@ namespace linerider.Rendering
                 }
                 else if (bones[i].OnlyRepel)
                 {
-                    DrawLine(
-                        rider.Body[bones[i].joint1].Location,
-                        rider.Body[bones[i].joint2].Location,
+                    _lines.AddLine(
+                        GameDrawingMatrix.ScreenCoordD(rider.Body[bones[i].joint1].Location),
+                        GameDrawingMatrix.ScreenCoordD(rider.Body[bones[i].joint2].Location),
                         constraintcolor,
-                        1f / 4);
+                        GameDrawingMatrix.Scale / 4);
                 }
                 else if (i <= 3)
                 {
-                    DrawLine(
-                        rider.Body[bones[i].joint1].Location,
-                        rider.Body[bones[i].joint2].Location,
+                    _lines.AddLine(
+                        GameDrawingMatrix.ScreenCoordD(rider.Body[bones[i].joint1].Location),
+                        GameDrawingMatrix.ScreenCoordD(rider.Body[bones[i].joint2].Location),
                         constraintcolor,
-                        1f / 4);
+                        GameDrawingMatrix.Scale / 4);
                 }
             }
             if (!rider.Crashed && diagnosis.Count != 0)
@@ -89,21 +89,21 @@ namespace linerider.Rendering
                     var broken = diagnosis[i];
                     if (broken >= 0)
                     {
-                        DrawLine(
-                            rider.Body[bones[broken].joint1].Location,
-                            rider.Body[bones[broken].joint2].Location,
+                        _lines.AddLine(
+                            GameDrawingMatrix.ScreenCoordD(rider.Body[bones[broken].joint1].Location),
+                            GameDrawingMatrix.ScreenCoordD(rider.Body[bones[broken].joint2].Location),
                             breakcolor,
-                            1f / 4);
+                            GameDrawingMatrix.Scale  / 4);
                     }
                 }
                 //the first break is most important so we give it a better color, assuming its not just a fakie death
                 if (diagnosis[0] > 0)
                 {
-                    DrawLine(
-                        rider.Body[bones[diagnosis[0]].joint1].Location,
-                        rider.Body[bones[diagnosis[0]].joint2].Location,
+                    _lines.AddLine(
+                        GameDrawingMatrix.ScreenCoordD(rider.Body[bones[diagnosis[0]].joint1].Location),
+                        GameDrawingMatrix.ScreenCoordD(rider.Body[bones[diagnosis[0]].joint2].Location),
                         firstbreakcolor,
-                        1f / 4);
+                        GameDrawingMatrix.Scale / 4);
                 }
             }
             for (var i = 0; i < rider.Body.Length; i++)
