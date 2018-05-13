@@ -49,19 +49,12 @@ namespace linerider
     {
         public Dictionary<string, MouseCursor> Cursors = new Dictionary<string, MouseCursor>();
         public MsaaFbo MSAABuffer;
-        private readonly Stopwatch _autosavewatch = Stopwatch.StartNew();
         public GameCanvas Canvas;
-
         public bool ReversePlayback = false;
-        private Gwen.Input.OpenTK _input;
-        private bool _dragRider;
-        private bool _invalidated;
-
         public bool EnableSnap
         {
             get { return !Settings.Local.DisableSnap && !InputUtils.CheckPressed(Hotkey.ToolDisableSnap); }
         }
-
         public Size RenderSize
         {
             get
@@ -77,15 +70,19 @@ namespace linerider
                 ClientSize = value;
             }
         }
+        public Vector2d ScreenTranslation => -ScreenPosition;
         public Vector2d ScreenPosition
             => Track.Camera.GetViewport(
                 Track.Zoom,
                 RenderSize.Width,
                 RenderSize.Height).Vector;
 
-        public Vector2d ScreenTranslation => -ScreenPosition;
         public Editor Track { get; }
         private bool _uicursor = false;
+        private Gwen.Input.OpenTK _input;
+        private bool _dragRider;
+        private bool _invalidated;
+        private readonly Stopwatch _autosavewatch = Stopwatch.StartNew();
         public MainWindow()
             : base(
                 1280,
