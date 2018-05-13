@@ -153,7 +153,7 @@ namespace linerider.Tools
             }
             return false;
         }
-        public void MoveSelection(Vector2d pos)
+        private void MoveSelection(Vector2d pos)
         {
             if (_selection != null)
             {
@@ -167,8 +167,12 @@ namespace linerider.Tools
                     var joint2 = _selection.joint2
                         ? _selection.clone.Position2 + (pos - _clickstart)
                         : line.Position2;
-                    ApplyModifiers(ref joint1, ref joint2);
+                    bool mod = ApplyModifiers(ref joint1, ref joint2);
 
+                    if (!mod && EnableSnap)
+                    {
+                        SnapJoints(trk, line, ref joint1, ref joint2);
+                    }
                     trk.MoveLine(
                         line,
                         joint1,
@@ -378,9 +382,10 @@ namespace linerider.Tools
             _hoverline = null;
             _hoverclick = false;
         }
-        private void ApplyModifiers(ref Vector2d joint1, ref Vector2d joint2)
+        private bool ApplyModifiers(ref Vector2d joint1, ref Vector2d joint2)
         {
             bool both = _selection.joint1 && _selection.joint2;
+            bool modified = false;
             if (both)
             {
                 var axis = UI.InputUtils.CheckPressed(Hotkey.ToolAxisLock);
@@ -394,6 +399,7 @@ namespace linerider.Tools
                     }
                     joint1 = Utility.AngleLock(_selection.line.Position, joint1, angle);
                     joint2 = Utility.AngleLock(_selection.line.Position2, joint2, angle);
+                    modified = true;
                 }
             }
             else
@@ -403,21 +409,70 @@ namespace linerider.Tools
                 if (UI.InputUtils.Check(Hotkey.ToolAngleLock))
                 {
                     end = Utility.AngleLock(start, end, Angle.FromVector(_selection.clone.GetVector()));
+                    modified = true;
                 }
                 if (UI.InputUtils.CheckPressed(Hotkey.ToolXYSnap))
                 {
                     end = Utility.SnapToDegrees(start, end);
+                    modified = true;
                 }
                 if (UI.InputUtils.Check(Hotkey.ToolLengthLock))
                 {
                     var currentdelta = _selection.line.Position2 - _selection.line.Position;
                     end = Utility.LengthLock(start, end, currentdelta.Length);
+                    modified = true;
                 }
                 if (_selection.joint2)
                     joint2 = end;
                 else
                     joint1 = end;
             }
+            return modified;
+        }
+        private void SnapJoints(TrackReader trk, GameLine line,
+         ref Vector2d joint1, ref Vector2d joint2)
+        {
+            HashSet<int> ignoreids = new HashSet<int>();
+            ignoreids.Add(_selection.line.ID);
+            foreach (var snapped in _selection.snapped)
+            {
+                ignoreids.Add(snapped.line.ID);
+            }
+            var snapj1 = joint1;
+            var snapj2 = joint2;
+            bool j1snapped = false;
+            bool j2snapped = false;
+            bool ignorescenery = line is StandardLine;
+            if (_selection.joint1)
+            {
+                j1snapped = GetSnapPoint(trk, joint1, line.Position2, joint1,
+                    ignoreids, out snapj1, ignorescenery);
+            }
+            if (_selection.joint2)
+            {
+                j2snapped = GetSnapPoint(trk, line.Position, joint2, joint2,
+                    ignoreids, out snapj2, ignorescenery);
+            }
+            if (_selection.BothJoints)
+            {
+                var j1diff = snapj1 - joint1;
+                var j2diff = snapj2 - joint2;
+                if (j1snapped && j2snapped)
+                {
+                    if (j1diff.Length < j2diff.Length)
+                        j2snapped = false;
+                    else
+                        j1snapped = false;
+                }
+                if (j1snapped)
+                    joint2 += j1diff;
+                else if (j2snapped)
+                    joint1 += j2diff;
+            }
+            if (j1snapped)
+                joint1 = snapj1;
+            else if (j2snapped)
+                joint2 = snapj2;
         }
     }
 }
