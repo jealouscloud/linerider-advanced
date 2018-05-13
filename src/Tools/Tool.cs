@@ -375,27 +375,71 @@ namespace linerider.Tools
         /// </summary>
         protected void SnapLineEnd(TrackWriter trk, GameLine line, Vector2d endpoint)
         {
+            var ignore = new int[] { line.ID };
+            GetSnapPoint(
+                trk,
+                line.Position,
+                line.Position2,
+                endpoint,
+                ignore,
+                out var snap,
+                line is StandardLine);
+
+            if (snap == endpoint)
+                return;
+            if (line.Position == endpoint)
+            {
+                // don't snap to the same point.
+                if (line.Position2 != snap)
+                    trk.MoveLine(line, snap, line.Position2);
+            }
+            else if (line.Position2 == endpoint)
+            {
+                // don't snap to the same point.
+                if (line.Position != snap)
+                    trk.MoveLine(line, line.Position, snap);
+            }
+        }
+        /// <summary>
+        /// Snaps the point specified in endpoint of line to another line if 
+        /// within snapradius, ignoring all lines specified.
+        /// </summary>
+        protected bool GetSnapPoint(
+            TrackReader trk,
+            Vector2d position1,
+            Vector2d position2,
+            Vector2d endpoint,
+            ICollection<int> ignorelines,
+            out Vector2d snappoint,
+            bool ignorescenery)
+        {
             var lines = LineEndsInRadius(trk, endpoint, SnapRadius);
             for (int i = 0; i < lines.Length; i++)
             {
                 var curr = lines[i];
-                if (curr != line)
+                if (!ignorelines.Contains(curr.ID))
                 {
-                    if (line is StandardLine && curr is SceneryLine)
+                    if (ignorescenery && curr is SceneryLine)
                         continue;//phys lines dont wanna snap to scenery
 
                     var snap = Utility.CloserPoint(endpoint, curr.Position, curr.Position2);
-                    if (line.Position == endpoint)
+                    if (position1 == endpoint)
                     {
                         // don't snap to the same point.
-                        if (line.Position2 != snap)
-                            trk.MoveLine(line, snap, line.Position2);
+                        if (position2 != snap)
+                        {
+                            snappoint = snap;
+                            return true;
+                        }
                     }
-                    else if (line.Position2 == endpoint)
+                    else if (position2 == endpoint)
                     {
                         // don't snap to the same point.
-                        if (line.Position != snap)
-                            trk.MoveLine(line, line.Position, snap);
+                        if (position1 != snap)
+                        {
+                            snappoint = snap;
+                            return true;
+                        }
                     }
                     else
                     {
@@ -404,6 +448,8 @@ namespace linerider.Tools
                     break;
                 }
             }
+            snappoint = endpoint;
+            return false;
         }
     }
 }
