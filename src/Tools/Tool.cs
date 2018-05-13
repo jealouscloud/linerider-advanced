@@ -22,6 +22,7 @@ using System.Linq;
 using OpenTK;
 using linerider.Utils;
 using linerider.Game;
+using linerider.UI;
 
 namespace linerider.Tools
 {
@@ -47,6 +48,14 @@ namespace linerider.Tools
             get
             {
                 return 2 / game.Track.Zoom;
+            }
+        }
+        protected virtual bool EnableSnap
+        {
+            get
+            {
+                var toggle = InputUtils.CheckPressed(Hotkey.ToolToggleSnap);
+                return Settings.Local.DisableSnap == toggle;
             }
         }
         /// <summary>

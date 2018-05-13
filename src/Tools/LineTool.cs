@@ -58,7 +58,7 @@ namespace linerider.Tools
         {
             Active = true;
             var gamepos = ScreenToGameCoords(pos);
-            if (game.EnableSnap)
+            if (EnableSnap)
             {
                 using (var trk = game.Track.CreateTrackReader())
                 {
@@ -97,7 +97,7 @@ namespace linerider.Tools
                 {
                     _end = Utility.SnapToDegrees(_start, _end);
                 }
-                else if (game.EnableSnap)
+                else if (EnableSnap)
                 {
                     using (var trk = game.Track.CreateTrackReader())
                     {
@@ -128,7 +128,7 @@ namespace linerider.Tools
                 {
                     _end = Utility.SnapToDegrees(_start, _end);
                 }
-                else if (game.EnableSnap)
+                else if (EnableSnap)
                 {
                     using (var trk = game.Track.CreateTrackWriter())
                     {
@@ -144,7 +144,7 @@ namespace linerider.Tools
                     using (var trk = game.Track.CreateTrackWriter())
                     {
                         game.Track.UndoManager.BeginAction();
-                        var added = CreateLine(trk, _start, _end, _addflip, Snapped, game.EnableSnap);
+                        var added = CreateLine(trk, _start, _end, _addflip, Snapped, EnableSnap);
                         game.Track.UndoManager.EndAction();
                         if (added is StandardLine)
                         {

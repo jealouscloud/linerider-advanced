@@ -33,7 +33,7 @@ namespace linerider.UI
         ToolPerpendicularAxisLock,
         ToolLengthLock,
         ToolXYSnap,
-        ToolDisableSnap,
+        ToolToggleSnap,
         ToolSelectBothJoints,
         ToolCopy,
         ToolCut,

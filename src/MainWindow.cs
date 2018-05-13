@@ -51,10 +51,6 @@ namespace linerider
         public MsaaFbo MSAABuffer;
         public GameCanvas Canvas;
         public bool ReversePlayback = false;
-        public bool EnableSnap
-        {
-            get { return !Settings.Local.DisableSnap && !InputUtils.CheckPressed(Hotkey.ToolDisableSnap); }
-        }
         public Size RenderSize
         {
             get

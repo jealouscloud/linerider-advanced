@@ -472,7 +472,7 @@ namespace linerider.Tools
                 var movediff = (pos - _clickstart);
                 using (var trk = game.Track.CreateTrackWriter())
                 {
-                    if (_snapline != null && game.EnableSnap)
+                    if (_snapline != null && EnableSnap)
                     {
                         movediff += GetSnapOffset(movediff, trk);
                     }

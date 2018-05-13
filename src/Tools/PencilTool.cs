@@ -72,7 +72,7 @@ namespace linerider.Tools
             Stop();
             Active = true;
 
-            if (game.EnableSnap)
+            if (EnableSnap)
             {
                 var gamepos = ScreenToGameCoords(pos);
                 using (var trk = game.Track.CreateTrackReader())

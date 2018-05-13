@@ -104,7 +104,7 @@ namespace linerider
             KeybindConflicts[Hotkey.LineToolFlipLine] = KeyConflicts.LineTool;
 
             KeybindConflicts[Hotkey.ToolXYSnap] = KeyConflicts.Tool;
-            KeybindConflicts[Hotkey.ToolDisableSnap] = KeyConflicts.Tool;
+            KeybindConflicts[Hotkey.ToolToggleSnap] = KeyConflicts.Tool;
             KeybindConflicts[Hotkey.EditorCancelTool] = KeyConflicts.Tool;
 
             KeybindConflicts[Hotkey.ToolLengthLock] = KeyConflicts.SelectTool;
@@ -157,7 +157,7 @@ namespace linerider
             SetupDefaultKeybind(Hotkey.ToolPerpendicularAxisLock, new Keybinding(Key.X, KeyModifiers.Control | KeyModifiers.Shift));
             SetupDefaultKeybind(Hotkey.ToolLengthLock, new Keybinding(Key.L));
             SetupDefaultKeybind(Hotkey.ToolXYSnap, new Keybinding(Key.X));
-            SetupDefaultKeybind(Hotkey.ToolDisableSnap, new Keybinding(Key.S));
+            SetupDefaultKeybind(Hotkey.ToolToggleSnap, new Keybinding(Key.S));
             SetupDefaultKeybind(Hotkey.ToolSelectBothJoints, new Keybinding(KeyModifiers.Control));
             SetupDefaultKeybind(Hotkey.LineToolFlipLine, new Keybinding(KeyModifiers.Shift));
             SetupDefaultKeybind(Hotkey.EditorUndo, new Keybinding(Key.Z, KeyModifiers.Control));
