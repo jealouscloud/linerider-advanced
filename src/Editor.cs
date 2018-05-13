@@ -94,7 +94,7 @@ namespace linerider
         {
             get
             {
-                return Math.Abs(UndoManager.ActionPosition - _prevSaveUndoPos);
+                return Math.Abs(UndoManager.ActionCount - _prevSaveUndoPos);
             }
         }
         public float StartZoom
@@ -566,7 +566,7 @@ namespace linerider
         }
         public void ResetTrackChangeCounter()
         {
-            this._prevSaveUndoPos = UndoManager.ActionPosition;
+            this._prevSaveUndoPos = UndoManager.ActionCount;
         }
         public void AutoLoadPrevious()
         {

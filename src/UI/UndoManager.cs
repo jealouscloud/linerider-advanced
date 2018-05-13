@@ -94,7 +94,8 @@ namespace linerider
                 return base.ToString();
             }
         }
-        public int ActionPosition { get; private set; }
+        public int ActionCount { get; private set; }
+        private int _position = 0;
         private List<act> _actions = new List<act>();
         private act _currentaction;
         const int MaximumBufferSize = 10000;
@@ -134,26 +135,26 @@ namespace linerider
         {
             if (_currentaction == null)
                 throw new Exception("UndoManager current action null");
-            if (ActionPosition != _actions.Count)
+            if (_position != _actions.Count)
             {
-                if (ActionPosition < 0)
-                    ActionPosition = 0;
-                _actions.RemoveRange(ActionPosition, _actions.Count - ActionPosition);
+                _actions.RemoveRange(_position, _actions.Count - _position);
             }
             if (_actions.Count > MaximumBufferSize)
             {
                 _actions.RemoveRange(0, _actions.Count - (MaximumBufferSize / 2));
             }
             _actions.Add(_currentaction);
-            ActionPosition = _actions.Count;
+            _position = _actions.Count;
+            ActionCount++;
             _currentaction = null;
         }
         public object Undo()
         {
-            if (_actions.Count > 0 && ActionPosition > 0)
+            if (_actions.Count > 0 && _position > 0)
             {
-                ActionPosition--;
-                var action = _actions[ActionPosition];
+                _position--;
+                ActionCount--;
+                var action = _actions[_position];
                 DoAction(action, true);
                 return action.UserHint;
             }
@@ -162,12 +163,11 @@ namespace linerider
 
         public object Redo()
         {
-            if (_actions.Count > 0 && ActionPosition < _actions.Count)
+            if (_actions.Count > 0 && _position < _actions.Count)
             {
-                if (ActionPosition < 0)
-                    ActionPosition = 0;
-                var action = _actions[ActionPosition];
-                ActionPosition++;
+                var action = _actions[_position];
+                _position++;
+                ActionCount++;
                 DoAction(action, false);
                 return action.UserHint;
             }
