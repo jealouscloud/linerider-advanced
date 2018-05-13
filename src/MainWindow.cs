@@ -387,7 +387,7 @@ namespace linerider
                 if (linerider.IO.TrackRecorder.Recording)
                     return;
                 var r = _input.ProcessMouseMessage(e);
-                _uicursor = r;
+                _uicursor = _input.MouseCaptured;
                 if (Canvas.GetOpenWindows().Count != 0)
                 {
                     UpdateCursor();
@@ -475,7 +475,7 @@ namespace linerider
                     return;
                 _dragRider = false;
                 var r = _input.ProcessMouseMessage(e);
-                _uicursor = r;
+                _uicursor = _input.MouseCaptured;
                 InputUtils.CheckCurrentHotkey();
                 if (!r || CurrentTools.SelectedTool.IsMouseDown)
                 {
@@ -514,7 +514,7 @@ namespace linerider
                 if (linerider.IO.TrackRecorder.Recording)
                     return;
                 var r = _input.ProcessMouseMessage(e);
-                _uicursor = r;
+                _uicursor = _input.MouseCaptured;
                 if (Canvas.GetOpenWindows().Count != 0)
                 {
                     UpdateCursor();
