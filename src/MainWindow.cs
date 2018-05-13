@@ -1,4 +1,4 @@
-//#define debuggrid
+﻿//#define debuggrid
 //#define debugcamera
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
@@ -85,7 +85,6 @@ namespace linerider
 
         public Vector2d ScreenTranslation => -ScreenPosition;
         public Editor Track { get; }
-        private bool _playbacktemp = false;
         private bool _uicursor = false;
         public MainWindow()
             : base(
@@ -204,36 +203,6 @@ namespace linerider
             if (InputUtils.HandleMouseMove(out int x, out int y) && !Canvas.IsModalOpen)
             {
                 CurrentTools.SelectedTool.OnMouseMoved(new Vector2d(x, y));
-            }
-            if (InputUtils.Check(Hotkey.PlaybackForward))
-            {
-                if (!_playbacktemp || (ReversePlayback && !InputUtils.Check(Hotkey.PlaybackBackward)))
-                {
-                    StopTools();
-                    if (Track.Paused)
-                        Track.TogglePause();
-                    ReversePlayback = false;
-                    _playbacktemp = true;
-                }
-            }
-            else if (InputUtils.Check(Hotkey.PlaybackBackward))
-            {
-                if (!_playbacktemp || (!ReversePlayback && !InputUtils.Check(Hotkey.PlaybackForward)))
-                {
-                    StopTools();
-                    if (Track.Paused)
-                        Track.TogglePause();
-                    ReversePlayback = true;
-                    _playbacktemp = true;
-                }
-            }
-            else if (_playbacktemp)
-            {
-                if (!Track.Paused)
-                    Track.TogglePause();
-                _playbacktemp = false;
-                ReversePlayback = false;
-                Track.UpdateCamera();
             }
         }
         public void GameUpdate()
@@ -763,7 +732,38 @@ namespace linerider
             {
                 Track.Flag(Track.Offset);
             });
-
+            InputUtils.RegisterHotkey(Hotkey.PlaybackForward, () => true, () =>
+            {
+                StopTools();
+                if (Track.Paused)
+                    Track.TogglePause();
+                ReversePlayback = false;
+                UpdateCursor();
+            },
+            () =>
+            {
+                if (!Track.Paused)
+                    Track.TogglePause();
+                ReversePlayback = false;
+                Track.UpdateCamera();
+                UpdateCursor();
+            });
+            InputUtils.RegisterHotkey(Hotkey.PlaybackBackward, () => true, () =>
+            {
+                StopTools();
+                if (Track.Paused)
+                    Track.TogglePause();
+                ReversePlayback = true;
+                UpdateCursor();
+            },
+            () =>
+            {
+                if (!Track.Paused)
+                    Track.TogglePause();
+                ReversePlayback = false;
+                Track.UpdateCamera();
+                UpdateCursor();
+            });
             InputUtils.RegisterHotkey(Hotkey.PlaybackFrameNext, () => true, () =>
             {
                 StopHandTool();
