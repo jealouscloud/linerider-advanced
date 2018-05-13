@@ -102,7 +102,8 @@ namespace linerider.UI
                                     changemade = true;
                             }
                         }
-                        if (hk.UsesKeys && hk.Key != _binding.Key)
+                        if (hk.UsesKeys && hk.Key != _binding.Key ||
+                            hk.UsesMouse && hk.MouseButton != _binding.MouseButton)
                         {
                             changemade = true;
                         }

@@ -143,7 +143,6 @@ namespace linerider
             SetupDefaultKeybind(Hotkey.EditorToolColor2, new Keybinding(Key.Number2));
             SetupDefaultKeybind(Hotkey.EditorToolColor3, new Keybinding(Key.Number3));
 
-            SetupDefaultKeybind(Hotkey.EditorUseTool, new Keybinding(MouseButton.Left));
             SetupDefaultKeybind(Hotkey.EditorCycleToolSetting, new Keybinding(Key.Tab));
             SetupDefaultKeybind(Hotkey.EditorMoveStart, new Keybinding(Key.D));
 
@@ -204,6 +203,7 @@ namespace linerider
             SetupDefaultKeybind(Hotkey.PlayButtonIgnoreFlag, new Keybinding(KeyModifiers.Alt));
 
             SetupDefaultKeybind(Hotkey.EditorQuickPan, new Keybinding(Key.Space, KeyModifiers.Shift));
+            SetupDefaultKeybind(Hotkey.EditorDragCanvas, new Keybinding(MouseButton.Middle));
 
             SetupDefaultKeybind(Hotkey.EditorCancelTool, new Keybinding(Key.Escape));
             SetupDefaultKeybind(Hotkey.PlayButtonIgnoreFlag, new Keybinding(KeyModifiers.Alt));

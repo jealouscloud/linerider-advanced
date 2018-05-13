@@ -67,6 +67,7 @@ namespace linerider.UI
             AddBinding(editortable, "Select Tool", Hotkey.EditorSelectTool);
             AddBinding(editortable, "Hand Tool", Hotkey.EditorPanTool);
             AddBinding(editortable, "Quick Pan", Hotkey.EditorQuickPan);
+            AddBinding(editortable, "Drag Canvas", Hotkey.EditorDragCanvas);
             AddBinding(editortable, "Move Start Point", Hotkey.EditorMoveStart,
                 "Hold and click the rider to move him");
             AddBinding(editortable, "Swatch Color Blue", Hotkey.EditorToolColor1);

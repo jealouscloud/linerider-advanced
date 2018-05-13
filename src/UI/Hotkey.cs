@@ -11,6 +11,7 @@ namespace linerider.UI
         EditorSelectTool,
         EditorPanTool,
         EditorQuickPan,
+        EditorDragCanvas,
 
         EditorToolColor1,
         EditorToolColor2,
@@ -18,7 +19,6 @@ namespace linerider.UI
         EditorRemoveLatestLine,
         EditorFocusStart,
         EditorFocusLastLine,
-        EditorUseTool,
         EditorCycleToolSetting,
         EditorUndo,
         EditorRedo,

@@ -1,4 +1,4 @@
-﻿//#define debuggrid
+//#define debuggrid
 //#define debugcamera
 //  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
@@ -251,19 +251,6 @@ namespace linerider
                         Track.ZoomBy(-0.08f);
                 }
             }
-            bool quickpan = false;
-            if (!Track.Playing && !Canvas.IsModalOpen)
-            {
-                //todo review with playbackmode remove
-                quickpan = (InputUtils.Check(Hotkey.EditorQuickPan)) ||
-                    (Focused && Mouse.GetState().IsButtonDown(MouseButton.Middle));
-            }
-            if (quickpan != CurrentTools.QuickPan)
-            {
-                CurrentTools.QuickPan = quickpan;
-                Invalidate();
-                UpdateCursor();
-            }
             if (_autosavewatch.Elapsed.TotalMinutes >= 5)
             {
                 _autosavewatch.Restart();
@@ -408,6 +395,7 @@ namespace linerider
                 }
                 if (!r)
                 {
+                    InputUtils.ProcessMouseHotkeys();
                     if (!Track.Playing)
                     {
                         bool dragstart = false;
@@ -455,11 +443,6 @@ namespace linerider
                             {
                                 CurrentTools.SelectedTool.OnMouseRightDown(new Vector2d(e.X, e.Y));
                             }
-                            else if (e.Button == MouseButton.Middle)
-                            {
-                                CurrentTools.QuickPan = true;
-                                CurrentTools.HandTool.OnMouseDown(new Vector2d(e.X, e.Y));
-                            }
                         }
                     }
                     else if (CurrentTools.SelectedTool == CurrentTools.PencilTool && CurrentTools.PencilTool.DrawingScenery)
@@ -490,8 +473,10 @@ namespace linerider
                 InputUtils.UpdateMouse(e.Mouse);
                 if (linerider.IO.TrackRecorder.Recording)
                     return;
-                _dragRider = false; var r = _input.ProcessMouseMessage(e);
+                _dragRider = false;
+                var r = _input.ProcessMouseMessage(e);
                 _uicursor = r;
+                InputUtils.CheckCurrentHotkey();
                 if (!r || CurrentTools.SelectedTool.IsMouseDown)
                 {
                     if (!CurrentTools.SelectedTool.IsMouseDown &&
@@ -507,14 +492,6 @@ namespace linerider
                     else if (e.Button == MouseButton.Right)
                     {
                         CurrentTools.SelectedTool.OnMouseRightUp(new Vector2d(e.X, e.Y));
-                    }
-                    else if (e.Button == MouseButton.Middle)
-                    {
-                        if (CurrentTools.QuickPan)
-                        {
-                            CurrentTools.HandTool.OnMouseUp(new Vector2d(e.X, e.Y));
-                            CurrentTools.QuickPan = false;
-                        }
                     }
                 }
                 UpdateCursor();
@@ -643,7 +620,7 @@ namespace linerider
                     Invalidate();
                     return;
                 }
-                InputUtils.ProcessHotkeys();
+                InputUtils.ProcessKeyboardHotkeys();
                 UpdateCursor();
                 Invalidate();
                 var input = e.Keyboard;
@@ -686,11 +663,9 @@ namespace linerider
                 InputUtils.UpdateKeysDown(e.Keyboard, e.Modifiers);
                 if (linerider.IO.TrackRecorder.Recording)
                     return;
-                if (!_input.ProcessKeyUp(e) &&
-                    !CurrentTools.SelectedTool.OnKeyUp(e.Key))
-                {
-                    InputUtils.ProcessKeyup();
-                }
+                InputUtils.CheckCurrentHotkey();
+                CurrentTools.SelectedTool.OnKeyUp(e.Key);
+                _input.ProcessKeyUp(e);
                 UpdateCursor();
                 Invalidate();
             }
@@ -939,6 +914,34 @@ namespace linerider
             {
                 CurrentTools.SetTool(CurrentTools.HandTool);
             });
+            InputUtils.RegisterHotkey(Hotkey.EditorQuickPan, () => !Track.Playing && !Canvas.IsModalOpen, () =>
+            {
+                CurrentTools.QuickPan = true;
+                Invalidate();
+                UpdateCursor();
+            },
+            () =>
+            {
+                CurrentTools.QuickPan = false;
+                Invalidate();
+                UpdateCursor();
+            });
+            InputUtils.RegisterHotkey(Hotkey.EditorDragCanvas, () => !Track.Playing && !Canvas.IsModalOpen, () =>
+            {
+                var mouse = InputUtils.GetMouse();
+                CurrentTools.QuickPan = true;
+                CurrentTools.HandTool.OnMouseDown(new Vector2d(mouse.X, mouse.Y));
+            },
+            () =>
+            {
+                if (CurrentTools.QuickPan)
+                {
+                    var mouse = InputUtils.GetMouse();
+                    CurrentTools.HandTool.OnMouseUp(new Vector2d(mouse.X, mouse.Y));
+                    CurrentTools.QuickPan = false;
+                }
+            });
+
             InputUtils.RegisterHotkey(Hotkey.EditorUndo, () => !Track.Playing, () =>
             {
                 CurrentTools.SelectedTool.Cancel();

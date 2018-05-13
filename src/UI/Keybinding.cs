@@ -51,7 +51,7 @@ namespace linerider.UI
                     ret++;
                 if (Modifiers.HasFlag(KeyModifiers.Control))
                     ret++;
-                if (this.Key != (Key) - 1)
+                if (UsesKeys)
                     ret++;
                 return ret;
             }
@@ -151,9 +151,27 @@ namespace linerider.UI
 
                 if (modifiers > 0)
                     kb += "+";
-                kb += MouseButton;
+                kb += MouseToString(MouseButton);
             }
             return kb;
+        }
+        private string MouseToString(MouseButton button)
+        {
+            switch (MouseButton)
+            {
+                case MouseButton.Left:
+                    return "mb1";
+                case MouseButton.Right:
+                    return "mb2";
+                case MouseButton.Middle:
+                    return "mb3";
+            }
+            if (button >= MouseButton.Button1 && button <= MouseButton.Button9)
+            {
+                int num = 4 + ((int)button - (int)MouseButton.Button1);
+                return "mb" + num;
+            }
+            return button.ToString();
         }
         private string KeyToString(Key key)
         {

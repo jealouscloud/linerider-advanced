@@ -33,7 +33,8 @@ namespace linerider.UI
         private static KeyboardState _kbstate;
         private static KeyboardState _prev_kbstate;
         private static List<MouseButton> _mousebuttonsdown = new List<MouseButton>();
-        private static MouseState _last_mouse_state;
+        private static MouseState _mousestate;
+        private static MouseState _prev_mousestate;
         private static bool _hasmoved = false;
         private static ResourceSync _lock = new ResourceSync();
         private static KeyModifiers _modifiersdown;
@@ -68,6 +69,13 @@ namespace linerider.UI
             var key = RepeatKey;
             if (!_kbstate[key])
                 key = (Key)(-1);
+            if (_mousebuttonsdown.Count == 1 && key == (Key)(-1))
+            {
+                var button = _mousebuttonsdown[0];
+                if (button == MouseButton.Left || button == MouseButton.Right)
+                    return new Keybinding();//ignore
+                return new Keybinding(button, _modifiersdown);
+            }
             return new Keybinding(key, _modifiersdown);
         }
         public static void KeyDown(Key key)
@@ -100,44 +108,75 @@ namespace linerider.UI
                 repeat = repeat
             });
         }
-        public static void ProcessKeyup()
+        /// <summary>
+        /// Checks if the currently pressed hotkey is still 'pressed' after a
+        /// state change.
+        /// </summary>
+        public static bool CheckCurrentHotkey()
         {
             if (_current_hotkey != null)
             {
-                if (!Check(_current_hotkey.hotkey))
+                if (Check(_current_hotkey.hotkey) &&
+                    _current_hotkey.condition())
                 {
-                    _current_hotkey.keyuphandler?.Invoke();
-                    _current_hotkey = null;
+                    return true;
+                }
+                _current_hotkey.keyuphandler?.Invoke();
+                _current_hotkey = null;
+            }
+            return false;
+        }
+        public static void ProcessMouseHotkeys()
+        {
+            CheckCurrentHotkey();
+            foreach (var pair in Handlers)
+            {
+                var bind = CheckInternal(pair.Key, true);
+                if (bind != null && bind.UsesMouse)
+                {
+                    var handler = pair.Value;
+                    if (handler.condition())
+                    {
+                        bool waspressed = CheckPressed(
+                            bind, 
+                            ref _prev_kbstate, 
+                            ref _prev_mousestate);
+                        if (waspressed)
+                        {
+                            continue;
+                        }
+                        _current_hotkey?.keyuphandler?.Invoke();
+                        _current_hotkey = handler;
+                        handler.keydownhandler();
+                        break;
+                    }
                 }
             }
         }
-        public static void ProcessHotkeys()
+        public static void ProcessKeyboardHotkeys()
         {
-            if (_current_hotkey != null)
+            if (CheckCurrentHotkey())
             {
-                if (Check(_current_hotkey.hotkey) && _current_hotkey.condition())
+                var kb = CheckInternal(_current_hotkey.hotkey, true);
+                if (!kb.UsesMouse && _current_hotkey.repeat)
                 {
-                    if (_current_hotkey.repeat)
-                    {
-                        _current_hotkey.keydownhandler();
-                    }
-                    return;
+                    _current_hotkey.keydownhandler();
                 }
-                else
-                {
-                    _current_hotkey.keyuphandler?.Invoke();
-                }
+                return;
             }
             _current_hotkey = null;
             foreach (var pair in Handlers)
             {
-                var bind = CheckInternal(pair.Key);
+                var bind = CheckInternal(pair.Key, false);
                 if (bind != null)
                 {
                     var handler = pair.Value;
                     if (handler.condition())
                     {
-                        bool waspressed = CheckPressed(bind, ref _prev_kbstate);
+                        bool waspressed = CheckPressed(
+                            bind, 
+                            ref _prev_kbstate, 
+                            ref _prev_mousestate);
                         if (waspressed && !handler.repeat)
                         {
                             continue;
@@ -153,8 +192,8 @@ namespace linerider.UI
         {
             using (_lock.AcquireWrite())
             {
-                x = _last_mouse_state.X;
-                y = _last_mouse_state.Y;
+                x = _mousestate.X;
+                y = _mousestate.Y;
                 if (_hasmoved)
                 {
                     _hasmoved = false;
@@ -165,31 +204,29 @@ namespace linerider.UI
         }
         public static void UpdateMouse(MouseState ms)
         {
-            if (ms == _last_mouse_state)// no thanks, we already did this one
-                return;
             using (_lock.AcquireWrite())
             {
-                if (_last_mouse_state.X != ms.X || _last_mouse_state.Y != ms.Y)
+                if (_mousestate.X != ms.X || _mousestate.Y != ms.Y)
                 {
                     _hasmoved = true;
                 }
-                _last_mouse_state = ms;
-                var ret = new List<MouseButton>();
+                _prev_mousestate = _mousestate;
+                _mousestate = ms;
+                _mousebuttonsdown.Clear();
                 for (MouseButton btn = 0; btn < MouseButton.LastButton; btn++)
                 {
-                    if (ms.IsButtonDown(btn))
-                        ret.Add(btn);
+                    if (_mousestate[btn])
+                        _mousebuttonsdown.Add(btn);
                 }
-                _mousebuttonsdown = ret;
             }
         }
         public static Vector2d GetMouse()
         {
-            return new Vector2d(_last_mouse_state.X, _last_mouse_state.Y);
+            return new Vector2d(_mousestate.X, _mousestate.Y);
         }
         public static bool Check(Hotkey hotkey)
         {
-            return CheckInternal(hotkey) != null;
+            return CheckInternal(hotkey, true) != null;
         }
         public static bool CheckPressed(Hotkey hotkey)
         {
@@ -204,7 +241,7 @@ namespace linerider.UI
                         {
                             continue;
                         }
-                        if (CheckPressed(bind, ref _kbstate))
+                        if (CheckPressed(bind, ref _kbstate, ref _mousestate))
                             return true;
                     }
                 }
@@ -227,12 +264,18 @@ namespace linerider.UI
             }
             if (bind.UsesMouse)
             {
-                if (_mousebuttonsdown.Count > 1)
+                //we can conflict with left/right, not others
+                int buttonsdown = _mousebuttonsdown.Count;
+                if (_mousestate[MouseButton.Left])
+                    buttonsdown--;
+                if (_mousestate[MouseButton.Right])
+                    buttonsdown--;
+                if (buttonsdown > 1)
                     return false;
             }
             return true;
         }
-        private static Keybinding CheckInternal(Hotkey hotkey)
+        private static Keybinding CheckInternal(Hotkey hotkey, bool checkmouse)
         {
             List<Keybinding> keybindings;
             if (Settings.Keybinds.TryGetValue(hotkey, out keybindings))
@@ -241,18 +284,20 @@ namespace linerider.UI
                 {
                     foreach (var bind in keybindings)
                     {
-                        if (!IsKeybindExclusive(bind) || bind.IsEmpty)
+                        if (bind.IsEmpty ||
+                            (bind.UsesMouse && !checkmouse) ||
+                            !IsKeybindExclusive(bind))
                         {
                             continue;
                         }
-                        if (CheckPressed(bind, ref _kbstate))
+                        if (CheckPressed(bind, ref _kbstate, ref _mousestate))
                             return bind;
                     }
                 }
             }
             return null;
         }
-        private static bool CheckPressed(Keybinding bind, ref KeyboardState state)
+        private static bool CheckPressed(Keybinding bind, ref KeyboardState state, ref MouseState mousestate)
         {
             if (_window != null && !_window.Focused)
                 return false;
@@ -286,9 +331,9 @@ namespace linerider.UI
                     }
                 }
             }
-            if (bind.MouseButton != (MouseButton)(-1))
+            if (bind.UsesMouse)
             {
-                if (!_last_mouse_state.IsButtonDown(bind.MouseButton))
+                if (!mousestate.IsButtonDown(bind.MouseButton))
                     return false;
             }
             if (bind.Modifiers != (KeyModifiers)(0))
