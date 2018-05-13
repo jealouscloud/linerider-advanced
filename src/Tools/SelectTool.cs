@@ -255,8 +255,8 @@ namespace linerider.Tools
                 {
                     GameRenderer.RenderRoundedLine(_hoverline.Position, _hoverline.Position2, Color.FromArgb(127, Constants.DefaultKnobColor), (_hoverline.Width * 2 * 0.8f));
 
-                    GameRenderer.DrawKnob(_hoverline.Position, _snapknob1, _hoverline.Width, _snapknob1 && !_snapknob2 ? 1 : 0);
-                    GameRenderer.DrawKnob(_hoverline.Position2, _snapknob2, _hoverline.Width, _snapknob2 && !_snapknob1 ? 1 : 0);
+                    GameRenderer.DrawKnob(_hoverline.Position, _snapknob1, false, _hoverline.Width, _snapknob1 && !_snapknob2 ? 1 : 0);
+                    GameRenderer.DrawKnob(_hoverline.Position2, _snapknob2, false, _hoverline.Width, _snapknob2 && !_snapknob1 ? 1 : 0);
                 }
             }
             base.Render();

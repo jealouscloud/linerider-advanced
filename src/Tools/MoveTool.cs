@@ -282,9 +282,7 @@ namespace linerider.Tools
             if (_hoverline != null)
             {
                 DrawHover(
-                    _hoverline.Position,
-                    _hoverline.Position2,
-                    _hoverline.Width,
+                    _hoverline,
                      _hoverknob && _hoverknobjoint1,
                      _hoverknob && !_hoverknobjoint1,
                      false);
@@ -292,18 +290,19 @@ namespace linerider.Tools
             if (_active)
             {
                 DrawHover(
-                    _selection.line.Position,
-                    _selection.line.Position2,
-                    _selection.line.Width,
+                    _selection.line,
                     _selection.joint1,
                     _selection.joint2,
                     true);
             }
             base.Render();
         }
-        private void DrawHover(Vector2d start, Vector2d stop, float width,
+        private void DrawHover(GameLine line,
             bool knob1, bool knob2, bool selected = false)
         {
+            var start = line.Position;
+            var end = line.Position2;
+            var width = line.Width;
             var elapsed = _hovertime.ElapsedMilliseconds;
             int animtime = 250;
             if (_hovertime.IsRunning)
@@ -334,13 +333,13 @@ namespace linerider.Tools
                 linealpha += 16;
             GameRenderer.RenderRoundedLine(
                 start,
-                stop,
+                end,
                 Color.FromArgb(linealpha, Color.FromArgb(127, 127, 127)),
                 (width * 2));
 
-
-            GameRenderer.DrawKnob(start, knob1, width, hoverratio);
-            GameRenderer.DrawKnob(stop, knob2, width, hoverratio);
+            bool canlifelock = CanLifelock && line.Type != LineType.Scenery;
+            GameRenderer.DrawKnob(start, knob1, canlifelock, width, hoverratio);
+            GameRenderer.DrawKnob(end, knob2, canlifelock, width, hoverratio);
 
         }
         private void DropLine()

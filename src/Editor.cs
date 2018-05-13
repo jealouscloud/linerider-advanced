@@ -237,12 +237,11 @@ namespace linerider
             drawOptions.LineColors = !Settings.Local.PreviewMode && (!Playing || Settings.Local.ColorPlayback);
             drawOptions.KnobState = KnobState.Hidden;
             var selectedtool = CurrentTools.SelectedTool;
-            if (!Playing && selectedtool == CurrentTools.MoveTool ||
-                selectedtool == CurrentTools.SelectTool)
+            if (!Playing && 
+                (selectedtool == CurrentTools.MoveTool ||
+                selectedtool == CurrentTools.SelectTool))
             {
-                drawOptions.KnobState = CurrentTools.MoveTool.CanLifelock
-                ? KnobState.LifeLock
-                : KnobState.Shown;
+                drawOptions.KnobState = KnobState.Shown;
             }
             drawOptions.Paused = Paused;
             drawOptions.Rider = RenderRiderInfo.State;

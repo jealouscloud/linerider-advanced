@@ -85,16 +85,25 @@ namespace linerider.Rendering
             _linevao.Clear();
             return _linevao;
         }
-        public static void DrawKnob(Vector2d position, bool highlight, float linewidth, float growratio)
+        public static void DrawKnob(
+            Vector2d position, 
+            bool highlight, 
+            bool lifelock, 
+            float linewidth, 
+            float growratio)
         {
             var knobdefault = Constants.DefaultKnobColor;
-            var knobhighlight = Color.FromArgb(0x70, 0x70 - 5, 0x70 + 5);
             var knobsize = (highlight ? (0.8f + (0.1f * growratio)) : 0.8f);
             var size = linewidth * 2 * knobsize;
+            var color = knobdefault;
+            if (lifelock)
+                color = Color.FromArgb(0xff, 0x00, 0x00);
+            else if (highlight)
+                color = Color.FromArgb(0x70, 0x6B, 0x75);
             GameRenderer.RenderRoundedLine(
                 position,
                 position,
-                Color.FromArgb(255, highlight ? knobhighlight : knobdefault),
+                color,
                 (size));
         }
         public static void RenderRoundedLine(Vector2d position, Vector2d position2, Color color, float thickness, bool knobs = false, bool redknobs = false)
