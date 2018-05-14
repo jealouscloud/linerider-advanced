@@ -62,6 +62,7 @@ namespace linerider
             public static bool LifeLockNoFakie;
         }
         public static int PlaybackZoomType;
+        public static float PlaybackZoomValue;
         public static float Volume;
         public static bool SuperZoom;
         public static bool WhiteBG;
@@ -138,6 +139,7 @@ namespace linerider
             Editor.LifeLockNoOrange = false;
             Editor.LifeLockNoFakie = false;
             PlaybackZoomType = 0;
+            PlaybackZoomValue = 4;
             Volume = 100;
             SuperZoom = false;
             WhiteBG = false;
@@ -339,6 +341,7 @@ namespace linerider
             {
             }
             LoadInt(GetSetting(lines, nameof(PlaybackZoomType)), ref PlaybackZoomType);
+            LoadFloat(GetSetting(lines, nameof(PlaybackZoomValue)), ref PlaybackZoomValue);
             LoadFloat(GetSetting(lines, nameof(Volume)), ref Volume);
             LoadFloat(GetSetting(lines, nameof(ScrollSensitivity)), ref ScrollSensitivity);
             LoadBool(GetSetting(lines, nameof(SuperZoom)), ref SuperZoom);
@@ -393,6 +396,7 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(CheckForUpdates), CheckForUpdates.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SmoothPlayback), SmoothPlayback.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(PlaybackZoomType), PlaybackZoomType.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(PlaybackZoomValue), PlaybackZoomValue.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(RoundLegacyCamera), RoundLegacyCamera.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(Record1080p), Record1080p.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(RecordSmooth), RecordSmooth.ToString(Program.Culture));

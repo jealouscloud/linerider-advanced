@@ -237,7 +237,7 @@ namespace linerider
             drawOptions.LineColors = !Settings.PreviewMode && (!Playing || Settings.ColorPlayback);
             drawOptions.KnobState = KnobState.Hidden;
             var selectedtool = CurrentTools.SelectedTool;
-            if (!Playing && 
+            if (!Playing &&
                 (selectedtool == CurrentTools.MoveTool ||
                 selectedtool == CurrentTools.SelectTool))
             {
@@ -401,8 +401,20 @@ namespace linerider
             Camera.SetFrameCenter(Timeline.GetFrame(frameid).CalculateCenter());
 
             game.UpdateCursor();
-            UseUserZoom = false;
-            Zoom = Timeline.GetFrameZoom(Offset);
+            switch (Settings.PlaybackZoomType)
+            {
+                case 0://default
+                    UseUserZoom = false;
+                    Zoom = Timeline.GetFrameZoom(Offset);
+                    break;
+                case 1://current
+                    UseUserZoom = true;
+                    break;
+                case 2://specific
+                    UseUserZoom = true;
+                    Zoom = Settings.PlaybackZoomValue;
+                    break;
+            }
             Scheduler.Reset();
             FramerateCounter.Reset();
             InvalidateRenderRider();

@@ -218,6 +218,34 @@ namespace linerider.UI
         }
         private void PopulatePlayback(ControlBase parent)
         {
+            var playbackzoom = GwenHelper.CreateHeaderPanel(parent, "Playback Zoom");
+            RadioButtonGroup pbzoom = new RadioButtonGroup(playbackzoom)
+            {
+                Dock = Dock.Left,
+                ShouldDrawBackground = false,
+            };
+            pbzoom.AddOption("Default Zoom");
+            pbzoom.AddOption("Current Zoom");
+            pbzoom.AddOption("Specific Zoom");
+            Spinner playbackspinner = new Spinner(pbzoom)
+            {
+                Dock = Dock.Bottom,
+                Max = 24,
+                Min = 1,
+            };
+            pbzoom.SelectionChanged += (o, e) =>
+            {
+                Settings.PlaybackZoomType = ((RadioButtonGroup)o).SelectedIndex;
+                Settings.Save();
+                playbackspinner.IsHidden = (((RadioButtonGroup)o).SelectedLabel != "Specific Zoom");
+            };
+            playbackspinner.ValueChanged += (o, e) =>
+            {
+                Settings.PlaybackZoomValue = (float)((Spinner)o).Value;
+                Settings.Save();
+            };
+            pbzoom.SetSelection(Settings.PlaybackZoomType);
+            playbackspinner.Value = Settings.PlaybackZoomValue;
 
             var playbackmode = GwenHelper.CreateHeaderPanel(parent, "Playback Color");
             GwenHelper.AddCheckbox(playbackmode, "Color Playback", Settings.ColorPlayback, (o, e) =>
