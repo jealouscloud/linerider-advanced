@@ -56,6 +56,7 @@ namespace linerider.UI
                 {
                     Settings.RestoreDefaultSettings();
                     Settings.Save();
+                    _editor.InitCamera();
                     Close();// this is lazy, but i don't want to update the ui
                 }
             };
