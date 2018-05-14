@@ -294,10 +294,10 @@ namespace linerider.UI
         private void Setup()
         {
             var cat = _prefcontainer.Add("Settings");
-            var page = AddPage(cat, "Playback");
-            PopulatePlayback(page);
-            page = AddPage(cat, "Editor");
+            var page = AddPage(cat, "Editor");
             PopulateEditor(page);
+            page = AddPage(cat, "Playback");
+            PopulatePlayback(page);
             page = AddPage(cat, "Environment");
             PopulateModes(page);
             page = AddPage(cat, "Camera");
