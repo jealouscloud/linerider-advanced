@@ -138,6 +138,11 @@ namespace linerider.UI
                 Settings.Editor.RenderGravityWells = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
+            var hittest = GwenHelper.AddCheckbox(advancedtools, "Hit Test", Settings.Editor.HitTest, (o, e) =>
+             {
+                 Settings.Editor.HitTest = ((Checkbox)o).IsChecked;
+                 Settings.Save();
+             });
             Panel pblifelock = GwenHelper.CreateHeaderPanel(parent, "Lifelock Conditions");
             GwenHelper.AddCheckbox(pblifelock, "Next frame constraints", Settings.Editor.LifeLockNoOrange, (o, e) =>
             {
@@ -160,17 +165,12 @@ namespace linerider.UI
                 Settings.Editor.ForceXySnap = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            Panel panelGeneral = GwenHelper.CreateHeaderPanel(parent, "Tools");
-            var onion = GwenHelper.AddCheckbox(panelGeneral, "Onion Skinning", Settings.OnionSkinning, (o, e) =>
+            Panel panelMisc = GwenHelper.CreateHeaderPanel(parent, "Misc");
+            var onion = GwenHelper.AddCheckbox(panelMisc, "Onion Skinning", Settings.OnionSkinning, (o, e) =>
             {
                 Settings.OnionSkinning = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            var hittest = GwenHelper.AddCheckbox(panelGeneral, "Hit Test", Settings.Editor.HitTest, (o, e) =>
-             {
-                 Settings.Editor.HitTest = ((Checkbox)o).IsChecked;
-                 Settings.Save();
-             });
             onion.Tooltip = "Visualize the rider before/after\nthe current frame.";
             momentum.Tooltip = "Visualize the direction of\nmomentum for each contact point";
             contact.Tooltip = "Visualize the parts of the rider\nthat interact with lines.";
