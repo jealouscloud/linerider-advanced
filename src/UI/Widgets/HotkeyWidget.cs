@@ -28,7 +28,7 @@ namespace linerider.UI
             _btnreset = new Button(container)
             {
                 Dock = Dock.Right,
-                Text = "Restore Defaults"
+                Text = "Default Keybindings"
             };
             _btnreset.Clicked += (o, e) =>
             {
