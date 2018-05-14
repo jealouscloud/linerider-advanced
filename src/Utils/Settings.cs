@@ -73,7 +73,6 @@ namespace linerider
         public static bool Record1080p;
         public static bool RecordSmooth;
         public static bool RecordMusic;
-        public static string LastSelectedTrack;
         public static float ScrollSensitivity;
         public static int SettingsPane;
         public static bool MuteAudio;
@@ -82,6 +81,7 @@ namespace linerider
         public static float DefaultPlayback;
         public static bool ColorPlayback;
         public static bool OnionSkinning;
+        public static string LastSelectedTrack = "";
         public static Dictionary<Hotkey, KeyConflicts> KeybindConflicts = new Dictionary<Hotkey, KeyConflicts>();
         public static Dictionary<Hotkey, List<Keybinding>> Keybinds = new Dictionary<Hotkey, List<Keybinding>>();
         private static Dictionary<Hotkey, List<Keybinding>> DefaultKeybinds = new Dictionary<Hotkey, List<Keybinding>>();
@@ -157,7 +157,6 @@ namespace linerider
             DefaultPlayback = 1f;
             ColorPlayback = false;
             OnionSkinning = false;
-            LastSelectedTrack = "";
         }
         public static void ResetKeybindings()
         {
@@ -385,7 +384,7 @@ namespace linerider
         }
         public static void Save()
         {
-            string config = MakeSetting(nameof(PlaybackZoomType), PlaybackZoomType.ToString(Program.Culture));
+            string config = MakeSetting(nameof(LastSelectedTrack), LastSelectedTrack); 
             config += "\r\n" + MakeSetting(nameof(Volume), Volume.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SuperZoom), SuperZoom.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(WhiteBG), WhiteBG.ToString(Program.Culture));
@@ -393,7 +392,7 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(SmoothCamera), SmoothCamera.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(CheckForUpdates), CheckForUpdates.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SmoothPlayback), SmoothPlayback.ToString(Program.Culture));
-            config += "\r\n" + MakeSetting(nameof(LastSelectedTrack), LastSelectedTrack);
+            config += "\r\n" + MakeSetting(nameof(PlaybackZoomType), PlaybackZoomType.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(RoundLegacyCamera), RoundLegacyCamera.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(Record1080p), Record1080p.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(RecordSmooth), RecordSmooth.ToString(Program.Culture));
