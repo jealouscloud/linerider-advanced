@@ -18,7 +18,20 @@ namespace linerider.UI
         public PreferencesWindow(GameCanvas parent, Editor editor) : base(parent, editor)
         {
             Title = "Preferences";
-            SetSize(450, 400);
+            SetSize(450, 425);
+            MinimumSize = Size;
+            ControlBase bottom = new ControlBase(this)
+            {
+                Dock = Dock.Bottom,
+                AutoSizeToContents = true,
+            };
+            Button defaults = new Button(bottom)
+            {
+                Dock = Dock.Right,
+                Margin = new Margin(0, 2, 0, 0),
+                Text = "Restore Defaults"
+            };
+            defaults.Clicked += (o, e) => RestoreDefaults();
             _prefcontainer = new CollapsibleList(this)
             {
                 Dock = Dock.Left,
@@ -28,6 +41,24 @@ namespace linerider.UI
             };
             MakeModal(true);
             Setup();
+        }
+        private void RestoreDefaults()
+        {
+            var mbox = MessageBox.Show(
+                _canvas,
+                "Are you sure? This cannot be undone.", "Restore Defaults",
+                MessageBox.ButtonType.OkCancel,
+                true);
+            mbox.RenameButtons("Restore");
+            mbox.Dismissed += (o, e) =>
+            {
+                if (e == DialogResult.OK)
+                {
+                    Settings.RestoreDefaultSettings();
+                    Settings.Save();
+                    Close();// this is lazy, but i don't want to update the ui
+                }
+            };
         }
         private void PopulateAudio(ControlBase parent)
         {
