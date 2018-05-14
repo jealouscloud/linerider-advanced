@@ -59,6 +59,14 @@ namespace linerider.Tools
         {
             get { return game.Cursors["adjustline"]; }
         }
+        protected override bool EnableSnap
+        {
+            get
+            {
+                var toggle = InputUtils.CheckPressed(Hotkey.ToolToggleSnap);
+                return Settings.Editor.SnapMoveLine != toggle;
+            }
+        }
         public bool CanLifelock => UI.InputUtils.Check(Hotkey.ToolLifeLock) &&
         CurrentTools.SelectedTool == this;
         private Vector2d _clickstart;

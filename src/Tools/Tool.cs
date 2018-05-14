@@ -55,7 +55,7 @@ namespace linerider.Tools
             get
             {
                 var toggle = InputUtils.CheckPressed(Hotkey.ToolToggleSnap);
-                return Settings.Editor.DisableSnap == toggle;
+                return Settings.Editor.SnapNewLines != toggle;
             }
         }
         /// <summary>

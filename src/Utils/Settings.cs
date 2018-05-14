@@ -52,7 +52,8 @@ namespace linerider
         public static class Editor
         {
             public static bool HitTest;
-            public static bool DisableSnap;
+            public static bool SnapNewLines;
+            public static bool SnapMoveLine;
             public static bool ForceXySnap;
             public static bool MomentumVectors;
             public static bool RenderGravityWells;
@@ -128,7 +129,8 @@ namespace linerider
         public static void RestoreDefaultSettings()
         {
             Editor.HitTest = false;
-            Editor.DisableSnap = false;
+            Editor.SnapNewLines = true;
+            Editor.SnapMoveLine = true;
             Editor.ForceXySnap = false;
             Editor.MomentumVectors = false;
             Editor.RenderGravityWells = false;
@@ -355,7 +357,8 @@ namespace linerider
             LoadInt(GetSetting(lines, nameof(SettingsPane)), ref SettingsPane);
             LoadBool(GetSetting(lines, nameof(MuteAudio)), ref MuteAudio);
             LoadBool(GetSetting(lines, nameof(Editor.HitTest)), ref Editor.HitTest);
-            LoadBool(GetSetting(lines, nameof(Editor.DisableSnap)), ref Editor.DisableSnap);
+            LoadBool(GetSetting(lines, nameof(Editor.SnapNewLines)), ref Editor.SnapNewLines);
+            LoadBool(GetSetting(lines, nameof(Editor.SnapMoveLine)), ref Editor.SnapMoveLine);
             LoadBool(GetSetting(lines, nameof(Editor.ForceXySnap)), ref Editor.ForceXySnap);
             LoadBool(GetSetting(lines, nameof(Editor.MomentumVectors)), ref Editor.MomentumVectors);
             LoadBool(GetSetting(lines, nameof(Editor.RenderGravityWells)), ref Editor.RenderGravityWells);
@@ -401,7 +404,8 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(SettingsPane), SettingsPane.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(MuteAudio), MuteAudio.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(Editor.HitTest), Editor.HitTest.ToString(Program.Culture));
-            config += "\r\n" + MakeSetting(nameof(Editor.DisableSnap), Editor.DisableSnap.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(Editor.SnapNewLines), Editor.SnapNewLines.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(Editor.SnapMoveLine), Editor.SnapMoveLine.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(Editor.ForceXySnap), Editor.ForceXySnap.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(Editor.MomentumVectors), Editor.MomentumVectors.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(Editor.RenderGravityWells), Editor.RenderGravityWells.ToString(Program.Culture));

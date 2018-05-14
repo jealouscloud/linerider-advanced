@@ -155,9 +155,14 @@ namespace linerider.UI
                 Settings.Save();
             });
             Panel panelSnap = GwenHelper.CreateHeaderPanel(parent, "Snapping");
-            var linesnap = GwenHelper.AddCheckbox(panelSnap, "Enable Line Snapping", !Settings.Editor.DisableSnap, (o, e) =>
+            var linesnap = GwenHelper.AddCheckbox(panelSnap, "Snap New Lines", Settings.Editor.SnapNewLines, (o, e) =>
             {
-                Settings.Editor.DisableSnap = !((Checkbox)o).IsChecked;
+                Settings.Editor.SnapNewLines = ((Checkbox)o).IsChecked;
+                Settings.Save();
+            });
+            var movelinesnap = GwenHelper.AddCheckbox(panelSnap, "Snap Line Movement", Settings.Editor.SnapMoveLine, (o, e) =>
+            {
+                Settings.Editor.SnapMoveLine = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
             var forcesnap = GwenHelper.AddCheckbox(panelSnap, "Force X/Y snap", Settings.Editor.ForceXySnap, (o, e) =>
@@ -175,6 +180,7 @@ namespace linerider.UI
             momentum.Tooltip = "Visualize the direction of\nmomentum for each contact point";
             contact.Tooltip = "Visualize the parts of the rider\nthat interact with lines.";
             forcesnap.Tooltip = "Forces all lines drawn to\nsnap to a 45 degree angle";
+            movelinesnap.Tooltip = "Snap to lines when using the\nselect tool to move a single line";
             hitbox.Tooltip = "Visualizes the hitbox of lines\nUsed for advanced editing";
             hittest.Tooltip = "Lines that have been hit by\nthe rider will glow.";
         }
