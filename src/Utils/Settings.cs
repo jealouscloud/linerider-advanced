@@ -424,8 +424,8 @@ namespace linerider
                     {
                         config += "\r\n" + MakeSetting(binds.Key.ToString(),
                         "Mod=" + bind.Modifiers.ToString() +
-                        ";Key=" + bind.Key.ToString() +
-                        ";Mouse=" + bind.MouseButton.ToString() + ";");
+                        "|Key=" + bind.Key.ToString() +
+                        "|Mouse=" + bind.MouseButton.ToString());
                     }
                 }
             }
@@ -455,9 +455,9 @@ namespace linerider
                 modstart += 4;
                 keystart += 4;
                 mousestart += 6;
-                int modend = setting.IndexOf(";", modstart);
-                int keyend = setting.IndexOf(";", keystart);
-                int mouseend = setting.IndexOf(";", mousestart);
+                int modend = setting.IndexOf("|", modstart);
+                int keyend = setting.IndexOf("|", keystart);
+                int mouseend = setting.IndexOf("|", mousestart);
                 if (modend == -1 || keyend == -1 || mouseend == -1)
                     return;
                 try
