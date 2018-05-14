@@ -233,8 +233,8 @@ namespace linerider
             }
             drawOptions.Blend = blend;
             drawOptions.NightMode = Settings.NightMode;
-            drawOptions.GravityWells = Settings.Local.RenderGravityWells;
-            drawOptions.LineColors = !Settings.Local.PreviewMode && (!Playing || Settings.Local.ColorPlayback);
+            drawOptions.GravityWells = Settings.Editor.RenderGravityWells;
+            drawOptions.LineColors = !Settings.PreviewMode && (!Playing || Settings.ColorPlayback);
             drawOptions.KnobState = KnobState.Hidden;
             var selectedtool = CurrentTools.SelectedTool;
             if (!Playing && 
@@ -245,8 +245,8 @@ namespace linerider
             }
             drawOptions.Paused = Paused;
             drawOptions.Rider = RenderRiderInfo.State;
-            drawOptions.ShowContactLines = Settings.Local.DrawContactPoints;
-            drawOptions.ShowMomentumVectors = Settings.Local.MomentumVectors;
+            drawOptions.ShowContactLines = Settings.Editor.DrawContactPoints;
+            drawOptions.ShowMomentumVectors = Settings.Editor.MomentumVectors;
             drawOptions.Zoom = Zoom;
             drawOptions.RiderDiagnosis = RenderRiderInfo.Diagnosis;
             int renderframe = Offset;

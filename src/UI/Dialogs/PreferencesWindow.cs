@@ -123,52 +123,52 @@ namespace linerider.UI
         {
             Panel advancedtools = GwenHelper.CreateHeaderPanel(parent, "Advanced Visualization");
 
-            var contact = GwenHelper.AddCheckbox(advancedtools, "Contact Points", Settings.Local.DrawContactPoints, (o, e) =>
+            var contact = GwenHelper.AddCheckbox(advancedtools, "Contact Points", Settings.Editor.DrawContactPoints, (o, e) =>
             {
-                Settings.Local.DrawContactPoints = ((Checkbox)o).IsChecked;
+                Settings.Editor.DrawContactPoints = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            var momentum = GwenHelper.AddCheckbox(advancedtools, "Momentum Vectors", Settings.Local.MomentumVectors, (o, e) =>
+            var momentum = GwenHelper.AddCheckbox(advancedtools, "Momentum Vectors", Settings.Editor.MomentumVectors, (o, e) =>
             {
-                Settings.Local.MomentumVectors = ((Checkbox)o).IsChecked;
+                Settings.Editor.MomentumVectors = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            var hitbox = GwenHelper.AddCheckbox(advancedtools, "Line Hitbox", Settings.Local.RenderGravityWells, (o, e) =>
+            var hitbox = GwenHelper.AddCheckbox(advancedtools, "Line Hitbox", Settings.Editor.RenderGravityWells, (o, e) =>
             {
-                Settings.Local.RenderGravityWells = ((Checkbox)o).IsChecked;
+                Settings.Editor.RenderGravityWells = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
             Panel pblifelock = GwenHelper.CreateHeaderPanel(parent, "Lifelock Conditions");
-            GwenHelper.AddCheckbox(pblifelock, "Next frame constraints", Settings.LifeLockNoOrange, (o, e) =>
+            GwenHelper.AddCheckbox(pblifelock, "Next frame constraints", Settings.Editor.LifeLockNoOrange, (o, e) =>
             {
-                Settings.LifeLockNoOrange = ((Checkbox)o).IsChecked;
+                Settings.Editor.LifeLockNoOrange = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            GwenHelper.AddCheckbox(pblifelock, "No Fakie Death", Settings.LifeLockNoFakie, (o, e) =>
+            GwenHelper.AddCheckbox(pblifelock, "No Fakie Death", Settings.Editor.LifeLockNoFakie, (o, e) =>
             {
-                Settings.LifeLockNoFakie = ((Checkbox)o).IsChecked;
+                Settings.Editor.LifeLockNoFakie = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
             Panel panelSnap = GwenHelper.CreateHeaderPanel(parent, "Snapping");
-            var linesnap = GwenHelper.AddCheckbox(panelSnap, "Enable Line Snapping", !Settings.Local.DisableSnap, (o, e) =>
+            var linesnap = GwenHelper.AddCheckbox(panelSnap, "Enable Line Snapping", !Settings.Editor.DisableSnap, (o, e) =>
             {
-                Settings.Local.DisableSnap = !((Checkbox)o).IsChecked;
+                Settings.Editor.DisableSnap = !((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            var forcesnap = GwenHelper.AddCheckbox(panelSnap, "Force X/Y snap", Settings.Local.ForceXySnap, (o, e) =>
+            var forcesnap = GwenHelper.AddCheckbox(panelSnap, "Force X/Y snap", Settings.Editor.ForceXySnap, (o, e) =>
             {
-                Settings.Local.ForceXySnap = ((Checkbox)o).IsChecked;
+                Settings.Editor.ForceXySnap = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
             Panel panelGeneral = GwenHelper.CreateHeaderPanel(parent, "Tools");
-            var onion = GwenHelper.AddCheckbox(panelGeneral, "Onion Skinning", Settings.Local.OnionSkinning, (o, e) =>
+            var onion = GwenHelper.AddCheckbox(panelGeneral, "Onion Skinning", Settings.OnionSkinning, (o, e) =>
             {
-                Settings.Local.OnionSkinning = ((Checkbox)o).IsChecked;
+                Settings.OnionSkinning = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            var hittest = GwenHelper.AddCheckbox(panelGeneral, "Hit Test", Settings.Local.HitTest, (o, e) =>
+            var hittest = GwenHelper.AddCheckbox(panelGeneral, "Hit Test", Settings.Editor.HitTest, (o, e) =>
              {
-                 Settings.Local.HitTest = ((Checkbox)o).IsChecked;
+                 Settings.Editor.HitTest = ((Checkbox)o).IsChecked;
                  Settings.Save();
              });
             onion.Tooltip = "Visualize the rider before/after\nthe current frame.";
@@ -182,14 +182,14 @@ namespace linerider.UI
         {
 
             var playbackmode = GwenHelper.CreateHeaderPanel(parent, "Playback Color");
-            GwenHelper.AddCheckbox(playbackmode, "Color Playback", Settings.Local.ColorPlayback, (o, e) =>
+            GwenHelper.AddCheckbox(playbackmode, "Color Playback", Settings.ColorPlayback, (o, e) =>
                {
-                   Settings.Local.ColorPlayback = ((Checkbox)o).IsChecked;
+                   Settings.ColorPlayback = ((Checkbox)o).IsChecked;
                    Settings.Save();
                });
-            var preview = GwenHelper.AddCheckbox(playbackmode, "Preview Mode", Settings.Local.PreviewMode, (o, e) =>
+            var preview = GwenHelper.AddCheckbox(playbackmode, "Preview Mode", Settings.PreviewMode, (o, e) =>
                {
-                   Settings.Local.PreviewMode = ((Checkbox)o).IsChecked;
+                   Settings.PreviewMode = ((Checkbox)o).IsChecked;
                    Settings.Save();
                });
             var framerate = GwenHelper.CreateHeaderPanel(parent, "Frame Control");
@@ -204,10 +204,11 @@ namespace linerider.UI
                 var f = (Constants.MotionArray[i] / (float)Constants.PhysicsRate);
                 pbrate.AddItem(f + "x", f.ToString(CultureInfo.InvariantCulture), f);
             }
-            pbrate.SelectByName(Settings.Local.DefaultPlayback.ToString(CultureInfo.InvariantCulture));
+            pbrate.SelectByName(Settings.DefaultPlayback.ToString(CultureInfo.InvariantCulture));
             pbrate.ItemSelected += (o, e) =>
             {
-                Settings.Local.DefaultPlayback = (float)e.SelectedItem.UserData;
+                Settings.DefaultPlayback = (float)e.SelectedItem.UserData;
+                Settings.Save();
             };
             var cbslowmo = GwenHelper.CreateLabeledCombobox(framerate, "Slowmo FPS:");
             var fpsarray = new[] { 1, 2, 5, 10, 20 };
@@ -216,10 +217,10 @@ namespace linerider.UI
                 cbslowmo.AddItem(fpsarray[i].ToString(), fpsarray[i].ToString(CultureInfo.InvariantCulture),
                     fpsarray[i]);
             }
-            cbslowmo.SelectByName(Settings.Local.SlowmoSpeed.ToString(CultureInfo.InvariantCulture));
+            cbslowmo.SelectByName(Settings.SlowmoSpeed.ToString(CultureInfo.InvariantCulture));
             cbslowmo.ItemSelected += (o, e) =>
             {
-                Settings.Local.SlowmoSpeed = (int)e.SelectedItem.UserData;
+                Settings.SlowmoSpeed = (int)e.SelectedItem.UserData;
                 Settings.Save();
             };
             smooth.Tooltip = "Interpolates frames from the base\nphysics rate of 40 frames/second\nup to 60 frames/second";

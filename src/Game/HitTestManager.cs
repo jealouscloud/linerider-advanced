@@ -32,7 +32,7 @@ namespace linerider
                 foreach (var hit in unique)
                 {
                     _allcollisions.Remove(hit);
-                    if (Settings.Local.HitTest)
+                    if (Settings.Editor.HitTest)
                         _renderer_changelist.Add(hit);
                     _line_framehit.Remove(hit);
                 }
@@ -60,7 +60,7 @@ namespace linerider
                     var id = collision;
                     if (_allcollisions.Add(id))
                     {
-                        if (Settings.Local.HitTest)
+                        if (Settings.Editor.HitTest)
                             _renderer_changelist.Add(id);
                         unique.Add(id);
                         _line_framehit.Add(id, frameid);
@@ -82,7 +82,7 @@ namespace linerider
             {
                 ret.Add(v);
             }
-            if (!Settings.Local.HitTest)
+            if (!Settings.Editor.HitTest)
             {
                 newframe = Disabled;
                 if (current != Disabled)

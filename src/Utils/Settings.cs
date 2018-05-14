@@ -40,18 +40,7 @@ namespace linerider
         }
         public static class Local
         {
-            public static bool HitTest = false;
-            public static float DefaultPlayback = 1f;
-            public static bool DisableSnap = false;
-            public static bool ForceXySnap = false;
-            public static bool MomentumVectors = false;
-            public static bool PreviewMode;
-            public static int SlowmoSpeed = 2;
             public static bool RecordingMode;
-            public static bool RenderGravityWells;
-            public static bool ColorPlayback;
-            public static bool DrawContactPoints;
-            public static bool OnionSkinning;
             public static float MaxZoom
             {
                 get
@@ -60,32 +49,44 @@ namespace linerider
                 }
             }
         }
+        public static class Editor
+        {
+            public static bool HitTest;
+            public static bool DisableSnap;
+            public static bool ForceXySnap;
+            public static bool MomentumVectors;
+            public static bool RenderGravityWells;
+            public static bool DrawContactPoints;
+            public static bool LifeLockNoOrange;
+            public static bool LifeLockNoFakie;
+        }
+        public static int PlaybackZoomType;
+        public static float Volume;
+        public static bool SuperZoom;
+        public static bool WhiteBG;
+        public static bool NightMode;
+        public static bool SmoothCamera;
+        public static bool RoundLegacyCamera;
+        public static bool SmoothPlayback;
+        public static bool CheckForUpdates;
+        public static bool Record1080p;
+        public static bool RecordSmooth;
+        public static bool RecordMusic;
+        public static string LastSelectedTrack;
+        public static float ScrollSensitivity;
+        public static int SettingsPane;
+        public static bool MuteAudio;
+        public static bool PreviewMode;
+        public static int SlowmoSpeed;
+        public static float DefaultPlayback;
+        public static bool ColorPlayback;
+        public static bool OnionSkinning;
         public static Dictionary<Hotkey, KeyConflicts> KeybindConflicts = new Dictionary<Hotkey, KeyConflicts>();
         public static Dictionary<Hotkey, List<Keybinding>> Keybinds = new Dictionary<Hotkey, List<Keybinding>>();
         private static Dictionary<Hotkey, List<Keybinding>> DefaultKeybinds = new Dictionary<Hotkey, List<Keybinding>>();
-        public static int PlaybackZoomType = 0;
-        public static float PlaybackZoomValue = 4;
-        public static float Volume = 100;
-        public static bool LiveAdjustment = true;
-        public static bool SuperZoom = false;
-        public static bool WhiteBG = false;
-        public static bool PinkLifelock = false;
-        public static bool NightMode = false;
-        public static bool SmoothCamera = true;
-        public static bool RoundLegacyCamera = true;
-        public static bool SmoothPlayback = true;
-        public static bool CheckForUpdates = true;
-        public static bool Record1080p = false;
-        public static bool RecordSmooth = true;
-        public static bool RecordMusic = true;
-        public static string LastSelectedTrack = "";
-        public static float ScrollSensitivity = 1;
-        public static bool LifeLockNoOrange = false;
-        public static bool LifeLockNoFakie = false;
-        public static int SettingsPane = 0;
-        public static bool MuteAudio = false;
         static Settings()
         {
+            RestoreDefaultSettings();
             foreach (Hotkey hk in Enum.GetValues(typeof(Hotkey)))
             {
                 if (hk == Hotkey.None)
@@ -123,6 +124,38 @@ namespace linerider
             KeybindConflicts[Hotkey.ToolAddSelection] = KeyConflicts.HardCoded;
             KeybindConflicts[Hotkey.ToolToggleSelection] = KeyConflicts.HardCoded;
             SetupDefaultKeybinds();
+        }
+        public static void RestoreDefaultSettings()
+        {
+            Editor.HitTest = false;
+            Editor.DisableSnap = false;
+            Editor.ForceXySnap = false;
+            Editor.MomentumVectors = false;
+            Editor.RenderGravityWells = false;
+            Editor.DrawContactPoints = false;
+            Editor.LifeLockNoOrange = false;
+            Editor.LifeLockNoFakie = false;
+            PlaybackZoomType = 0;
+            Volume = 100;
+            SuperZoom = false;
+            WhiteBG = false;
+            NightMode = false;
+            SmoothCamera = true;
+            RoundLegacyCamera = true;
+            SmoothPlayback = true;
+            CheckForUpdates = true;
+            Record1080p = false;
+            RecordSmooth = true;
+            RecordMusic = true;
+            ScrollSensitivity = 1;
+            SettingsPane = 0;
+            MuteAudio = false;
+            PreviewMode = false;
+            SlowmoSpeed = 2;
+            DefaultPlayback = 1f;
+            ColorPlayback = false;
+            OnionSkinning = false;
+            LastSelectedTrack = "";
         }
         public static void ResetKeybindings()
         {
@@ -305,13 +338,10 @@ namespace linerider
             {
             }
             LoadInt(GetSetting(lines, nameof(PlaybackZoomType)), ref PlaybackZoomType);
-            LoadFloat(GetSetting(lines, nameof(PlaybackZoomValue)), ref PlaybackZoomValue);
             LoadFloat(GetSetting(lines, nameof(Volume)), ref Volume);
             LoadFloat(GetSetting(lines, nameof(ScrollSensitivity)), ref ScrollSensitivity);
-            LoadBool(GetSetting(lines, nameof(LiveAdjustment)), ref LiveAdjustment);
             LoadBool(GetSetting(lines, nameof(SuperZoom)), ref SuperZoom);
             LoadBool(GetSetting(lines, nameof(WhiteBG)), ref WhiteBG);
-            LoadBool(GetSetting(lines, nameof(PinkLifelock)), ref PinkLifelock);
             LoadBool(GetSetting(lines, nameof(NightMode)), ref NightMode);
             LoadBool(GetSetting(lines, nameof(SmoothCamera)), ref SmoothCamera);
             LoadBool(GetSetting(lines, nameof(CheckForUpdates)), ref CheckForUpdates);
@@ -320,10 +350,21 @@ namespace linerider
             LoadBool(GetSetting(lines, nameof(Record1080p)), ref Record1080p);
             LoadBool(GetSetting(lines, nameof(RecordSmooth)), ref RecordSmooth);
             LoadBool(GetSetting(lines, nameof(RecordMusic)), ref RecordMusic);
-            LoadBool(GetSetting(lines, nameof(LifeLockNoFakie)), ref LifeLockNoFakie);
-            LoadBool(GetSetting(lines, nameof(LifeLockNoOrange)), ref LifeLockNoOrange);
+            LoadBool(GetSetting(lines, nameof(Editor.LifeLockNoFakie)), ref Editor.LifeLockNoFakie);
+            LoadBool(GetSetting(lines, nameof(Editor.LifeLockNoOrange)), ref Editor.LifeLockNoOrange);
             LoadInt(GetSetting(lines, nameof(SettingsPane)), ref SettingsPane);
             LoadBool(GetSetting(lines, nameof(MuteAudio)), ref MuteAudio);
+            LoadBool(GetSetting(lines, nameof(Editor.HitTest)), ref Editor.HitTest);
+            LoadBool(GetSetting(lines, nameof(Editor.DisableSnap)), ref Editor.DisableSnap);
+            LoadBool(GetSetting(lines, nameof(Editor.ForceXySnap)), ref Editor.ForceXySnap);
+            LoadBool(GetSetting(lines, nameof(Editor.MomentumVectors)), ref Editor.MomentumVectors);
+            LoadBool(GetSetting(lines, nameof(Editor.RenderGravityWells)), ref Editor.RenderGravityWells);
+            LoadBool(GetSetting(lines, nameof(Editor.DrawContactPoints)), ref Editor.DrawContactPoints);
+            LoadBool(GetSetting(lines, nameof(PreviewMode)), ref PreviewMode);
+            LoadInt(GetSetting(lines, nameof(SlowmoSpeed)), ref SlowmoSpeed);
+            LoadFloat(GetSetting(lines, nameof(DefaultPlayback)), ref DefaultPlayback);
+            LoadBool(GetSetting(lines, nameof(ColorPlayback)), ref ColorPlayback);
+            LoadBool(GetSetting(lines, nameof(OnionSkinning)), ref OnionSkinning);
             var lasttrack = GetSetting(lines, nameof(LastSelectedTrack));
             if (File.Exists(lasttrack) && lasttrack.StartsWith(Constants.TracksDirectory))
             {
@@ -342,12 +383,9 @@ namespace linerider
         public static void Save()
         {
             string config = MakeSetting(nameof(PlaybackZoomType), PlaybackZoomType.ToString(Program.Culture));
-            config += "\r\n" + MakeSetting(nameof(PlaybackZoomValue), PlaybackZoomValue.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(Volume), Volume.ToString(Program.Culture));
-            config += "\r\n" + MakeSetting(nameof(LiveAdjustment), LiveAdjustment.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SuperZoom), SuperZoom.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(WhiteBG), WhiteBG.ToString(Program.Culture));
-            config += "\r\n" + MakeSetting(nameof(PinkLifelock), PinkLifelock.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(NightMode), NightMode.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SmoothCamera), SmoothCamera.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(CheckForUpdates), CheckForUpdates.ToString(Program.Culture));
@@ -358,10 +396,21 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(RecordSmooth), RecordSmooth.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(RecordMusic), RecordMusic.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(ScrollSensitivity), ScrollSensitivity.ToString(Program.Culture));
-            config += "\r\n" + MakeSetting(nameof(LifeLockNoFakie), LifeLockNoFakie.ToString(Program.Culture));
-            config += "\r\n" + MakeSetting(nameof(LifeLockNoOrange), LifeLockNoOrange.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(Editor.LifeLockNoFakie), Editor.LifeLockNoFakie.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(Editor.LifeLockNoOrange), Editor.LifeLockNoOrange.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SettingsPane), SettingsPane.ToString(Program.Culture));
-            config += "\r\n" + MakeSetting(nameof(MuteAudio), SettingsPane.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(MuteAudio), MuteAudio.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(Editor.HitTest), Editor.HitTest.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(Editor.DisableSnap), Editor.DisableSnap.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(Editor.ForceXySnap), Editor.ForceXySnap.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(Editor.MomentumVectors), Editor.MomentumVectors.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(Editor.RenderGravityWells), Editor.RenderGravityWells.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(Editor.DrawContactPoints), Editor.DrawContactPoints.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(PreviewMode), PreviewMode.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(SlowmoSpeed), SlowmoSpeed.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(DefaultPlayback), DefaultPlayback.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(ColorPlayback), ColorPlayback.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(OnionSkinning), OnionSkinning.ToString(Program.Culture));
             foreach (var binds in Keybinds)
             {
                 foreach (var bind in binds.Value)

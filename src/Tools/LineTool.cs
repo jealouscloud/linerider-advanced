@@ -181,14 +181,14 @@ namespace linerider.Tools
                         case LineType.Blue:
                             StandardLine sl = new StandardLine(_start, _end, _addflip);
                             sl.CalculateConstants();
-                            GameRenderer.DrawTrackLine(sl, c, Settings.Local.RenderGravityWells, true);
+                            GameRenderer.DrawTrackLine(sl, c, Settings.Editor.RenderGravityWells, true);
                             break;
 
                         case LineType.Red:
                             RedLine rl = new RedLine(_start, _end, _addflip);
                             rl.Multiplier = Swatch.RedMultiplier;
                             rl.CalculateConstants();
-                            GameRenderer.DrawTrackLine(rl, c, Settings.Local.RenderGravityWells, true);
+                            GameRenderer.DrawTrackLine(rl, c, Settings.Editor.RenderGravityWells, true);
                             break;
 
                         case LineType.Scenery:

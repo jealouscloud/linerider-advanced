@@ -117,7 +117,7 @@ namespace linerider
 
         public bool ShouldXySnap()
         {
-            return Settings.Local.ForceXySnap || InputUtils.CheckPressed(Hotkey.ToolXYSnap);
+            return Settings.Editor.ForceXySnap || InputUtils.CheckPressed(Hotkey.ToolXYSnap);
         }
         public void Render(float blend = 1)
         {
@@ -686,7 +686,8 @@ namespace linerider
         {
             InputUtils.RegisterHotkey(Hotkey.PreferenceOnionSkinning, () => true, () =>
             {
-                Settings.Local.OnionSkinning = !Settings.Local.OnionSkinning;
+                Settings.OnionSkinning = !Settings.OnionSkinning;
+                Settings.Save();
                 Track.Invalidate();
             });
         }
@@ -696,7 +697,7 @@ namespace linerider
             {
                 StopTools();
                 Track.StartFromFlag();
-                Track.Scheduler.UpdatesPerSecond = Settings.Local.SlowmoSpeed;
+                Track.Scheduler.UpdatesPerSecond = Settings.SlowmoSpeed;
             });
             InputUtils.RegisterHotkey(Hotkey.PlaybackStartIgnoreFlag, () => true, () =>
             {
@@ -798,9 +799,9 @@ namespace linerider
             InputUtils.RegisterHotkey(Hotkey.PlaybackSlowmo, () => true, () =>
             {
                 if (Track.Scheduler.UpdatesPerSecond !=
-                Settings.Local.SlowmoSpeed)
+                Settings.SlowmoSpeed)
                 {
-                    Track.Scheduler.UpdatesPerSecond = Settings.Local.SlowmoSpeed;
+                    Track.Scheduler.UpdatesPerSecond = Settings.SlowmoSpeed;
                 }
                 else
                 {

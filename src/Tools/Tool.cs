@@ -55,7 +55,7 @@ namespace linerider.Tools
             get
             {
                 var toggle = InputUtils.CheckPressed(Hotkey.ToolToggleSnap);
-                return Settings.Local.DisableSnap == toggle;
+                return Settings.Editor.DisableSnap == toggle;
             }
         }
         /// <summary>
@@ -332,7 +332,7 @@ namespace linerider.Tools
             if (!frame.Crashed)
             {
                 List<int> diagnosis = null;
-                if (Settings.LifeLockNoFakie)
+                if (Settings.Editor.LifeLockNoFakie)
                 {
                     diagnosis = timeline.DiagnoseFrame(offset, iteration);
                     foreach (var v in diagnosis)
@@ -342,7 +342,7 @@ namespace linerider.Tools
                             return false;
                     }
                 }
-                if (Settings.LifeLockNoOrange)
+                if (Settings.Editor.LifeLockNoOrange)
                 {
                     if (diagnosis == null)
                         diagnosis = timeline.DiagnoseFrame(offset, iteration);

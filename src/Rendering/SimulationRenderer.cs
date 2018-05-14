@@ -40,7 +40,7 @@ namespace linerider.Rendering
         {
             Rider drawrider = options.Rider;
             _trackrenderer.Render(options);
-            if (Settings.Local.OnionSkinning)
+            if (Settings.OnionSkinning)
             {
                 const int onions = 20;
                 for (int i = -onions; i < onions; i++)
@@ -81,7 +81,7 @@ namespace linerider.Rendering
                     !options.IsRunning &&
                     options.Iteration != 6 &&
                     options.Iteration != 0 &&
-                    !Settings.Local.OnionSkinning)
+                    !Settings.OnionSkinning)
                 {
                     var frame = timeline.GetFrame(game.Track.Offset + 1, 0);
                     _riderrenderer.DrawRider(0.1f, frame);

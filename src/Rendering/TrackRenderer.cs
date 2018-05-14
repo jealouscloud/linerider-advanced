@@ -282,7 +282,7 @@ namespace linerider.Rendering
                             }
                             else
                             {
-                                bool hit = Settings.Local.HitTest
+                                bool hit = Settings.Editor.HitTest
                                     ? game.Track.Timeline.IsLineHit(line.ID)
                                     : false;
                                 LineChanged(
