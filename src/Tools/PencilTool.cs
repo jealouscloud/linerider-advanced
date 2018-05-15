@@ -52,7 +52,13 @@ namespace linerider.Tools
         private bool _drawn;
         private Vector2d _start;
         private Vector2d _end;
-        const float MINIMUM_LINE = 0.6f;
+        private float MINIMUM_LINE
+        {
+            get
+            {
+                return 6f / game.Track.Zoom;
+            }
+        }
         private bool _addflip = false;
         private Vector2d _mouseshadow;
         public bool DrawingScenery
@@ -127,7 +133,8 @@ namespace linerider.Tools
                 var diff = _end - _start;
                 var len = diff.Length;
 
-                if ((DrawingScenery && len >= (MINIMUM_LINE / 2)) || len >= MINIMUM_LINE)
+                if ((DrawingScenery && len >= MINIMUM_LINE) ||
+                    (len >= MINIMUM_LINE * 2))
                 {
                     AddLine();
                     _start = _end;
