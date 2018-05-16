@@ -60,6 +60,9 @@ namespace linerider
             public static bool DrawContactPoints;
             public static bool LifeLockNoOrange;
             public static bool LifeLockNoFakie;
+            public static bool ShowLineLength;
+            public static bool ShowLineAngle;
+            public static bool ShowLineID;
         }
         public static int PlaybackZoomType;
         public static float PlaybackZoomValue;
@@ -138,6 +141,9 @@ namespace linerider
             Editor.DrawContactPoints = false;
             Editor.LifeLockNoOrange = false;
             Editor.LifeLockNoFakie = false;
+            Editor.ShowLineLength = true;
+            Editor.ShowLineAngle = true;
+            Editor.ShowLineID = false;
             PlaybackZoomType = 0;
             PlaybackZoomValue = 4;
             Volume = 100;
@@ -370,6 +376,9 @@ namespace linerider
             LoadFloat(GetSetting(lines, nameof(DefaultPlayback)), ref DefaultPlayback);
             LoadBool(GetSetting(lines, nameof(ColorPlayback)), ref ColorPlayback);
             LoadBool(GetSetting(lines, nameof(OnionSkinning)), ref OnionSkinning);
+            LoadBool(GetSetting(lines, nameof(Editor.ShowLineLength)), ref Editor.ShowLineLength);
+            LoadBool(GetSetting(lines, nameof(Editor.ShowLineAngle)), ref Editor.ShowLineAngle);
+            LoadBool(GetSetting(lines, nameof(Editor.ShowLineID)), ref Editor.ShowLineID);
             var lasttrack = GetSetting(lines, nameof(LastSelectedTrack));
             if (File.Exists(lasttrack) && lasttrack.StartsWith(Constants.TracksDirectory))
             {
@@ -387,7 +396,7 @@ namespace linerider
         }
         public static void Save()
         {
-            string config = MakeSetting(nameof(LastSelectedTrack), LastSelectedTrack); 
+            string config = MakeSetting(nameof(LastSelectedTrack), LastSelectedTrack);
             config += "\r\n" + MakeSetting(nameof(Volume), Volume.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SuperZoom), SuperZoom.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(WhiteBG), WhiteBG.ToString(Program.Culture));
@@ -418,6 +427,9 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(DefaultPlayback), DefaultPlayback.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(ColorPlayback), ColorPlayback.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(OnionSkinning), OnionSkinning.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(Editor.ShowLineAngle), Editor.ShowLineAngle.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(Editor.ShowLineLength), Editor.ShowLineLength.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(Editor.ShowLineID), Editor.ShowLineID.ToString(Program.Culture));
             foreach (var binds in Keybinds)
             {
                 foreach (var bind in binds.Value)

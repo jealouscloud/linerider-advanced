@@ -42,14 +42,16 @@ namespace linerider.Tools
                     var len = vec.Length;
                     var angle = Angle.FromVector(vec);
                     angle.Degrees += 90;
-                    string tooltip = "length: " + Math.Round(len, 2) +
-                    " \n" +
-                    "angle: " + Math.Round(angle.Degrees, 2) + "° ";
-                    if (_selection.line.Type != LineType.Scenery)
-                    {
-                        tooltip += "\n" +
+                    string tooltip = "";
+                    if (Settings.Editor.ShowLineLength)
+                        tooltip += "length: " + Math.Round(len, 2);
+                    if (Settings.Editor.ShowLineAngle)
+                        tooltip += " \n" +
+                        "angle: " + Math.Round(angle.Degrees, 2) + "° ";
+                    if (Settings.Editor.ShowLineID &&
+                            _selection.line.Type != LineType.Scenery)
+                        tooltip += "\n" + 
                         "ID: " + _selection.line.ID + " ";
-                    }
                     return tooltip;
                 }
                 return "";
