@@ -97,10 +97,15 @@ namespace linerider.UI
                 var fn = Program.UserDirectory + "Songs" +
                          Path.DirectorySeparatorChar +
                          _editor.Song.Location;
-                if (File.Exists(fn))
+                if (_editor.Song.Enabled && File.Exists(fn))
                 {
                     _canvas.Loading = true;
                     Audio.AudioService.LoadFile(ref fn);
+                    
+                    var song = _editor.Song;
+                    song.Location = Path.GetFileName(fn);
+                    _editor.Song = song;
+                    
                     _canvas.Loading = false;
                 }
             };
@@ -133,7 +138,6 @@ namespace linerider.UI
             {
                 _editor.StartZoom = (float)startzoom.NumberValue;
             };
-            //todo implement properly^
             table.Add("Start Zoom", startzoom);
             var zerostart = GwenHelper.AddPropertyCheckbox(table, "Zero Start", _editor.ZeroStart);
             zerostart.ValueChanged += (o, e) =>
