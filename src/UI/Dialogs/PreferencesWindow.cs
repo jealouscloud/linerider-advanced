@@ -186,22 +186,6 @@ namespace linerider.UI
                 Settings.Editor.LifeLockNoFakie = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            Panel panelSnap = GwenHelper.CreateHeaderPanel(parent, "Snapping");
-            var linesnap = GwenHelper.AddCheckbox(panelSnap, "Snap New Lines", Settings.Editor.SnapNewLines, (o, e) =>
-            {
-                Settings.Editor.SnapNewLines = ((Checkbox)o).IsChecked;
-                Settings.Save();
-            });
-            var movelinesnap = GwenHelper.AddCheckbox(panelSnap, "Snap Line Movement", Settings.Editor.SnapMoveLine, (o, e) =>
-            {
-                Settings.Editor.SnapMoveLine = ((Checkbox)o).IsChecked;
-                Settings.Save();
-            });
-            var forcesnap = GwenHelper.AddCheckbox(panelSnap, "Force X/Y snap", Settings.Editor.ForceXySnap, (o, e) =>
-            {
-                Settings.Editor.ForceXySnap = ((Checkbox)o).IsChecked;
-                Settings.Save();
-            });
             Panel panelMisc = GwenHelper.CreateHeaderPanel(parent, "Misc");
             var onion = GwenHelper.AddCheckbox(panelMisc, "Onion Skinning", Settings.OnionSkinning, (o, e) =>
             {
@@ -211,8 +195,6 @@ namespace linerider.UI
             onion.Tooltip = "Visualize the rider before/after\nthe current frame.";
             momentum.Tooltip = "Visualize the direction of\nmomentum for each contact point";
             contact.Tooltip = "Visualize the parts of the rider\nthat interact with lines.";
-            forcesnap.Tooltip = "Forces all lines drawn to\nsnap to a 45 degree angle";
-            movelinesnap.Tooltip = "Snap to lines when using the\nselect tool to move a single line";
             hitbox.Tooltip = "Visualizes the hitbox of lines\nUsed for advanced editing";
             hittest.Tooltip = "Lines that have been hit by\nthe rider will glow.";
         }
@@ -291,6 +273,43 @@ namespace linerider.UI
             };
             smooth.Tooltip = "Interpolates frames from the base\nphysics rate of 40 frames/second\nup to 60 frames/second";
         }
+        private void PopulateTools(ControlBase parent)
+        {
+            var select = GwenHelper.CreateHeaderPanel(parent, "Select Tool -- Line Info");
+            var length = GwenHelper.AddCheckbox(select, "Show Length", Settings.Editor.ShowLineLength, (o, e) =>
+               {
+                   Settings.Editor.ShowLineLength = ((Checkbox)o).IsChecked;
+                   Settings.Save();
+               });
+            var angle = GwenHelper.AddCheckbox(select, "Show Angle", Settings.Editor.ShowLineAngle, (o, e) =>
+               {
+                   Settings.Editor.ShowLineAngle = ((Checkbox)o).IsChecked;
+                   Settings.Save();
+               });
+            var showid = GwenHelper.AddCheckbox(select, "Show ID", Settings.Editor.ShowLineID, (o, e) =>
+               {
+                   Settings.Editor.ShowLineID = ((Checkbox)o).IsChecked;
+                   Settings.Save();
+               });
+            Panel panelSnap = GwenHelper.CreateHeaderPanel(parent, "Snapping");
+            var linesnap = GwenHelper.AddCheckbox(panelSnap, "Snap New Lines", Settings.Editor.SnapNewLines, (o, e) =>
+            {
+                Settings.Editor.SnapNewLines = ((Checkbox)o).IsChecked;
+                Settings.Save();
+            });
+            var movelinesnap = GwenHelper.AddCheckbox(panelSnap, "Snap Line Movement", Settings.Editor.SnapMoveLine, (o, e) =>
+            {
+                Settings.Editor.SnapMoveLine = ((Checkbox)o).IsChecked;
+                Settings.Save();
+            });
+            var forcesnap = GwenHelper.AddCheckbox(panelSnap, "Force X/Y snap", Settings.Editor.ForceXySnap, (o, e) =>
+            {
+                Settings.Editor.ForceXySnap = ((Checkbox)o).IsChecked;
+                Settings.Save();
+            });
+            forcesnap.Tooltip = "Forces all lines drawn to\nsnap to a 45 degree angle";
+            movelinesnap.Tooltip = "Snap to lines when using the\nselect tool to move a single line";
+        }
         private void Setup()
         {
             var cat = _prefcontainer.Add("Settings");
@@ -298,6 +317,8 @@ namespace linerider.UI
             PopulateEditor(page);
             page = AddPage(cat, "Playback");
             PopulatePlayback(page);
+            page = AddPage(cat, "Tools");
+            PopulateTools(page);
             page = AddPage(cat, "Environment");
             PopulateModes(page);
             page = AddPage(cat, "Camera");
