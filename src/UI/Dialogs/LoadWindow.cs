@@ -120,7 +120,7 @@ namespace linerider.UI
                     foreach (var file in tracks)
                     {
                         var filenode = node.AddNode(Path.GetFileName(file));
-                        filenode.UserData = new ItemData(ItemType.TrackFile, file, Path.GetFileNameWithoutExtension(file));
+                        filenode.UserData = new ItemData(ItemType.TrackFile, file, dir);
                         if (loadedfn != null && file == loadedfn)
                         {
                             node.ExpandAll();
