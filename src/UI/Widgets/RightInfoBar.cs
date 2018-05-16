@@ -120,6 +120,7 @@ namespace linerider.UI
                 IsHidden = true,
                 Tooltip = "Click to Reset Camera\n(Default hotkey N)",
                 MouseInputEnabled = true,
+                TooltipDelay = 0,
             };
             _usercamerasprite.Clicked += (o,e)=>
             {
