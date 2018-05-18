@@ -236,7 +236,7 @@ namespace linerider
                 }
                 else if (child is Gwen.ControlInternal.Modal)
                 {
-                    foreach(var modalchild in child.Children)
+                    foreach (var modalchild in child.Children)
                     {
                         if (modalchild is WindowControl w)
                         {
@@ -277,7 +277,32 @@ namespace linerider
         }
         public void ShowExportVideoWindow()
         {
-            ShowDialog(new ExportWindow(this, game.Track, game));
+            if (File.Exists(linerider.IO.ffmpeg.FFMPEG.ffmpeg_path))
+            {
+                ShowDialog(new ExportWindow(this, game.Track, game));
+            }
+            else
+            {
+                ShowffmpegMissing();
+            }
+        }
+        public void ShowffmpegMissing()
+        {
+            var mbox = MessageBox.Show(
+                this,
+                "This feature requires ffmpeg for encoding.\n" +
+                "Automatically download it?",
+                "ffmpeg not found",
+                MessageBox.ButtonType.YesNo,
+                true,
+                true);
+            mbox.Dismissed += (o, e) =>
+              {
+                  if (e == DialogResult.Yes)
+                  {
+                      ShowDialog(new FFmpegDownloadWindow(this, game.Track));
+                  }
+              };
         }
         public void ShowLineWindow(Game.GameLine line, int x, int y)
         {

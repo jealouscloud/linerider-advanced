@@ -58,7 +58,7 @@ namespace linerider.UI
                 foreach (var sf in supportedfiles)
                 {
                     var name = Path.GetFileName(sf);
-                    var nodename = name.ToLower().Contains(".ogg") ? name : "[convert] " + name;
+                    var nodename = IsOgg(name) ? name : "[convert] " + name;
                     var node = Songs.AddRow(nodename);
                     node.UserData = name;
                     if (name == _editor.Song.Location)
@@ -99,14 +99,25 @@ namespace linerider.UI
                          _editor.Song.Location;
                 if (_editor.Song.Enabled && File.Exists(fn))
                 {
-                    _canvas.Loading = true;
-                    Audio.AudioService.LoadFile(ref fn);
-                    
-                    var song = _editor.Song;
-                    song.Location = Path.GetFileName(fn);
-                    _editor.Song = song;
-                    
-                    _canvas.Loading = false;
+                    if (!IsOgg(fn) &&
+                        !linerider.IO.ffmpeg.FFMPEG.HasExecutable)
+                    {
+                        var song = _editor.Song;
+                        song.Location = null;
+                        _editor.Song = song;
+                        _canvas.ShowffmpegMissing();
+                    }
+                    else
+                    {
+                        _canvas.Loading = true;
+                        Audio.AudioService.LoadFile(ref fn);
+
+                        var song = _editor.Song;
+                        song.Location = Path.GetFileName(fn);
+                        _editor.Song = song;
+
+                        _canvas.Loading = false;
+                    }
                 }
             };
         }
@@ -200,6 +211,10 @@ namespace linerider.UI
                 Dock = Dock.Top,
                 Margin = new Margin(0, 1, 0, 1)
             };
+        }
+        private bool IsOgg(string file)
+        {
+            return file.EndsWith(".ogg", true, Program.Culture);
         }
     }
 }

@@ -108,11 +108,11 @@ namespace linerider.Audio
                 return true;
             }
             game.Title = Program.WindowTitle;
-            file = GetOgg(file);
-            if (file == null)
-                return false;
             try
             {
+                file = GetOgg(file);
+                if (file == null)
+                    return false;
                 if (File.Exists(file))
                 {
                     _musicplayer.LoadSoundStream(new AudioSource(new NVorbis.VorbisReader(file)));

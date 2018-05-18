@@ -27,33 +27,59 @@ namespace linerider.IO.ffmpeg
 {
     public static class FFMPEG
     {
-        public static string FFMPEGExecutableFilePath;
-
         private const int MaximumBuffers = 25;
-
+        private static bool inited = false;
+        public static bool HasExecutable
+        {
+            get
+            {
+                return File.Exists(ffmpeg_path);
+            }
+        }
+        public static string ffmpeg_dir
+        {
+            get
+            {
+                string dir = Program.UserDirectory + "ffmpeg" + Path.DirectorySeparatorChar;
+                if (OpenTK.Configuration.RunningOnMacOS)
+                    dir += "mac" + Path.DirectorySeparatorChar;
+                else if (OpenTK.Configuration.RunningOnWindows)
+                    dir += "win" + Path.DirectorySeparatorChar;
+                else if (OpenTK.Configuration.RunningOnUnix)
+                {
+                    dir += "linux" + Path.DirectorySeparatorChar;
+                }
+                else
+                {
+                    return null;
+                }
+                return dir;
+            }
+        }
+        public static string ffmpeg_path
+        {
+            get
+            {
+                var dir = ffmpeg_dir;
+                if (dir == null)
+                    return null;
+                if (OpenTK.Configuration.RunningOnWindows)
+                    return dir + "ffmpeg.exe";
+                else
+                    return dir + "ffmpeg";
+            }
+        }
         static FFMPEG()
         {
         }
-        private static bool inited = false;
         private static void TryInitialize()
         {
             if (inited)
                 return;
             inited = true;
-            string ffmpegname = Program.CurrentDirectory + Program.BinariesFolder + Path.DirectorySeparatorChar + "ffmpeg";
-            if (OpenTK.Configuration.RunningOnMacOS)
-                ffmpegname += "-mac";
-            else if (OpenTK.Configuration.RunningOnWindows)
-                ffmpegname += "-win.exe";
-            else if (OpenTK.Configuration.RunningOnUnix)
-            {
-                ffmpegname += "-linux";
-            }
-            else
-            {
+            if (ffmpeg_path == null)
                 throw new Exception("Unable to detect platform for ffmpeg");
-            }
-            FFMPEGExecutableFilePath = ffmpegname;
+            MakeffmpegExecutable();
         }
         public static string ConvertSongToOgg(string file, Func<string, bool> stdout)
         {
@@ -83,7 +109,7 @@ namespace linerider.IO.ffmpeg
         public static void Execute(FFMPEGParameters parameters, Func<string, bool> stdout)
         {
             TryInitialize();
-            if (String.IsNullOrWhiteSpace(FFMPEGExecutableFilePath))
+            if (String.IsNullOrWhiteSpace(ffmpeg_path))
             {
                 throw new Exception("Path to FFMPEG executable cannot be null");
             }
@@ -92,13 +118,12 @@ namespace linerider.IO.ffmpeg
             {
                 throw new Exception("FFMPEG parameters cannot be completely null");
             }
-
             using (Process ffmpegProcess = new Process())
             {
-                ProcessStartInfo info = new ProcessStartInfo(FFMPEGExecutableFilePath)
+                ProcessStartInfo info = new ProcessStartInfo(ffmpeg_path)
                 {
                     Arguments = parameters.ToString(),
-                    WorkingDirectory = Path.GetDirectoryName(FFMPEGExecutableFilePath),
+                    WorkingDirectory = Path.GetDirectoryName(ffmpeg_dir),
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardOutput = false,
@@ -146,7 +171,34 @@ namespace linerider.IO.ffmpeg
             }
 
         }
-
+        private static void MakeffmpegExecutable()
+        {
+            if (OpenTK.Configuration.RunningOnUnix)
+            {
+                try
+                {
+                    using (Process chmod = new Process())
+                    {
+                        ProcessStartInfo info = new ProcessStartInfo("/bin/chmod")
+                        {
+                            Arguments = "+x ffmpeg",
+                            WorkingDirectory = Path.GetDirectoryName(ffmpeg_dir),
+                            UseShellExecute = false,
+                        };
+                        chmod.StartInfo = info;
+                        chmod.Start();
+                        if (!chmod.WaitForExit(1000))
+                        {
+                            chmod.Close();
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    linerider.Utils.ErrorLog.WriteLine(
+                        "chmod error on ffmpeg" + Environment.NewLine + e.ToString());
+                }
+            }
+        }
     }
-
 }

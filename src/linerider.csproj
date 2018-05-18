@@ -175,6 +175,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="UI\Dialogs\LoadWindow.cs" />
+    <Compile Include="UI\Dialogs\FFmpegDownloadWindow.cs" />
     <Compile Include="UI\Dialogs\DialogBase.cs" />
     <Compile Include="UI\Dialogs\PreferencesWindow.cs" />
     <Compile Include="UI\Dialogs\ExportWindow.cs" />
@@ -225,6 +226,8 @@
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net" />
+    <Reference Include="System.IO.Compression.dll" />
+    <Reference Include="System.IO.Compression.FileSystem.dll" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Runtime.CompilerServices.Unsafe">
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.4.4.0\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
