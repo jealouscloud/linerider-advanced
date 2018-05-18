@@ -175,6 +175,11 @@ namespace linerider.UI
                  Settings.Editor.HitTest = ((Checkbox)o).IsChecked;
                  Settings.Save();
              });
+            var onion = GwenHelper.AddCheckbox(advancedtools, "Onion Skinning", Settings.OnionSkinning, (o, e) =>
+            {
+                Settings.OnionSkinning = ((Checkbox)o).IsChecked;
+                Settings.Save();
+            });
             Panel pblifelock = GwenHelper.CreateHeaderPanel(parent, "Lifelock Conditions");
             GwenHelper.AddCheckbox(pblifelock, "Next frame constraints", Settings.Editor.LifeLockNoOrange, (o, e) =>
             {
@@ -184,12 +189,6 @@ namespace linerider.UI
             GwenHelper.AddCheckbox(pblifelock, "No Fakie Death", Settings.Editor.LifeLockNoFakie, (o, e) =>
             {
                 Settings.Editor.LifeLockNoFakie = ((Checkbox)o).IsChecked;
-                Settings.Save();
-            });
-            Panel panelMisc = GwenHelper.CreateHeaderPanel(parent, "Misc");
-            var onion = GwenHelper.AddCheckbox(panelMisc, "Onion Skinning", Settings.OnionSkinning, (o, e) =>
-            {
-                Settings.OnionSkinning = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
             onion.Tooltip = "Visualize the rider before/after\nthe current frame.";
