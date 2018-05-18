@@ -278,9 +278,11 @@ namespace linerider.IO
                             }
                             catch (Exception e)
                             {
-                                Program.NonFatalError("ffmpeg error.\r\n" + e);
+                                linerider.Utils.ErrorLog.WriteLine(
+                                    "ffmpeg error" + Environment.NewLine + e);
                                 hardexit = true;
-                                errormessage = "An ffmpeg error occured.";
+                                errormessage = 
+                                    "An ffmpeg error occured.\n" + e.Message;
                             }
                         }
                     }
