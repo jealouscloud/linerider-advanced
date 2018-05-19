@@ -286,6 +286,10 @@ namespace linerider
                 ShowffmpegMissing();
             }
         }
+        public void ShowGameMenuWindow()
+        {
+            ShowDialog(new GameMenuWindow(this, game.Track));
+        }
         public void ShowffmpegMissing()
         {
             var mbox = MessageBox.Show(

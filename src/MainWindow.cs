@@ -875,6 +875,12 @@ namespace linerider
             {
                 Canvas.ShowPreferencesDialog();
             });
+            InputUtils.RegisterHotkey(Hotkey.GameMenuWindow,
+            () => !CurrentTools.SelectedTool.Active,
+            () =>
+            {
+                Canvas.ShowGameMenuWindow();
+            });
             InputUtils.RegisterHotkey(Hotkey.TrackPropertiesWindow,
             () => !CurrentTools.SelectedTool.Active,
             () =>

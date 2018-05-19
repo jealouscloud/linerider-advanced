@@ -175,6 +175,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="UI\Dialogs\LoadWindow.cs" />
+    <Compile Include="UI\Dialogs\GameMenuWindow.cs" />
     <Compile Include="UI\Dialogs\FFmpegDownloadWindow.cs" />
     <Compile Include="UI\Dialogs\DialogBase.cs" />
     <Compile Include="UI\Dialogs\PreferencesWindow.cs" />

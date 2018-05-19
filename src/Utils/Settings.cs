@@ -235,8 +235,8 @@ namespace linerider
             SetupDefaultKeybind(Hotkey.PlaybackTogglePause, new Keybinding(Key.Space));
 
             SetupDefaultKeybind(Hotkey.PreferencesWindow,
-                new Keybinding(Key.Escape),
                 new Keybinding(Key.P, KeyModifiers.Control));
+            SetupDefaultKeybind(Hotkey.GameMenuWindow, new Keybinding(Key.Escape));
             SetupDefaultKeybind(Hotkey.TrackPropertiesWindow, new Keybinding(Key.T, KeyModifiers.Control));
             SetupDefaultKeybind(Hotkey.PreferenceOnionSkinning, new Keybinding(Key.O, KeyModifiers.Control));
             SetupDefaultKeybind(Hotkey.LoadWindow, new Keybinding(Key.O));

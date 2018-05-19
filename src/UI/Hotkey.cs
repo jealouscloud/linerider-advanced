@@ -64,6 +64,7 @@ namespace linerider.UI
         PlaybackResetCamera,
         PreferenceOnionSkinning,
         PreferencesWindow,
+        GameMenuWindow,
         TrackPropertiesWindow,
         LoadWindow,
         Quicksave,
