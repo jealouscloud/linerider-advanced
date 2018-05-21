@@ -91,7 +91,17 @@ namespace linerider.UI
                 _editor.Song = song;
             };
             CreateLabeledControl(opts, "Offset", offset);
-
+            Button help = new Button(parent)
+            {
+                Dock = Dock.Bottom,
+                Text = "Help",
+            };
+            help.Clicked += (o, e) =>
+            {
+                MessageBox.Show(_canvas, 
+                "LRA can sync songs with tracks you make.\nSongs are imported from Documents/LRA/Songs.\n\nWe load files as .ogg, and LRA will mark files it needs to automatically convert with [convert]", 
+                "Help", true);
+            };
             this.IsHiddenChanged += (o, e) =>
             {
                 if (!this.IsHidden) return;
