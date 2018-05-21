@@ -309,6 +309,16 @@ namespace linerider.UI
             forcesnap.Tooltip = "Forces all lines drawn to\nsnap to a 45 degree angle";
             movelinesnap.Tooltip = "Snap to lines when using the\nselect tool to move a single line";
         }
+        private void PopulateOther(ControlBase parent)
+        {
+            var updates = GwenHelper.CreateHeaderPanel(parent, "Updates");
+
+            var showid = GwenHelper.AddCheckbox(updates, "Check For Updates", Settings.CheckForUpdates, (o, e) =>
+               {
+                   Settings.CheckForUpdates = ((Checkbox)o).IsChecked;
+                   Settings.Save();
+               });
+        }
         private void Setup()
         {
             var cat = _prefcontainer.Add("Settings");
@@ -327,6 +337,8 @@ namespace linerider.UI
             PopulateAudio(page);
             page = AddPage(cat, "Keybindings");
             PopulateKeybinds(page);
+            page = AddPage(cat, "Other");
+            PopulateOther(page);
             if (Settings.SettingsPane >= _tabscount && _focus == null)
             {
                 Settings.SettingsPane = 0;
