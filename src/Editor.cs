@@ -607,6 +607,21 @@ namespace linerider
                         ChangeTrack(track);
                     }
                 }
+                else if (string.Equals(
+                    Path.GetExtension(lasttrack),
+                    ".json",
+                    StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var trackname = TrackIO.GetTrackName(lasttrack);
+                    lock (LoadSync)
+                    {
+                        var track = JSONLoader.LoadTrack(lasttrack);
+                        if (track.Name == Constants.DefaultTrackName ||
+                        string.IsNullOrEmpty(track.Name))
+                            track.Name = trackname;
+                        ChangeTrack(track);
+                    }
+                }
             }
             catch (Exception e)
             {

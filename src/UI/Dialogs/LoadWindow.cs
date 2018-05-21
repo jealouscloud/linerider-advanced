@@ -319,6 +319,10 @@ namespace linerider.UI
                     {
                         track = TRKLoader.LoadTrack(file, name);
                     }
+                    else if (file.EndsWith(".json",StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        track = JSONLoader.LoadTrack(file);
+                    }
                     else
                     {
                         throw new Exception("Filetype unknown");

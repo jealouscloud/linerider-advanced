@@ -43,7 +43,8 @@ namespace linerider.IO
         {
             return Directory.GetFiles(folder, "*.*")
                 .Where(x =>
-                    (x.EndsWith(".trk", StringComparison.OrdinalIgnoreCase))).
+                    x.EndsWith(".trk", StringComparison.OrdinalIgnoreCase) ||
+                    x.EndsWith(".json",StringComparison.OrdinalIgnoreCase)).
                     OrderByDescending(x =>
                     {
                         var fn = Path.GetFileName(x);
@@ -233,6 +234,13 @@ namespace linerider.IO
         {
             int saveindex = GetSaveIndex(track);
             var filename = TRKWriter.SaveTrack(track, saveindex + " " + savename);
+            track.Filename = filename;
+            return filename;
+        }
+        public static string SaveTrackToJsonFile(Track track, string savename)
+        {
+            int saveindex = GetSaveIndex(track);
+            var filename = JSONWriter.SaveTrack(track, saveindex + " " + savename);
             track.Filename = filename;
             return filename;
         }

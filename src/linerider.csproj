@@ -163,6 +163,13 @@
     <Compile Include="IO\TRKWriter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IO\json\JSONLoader.cs" />
+    <Compile Include="IO\json\JSONWriter.cs" />
+    <Compile Include="IO\json\line_json.cs" />
+    <Compile Include="IO\json\LZString.cs" />
+    <Compile Include="IO\json\track_json.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="UI\PlatformImpl.cs" />
     <Compile Include="UI\Hotkey.cs" />
     <Compile Include="UI\Fonts.cs" />
@@ -232,6 +239,15 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Runtime.CompilerServices.Unsafe">
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.4.4.0\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions">
+      <HintPath>packages\System.Threading.Tasks.Extensions.4.4.0\lib\portable-net45+win8+wp8+wpa81\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ValueTuple">
+      <HintPath>packages\System.ValueTuple.4.4.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="Utf8Json">
+      <HintPath>Utf8Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

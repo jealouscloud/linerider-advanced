@@ -143,16 +143,20 @@ namespace linerider.UI
                             }
                             break;
                         case ".json":
-                            _errorbox.Text = "not implemented";
-                            return;
+                            {
+                                filepath = TrackIO.SaveTrackToJsonFile(trk.Track, filename);
+                                Settings.LastSelectedTrack = filepath;
+                                Settings.Save();
+                            }
+                            break;
                         default:
                             throw new InvalidOperationException("Unknown save filetype");
                     }
                     _editor.ResetTrackChangeCounter();
                 }
-                catch
+                catch (Exception e)
                 {
-                    _errorbox.Text = "Error\n* An unknown error occured D:";
+                    _errorbox.Text = "Error\n* An unknown error occured...\n" + e.Message;
                     return;
                 }
             }
