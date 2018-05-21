@@ -24,6 +24,7 @@ namespace linerider.UI
         private void ListSongs(ControlBase parent)
         {
             ListBox Songs = new ListBox(parent);
+            Songs.AllowMultiSelect = false;
             Songs.RowSelected += (o, e) =>
              {
                  var str = (string)e.SelectedItem.UserData;
