@@ -20,11 +20,7 @@ namespace linerider.IO
             {
                 try
                 {
-                    var task = JsonSerializer.DeserializeAsync<track_json>(file);
-                    task.Wait();
-                    trackobj = task.Result;
-                    if (task.Exception != null)
-                        throw task.Exception;
+                    trackobj = JsonSerializer.Deserialize<track_json>(file);
                 }
                 catch (Exception ex)
                 {
@@ -45,6 +41,14 @@ namespace linerider.IO
                         "Unsupported physics.");
             }
             ret.Name = trackobj.label;
+            if (trackobj.startZoom != 0)
+            {
+                ret.StartZoom = (float)MathHelper.Clamp(
+                    trackobj.startZoom,
+                    Utils.Constants.MinimumZoom,
+                    Utils.Constants.MaxZoom);
+            }
+            ret.ZeroStart = trackobj.zeroStart;
             if (trackobj.startPosition != null)
             {
                 ret.StartOffset = new Vector2d(
@@ -67,28 +71,58 @@ namespace linerider.IO
                     AddLine(ret, line);
                 }
             }
+            if (trackobj.triggers != null)
+            {
+                foreach (var trigger in trackobj.triggers)
+                {
+                    if (ret.LineLookup.TryGetValue(trigger.ID, out GameLine line))
+                    {
+                        if (line is StandardLine stl)
+                        {
+                            if (trigger.zoom)
+                            {
+                                stl.Trigger = new LineTrigger()
+                                {
+                                    ZoomTrigger = trigger.zoom,
+                                    ZoomTarget = (float)MathHelper.Clamp(
+                                        trigger.target,
+                                        Utils.Constants.MinimumZoom,
+                                        Utils.Constants.MaxZoom),
+                                    ZoomFrames = trigger.frames
+                                };
+                            }
+                        }
+                    }
+                }
+            }
             return ret;
         }
         private static void ReadLinesArray(Track track, object[][] parser)
         {
-            //['type', 'id', 'x1', 'y1', 'x2', 'y2', 'extended', 'flipped', 'leftLine', 'rightLine']
+            //['type', 'id', 'x1', 'y1', 'x2', 'y2', 'extended', 'flipped', 'leftLine', 'rightLine', 'multiplier']
             //ignore leftLine, rightLine
             foreach (var lineobj in parser)
             {
                 line_json line = new line_json();
-                line.type = Convert.ToInt32(lineobj[0]);
-                line.id = Convert.ToInt32(lineobj[1]);
-                line.x1 = Convert.ToDouble(lineobj[2]);
-                line.y1 = Convert.ToDouble(lineobj[3]);
-                line.x2 = Convert.ToDouble(lineobj[4]);
-                line.y2 = Convert.ToDouble(lineobj[5]);
+                int idx = 0;
+                line.type = Convert.ToInt32(lineobj[idx++]);
+                line.id = Convert.ToInt32(lineobj[idx++]);
+                line.x1 = Convert.ToDouble(lineobj[idx++]);
+                line.y1 = Convert.ToDouble(lineobj[idx++]);
+                line.x2 = Convert.ToDouble(lineobj[idx++]);
+                line.y2 = Convert.ToDouble(lineobj[idx++]);
                 var sz = lineobj.Length;
-                if (6 < sz)
+                if (line.type != 2 && idx < sz)//non scenery
                 {
-                    line.extended = Convert.ToInt32(lineobj[6]);
-                    if (7 < sz)
+                    line.extended = Convert.ToInt32(lineobj[idx++]);
+                    if (idx < sz)
                     {
-                        line.flipped = Convert.ToBoolean(lineobj[7]);
+                        line.flipped = Convert.ToBoolean(lineobj[idx++]);
+                        idx += 2;//skip leftline, rightline
+                        if (line.type == 1 && idx < sz)
+                        {
+                            line.multiplier = Convert.ToInt32(lineobj[idx++]);
+                        }
                     }
                 }
                 AddLine(track, line);

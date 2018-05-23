@@ -15,7 +15,6 @@ namespace linerider.IO
         public static string SaveTrack(Track trk, string savename)
         {
             var sw = Stopwatch.StartNew();
-            Track ret = new Track();
             track_json trackobj = new track_json();
             trackobj.label = trk.Name;
             trackobj.startPosition = new track_json.point_json()
@@ -23,6 +22,8 @@ namespace linerider.IO
                 x = trk.StartOffset.X,
                 y = trk.StartOffset.Y
             };
+            trackobj.startZoom = trk.StartZoom;
+            trackobj.zeroStart = trk.ZeroStart;
             int ver = trk.GetVersion();
             switch (ver)
             {
@@ -35,6 +36,7 @@ namespace linerider.IO
             }
             var sort = trk.GetSortedLines();
             trackobj.linesArray = new object[sort.Length][];
+            trackobj.triggers = new List<track_json.zoomtrigger_json>();
             int idx = 0;
             foreach (var line in sort)
             {
@@ -64,6 +66,20 @@ namespace linerider.IO
                         jline.rightExtended = true;
                     jline.extended = (int)stl.Extension;
                     jline.flipped = stl.inv;
+                    if (line is RedLine red)
+                    {
+                        jline.multiplier = red.Multiplier;
+                    }
+                    if (stl.Trigger != null && stl.Trigger.ZoomTrigger)
+                    {
+                        trackobj.triggers.Add(new track_json.zoomtrigger_json()
+                        {
+                            zoom = true,
+                            ID = jline.id,
+                            target = stl.Trigger.ZoomTarget,
+                            frames = stl.Trigger.ZoomFrames
+                        });
+                    }
                 }
                 trackobj.linesArray[idx++] = line_to_linearrayline(jline);
             }
@@ -80,11 +96,21 @@ namespace linerider.IO
         }
         private static object[] line_to_linearrayline(line_json line)
         {
-            //['type', 'id', 'x1', 'y1', 'x2', 'y2', 'extended', 'flipped', 'leftLine', 'rightLine']
+            //['type', 'id', 'x1', 'y1', 'x2', 'y2', 'extended', 'flipped', 'leftLine', 'rightLine', 'multiplier']
+            List<object> ret = new List<object>(11) { line.type, line.id, line.x1, line.y1, line.x2, line.y2 };
+
             if (line.type != 2)
-                return new object[] { line.type, line.id, line.x1, line.y1, line.x2, line.y2, line.extended, line.flipped };
-            //scenery
-            return new object[] { line.type, line.id, line.x1, line.y1, line.x2, line.y2 };
+            {
+                ret.Add(line.extended);
+                ret.Add(line.flipped);
+                if (line.multiplier > 1)
+                {
+                    ret.Add(-1);
+                    ret.Add(-1);
+                    ret.Add(line.multiplier);
+                }
+            }
+            return ret.ToArray();
         }
     }
 }

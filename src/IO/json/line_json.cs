@@ -17,5 +17,29 @@ namespace linerider.IO.json
         public object flipped { get; set; }
         public object leftExtended { get; set; }
         public object rightExtended { get; set; }
+        public int multiplier { get; set; }
+        public bool ShouldSerializemultiplier()
+        {
+            if (multiplier > 1 && type == 1)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public bool ShouldSerializeextended()
+        {
+            return extended != 0;
+        }
+        public bool ShouldSerializeleftExtended()
+        {
+            return false;
+        }
+        public bool ShouldSerializerightExtended()
+        {
+            return false;
+        }
     }
 }
