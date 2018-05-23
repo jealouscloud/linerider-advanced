@@ -36,10 +36,10 @@ namespace linerider
 #endif
         public static string BinariesFolder = "bin";
         public readonly static CultureInfo Culture = new CultureInfo("en-US");
-        public static string Version = "1.03.1";
-        public static string TestVersion = "";
+        public static string Version = "1.04a";
+        public static string TestVersion = " unstable";
         public static string NewVersion = null;
-        public static readonly string WindowTitle = "Line Rider: Advanced " + Version;
+        public static readonly string WindowTitle = "Line Rider: Advanced " + Version + TestVersion;
         public static Random Random;
         private static bool _crashed;
         private static MainWindow glGame;
@@ -177,7 +177,7 @@ namespace linerider
                     {
                         using (WebClient wc = new WebClient())
                         {
-                            string currentversion = wc.DownloadString("https://raw.githubusercontent.com/jealouscloud/linerider-advanced/master/version");
+                            string currentversion = wc.DownloadString("https://raw.githubusercontent.com/jealouscloud/linerider-advanced/develop/version");
                             var idx = currentversion.IndexOfAny(new char[] { '\r', '\n' });
                             if (idx != -1)
                             {
