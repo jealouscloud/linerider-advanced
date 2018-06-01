@@ -169,17 +169,15 @@ namespace linerider.Rendering
             _vbo.Bind();
             _shader.Use();
             var in_vertex = _shader.GetAttrib("in_vertex");
+            var in_color = _shader.GetAttrib("in_color");
             var in_circle = _shader.GetAttrib("in_circle");
             var in_selectflags = _shader.GetAttrib("in_selectflags");
-            var in_scale = _shader.GetAttrib("in_scale");
-            var in_ratio = _shader.GetAttrib("in_ratio");
-            var in_color = _shader.GetAttrib("in_color");
+            var in_linesize = _shader.GetAttrib("in_linesize");
             GL.EnableVertexAttribArray(in_vertex);
+            GL.EnableVertexAttribArray(in_color);
             GL.EnableVertexAttribArray(in_circle);
             GL.EnableVertexAttribArray(in_selectflags);
-            GL.EnableVertexAttribArray(in_ratio);
-            GL.EnableVertexAttribArray(in_scale);
-            GL.EnableVertexAttribArray(in_color);
+            GL.EnableVertexAttribArray(in_linesize);
             int counter = 0;
             GL.VertexAttribPointer(in_vertex, 2, VertexAttribPointerType.Float, false, LineVertex.Size, counter);
             counter += 8;
@@ -187,22 +185,16 @@ namespace linerider.Rendering
             counter += 4;
             GL.VertexAttribPointer(in_circle, 2, VertexAttribPointerType.Byte, false, LineVertex.Size, counter);
             counter += 2;
-
             GL.VertexAttribPointer(in_selectflags, 1, VertexAttribPointerType.Byte, false, LineVertex.Size, counter);
             counter += 2;
-
-            GL.VertexAttribPointer(in_ratio, 1, VertexAttribPointerType.Float, false, LineVertex.Size, counter);
-            counter += 4;
-            GL.VertexAttribPointer(in_scale, 1, VertexAttribPointerType.Float, false, LineVertex.Size, counter);
-            counter += 4;
+            GL.VertexAttribPointer(in_linesize, 2, VertexAttribPointerType.Float, false, LineVertex.Size, counter);
+            counter += 8;
             var global = OverrideColor;
-            var u_color = _shader.GetUniform("u_color");
-            var u_scale = _shader.GetUniform("u_scale");
-            var u_knobstate = _shader.GetUniform("u_knobstate");
-            GL.Uniform4(u_color, global.R / 255f, global.G / 255f, global.B / 255f, OverridePriority / 255f);
-            GL.Uniform1(u_scale, Scale);
+            GL.Uniform4(_shader.GetUniform("u_color"),
+                global.R / 255f, global.G / 255f, global.B / 255f, OverridePriority / 255f);
+            GL.Uniform1(_shader.GetUniform("u_scale"), Scale);
             GL.Uniform1(_shader.GetUniform("u_alphachannel"), 0);
-            GL.Uniform1(u_knobstate, (int)KnobState);
+            GL.Uniform1(_shader.GetUniform("u_knobstate"), (int)KnobState);
             GL.Uniform4(_shader.GetUniform("u_knobcolor"), Constants.DefaultKnobColor);
 
         }
@@ -221,19 +213,11 @@ namespace linerider.Rendering
         }
         protected void EndDraw()
         {
-            var v = _shader.GetAttrib("in_vertex");
-            var circle = _shader.GetAttrib("in_circle");
-            var ratio = _shader.GetAttrib("in_ratio");
-            var in_color = _shader.GetAttrib("in_color");
-            var in_scale = _shader.GetAttrib("in_scale");
-            var in_selectflags = _shader.GetAttrib("in_selectflags");
-
-            GL.DisableVertexAttribArray(in_color);
-            GL.DisableVertexAttribArray(v);
-            GL.DisableVertexAttribArray(circle);
-            GL.DisableVertexAttribArray(in_selectflags);
-            GL.DisableVertexAttribArray(ratio);
-            GL.DisableVertexAttribArray(in_scale);
+            GL.DisableVertexAttribArray(_shader.GetAttrib("in_vertex"));
+            GL.DisableVertexAttribArray(_shader.GetAttrib("in_color"));
+            GL.DisableVertexAttribArray(_shader.GetAttrib("in_circle"));
+            GL.DisableVertexAttribArray(_shader.GetAttrib("in_selectflags"));
+            GL.DisableVertexAttribArray(_shader.GetAttrib("in_linesize"));
             _shader.Stop();
             _vbo.Unbind();
         }

@@ -62,26 +62,23 @@ namespace linerider.Drawing
         {
             _shader.Use();
             var in_vertex = _shader.GetAttrib("in_vertex");
-            var in_circle = _shader.GetAttrib("in_circle");
-            var in_ratio = _shader.GetAttrib("in_ratio");
             var in_color = _shader.GetAttrib("in_color");
-            var in_scale = _shader.GetAttrib("in_scale");
+            var in_circle = _shader.GetAttrib("in_circle");
+            var in_selectflags = _shader.GetAttrib("in_selectflags");
+            var in_linesize = _shader.GetAttrib("in_linesize");
             GL.EnableVertexAttribArray(in_vertex);
             GL.EnableVertexAttribArray(in_circle);
-            GL.EnableVertexAttribArray(in_ratio);
+            GL.EnableVertexAttribArray(in_linesize);
             GL.EnableVertexAttribArray(in_color);
-            GL.EnableVertexAttribArray(in_scale);
             fixed (float* ptr1 = &Array.unsafe_array[0].Position.X)
             fixed (byte* ptr2 = &Array.unsafe_array[0].u)
             fixed (float* ptr3 = &Array.unsafe_array[0].ratio)
             fixed (int* ptr4 = &Array.unsafe_array[0].color)
-            fixed (float* ptr5 = &Array.unsafe_array[0].scale)
             {
                 GL.VertexAttribPointer(in_vertex, 2, VertexAttribPointerType.Float, false, LineVertex.Size, (IntPtr)ptr1);
                 GL.VertexAttribPointer(in_circle, 2, VertexAttribPointerType.Byte, false, LineVertex.Size, (IntPtr)ptr2);
-                GL.VertexAttribPointer(in_ratio, 1, VertexAttribPointerType.Float, false, LineVertex.Size, (IntPtr)ptr3);
+                GL.VertexAttribPointer(in_linesize, 2, VertexAttribPointerType.Float, false, LineVertex.Size, (IntPtr)ptr3);
                 GL.VertexAttribPointer(in_color, 4, VertexAttribPointerType.UnsignedByte, true, LineVertex.Size, (IntPtr)ptr4);
-                GL.VertexAttribPointer(in_scale, 1, VertexAttribPointerType.Float, false, LineVertex.Size, (IntPtr)ptr5);
             }
             var u_color = _shader.GetUniform("u_color");
             var u_scale = _shader.GetUniform("u_scale");

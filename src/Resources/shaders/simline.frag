@@ -3,14 +3,16 @@ uniform float u_scale;
 uniform int u_knobstate;
 uniform bool u_alphachannel;
 uniform vec4 u_knobcolor;
-
 //basically u/v coordinates to the circle.
 varying vec2 v_circle;
-//the ratio height/width of the line
-varying float v_ratio;
+varying vec2 v_linesize;
 varying vec4 v_color;
-varying float v_scale;
 varying float v_selectflags;
+
+float v_scale;
+//the ratio height/width of the line
+float v_ratio;
+
 const float radius = 0.5;
 const float knobradius = 0.4;
 float getedge(float rad, float scale)
@@ -19,9 +21,10 @@ float getedge(float rad, float scale)
 }
 void main()
 {
+    v_ratio = v_linesize.x;
+    v_scale = v_linesize.y;
     vec2 scaled = vec2(v_circle.x / v_ratio, v_circle.y);
     vec2 circ_center = vec2((1.0 / v_ratio) - 0.5, 0.5);
-
     float leftdist = distance(scaled,circ_center);
     float rightdist = distance(scaled, vec2(0.5, 0.5));
     float edgedist = min(leftdist, rightdist);
