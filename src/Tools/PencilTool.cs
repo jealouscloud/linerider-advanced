@@ -117,7 +117,7 @@ namespace linerider.Tools
             _drawn = true;
             using (var trk = game.Track.CreateTrackWriter())
             {
-                var added = CreateLine(trk, _start, _end, false, Snapped, false);
+                var added = CreateLine(trk, _start, _end, _addflip, Snapped, false);
                 if (added is StandardLine)
                 {
                     game.Track.NotifyTrackChanged();
@@ -151,14 +151,7 @@ namespace linerider.Tools
             game.Invalidate();
             if (Active)
             {
-                _end = ScreenToGameCoords(pos);
-                var diff = _end - _start;
-                var len = diff.Length;
-
-                if (DrawingScenery || len >= MINIMUM_LINE)
-                {
-                    AddLine();
-                }
+                OnMouseMoved(pos);
                 Stop();
             }
             base.OnMouseUp(pos);
