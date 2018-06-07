@@ -82,6 +82,7 @@ namespace linerider
             var rec = IO.TrackRecorder.Recording;
             ZoomSlider.IsHidden = rec;
             _toolbar.IsHidden = rec && !Settings.Recording.ShowTools;
+            _timeline.IsHidden = rec;
             //
             _loadingsprite.IsHidden = rec || !Loading;
             var selectedtool = CurrentTools.SelectedTool;
