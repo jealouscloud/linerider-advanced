@@ -54,7 +54,7 @@ void main()
     if (u_alphachannel)
         a *= v_color.a;
     vec3 color = v_color.rgb;
-    if (v_selectflags == 1)
+    if (v_selectflags == 1.0)
         color = mix(color,vec3(0.5,0.5,0.5), 0.25);
     gl_FragColor = vec4(color, a);
 }
