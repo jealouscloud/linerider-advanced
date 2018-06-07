@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.IO;
@@ -438,10 +439,23 @@ namespace linerider
                         continue;
                     if (!bind.IsEmpty)
                     {
-                        config += "\r\n" + MakeSetting(binds.Key.ToString(),
-                        "Mod=" + bind.Modifiers.ToString() +
-                        "|Key=" + bind.Key.ToString() +
-                        "|Mouse=" + bind.MouseButton.ToString());
+                        string keybind = "";
+                        if (bind.UsesModifiers)
+                            keybind += bind.Modifiers.ToString();
+                        if (bind.UsesKeys)
+                        {
+                            if (keybind.Length > 0)
+                                keybind += "+";
+                            keybind += bind.Key.ToString();
+                        }
+                        if (bind.UsesMouse)
+                        {
+                            if (keybind.Length > 0)
+                                keybind += "+";
+                            keybind += bind.MouseButton.ToString();
+                        }
+                        config += "\r\n" +
+                            MakeSetting(binds.Key.ToString(), $"[{keybind}]");
                     }
                 }
             }
@@ -463,30 +477,35 @@ namespace linerider
             while (setting != null)
             {
                 line++;
-                int modstart = setting.IndexOf("Mod=");
-                int keystart = setting.IndexOf("Key=");
-                int mousestart = setting.IndexOf("Mouse=");
-                if (modstart == -1 || keystart == -1 || mousestart == -1)
-                    return;
-                modstart += 4;
-                keystart += 4;
-                mousestart += 6;
-                int modend = setting.IndexOf("|", modstart);
-                int keyend = setting.IndexOf("|", keystart);
-                int mouseend = setting.IndexOf("|", mousestart);
-                if (modend == -1 || keyend == -1 || mouseend == -1)
-                    return;
+                var items = setting.Trim(' ', '\t', '[', ']').Split('+');
+                Keybinding ret = new Keybinding();
+                foreach (var item in items)
+                {
+                    if (!ret.UsesModifiers &&
+                        Enum.TryParse<KeyModifiers>(item, true, out var modifiers))
+                    {
+                        ret.Modifiers = modifiers;
+                    }
+                    else if (!ret.UsesKeys &&
+                        Enum.TryParse<Key>(item, true, out Key key))
+                    {
+                        ret.Key = key;
+                    }
+                    else if (!ret.UsesMouse &&
+                        Enum.TryParse<MouseButton>(item, true, out var mouse))
+                    {
+                        ret.MouseButton = mouse;
+                    }
+                }
+
                 try
                 {
-
-                    Keybinding ret = new Keybinding();
-                    ret.Modifiers = (KeyModifiers)Enum.Parse(typeof(KeyModifiers), setting.Substring(modstart, modend - modstart));
-                    ret.MouseButton = (MouseButton)Enum.Parse(typeof(MouseButton), setting.Substring(mousestart, mouseend - mousestart));
-                    ret.Key = (Key)Enum.Parse(typeof(Key), setting.Substring(keystart, keyend - keystart));
-                    CreateKeybind(hotkey, ret);
+                    if (!ret.IsEmpty)
+                        CreateKeybind(hotkey, ret);
                 }
-                catch
+                catch (Exception e)
                 {
+                    Debug.WriteLine($"An error occured loading the hotkey {hotkey}\n{e}");
                 }
                 setting = GetSetting(config, hotkeyname, ref line);
             }
