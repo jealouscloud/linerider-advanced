@@ -19,6 +19,16 @@ float getedge(float rad, float scale)
 {
     return rad - (rad / (u_scale * v_scale * scale)); 
 }
+vec3 getknob(float edgedist)
+{
+    const vec3 lifelockcolor = vec3(1.0, 0.0, 0.0);
+    float knobedgediff = knobradius - getedge(knobradius, 0.8);
+    float step = (knobradius - edgedist) / knobedgediff;
+    vec3 knobcolor = u_knobcolor.rgb;
+    if (u_knobstate == 2)
+        knobcolor = lifelockcolor;
+    return mix(v_color.rgb, knobcolor, min(step, 1.0));
+}
 void main()
 {
     v_ratio = v_linesize.x;
@@ -28,33 +38,17 @@ void main()
     float leftdist = distance(scaled,circ_center);
     float rightdist = distance(scaled, vec2(0.5, 0.5));
     float edgedist = min(leftdist, rightdist);
-    float alpha;
+    vec4 color = vec4(v_color.rgb, 1.0);
+    
     if ((u_knobstate > 0 && v_selectflags <= 0.0) && edgedist < knobradius)
-    {
-        float knobedgediff = knobradius - getedge(knobradius, 0.8);
-        float step = (knobradius - edgedist) / knobedgediff;
-        const vec3 lifelockcolor = vec3(1.0, 0.0, 0.0);
-        vec3 knobcolor = u_knobcolor.rgb;
-        if (u_knobstate == 2)
-            knobcolor = lifelockcolor;
-        gl_FragColor = vec4(mix(v_color.rgb, knobcolor, min(step, 1.0)), 1.0);
-        return;
-    }
-    else if (scaled.x < circ_center.x && scaled.x > 0.5)//between circles
-    {
-        alpha = 1.0;
-    }
-    else
-    {
-        alpha = smoothstep(radius, getedge(radius, 1.0), edgedist);
-    }
-    if (alpha == 0.0)
-        discard;
-    float a = alpha;
+        color.rgb = getknob(edgedist);
+
+    if (scaled.x >= circ_center.x || scaled.x <= 0.5)
+        color.a = smoothstep(radius, getedge(radius, 1.0), edgedist);
+
     if (u_alphachannel)
-        a *= v_color.a;
-    vec3 color = v_color.rgb;
+        color.a *= v_color.a;
     if (v_selectflags == 1.0)
-        color = mix(color,vec3(0.5,0.5,0.5), 0.25);
-    gl_FragColor = vec4(color, a);
+        color.rgb = mix(color.rgb,vec3(0.5, 0.5, 0.5), 0.25);
+    gl_FragColor = color;
 }
