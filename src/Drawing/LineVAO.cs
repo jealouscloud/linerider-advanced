@@ -64,7 +64,6 @@ namespace linerider.Drawing
             var in_vertex = _shader.GetAttrib("in_vertex");
             var in_color = _shader.GetAttrib("in_color");
             var in_circle = _shader.GetAttrib("in_circle");
-            var in_selectflags = _shader.GetAttrib("in_selectflags");
             var in_linesize = _shader.GetAttrib("in_linesize");
             GL.EnableVertexAttribArray(in_vertex);
             GL.EnableVertexAttribArray(in_circle);
@@ -100,17 +99,10 @@ namespace linerider.Drawing
         }
         protected override void EndDraw()
         {
-            var v = _shader.GetAttrib("in_vertex");
-            var circle = _shader.GetAttrib("in_circle");
-            var ratio = _shader.GetAttrib("in_ratio");
-            var in_color = _shader.GetAttrib("in_color");
-            var in_scale = _shader.GetAttrib("in_scale");
-
-            GL.DisableVertexAttribArray(in_color);
-            GL.DisableVertexAttribArray(v);
-            GL.DisableVertexAttribArray(circle);
-            GL.DisableVertexAttribArray(ratio);
-            GL.DisableVertexAttribArray(in_scale);
+            GL.DisableVertexAttribArray(_shader.GetAttrib("in_vertex"));
+            GL.DisableVertexAttribArray(_shader.GetAttrib("in_color"));
+            GL.DisableVertexAttribArray(_shader.GetAttrib("in_circle"));
+            GL.DisableVertexAttribArray(_shader.GetAttrib("in_linesize"));
             _shader.Stop();
         }
     }
