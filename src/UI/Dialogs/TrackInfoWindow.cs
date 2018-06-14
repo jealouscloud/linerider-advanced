@@ -63,7 +63,9 @@ namespace linerider.UI
                     var node = Songs.AddRow(nodename);
                     node.UserData = name;
                     if (name == _editor.Song.Location)
-                        node.IsSelected = true;
+                    {
+                        Songs.SelectRow(node, true);
+                    }
                 }
             }
         }
@@ -98,8 +100,8 @@ namespace linerider.UI
             };
             help.Clicked += (o, e) =>
             {
-                MessageBox.Show(_canvas, 
-                "LRA can sync songs with tracks you make.\nSongs are imported from Documents/LRA/Songs.\n\nWe load files as .ogg, but support importing all common filetypes. LRA will mark files it needs to automatically convert with [convert]", 
+                MessageBox.Show(_canvas,
+                "LRA can sync songs with tracks you make.\nSongs are imported from Documents/LRA/Songs.\n\nWe load files as .ogg, but support importing all common filetypes. LRA will mark files it needs to automatically convert with [convert]",
                 "Help", true);
             };
             this.IsHiddenChanged += (o, e) =>
