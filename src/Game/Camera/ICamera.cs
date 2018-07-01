@@ -206,7 +206,7 @@ namespace linerider.Game
                 if (frame == _prevframe)
                     return _prevcamera;
                 if (frame % cacherate != 0)
-                    return StepCamera(box, ref _prevcamera, frame);
+                    return box.Clamp(StepCamera(box, ref _prevcamera, frame));
             }
             int cachepos = Math.Min(frame / cacherate, _framecache.Count - 1);
             int framestart = cachepos * cacherate;
