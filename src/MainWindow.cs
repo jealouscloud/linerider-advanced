@@ -327,6 +327,7 @@ namespace linerider
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
+            Track.Camera.OnResize();
             try
             {
                 Canvas.SetCanvasSize(RenderSize.Width, RenderSize.Height);

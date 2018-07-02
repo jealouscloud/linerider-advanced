@@ -75,7 +75,7 @@ namespace linerider.Game
             if (frame % cacherate != 0)
                 cachepos++;
 
-            if (cachepos < _frames.Count)
+            if (cachepos < _framecache.Count)
             {
                 _framecache.RemoveRange(cachepos, _framecache.Count - cachepos);
             }
@@ -159,6 +159,11 @@ namespace linerider.Game
             Vector2d size = new Vector2d(maxwidth / zoom, maxheight / zoom);
             var origin = center - (size / 2);
             return new DoubleRect(origin, size);
+        }
+        public void OnResize()
+        {
+            SetFrameCenter(GetCenter());
+            InvalidateFrame(1);
         }
         public DoubleRect getclamp(float zoom, int width, int height)
         {
