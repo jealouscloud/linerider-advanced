@@ -155,8 +155,11 @@ namespace linerider
         /// </summary>
         public static int fastrand(int seed)
         {
-            seed = (214013 * seed + 2531011);
-            return (seed >> 16) & 0x7FFF;
+            unchecked
+            {
+                seed = (214013 * seed + 2531011);
+                return (seed >> 16) & 0x7FFF;
+            }
         }
         public static double LengthFast(Vector2d vector)
         {
