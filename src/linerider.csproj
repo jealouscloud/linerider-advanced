@@ -96,7 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Game\Camera\ICamera.cs" />
-    <Compile Include="Game\Camera\SmoothCamera.cs" />
+    <Compile Include="Game\Camera\PredictiveCamera.cs" />
     <Compile Include="Game\Camera\ClampCamera.cs" />
     <Compile Include="Game\Camera\CameraBoundingBox.cs" />
     <Compile Include="Game\Camera\CameraLocation.cs" />

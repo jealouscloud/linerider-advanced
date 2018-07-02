@@ -8,7 +8,7 @@ using OpenTK;
 using linerider.Utils;
 namespace linerider.Game
 {
-    public class SmoothCamera : ClampCamera
+    public class PredictiveCamera : ClampCamera
     {
         protected override Vector2d StepCamera(CameraBoundingBox box, ref Vector2d prev, int frame)
         {

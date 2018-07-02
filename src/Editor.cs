@@ -661,7 +661,7 @@ namespace linerider
             }
             if (Settings.SmoothCamera)
             {
-                Camera = new SmoothCamera();
+                Camera = new PredictiveCamera();
             }
             else
             {
