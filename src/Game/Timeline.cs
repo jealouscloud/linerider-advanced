@@ -149,7 +149,8 @@ namespace linerider.Game
                         _track.Bones,
                         ref trig,
                         null,
-                        iteration);
+                        iteration,
+                        frameid: frame);
             }
             return GetFrame(frame);
         }
@@ -258,7 +259,8 @@ namespace linerider.Game
                         _savedcells,
                         bones,
                         ref current.TriggerLineID,
-                        collisions);
+                        collisions,
+                        frameid: currentframe);
                     if (current.TriggerLineID != oldtrigid)
                     {
                         current.TriggerHitFrame = currentframe;

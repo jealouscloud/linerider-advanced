@@ -132,6 +132,36 @@ namespace linerider.Game
             }
             return new Rider(joints, scarf, r1.PhysicsBounds, dead, r1.SledBroken);
         }
+        private static void FlutterScarf(SimulationPoint[] scarf, int frameid, double momentum)
+        {
+            var baseoffset = frameid;
+            // this creates a sense of 'progression' in the flutter, otherwise
+            // it feels robotic
+            baseoffset += (frameid / 20);
+
+            int rate = (20 - (int)(14 * Math.Min(1, momentum / 100)));
+            int offset = baseoffset % rate;
+            for (int i = 1; i < scarf.Length; i++)
+            {
+                double scalar = (i - 1.0) / (scarf.Length - 1);
+
+                var flutter = WaveFlutter(
+                    scarf[i].Location,
+                    scarf[i - 1].Location,
+                    scalar * (Math.PI * 4) + offset);
+                flutter *= momentum / 100;
+
+                if (Utility.fastrand(frameid) % 4 == 0)
+                    flutter *= scalar * 2;
+                scarf[i] = scarf[i].Replace(scarf[i].Location, scarf[i].Previous + flutter);
+            }
+        }
+        private static Vector2d WaveFlutter(Vector2d pos, Vector2d prev, double radian)
+        {
+            var ang = Angle.FromLine(prev, pos);
+            ang.Degrees += Math.Cos(radian) * 90;
+            return ang.MovePoint(Vector2d.Zero, 2);
+        }
         private unsafe static void ProcessLines(
             ISimulationGrid grid,
             SimulationPoint[] body,
@@ -254,7 +284,8 @@ namespace linerider.Game
             ref int activetriggers,
             LinkedList<int> collisions,
             int maxiteration = 6,
-            bool stepscarf = true)
+            bool stepscarf = true,
+            int frameid = 0)
         {
             SimulationPoint[] body = Body.Step();
             int bodylen = Body.Length;
@@ -286,6 +317,7 @@ namespace linerider.Game
             {
                 scarf = Scarf.Step(friction: true);
                 scarf[0] = body[RiderConstants.BodyShoulder];
+                FlutterScarf(scarf, frameid, Utility.LengthFast(scarf[0].Momentum));
                 ProcessScarfBones(RiderConstants.ScarfBones, scarf);
             }
             else

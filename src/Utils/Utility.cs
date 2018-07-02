@@ -150,6 +150,18 @@ namespace linerider
             var b = Math.Abs((input - p2).LengthSquared);
             return a < b ? p1 : p2;
         }
+        /// <summary>
+        /// A lightwate random number generator without the need for init
+        /// </summary>
+        public static int fastrand(int seed)
+        {
+            seed = (214013 * seed + 2531011);
+            return (seed >> 16) & 0x7FFF;
+        }
+        public static double LengthFast(Vector2d vector)
+        {
+            return 1.0 / MathHelper.InverseSqrtFast(vector.LengthSquared);
+        }
         public static double leftness(Vector2d[] rect, int a, int b, ref Vector2d point)
         {
             return ((rect[b].X - rect[a].X) * (point.Y - rect[a].Y) - (rect[b].Y - rect[a].Y) * (point.X - rect[a].X));
