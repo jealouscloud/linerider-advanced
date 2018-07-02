@@ -118,6 +118,7 @@ namespace linerider.UI
             AddBinding(pbtable, "Hold -- Rewind", Hotkey.PlaybackBackward);
             AddBinding(pbtable, "Increase Playback Rate", Hotkey.PlaybackSpeedUp);
             AddBinding(pbtable, "Decrease Playback Rate", Hotkey.PlaybackSpeedDown);
+            AddBinding(pbtable, "Toggle Slowmo", Hotkey.PlaybackSlowmo);
             AddBinding(pbtable, "Zoom In", Hotkey.PlaybackZoom);
             AddBinding(pbtable, "Zoom Out", Hotkey.PlaybackUnzoom);
             AddBinding(pbtable, "Play Button - Ignore Flag", Hotkey.PlayButtonIgnoreFlag);
