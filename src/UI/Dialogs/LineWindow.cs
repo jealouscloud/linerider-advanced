@@ -19,7 +19,7 @@ namespace linerider.UI
         private GameLine _ownerline;
         private GameLine _linecopy;
         private bool _linechangemade = false;
-        private const string DefaultTitle = "Line Propeties";
+        private const string DefaultTitle = "Line Properties";
         private bool closing = false;
         public LineWindow(GameCanvas parent, Editor editor, GameLine line) : base(parent, editor)
         {
