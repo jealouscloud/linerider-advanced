@@ -131,25 +131,56 @@ namespace linerider.UI
         private void PopulateCamera(ControlBase parent)
         {
             var camtype = GwenHelper.CreateHeaderPanel(parent, "Camera Type");
-            var smooth = GwenHelper.AddCheckbox(camtype, "Smooth Camera", Settings.SmoothCamera, (o, e) =>
+            var camprops = GwenHelper.CreateHeaderPanel(parent, "Camera Properties");
+            RadioButtonGroup rbcamera = new RadioButtonGroup(camtype)
             {
-                Settings.SmoothCamera = ((Checkbox)o).IsChecked;
-                _editor.InitCamera();
-                Settings.Save();
-            });
-            var round = GwenHelper.AddCheckbox(camtype, "Round Legacy Camera", Settings.RoundLegacyCamera, (o, e) =>
+                Dock = Dock.Top,
+                ShouldDrawBackground = false,
+            };
+            var smooth = rbcamera.AddOption("Smooth Camera");
+            var predictive = rbcamera.AddOption("Predictive Camera");
+            var legacy = rbcamera.AddOption("Legacy Camera");
+            var round = GwenHelper.AddCheckbox(camprops, "Round Legacy Camera", Settings.RoundLegacyCamera, (o, e) =>
             {
                 Settings.RoundLegacyCamera = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
-            if (smooth.IsChecked)
+            if (Settings.SmoothCamera)
             {
-                round.IsDisabled = true;
+                if (Settings.PredictiveCamera)
+                    predictive.Select();
+                else
+                    smooth.Select();
             }
-            smooth.CheckChanged += (o, e) =>
+            else
             {
-                round.IsDisabled = smooth.IsChecked;
+                legacy.Select();
+            }
+            smooth.Checked += (o, e) =>
+            {
+                Settings.SmoothCamera = true;
+                Settings.PredictiveCamera = false;
+                Settings.Save();
+                round.IsDisabled = Settings.SmoothCamera;
+                _editor.InitCamera();
             };
+            predictive.Checked += (o, e) =>
+            {
+                Settings.SmoothCamera = true;
+                Settings.PredictiveCamera = true;
+                Settings.Save();
+                round.IsDisabled = Settings.SmoothCamera;
+                _editor.InitCamera();
+            };
+            legacy.Checked += (o, e) =>
+            {
+                Settings.SmoothCamera = false;
+                Settings.PredictiveCamera = false;
+                Settings.Save();
+                round.IsDisabled = Settings.SmoothCamera;
+                _editor.InitCamera();
+            };
+            predictive.Tooltip = "This is the camera that was added in 1.03\nIt moves relative to the future of the track";
         }
         private void PopulateEditor(ControlBase parent)
         {

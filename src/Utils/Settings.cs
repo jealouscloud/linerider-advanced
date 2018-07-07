@@ -72,6 +72,7 @@ namespace linerider
         public static bool WhiteBG;
         public static bool NightMode;
         public static bool SmoothCamera;
+        public static bool PredictiveCamera;
         public static bool RoundLegacyCamera;
         public static bool SmoothPlayback;
         public static bool CheckForUpdates;
@@ -152,6 +153,7 @@ namespace linerider
             WhiteBG = false;
             NightMode = false;
             SmoothCamera = true;
+            PredictiveCamera = false;
             RoundLegacyCamera = true;
             SmoothPlayback = true;
             CheckForUpdates = true;
@@ -355,6 +357,7 @@ namespace linerider
             LoadBool(GetSetting(lines, nameof(WhiteBG)), ref WhiteBG);
             LoadBool(GetSetting(lines, nameof(NightMode)), ref NightMode);
             LoadBool(GetSetting(lines, nameof(SmoothCamera)), ref SmoothCamera);
+            LoadBool(GetSetting(lines, nameof(PredictiveCamera)), ref PredictiveCamera);
             LoadBool(GetSetting(lines, nameof(CheckForUpdates)), ref CheckForUpdates);
             LoadBool(GetSetting(lines, nameof(SmoothPlayback)), ref SmoothPlayback);
             LoadBool(GetSetting(lines, nameof(RoundLegacyCamera)), ref RoundLegacyCamera);
@@ -403,6 +406,7 @@ namespace linerider
             config += "\r\n" + MakeSetting(nameof(WhiteBG), WhiteBG.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(NightMode), NightMode.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SmoothCamera), SmoothCamera.ToString(Program.Culture));
+            config += "\r\n" + MakeSetting(nameof(PredictiveCamera), PredictiveCamera.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(CheckForUpdates), CheckForUpdates.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(SmoothPlayback), SmoothPlayback.ToString(Program.Culture));
             config += "\r\n" + MakeSetting(nameof(PlaybackZoomType), PlaybackZoomType.ToString(Program.Culture));
