@@ -370,8 +370,15 @@ namespace linerider
                 _hasstopped = false;
             }
             Scheduler.Reset();
-            Camera.BeginFrame(1, Zoom);
-            Camera.SetFrameCenter(Camera.GetCenter(true));
+            if (Paused)
+            {
+                Camera.BeginFrame(1, Zoom);
+                Camera.SetFrameCenter(Camera.GetCenter(true));
+            }
+            else
+            {
+                UpdateCamera();
+            }
             Invalidate();
         }
         public void StartFromFlag()
