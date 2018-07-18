@@ -4,10 +4,5 @@
 **/.vs
 **/obj
 **/packages
-build/*.exe
-build/*.mdb
-build/*.xml
-build/*.config
-build/*.pdb
-build/*.dll
+build
 deploy
