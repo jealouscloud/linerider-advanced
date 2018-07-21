@@ -1,7 +1,7 @@
 ﻿//  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
-//  Copyright (c) 2017 
+//  Copyright (c) 2017
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -68,8 +68,8 @@ namespace linerider.UI
             _linebtn = CreateTool(GameResources.line_icon, "Line Tool (W)");
             _eraserbtn = CreateTool(GameResources.eraser_icon, "Eraser Tool (E)");
             _selectbtn = CreateTool(GameResources.movetool_icon, "Select Tool (R)");
-            _handbtn = CreateTool(GameResources.pantool_icon, "Hand Tool (Space) (T)");
-            _start = CreateTool(GameResources.play_icon, "Start (Y)");
+            _handbtn = CreateTool(GameResources.pantool_icon, "Hand Tool (Shift+Space) (T)");
+            _start = CreateTool(GameResources.play_icon, "Start (Space) (Y)");
             _pause = CreateTool(GameResources.pause, "Pause (Space)");
             _stop = CreateTool(GameResources.stop_icon, "Stop (U)");
             _flag = CreateTool(GameResources.flag_icon, "Flag (I)");
