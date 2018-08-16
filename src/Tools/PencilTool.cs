@@ -151,7 +151,15 @@ namespace linerider.Tools
             game.Invalidate();
             if (Active)
             {
-                OnMouseMoved(pos);
+                if (DrawingScenery && ScreenToGameCoords(pos) == _start)
+                {
+                    AddLine();
+                    _mouseshadow = ScreenToGameCoords(pos);
+                }
+                else
+                {
+                    OnMouseMoved(pos);
+                }
                 Stop();
             }
             base.OnMouseUp(pos);
