@@ -39,6 +39,19 @@ namespace linerider.Rendering
         public void Render(Track track, Timeline timeline, ICamera camera, DrawOptions options)
         {
             Rider drawrider = options.Rider;
+            if (options.OverlayFrame != -1)
+            {
+                var offs = camera.GetFrameCamera(options.OverlayFrame);
+                var diff = offs - camera.GetFrameCamera(game.Track.Offset);
+                GL.PushMatrix();
+                GL.Translate(new Vector3d(-diff * game.Track.Zoom));
+                var overlayopts = new DrawOptions();
+                overlayopts.Zoom = options.Zoom;
+                overlayopts.LineColors = false;
+                overlayopts.Overlay = true;
+                _trackrenderer.Render(overlayopts);
+                GL.PopMatrix();
+            }
             _trackrenderer.Render(options);
             if (Settings.OnionSkinning)
             {

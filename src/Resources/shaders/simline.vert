@@ -1,5 +1,6 @@
 #version 120
 uniform vec4 u_color;
+uniform bool u_overlay;
 uniform float u_scale;
 
 attribute vec2 in_vertex;
@@ -19,6 +20,9 @@ void main()
     v_linesize = in_linesize;
     // alpha channel is priority
     // if equal, prefer vertex color
-    v_color = mix(u_color, in_color, float(in_color.a >= u_color.a));
+    if (u_overlay)
+        v_color = vec4(0.5,0.5,0.5,0.5);
+    else
+        v_color = mix(u_color, in_color, float(in_color.a >= u_color.a));
     v_selectflags = in_selectflags;
 }

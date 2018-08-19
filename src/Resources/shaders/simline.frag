@@ -2,6 +2,7 @@
 uniform float u_scale;
 uniform int u_knobstate;
 uniform bool u_alphachannel;
+uniform bool u_overlay;
 uniform vec4 u_knobcolor;
 //basically u/v coordinates to the circle.
 varying vec2 v_circle;
@@ -40,7 +41,8 @@ void main()
     float edgedist = min(leftdist, rightdist);
     vec4 color = vec4(v_color.rgb, 1.0);
     
-    if ((u_knobstate > 0 && v_selectflags <= 0.0) && edgedist < knobradius)
+    if (!u_overlay && 
+        (u_knobstate > 0 && v_selectflags <= 0.0) && edgedist < knobradius)
         color.rgb = getknob(edgedist);
 
     if (scaled.x >= circ_center.x || scaled.x <= 0.5)
@@ -48,7 +50,7 @@ void main()
 
     if (u_alphachannel)
         color.a *= v_color.a;
-    if (v_selectflags == 1.0)
+    if (!u_overlay && v_selectflags == 1.0)
         color.rgb = mix(color.rgb,vec3(0.5, 0.5, 0.5), 0.25);
     gl_FragColor = color;
 }

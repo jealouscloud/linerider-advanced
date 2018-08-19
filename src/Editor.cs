@@ -249,6 +249,16 @@ namespace linerider
             drawOptions.ShowMomentumVectors = Settings.Editor.MomentumVectors;
             drawOptions.Zoom = Zoom;
             drawOptions.RiderDiagnosis = RenderRiderInfo.Diagnosis;
+            if (Settings.Local.TrackOverlay)
+            {
+                drawOptions.OverlayFrame = Settings.Local.TrackOverlayFixed
+                ? Settings.Local.TrackOverlayFixedFrame 
+                : Offset + Settings.Local.TrackOverlayOffset;
+                drawOptions.OverlayFrame = MathHelper.Clamp(
+                    drawOptions.OverlayFrame, 
+                    0, 
+                    FrameCount + 999);
+            }
             int renderframe = Offset;
             if (Playing && Offset > 0 && blend < 1)
             {

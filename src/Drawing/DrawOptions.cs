@@ -12,6 +12,7 @@ namespace linerider.Drawing
         public bool NightMode=false;
         public KnobState KnobState = 0;
         public float Blend = 1;
+        public bool Overlay = false;
         public Rider Rider;
         public bool DrawFlag;
         public Rider FlagRider;
@@ -20,6 +21,7 @@ namespace linerider.Drawing
         public bool ShowMomentumVectors = false;
         public int Iteration = 6;
         public float Zoom;
+        public int OverlayFrame = -1;
         public bool IsRunning
         {
             get

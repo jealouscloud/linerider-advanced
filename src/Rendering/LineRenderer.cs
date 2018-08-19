@@ -17,6 +17,7 @@ namespace linerider.Rendering
         public byte OverridePriority = 0;
         public Color OverrideColor = Color.Black;
         public KnobState KnobState = KnobState.Hidden;
+        public bool Overlay = false;
         public float Scale = 1.0f;
         private Shader _shader;
         private GLBuffer<LineVertex> _vbo;
@@ -190,10 +191,12 @@ namespace linerider.Rendering
             GL.VertexAttribPointer(in_linesize, 2, VertexAttribPointerType.Float, false, LineVertex.Size, counter);
             counter += 8;
             var global = OverrideColor;
-            GL.Uniform4(_shader.GetUniform("u_color"),
-                global.R / 255f, global.G / 255f, global.B / 255f, OverridePriority / 255f);
+            if (!Overlay)
+                GL.Uniform4(_shader.GetUniform("u_color"),
+                    global.R / 255f, global.G / 255f, global.B / 255f, OverridePriority / 255f);
             GL.Uniform1(_shader.GetUniform("u_scale"), Scale);
             GL.Uniform1(_shader.GetUniform("u_alphachannel"), 0);
+            GL.Uniform1(_shader.GetUniform("u_overlay"), Overlay ? 1 : 0);
             GL.Uniform1(_shader.GetUniform("u_knobstate"), (int)KnobState);
             GL.Uniform4(_shader.GetUniform("u_knobcolor"), Constants.DefaultKnobColor);
 

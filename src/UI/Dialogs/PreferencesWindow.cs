@@ -222,6 +222,10 @@ namespace linerider.UI
                 Settings.Editor.LifeLockNoFakie = ((Checkbox)o).IsChecked;
                 Settings.Save();
             });
+
+            var overlay = GwenHelper.CreateHeaderPanel(parent, "Frame Overlay");
+            PopulateOverlay(overlay);
+            
             onion.Tooltip = "Visualize the rider before/after\nthe current frame.";
             momentum.Tooltip = "Visualize the direction of\nmomentum for each contact point";
             contact.Tooltip = "Visualize the parts of the rider\nthat interact with lines.";
@@ -302,6 +306,40 @@ namespace linerider.UI
                 Settings.Save();
             };
             smooth.Tooltip = "Interpolates frames from the base\nphysics rate of 40 frames/second\nup to 60 frames/second";
+        }
+        private void PopulateOverlay(ControlBase parent)
+        {
+            var offset = new Spinner(null)
+            {
+                Min = -999,
+                Max = 999,
+                Value = Settings.Local.TrackOverlayOffset,
+            };
+            var fixedspinner = new Spinner(null)
+            {
+                Min = 0,
+                Max = _editor.FrameCount,
+                Value = Settings.Local.TrackOverlayFixedFrame,
+            };
+            void updatedisabled()
+            {
+                offset.IsDisabled = Settings.Local.TrackOverlayFixed;
+                fixedspinner.IsDisabled = !Settings.Local.TrackOverlayFixed;
+            }
+            var enabled = GwenHelper.AddCheckbox(parent, "Enabled", Settings.Local.TrackOverlay, (o, e) =>
+            {
+                Settings.Local.TrackOverlay = ((Checkbox)o).IsChecked;
+                updatedisabled();
+            });
+            GwenHelper.AddCheckbox(parent, "Fixed Frame", Settings.Local.TrackOverlayFixed, (o, e) =>
+            {
+                Settings.Local.TrackOverlayFixed = ((Checkbox)o).IsChecked;
+                updatedisabled();
+            });
+            GwenHelper.CreateLabeledControl(parent, "Frame Offset", offset);
+            GwenHelper.CreateLabeledControl(parent, "Frame ID", fixedspinner);
+            updatedisabled();
+            enabled.Tooltip = "Display an onion skin of the track\nat a specified offset for animation";
         }
         private void PopulateTools(ControlBase parent)
         {

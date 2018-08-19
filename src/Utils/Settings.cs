@@ -49,6 +49,10 @@ namespace linerider
                     return Settings.SuperZoom ? Constants.MaxSuperZoom : Constants.MaxZoom;
                 }
             }
+            public static bool TrackOverlay = false;
+            public static bool TrackOverlayFixed = false;
+            public static int TrackOverlayFixedFrame = 0;
+            public static int TrackOverlayOffset = -1;
         }
         public static class Editor
         {

@@ -116,6 +116,8 @@ namespace linerider.Rendering
                     _sceneryvbo.OverridePriority = 255;//force override
                     _physvbo.OverridePriority = 255;
                 }
+                _physvbo.Overlay = options.Overlay;
+                _sceneryvbo.Overlay = options.Overlay;
                 _sceneryvbo.Draw();
                 _decorator.DrawUnder(options);
                 _physvbo.Draw();

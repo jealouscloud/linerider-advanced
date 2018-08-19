@@ -84,6 +84,7 @@ namespace linerider.Drawing
             var u_knobstate = _shader.GetUniform("u_knobstate");
             var u_alphachannel = _shader.GetUniform("u_alphachannel");
             GL.Uniform4(u_color, 0f, 0f, 0f, 0f);
+            GL.Uniform1(_shader.GetUniform("u_overlay"), 0);
             GL.Uniform1(u_alphachannel, 1);
             GL.Uniform1(u_scale, Scale);
             GL.Uniform1(u_knobstate, (int)knobstate);
