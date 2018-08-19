@@ -131,7 +131,7 @@ namespace linerider
             {
                 _invalidated = false;
                 BeginOrtho();
-                if (blend == 1 && Settings.SmoothPlayback && Track.Playing)
+                if (blend == 1 && Settings.SmoothPlayback && Track.Playing && !Canvas.Scrubbing)
                 {
                     blend = Math.Min(1, (float)Track.Scheduler.ElapsedPercent);
                     if (ReversePlayback)
