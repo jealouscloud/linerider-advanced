@@ -61,7 +61,10 @@ namespace linerider
                     if (_allcollisions.Add(id))
                     {
                         if (Settings.Editor.HitTest)
-                            _renderer_changelist.Add(id);
+                        {
+                            if (_currentframe >= frameid)
+                                _renderer_changelist.Add(id);
+                        }
                         unique.Add(id);
                         _line_framehit.Add(id, frameid);
                     }
@@ -169,9 +172,12 @@ namespace linerider
 
         public void Reset()
         {
-            foreach (var v in _allcollisions)
+            if (_currentframe != -1)
             {
-                _renderer_changelist.Add(v);
+                foreach (var v in _allcollisions)
+                {
+                    _renderer_changelist.Add(v);
+                }
             }
             _unique_frame_collisions.Clear();
             _unique_frame_collisions.Add(new HashSet<int>());

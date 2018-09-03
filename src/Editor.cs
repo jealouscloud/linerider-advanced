@@ -269,6 +269,10 @@ namespace linerider
                 renderframe = Offset - 1;
             }
             drawOptions.Iteration = IterationsOffset;
+            // todo there's a race condition here where if the track finished 
+            // loading between this if statement and the render call above
+            // and theres a line change queued, the line may not exist in
+            // renderer, causing a crash
             if (!_loadingTrack)
             {
                 var changes = Timeline.RequestFrameForRender(renderframe);
