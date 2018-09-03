@@ -285,6 +285,14 @@ namespace linerider.Rendering
             GL.Uniform1(_shader.GetUniform("u_brokensledtex"), 5);
 
         }
+        public void DrawLines()
+        {
+            if (_lines.Array.Count != 0)
+            {
+                _lines.Scale = 1;
+                _lines.Draw(PrimitiveType.Triangles);
+            }
+        }
         public void Draw()
         {
             BeginDraw();
@@ -297,11 +305,6 @@ namespace linerider.Rendering
             {
                 _momentumvao.Scale = 1;
                 _momentumvao.Draw(PrimitiveType.Triangles);
-            }
-            if (_lines.Array.Count != 0)
-            {
-                _lines.Scale = 1;
-                _lines.Draw(PrimitiveType.Triangles);
             }
         }
         protected void EndDraw()

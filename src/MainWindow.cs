@@ -163,7 +163,6 @@ namespace linerider
                 if (this.Keyboard.GetState().IsKeyDown(Key.C))
                     GameRenderer.DbgDrawCamera();
 #endif
-                CurrentTools.SelectedTool.Render();
                 Canvas.RenderCanvas();
                 MSAABuffer.End();
 

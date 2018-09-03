@@ -110,6 +110,8 @@ namespace linerider.Rendering
             }
             _riderrenderer.Scale = options.Zoom;
             _riderrenderer.Draw();
+            CurrentTools.SelectedTool.Render();
+            _riderrenderer.DrawLines();
             _riderrenderer.Clear();
         }
         public void AddLine(GameLine l)
