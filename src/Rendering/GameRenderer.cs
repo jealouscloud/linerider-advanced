@@ -86,10 +86,10 @@ namespace linerider.Rendering
             return _linevao;
         }
         public static void DrawKnob(
-            Vector2d position, 
-            bool highlight, 
-            bool lifelock, 
-            float linewidth, 
+            Vector2d position,
+            bool highlight,
+            bool lifelock,
+            float linewidth,
             float growratio)
         {
             var knobdefault = Constants.DefaultKnobColor;
@@ -122,13 +122,14 @@ namespace linerider.Rendering
                 }
             }
         }
-        public static void RenderRoundedRectangle(DoubleRect rect, Color color, float thickness)
+        public static void RenderRoundedRectangle(DoubleRect rect, Color color, float thickness, bool gamecoords = true)
         {
             using (new GLEnableCap(EnableCap.Blend))
             {
                 using (new GLEnableCap(EnableCap.Texture2D))
                 {
-                    GameDrawingMatrix.Enter();
+                    if (gamecoords)
+                        GameDrawingMatrix.Enter();
                     var vao = GetLineVAO();
                     vao.Scale = GameDrawingMatrix.Scale;
                     var vec1 = rect.Vector;
@@ -141,7 +142,8 @@ namespace linerider.Rendering
                     vao.AddLine(vec4, vec1, color, thickness);
                     vao.knobstate = 0;
                     vao.Draw(PrimitiveType.Triangles);
-                    GameDrawingMatrix.Exit();
+                    if (gamecoords)
+                        GameDrawingMatrix.Exit();
                 }
             }
         }
