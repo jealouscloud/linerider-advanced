@@ -72,7 +72,9 @@ namespace linerider.Tools
         public virtual bool Active { get; protected set; }
         public virtual bool NeedsRender { get { return false; } }
         public abstract MouseCursor Cursor { get; }
-        public bool IsMouseDown = false;
+        public bool IsMouseButtonDown { get { return IsLeftMouseDown || IsRightMouseDown;}}
+        public bool IsLeftMouseDown = false;
+        public bool IsRightMouseDown = false;
         /// <summary>
         /// Determines whether to receive mouse movement events when they happen
         /// or only the last one before frame update.
@@ -96,20 +98,22 @@ namespace linerider.Tools
 
         public virtual void OnMouseDown(Vector2d pos)
         {
-            IsMouseDown = true;
+            IsLeftMouseDown = true;
         }
 
         public virtual void OnMouseRightDown(Vector2d pos)
         {
+            IsRightMouseDown = true;
         }
 
         public virtual void OnMouseUp(Vector2d pos)
         {
-            IsMouseDown = false;
+            IsLeftMouseDown = false;
         }
 
         public virtual void OnMouseRightUp(Vector2d pos)
         {
+            IsRightMouseDown = false;
         }
 
         public virtual bool OnKeyDown(OpenTK.Input.Key k)

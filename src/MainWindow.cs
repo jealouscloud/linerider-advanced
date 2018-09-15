@@ -439,9 +439,9 @@ namespace linerider
                 var r = _input.ProcessMouseMessage(e);
                 _uicursor = _input.MouseCaptured;
                 InputUtils.CheckCurrentHotkey();
-                if (!r || CurrentTools.SelectedTool.IsMouseDown)
+                if (!r || CurrentTools.SelectedTool.IsMouseButtonDown)
                 {
-                    if (!CurrentTools.SelectedTool.IsMouseDown &&
+                    if (!CurrentTools.SelectedTool.IsMouseButtonDown &&
                         Canvas.GetOpenWindows().Count != 0)
                     {
                         UpdateCursor();
@@ -766,7 +766,7 @@ namespace linerider
                 Track.NextFrame();
                 Invalidate();
                 Track.UpdateCamera();
-                if (CurrentTools.SelectedTool.IsMouseDown)
+                if (CurrentTools.SelectedTool.IsMouseButtonDown)
                 {
                     CurrentTools.SelectedTool.OnMouseMoved(InputUtils.GetMouse());
                 }
@@ -781,7 +781,7 @@ namespace linerider
                 Track.PreviousFrame();
                 Invalidate();
                 Track.UpdateCamera(true);
-                if (CurrentTools.SelectedTool.IsMouseDown)
+                if (CurrentTools.SelectedTool.IsMouseButtonDown)
                 {
                     CurrentTools.SelectedTool.OnMouseMoved(InputUtils.GetMouse());
                 }
