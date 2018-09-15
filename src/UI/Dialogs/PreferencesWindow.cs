@@ -315,11 +315,19 @@ namespace linerider.UI
                 Max = 999,
                 Value = Settings.Local.TrackOverlayOffset,
             };
+            offset.ValueChanged += (o,e)=>
+            {
+                Settings.Local.TrackOverlayOffset = (int)offset.Value;
+            };
             var fixedspinner = new Spinner(null)
             {
                 Min = 0,
                 Max = _editor.FrameCount,
                 Value = Settings.Local.TrackOverlayFixedFrame,
+            };
+            fixedspinner.ValueChanged += (o, e) =>
+            {
+                Settings.Local.TrackOverlayFixedFrame = (int)fixedspinner.Value;
             };
             void updatedisabled()
             {
