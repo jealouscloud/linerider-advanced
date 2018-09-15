@@ -50,7 +50,7 @@ namespace linerider.Tools
                         "angle: " + Math.Round(angle.Degrees, 2) + "° ";
                     if (Settings.Editor.ShowLineID &&
                             _selection.line.Type != LineType.Scenery)
-                        tooltip += "\n" + 
+                        tooltip += "\n" +
                         "ID: " + _selection.line.ID + " ";
                     return tooltip;
                 }
@@ -249,7 +249,7 @@ namespace linerider.Tools
             {
                 CurrentTools.SetTool(CurrentTools.SelectTool);
                 CurrentTools.SelectTool.OnMouseDown(mousepos);
-                IsMouseDown = false;
+                IsLeftMouseDown = false;
                 _hoverline = null;
             }
             else
@@ -276,6 +276,7 @@ namespace linerider.Tools
         public override void OnMouseRightDown(Vector2d pos)
         {
             Stop();//double check
+            bool selected = false;
             var gamepos = ScreenToGameCoords(pos);
             using (var trk = game.Track.CreateTrackWriter())
             {
@@ -283,7 +284,15 @@ namespace linerider.Tools
                 if (line != null && line.Type != LineType.Scenery)
                 {
                     game.Canvas.ShowLineWindow(line, (int)pos.X, (int)pos.Y);
+                    selected = true;
                 }
+            }
+            if (!selected)
+            {
+                CurrentTools.SetTool(CurrentTools.SelectTool);
+                CurrentTools.SelectTool.OnMouseRightDown(pos);
+                IsRightMouseDown = false;
+                _hoverline = null;
             }
             base.OnMouseRightDown(pos);
         }
