@@ -35,6 +35,7 @@ namespace linerider.UI
         ToolXYSnap,
         ToolToggleSnap,
         ToolSelectBothJoints,
+        ToolToggleOverlay,
         ToolCopy,
         ToolCut,
         ToolPaste,

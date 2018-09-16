@@ -1,4 +1,4 @@
-﻿//  Author:
+//  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
 //  Copyright (c) 2017 
@@ -263,6 +263,7 @@ namespace linerider
             SetupDefaultKeybind(Hotkey.ToolDelete, new Keybinding(Key.Delete));
             SetupDefaultKeybind(Hotkey.ToolAddSelection, new Keybinding(KeyModifiers.Shift));
             SetupDefaultKeybind(Hotkey.ToolToggleSelection, new Keybinding(KeyModifiers.Control));
+            SetupDefaultKeybind(Hotkey.ToolToggleOverlay, new Keybinding(Key.V));
         }
         private static void SetupDefaultKeybind(Hotkey hotkey, Keybinding keybinding, Keybinding secondary = null)
         {

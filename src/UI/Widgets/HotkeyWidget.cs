@@ -80,6 +80,8 @@ namespace linerider.UI
             AddBinding(editortable, "Focus First Line", Hotkey.EditorFocusStart);
             AddBinding(editortable, "Focus Last Line", Hotkey.EditorFocusLastLine);
             AddBinding(editortable, "Remove Newest Line", Hotkey.EditorRemoveLatestLine);
+            AddBinding(editortable, "Toggle Track Overlay", Hotkey.ToolToggleOverlay);
+
 
             var tool = _kbtree.Add("Tool", 150);
             AddBinding(tool, "15° Line Snap", Hotkey.ToolXYSnap);

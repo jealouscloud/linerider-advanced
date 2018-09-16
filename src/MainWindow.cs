@@ -1015,6 +1015,10 @@ namespace linerider
                     Invalidate();
                 }
             });
+            InputUtils.RegisterHotkey(Hotkey.ToolToggleOverlay, () => !Track.Playing, () =>
+            {
+                Settings.Local.TrackOverlay = !Settings.Local.TrackOverlay;
+            });
             InputUtils.RegisterHotkey(Hotkey.EditorToolColor1, () => !Track.Playing, () =>
             {
                 var swatch = CurrentTools.SelectedTool.Swatch;
