@@ -116,12 +116,17 @@ namespace linerider.Tools
             var gamepos = ScreenToGameCoords(pos);
             if (Active && _selection.Count != 0)
             {
+                if (StartTransformSelection(gamepos, false))
+                {
+                    return;
+                }
+
                 if (UI.InputUtils.CheckPressed(UI.Hotkey.ToolAddSelection))
                 {
                     StartAddSelection(gamepos);
                     return;
                 }
-                if (UI.InputUtils.CheckPressed(UI.Hotkey.ToolToggleSelection))
+                else if (UI.InputUtils.CheckPressed(UI.Hotkey.ToolToggleSelection))
                 {
                     ToggleSelection(gamepos);
                     return;
@@ -522,10 +527,6 @@ namespace linerider.Tools
                     }
                 }
             }
-            else
-            {
-                return StartTransformSelection(gamepos, false);
-            }
             return false;
         }
         private bool CornerContains(Vector2d gamepos, bool top, bool left)
@@ -618,6 +619,13 @@ namespace linerider.Tools
             {
                 _movemade = true;
                 var movediff = (pos - _clickstart);
+                if (UI.InputUtils.CheckPressed(UI.Hotkey.ToolScaleAspectRatio))
+                {
+                    if (_nodeleft == _nodetop)
+                        movediff.Y = movediff.X * (_boxstart.Height / _boxstart.Width);
+                    else
+                        movediff.Y = -(movediff.X * (_boxstart.Height / _boxstart.Width));
+                }
                 using (var trk = game.Track.CreateTrackWriter())
                 {
                     trk.DisableUndo();
@@ -631,7 +639,6 @@ namespace linerider.Tools
                         var scalar2 = Vector2d.Divide(
                             selected.clone.Position2 - _startselectionedges.Vector,
                              _startselectionedges.Size);
-
                         if (_nodetop)
                         {
                             scalar1.Y = 1 - scalar1.Y;
@@ -642,31 +649,25 @@ namespace linerider.Tools
                             scalar1.X = 1 - scalar1.X;
                             scalar2.X = 1 - scalar2.X;
                         }
+                        if (_startselectionedges.Size.X == 0)
+                        {
+                            scalar1.X = 0;
+                            scalar2.X = 0;
+                        }
+                        if (_startselectionedges.Size.Y == 0)
+                        {
+                            scalar1.Y = 0;
+                            scalar2.Y = 0;
+                        }
                         var p1 = Vector2d.Multiply(scalar1, movediff);
                         var p2 = Vector2d.Multiply(scalar2, movediff);
+
                         trk.MoveLine(
                             selected.line,
                             selected.clone.Position + p1,
                             selected.clone.Position2 + p2);
                     }
                     _selectionbox = GetBoxFromSelected(_selection);
-                    /*
-                    if (_nodetop)
-                    {
-                        _selectionbox.Top = _boxstart.Top + movediff.Y;
-                        _selectionbox.Height = _boxstart.Height - movediff.Y;
-                    }
-                    else
-                        _selectionbox.Height = _boxstart.Height + movediff.Y;
-
-                    if (_nodeleft)
-                    {
-                        _selectionbox.Left = _boxstart.Left + movediff.X;
-                        _selectionbox.Width = _boxstart.Width - movediff.X;
-                    }
-                    else
-                        _selectionbox.Width = _boxstart.Width + movediff.X;
-*/
                     game.Track.NotifyTrackChanged();
                 }
             }
@@ -693,7 +694,8 @@ namespace linerider.Tools
                     var angle = Angle.FromVector(edge - center);
                     var newangle = Angle.FromVector(pos - center);
                     var anglediff = newangle - angle;
-
+                    if (game.ShouldXySnap())
+                        anglediff = new Angle(Math.Round(anglediff.Degrees / 15) * 15);
                     foreach (var selected in _selection)
                     {
                         Vector2d p1 = Utility.Rotate(selected.clone.Position, center, anglediff);

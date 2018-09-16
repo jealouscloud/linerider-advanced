@@ -42,6 +42,7 @@ namespace linerider.UI
         ToolDelete,
         ToolAddSelection,
         ToolToggleSelection,
+        ToolScaleAspectRatio,
         LineToolFlipLine,
 
         PlaybackStartSlowmo,

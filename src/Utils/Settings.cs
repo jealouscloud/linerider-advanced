@@ -1,4 +1,4 @@
-//  Author:
+﻿//  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
 //  Copyright (c) 2017 
@@ -134,6 +134,7 @@ namespace linerider
             KeybindConflicts[Hotkey.EditorCancelTool] = KeyConflicts.HardCoded;
             KeybindConflicts[Hotkey.ToolAddSelection] = KeyConflicts.HardCoded;
             KeybindConflicts[Hotkey.ToolToggleSelection] = KeyConflicts.HardCoded;
+            KeybindConflicts[Hotkey.ToolScaleAspectRatio] = KeyConflicts.HardCoded;
             SetupDefaultKeybinds();
         }
         public static void RestoreDefaultSettings()
@@ -263,6 +264,9 @@ namespace linerider
             SetupDefaultKeybind(Hotkey.ToolDelete, new Keybinding(Key.Delete));
             SetupDefaultKeybind(Hotkey.ToolAddSelection, new Keybinding(KeyModifiers.Shift));
             SetupDefaultKeybind(Hotkey.ToolToggleSelection, new Keybinding(KeyModifiers.Control));
+
+            SetupDefaultKeybind(Hotkey.ToolScaleAspectRatio, new Keybinding(KeyModifiers.Shift));
+
             SetupDefaultKeybind(Hotkey.ToolToggleOverlay, new Keybinding(Key.V));
         }
         private static void SetupDefaultKeybind(Hotkey hotkey, Keybinding keybinding, Keybinding secondary = null)
@@ -321,6 +325,8 @@ namespace linerider
             if (!keybinding.IsEmpty)
             {
                 var inputconflicts = Settings.KeybindConflicts[hotkey];
+                if (inputconflicts == KeyConflicts.HardCoded)
+                    return Hotkey.None;
                 foreach (var keybinds in Settings.Keybinds)
                 {
                     var hk = keybinds.Key;
@@ -328,11 +334,14 @@ namespace linerider
                     //if the conflicts is equal to or below inputconflicts
                     //then we can compare for conflict
                     //if conflicts is above inputconflicts, ignore
+                    //also, if theyre both hardcoded they cannot conflict.
                     if (inputconflicts.HasFlag(conflicts))
                     {
                         foreach (var keybind in keybinds.Value)
                         {
-                            if (keybind.IsBindingEqual(keybinding))
+                            if (keybind.IsBindingEqual(keybinding) && 
+                                !(inputconflicts == KeyConflicts.HardCoded &&
+                                  inputconflicts == conflicts))
                                 return hk;
                         }
                     }
