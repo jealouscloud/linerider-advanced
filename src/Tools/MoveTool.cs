@@ -287,13 +287,6 @@ namespace linerider.Tools
                     selected = true;
                 }
             }
-            if (!selected)
-            {
-                CurrentTools.SetTool(CurrentTools.SelectTool);
-                CurrentTools.SelectTool.OnMouseRightDown(pos);
-                IsRightMouseDown = false;
-                _hoverline = null;
-            }
             base.OnMouseRightDown(pos);
         }
         public override void OnChangingTool()
