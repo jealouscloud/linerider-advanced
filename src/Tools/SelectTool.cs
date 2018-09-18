@@ -99,7 +99,8 @@ namespace linerider.Tools
             if (Active && _selection.Count != 0 && _movingselection == false)
             {
                 var gamepos = ScreenToGameCoords(pos);
-                StartTransformSelection(gamepos, true);
+                if (!StartTransformSelection(gamepos, true))
+                    Stop(true);
             }
             base.OnMouseRightDown(pos);
         }
