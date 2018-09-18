@@ -189,6 +189,7 @@ namespace linerider.UI
                 {
                     using (var trk = _editor.CreateTrackWriter())
                     {
+                        trk.DisableExtensionUpdating();
                         if (triggerenabled.IsChecked)
                         {
                             var cpy = (StandardLine)_ownerline.Clone();
@@ -201,6 +202,7 @@ namespace linerider.UI
                 {
                     using (var trk = _editor.CreateTrackWriter())
                     {
+                        trk.DisableExtensionUpdating();
                         if (triggerenabled.IsChecked)
                         {
                             var cpy = (StandardLine)_ownerline.Clone();
@@ -213,6 +215,7 @@ namespace linerider.UI
                 {
                     using (var trk = _editor.CreateTrackWriter())
                     {
+                        trk.DisableExtensionUpdating();
                         var cpy = (StandardLine)_ownerline.Clone();
                         if (triggerenabled.IsChecked)
                         {
