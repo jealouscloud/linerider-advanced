@@ -276,7 +276,6 @@ namespace linerider.Tools
         public override void OnMouseRightDown(Vector2d pos)
         {
             Stop();//double check
-            bool selected = false;
             var gamepos = ScreenToGameCoords(pos);
             using (var trk = game.Track.CreateTrackWriter())
             {
@@ -284,7 +283,6 @@ namespace linerider.Tools
                 if (line != null && line.Type != LineType.Scenery)
                 {
                     game.Canvas.ShowLineWindow(line, (int)pos.X, (int)pos.Y);
-                    selected = true;
                 }
             }
             base.OnMouseRightDown(pos);
