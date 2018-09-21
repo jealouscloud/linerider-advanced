@@ -274,6 +274,10 @@ namespace linerider.UI
                    Settings.PreviewMode = ((Checkbox)o).IsChecked;
                    Settings.Save();
                });
+            var recording = GwenHelper.AddCheckbox(playbackmode, "Recording Mode", Settings.Local.RecordingMode, (o, e) =>
+               {
+                   Settings.Local.RecordingMode = ((Checkbox)o).IsChecked;
+               });
             var framerate = GwenHelper.CreateHeaderPanel(parent, "Frame Control");
             var smooth = GwenHelper.AddCheckbox(framerate, "Smooth Playback", Settings.SmoothPlayback, (o, e) =>
                {

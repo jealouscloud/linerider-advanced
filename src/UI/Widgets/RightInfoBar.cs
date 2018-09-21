@@ -43,7 +43,7 @@ namespace linerider.UI
         }
         private void Think(object sender, EventArgs e)
         {
-            var rec = IO.TrackRecorder.Recording;
+            var rec = Settings.Local.RecordingMode;
             _fpslabel.IsHidden = rec && !Settings.Recording.ShowFps;
             _riderspeedlabel.IsHidden = rec && !Settings.Recording.ShowPpf;
             _playbackratelabel.IsHidden = rec || _editor.Scheduler.UpdatesPerSecond == 40;
@@ -65,7 +65,7 @@ namespace linerider.UI
                 Alignment = Pos.Right | Pos.CenterV,
                 TextRequest = (o, currenttext) =>
                 {
-                    var rec = IO.TrackRecorder.Recording;
+                    var rec = Settings.Local.RecordingMode;
                     if (rec && Settings.Recording.ShowFps)
                     {
                         return Settings.RecordSmooth ? "60 FPS" : "40 FPS";

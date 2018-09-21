@@ -79,7 +79,7 @@ namespace linerider
         private void Think(object sender, EventArgs e)
         {
             //process recording junk
-            var rec = IO.TrackRecorder.Recording;
+            var rec = Settings.Local.RecordingMode;
             ZoomSlider.IsHidden = rec;
             _toolbar.IsHidden = rec && !Settings.Recording.ShowTools;
             _timeline.IsHidden = rec;

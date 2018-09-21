@@ -226,7 +226,7 @@ namespace linerider
                 _refreshtrack = false;
             }
             DrawOptions drawOptions = new DrawOptions();
-            drawOptions.DrawFlag = _flag != null && !TrackRecorder.Recording;
+            drawOptions.DrawFlag = _flag != null && !Settings.Local.RecordingMode;
             if (drawOptions.DrawFlag)
             {
                 drawOptions.FlagRider = _flag.State;

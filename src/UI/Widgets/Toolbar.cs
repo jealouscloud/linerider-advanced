@@ -52,7 +52,7 @@ namespace linerider.UI
         }
         private void Think(object sender, EventArgs e)
         {
-            var rec = IO.TrackRecorder.Recording;
+            var rec = Settings.Local.RecordingMode;
             _swatch.IsHidden = rec;
         }
         private void MakeButtons()
