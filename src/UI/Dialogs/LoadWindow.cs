@@ -1,3 +1,4 @@
+//#define CATCHERRORS
 using System.Collections.Generic;
 using System.Drawing;
 using System.Threading;
@@ -319,7 +320,7 @@ namespace linerider.UI
                     {
                         track = TRKLoader.LoadTrack(file, name);
                     }
-                    else if (file.EndsWith(".json",StringComparison.InvariantCultureIgnoreCase))
+                    else if (file.EndsWith(".json", StringComparison.InvariantCultureIgnoreCase))
                     {
                         track = JSONLoader.LoadTrack(file);
                     }
@@ -331,6 +332,7 @@ namespace linerider.UI
                     Settings.LastSelectedTrack = file;
                     Settings.Save();
                 }
+#if CATCHERRORS
                 catch (TrackIO.TrackLoadException e)
                 {
                     GameCanvas.QueuedActions.Enqueue(() =>
@@ -349,6 +351,7 @@ namespace linerider.UI
                         e.Message));
                     return;
                 }
+#endif
                 finally
                 {
                     _canvas.Loading = false;
