@@ -131,7 +131,7 @@ namespace linerider.UI
                 var multiplier = new NumberProperty(table)
                 {
                     Min = 1,
-                    Max = 3,
+                    Max = 255,
                     NumberValue = red.Multiplier,
                     OnlyWholeNumbers = true,
                 };

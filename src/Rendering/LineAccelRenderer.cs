@@ -272,11 +272,14 @@ namespace linerider.Rendering
         {
             var linecolor = Constants.RedLineColor;
             var multiplier = ((RedLine)line).Multiplier;
-            GenericVertex[] ret = new GenericVertex[3 * multiplier];
+            var shapecount = Math.Min(multiplier, 3);
+            if (multiplier > 3)
+                shapecount += 4;
+            GenericVertex[] ret = new GenericVertex[3 * shapecount];
             var angle = Angle.FromLine(line.End, line.Start);
             var angle2 = Angle.FromRadians(angle.Radians - 1.5708f);
             var start = line.Position2;
-            for (int idx = 0; idx < multiplier; idx++)
+            for (int idx = 0; idx < Math.Min(multiplier, 3); idx++)
             {
                 var a = start;
                 var b = angle.MovePoint(start, line.inv ? -8 : 8);
@@ -286,6 +289,34 @@ namespace linerider.Rendering
                 ret[idx * 3 + 2] = new GenericVertex((Vector2)c, linecolor);
                 if (idx + 1 < multiplier)
                     start = angle.MovePoint(start, line.inv ? -2 : 2);
+            }
+            
+            if (multiplier > 3)
+            {
+                // Draw White plus
+                var a = angle.MovePoint(start, line.inv ? -2 : 2);
+                var b = angle2.MovePoint(a, 2);
+                var c = angle2.MovePoint(b, 3);
+
+                Vector2[] tall = Utility.GetThickLine(
+                    (Vector2)b, (Vector2)c, Angle.FromVector(c - b), 0.5f);
+                Vector2[] tess = Utility.TesselateThickLine(tall);
+                for (int i = 0; i < tess.Length; i++)
+                {
+                    ret[3 * 3 + i] = new GenericVertex(tess[i], Color.White);
+                }
+                
+                a = angle2.MovePoint(b, 1.5);
+                b = angle.MovePoint(a, -1.5);
+                c = angle.MovePoint(a, 1.5);
+                
+                tall = Utility.GetThickLine(
+                    (Vector2)b,(Vector2)c,Angle.FromVector(c - b), 0.5f);
+                tess = Utility.TesselateThickLine(tall);
+                for (int i = 0; i < tess.Length; i++)
+                {
+                    ret[5 * 3 + i] = new GenericVertex(tess[i], Color.White);
+                }
             }
             return ret;
         }
