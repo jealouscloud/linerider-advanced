@@ -87,7 +87,7 @@ namespace linerider.Game
                 _framecache[0] = Vector2d.Zero;
             }
         }
-        public Vector2d GetFrameCamera(int frame)
+        public virtual Vector2d GetFrameCamera(int frame)
         {
             if (_zoom != _cachezoom)
             {
