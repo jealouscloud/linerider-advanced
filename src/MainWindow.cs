@@ -179,7 +179,7 @@ namespace linerider
             }
             if (!Focused && !TrackRecorder.Recording)
             {
-                Thread.Sleep(30);
+                Thread.Sleep(16);
             }
             else
             if (!Track.Playing &&
