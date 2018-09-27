@@ -1,4 +1,4 @@
-﻿//  Author:
+//  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
 //  Copyright (c) 2017 
@@ -249,7 +249,7 @@ namespace linerider
             drawOptions.ShowMomentumVectors = Settings.Editor.MomentumVectors;
             drawOptions.Zoom = Zoom;
             drawOptions.RiderDiagnosis = RenderRiderInfo.Diagnosis;
-            if (Settings.Local.TrackOverlay)
+            if (Settings.Local.TrackOverlay && !Playing)
             {
                 drawOptions.OverlayFrame = Settings.Local.TrackOverlayFixed
                 ? Settings.Local.TrackOverlayFixedFrame 
