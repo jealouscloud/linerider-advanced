@@ -212,6 +212,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Utils\Angle.cs" />
+    <Compile Include="Utils\Benchmark.cs" />
     <Compile Include="Utils\AutoArray.cs" />
     <Compile Include="Utils\DoubleRect.cs" />
     <Compile Include="Utils\Constants.cs" />
