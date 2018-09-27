@@ -152,6 +152,33 @@ namespace linerider.UI
                     Multiline((int)multilines.NumberValue);
                 };
                 table.Add("Multilines", multilines);
+
+                var accelinverse = GwenHelper.AddPropertyCheckbox(
+                    table,
+                    "Inverse",
+                    red.inv
+                    );
+                accelinverse.ValueChanged += (o, e) =>
+                {
+                    using (var trk = _editor.CreateTrackWriter())
+                    {
+                        var multi = GetMultiLines(false);
+                        foreach (var l in multi)
+                        {
+                            var cpy = (StandardLine)l.Clone();
+                            cpy.Position = l.Position2;
+                            cpy.Position2 = l.Position;
+                            cpy.inv = accelinverse.IsChecked;
+                            UpdateLine(trk, l, cpy);
+                        }
+
+                        var owner = (StandardLine)_ownerline.Clone();
+                        owner.Position = _ownerline.Position2;
+                        owner.Position2 = _ownerline.Position;
+                        owner.inv = accelinverse.IsChecked;
+                        UpdateOwnerLine(trk, owner);
+                    }
+                };
             }
         }
         private void SetupTriggers(PropertyTree tree)
