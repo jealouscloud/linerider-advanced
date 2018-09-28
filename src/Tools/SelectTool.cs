@@ -12,6 +12,9 @@ using System.Drawing;
 
 namespace linerider.Tools
 {
+    //todo the node attachment gets wonky when inverting scale/rotate.
+    //can be demonstrated by showing the hover while clicking
+    //ideally, the node/square shuold be rotated
     public class SelectTool : Tool
     {
         public override MouseCursor Cursor
@@ -323,6 +326,15 @@ namespace linerider.Tools
             }
             return corner;
         }
+        private void RenderFilledCorner(DoubleRect box, bool top, bool left)
+        {
+            var corner = GetCorner(box, top, left);
+            var rect = new DoubleRect(
+                GameDrawingMatrix.ScreenCoordD(corner.Vector),
+                new Vector2d(corner.Width * game.Track.Zoom,
+                corner.Height * game.Track.Zoom));
+            GameRenderer.RenderRoundedRectangle(rect, Color.CornflowerBlue, 5, false);
+        }
         private void RenderCorner(DoubleRect box, bool top, bool left)
         {
             var corner = GetCorner(box, top, left);
@@ -344,6 +356,8 @@ namespace linerider.Tools
                     RenderCorner(_selectionbox, false, false);
                     RenderCorner(_selectionbox, true, false);
                     RenderCorner(_selectionbox, false, true);
+                    if (_hoverscale)
+                        RenderFilledCorner(_selectionbox, _nodetop, _nodeleft);
                 }
                 if (_drawbox != DoubleRect.Empty)
                     GameRenderer.RenderRoundedRectangle(_drawbox, color, 2f / game.Track.Zoom);
