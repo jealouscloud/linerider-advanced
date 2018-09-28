@@ -429,7 +429,7 @@ namespace linerider
                     Zoom = Timeline.GetFrameZoom(Offset);
                     break;
                 case 1://current
-                    UseUserZoom = true;
+                    UseUserZoom = Timeline.GetFrameZoom(Offset) != Zoom;
                     break;
                 case 2://specific
                     UseUserZoom = true;
