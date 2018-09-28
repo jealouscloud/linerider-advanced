@@ -137,7 +137,7 @@ namespace linerider.UI
                 Dock = Dock.Top,
                 ShouldDrawBackground = false,
             };
-            var smooth = rbcamera.AddOption("Smooth Camera");
+            var soft = rbcamera.AddOption("Soft Camera");
             var predictive = rbcamera.AddOption("Predictive Camera");
             var legacy = rbcamera.AddOption("Legacy Camera");
             var round = GwenHelper.AddCheckbox(camprops, "Round Legacy Camera", Settings.RoundLegacyCamera, (o, e) =>
@@ -150,13 +150,13 @@ namespace linerider.UI
                 if (Settings.PredictiveCamera)
                     predictive.Select();
                 else
-                    smooth.Select();
+                    soft.Select();
             }
             else
             {
                 legacy.Select();
             }
-            smooth.Checked += (o, e) =>
+            soft.Checked += (o, e) =>
             {
                 Settings.SmoothCamera = true;
                 Settings.PredictiveCamera = false;

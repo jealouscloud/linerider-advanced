@@ -10,7 +10,7 @@ using System.Diagnostics;
 
 namespace linerider.Game
 {
-    public class SmoothCamera : ClampCamera
+    public class SoftCamera : ClampCamera
     {
         protected override Vector2d StepCamera(CameraBoundingBox box, ref Vector2d prev, int frame)
         {
