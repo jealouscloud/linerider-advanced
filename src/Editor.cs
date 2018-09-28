@@ -1,4 +1,4 @@
-//  Author:
+﻿//  Author:
 //       Noah Ablaseau <nablaseau@hotmail.com>
 //
 //  Copyright (c) 2017 
@@ -45,7 +45,6 @@ namespace linerider
         private bool _renderriderinvalid = true;
         private RiderFrame _renderrider = null;
         private ResourceSync _tracksync = new ResourceSync();
-        private ResourceSync _renderridersync = new ResourceSync();
         private SimulationRenderer _renderer = new SimulationRenderer();
         private bool _refreshtrack = false;
         private Vector2d _savedcamera;
@@ -53,6 +52,7 @@ namespace linerider
         private bool _hasstopped = true;
         private float _zoom = Constants.DefaultZoom;
         private EditorGrid _cells = new EditorGrid();
+        private bool _invalidated = false;
 
         public readonly GameScheduler Scheduler = new GameScheduler();
         /// <summary>
@@ -114,7 +114,6 @@ namespace linerider
                 }
             }
         }
-        private bool _invalidated = false;
         public bool NeedsDraw
         {
             get
@@ -252,11 +251,11 @@ namespace linerider
             if (Settings.Local.TrackOverlay && !Playing)
             {
                 drawOptions.OverlayFrame = Settings.Local.TrackOverlayFixed
-                ? Settings.Local.TrackOverlayFixedFrame 
+                ? Settings.Local.TrackOverlayFixedFrame
                 : Offset + Settings.Local.TrackOverlayOffset;
                 drawOptions.OverlayFrame = MathHelper.Clamp(
-                    drawOptions.OverlayFrame, 
-                    0, 
+                    drawOptions.OverlayFrame,
+                    0,
                     FrameCount + 999);
             }
             int renderframe = Offset;

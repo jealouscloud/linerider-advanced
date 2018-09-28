@@ -129,10 +129,6 @@ namespace linerider
                 (float)(angle.Sin * (width / 2)));
             return new Vector2[] { p - t, p + t, p1 + t, p1 - t };
         }
-        public static Vector2[] TesselateThickLine(Vector2[] line)
-        {
-            return new Vector2[] { line[0], line[1], line[2], line[2], line[3], line[0] };
-        }
 
         /// <summary>
         /// Returns tl, tr, br, bl of a line with [width] thickness.
@@ -144,6 +140,13 @@ namespace linerider
                 angle.Cos * (width / 2),
                 angle.Sin * (width / 2));
             return new Vector2d[] { p - t, p + t, p1 + t, p1 - t };
+        }
+        /// <summary>
+        /// Convert a line generated with GetThickLine into two triangles
+        /// </summary>
+        public static Vector2[] TesselateThickLine(Vector2[] line)
+        {
+            return new Vector2[] { line[0], line[1], line[2], line[2], line[3], line[0] };
         }
         /// <summary>
         /// Returns either p1 or p2 based on their distance from the input
