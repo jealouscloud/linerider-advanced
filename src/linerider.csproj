@@ -97,10 +97,10 @@
   <ItemGroup>
     <Compile Include="Game\Camera\ICamera.cs" />
     <Compile Include="Game\Camera\PredictiveCamera.cs" />
-    <Compile Include="Game\Camera\SmoothCamera.cs" />
+    <Compile Include="Game\Camera\SoftCamera.cs" />
     <Compile Include="Game\Camera\ClampCamera.cs" />
     <Compile Include="Game\Camera\CameraBoundingBox.cs" />
-    <Compile Include="Game\Camera\CameraLocation.cs" />
+    <Compile Include="Game\Camera\CameraEntry.cs" />
     </ItemGroup>
   <ItemGroup>
     <Compile Include="Game\EditorCell.cs" />
@@ -175,7 +175,6 @@
     <Compile Include="UI\Hotkey.cs" />
     <Compile Include="UI\Fonts.cs" />
     <Compile Include="UI\InputUtils.cs" />
-    <Compile Include="UI\InputState.cs" />
     <Compile Include="UI\Keybinding.cs" />
     <Compile Include="UI\KeyConflict.cs" />
     <Compile Include="UI\GwenHelper.cs" />
