@@ -60,7 +60,7 @@ namespace linerider
             var gridend = CellInfo(lineend.X, lineend.Y);
 
             ret.Add(cell);
-            if ((diff.X == 0 && diff.Y == 0) || (cell.X == gridend.X && cell.Y == gridend.Y))
+            if (cell.X == gridend.X && cell.Y == gridend.Y)
                 return ret;
 
             int p1X = Math.Min(cell.X, gridend.X),
