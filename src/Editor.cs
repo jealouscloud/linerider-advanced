@@ -421,7 +421,7 @@ namespace linerider
             Camera.SetFrameCenter(Timeline.GetFrame(frameid).CalculateCenter());
 
             game.UpdateCursor();
-            switch (Settings.PlaybackZoomType)
+            switch (TrackRecorder.Recording ? 0 : Settings.PlaybackZoomType)
             {
                 case 0://default
                     UseUserZoom = false;
