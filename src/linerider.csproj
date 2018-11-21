@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{AB45D1B5-B29D-4792-9CA8-C7C11E33A447}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -168,6 +168,7 @@
     <Compile Include="IO\json\JSONWriter.cs" />
     <Compile Include="IO\json\line_json.cs" />
     <Compile Include="IO\json\LZString.cs" />
+    <Compile Include="IO\json\RiderData.cs" />
     <Compile Include="IO\json\track_json.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -238,6 +239,7 @@
     <Reference Include="System.IO.Compression.dll" />
     <Reference Include="System.IO.Compression.FileSystem.dll" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="Mono.Options" />
     <Reference Include="System.Runtime.CompilerServices.Unsafe">
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.4.4.0\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>

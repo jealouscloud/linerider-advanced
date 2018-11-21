@@ -26,6 +26,8 @@ using System.Text;
 using linerider.Audio;
 using linerider.Utils;
 using linerider.Game;
+using linerider.IO.json;
+using Utf8Json;
 
 namespace linerider.IO
 {
@@ -44,7 +46,7 @@ namespace linerider.IO
             return Directory.GetFiles(folder, "*.*")
                 .Where(x =>
                     x.EndsWith(".trk", StringComparison.OrdinalIgnoreCase) ||
-                    x.EndsWith(".json",StringComparison.OrdinalIgnoreCase)).
+                    x.EndsWith(".json", StringComparison.OrdinalIgnoreCase)).
                     OrderByDescending(x =>
                     {
                         var fn = Path.GetFileName(x);
@@ -243,6 +245,44 @@ namespace linerider.IO
             var filename = JSONWriter.SaveTrack(track, saveindex + " " + savename);
             track.Filename = filename;
             return filename;
+        }
+        public static void ExportTrackData(Track track, string fn, int frames, ICamera camera)
+        {
+            var timeline = new linerider.Game.Timeline(
+                track);
+            timeline.Restart(track.GetStart(), 1);
+            timeline.GetFrame(frames);
+            camera.SetTimeline(timeline);
+            List<RiderData> data = new List<RiderData>();
+            for (int idx = 0; idx < frames; idx++)
+            {
+                var frame = timeline.GetFrame(idx);
+                var framedata = new RiderData();
+                framedata.Frame = idx;
+                framedata.Points = new List<track_json.point_json>();
+                for (int i = 0; i < frame.Body.Length; i++)
+                {
+                    var point = frame.Body[i];
+                    framedata.Points.Add(new track_json.point_json()
+                    {
+                        x = point.Location.X,
+                        y = point.Location.Y
+                    });
+                    var camframe = camera.GetFrameCamera(idx);
+                    framedata.CameraCenter = new track_json.point_json() 
+                    {
+                        x = camframe.X,
+                        y = camframe.Y
+                    };
+                }
+                data.Add(framedata);
+            }
+
+            using (var file = File.Create(fn))
+            {
+                var bytes = JsonSerializer.Serialize<List<RiderData>>(data);
+                file.Write(bytes, 0, bytes.Length);
+            }
         }
         private static bool TryMoveAndReplaceFile(string fname, string fname2)
         {
