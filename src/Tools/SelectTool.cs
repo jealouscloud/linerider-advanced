@@ -9,6 +9,7 @@ using linerider.Game;
 using linerider.Rendering;
 using linerider.Drawing;
 using System.Drawing;
+using linerider.UI;
 
 namespace linerider.Tools
 {
@@ -124,8 +125,13 @@ namespace linerider.Tools
                 {
                     return;
                 }
-
-                if (UI.InputUtils.CheckPressed(UI.Hotkey.ToolAddSelection))
+                var axis = UI.InputUtils.CheckPressed(Hotkey.ToolAxisLock);
+                var perpendicularaxis = UI.InputUtils.CheckPressed(Hotkey.ToolPerpendicularAxisLock);
+                if ((axis || perpendicularaxis) && StartMoveSelection(gamepos))
+                {
+                    return;
+                }
+                else if (UI.InputUtils.CheckPressed(UI.Hotkey.ToolAddSelection))
                 {
                     StartAddSelection(gamepos);
                     return;
@@ -135,7 +141,7 @@ namespace linerider.Tools
                     ToggleSelection(gamepos);
                     return;
                 }
-                else if (StartMoveSelection(gamepos))
+                else if (!(axis || perpendicularaxis) && StartMoveSelection(gamepos))
                 {
                     return;
                 }
@@ -723,6 +729,24 @@ namespace linerider.Tools
             }
             game.Invalidate();
         }
+
+        private bool ApplyModifiers(Vector2d joint1, ref Vector2d joint2)
+        {
+            var axis = UI.InputUtils.CheckPressed(Hotkey.ToolAxisLock);
+            var perpendicularaxis = UI.InputUtils.CheckPressed(Hotkey.ToolPerpendicularAxisLock);
+            var modified = false;
+            if (axis || perpendicularaxis)
+            {
+                var angle = Angle.FromVector(_snapline.GetVector());
+                if (perpendicularaxis)
+                {
+                    angle.Degrees -= 90;
+                }
+                joint2 = Utility.AngleLock(joint1, joint2, angle);
+                modified = true;
+            }
+            return modified;
+        }
         private void MoveSelection(Vector2d pos)
         {
             if (_selection.Count > 0)
@@ -731,7 +755,12 @@ namespace linerider.Tools
                 var movediff = (pos - _clickstart);
                 using (var trk = game.Track.CreateTrackWriter())
                 {
-                    if (_snapline != null && EnableSnap)
+                    var pos2 = pos;
+                    if (ApplyModifiers(_clickstart, ref pos2))
+                    {
+                        movediff = (pos2 - _clickstart);
+                    }
+                    else if (_snapline != null && EnableSnap)
                     {
                         movediff += GetSnapOffset(movediff, trk);
                     }
