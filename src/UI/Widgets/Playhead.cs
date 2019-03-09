@@ -31,7 +31,7 @@ namespace linerider.UI
         private PlayheadMarker _flagmarker;
         private PlayheadMarker _endslider;
         private int _maxviewed = MinimumFrames;
-        private int MaxViewed
+        public int MaxViewed
         {
             get
             {
@@ -39,7 +39,10 @@ namespace linerider.UI
             }
             set
             {
-                _maxviewed = value;
+                if (value != _maxviewed)
+                {
+                    _maxviewed = value;
+                }
             }
         }
         private int FlagFrame

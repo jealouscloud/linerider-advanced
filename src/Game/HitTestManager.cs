@@ -170,6 +170,13 @@ namespace linerider
             return false;
         }
 
+        public bool HasUniqueCollisions(int frame)
+        {
+            if (frame >= _unique_frame_collisions.Count)
+                throw new IndexOutOfRangeException("Frame does not have hit test calculations");
+            return _unique_frame_collisions[frame].Count != 0;
+        }
+        
         public void Reset()
         {
             if (_currentframe != -1)

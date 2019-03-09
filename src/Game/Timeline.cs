@@ -193,6 +193,11 @@ namespace linerider.Game
                 return ret;
             }
         }
+        public bool IsFrameUniqueCollision(int frame)
+        {
+            GetFrame(frame);
+            return _hittest.HasUniqueCollisions(frame);
+        }
         public void TriggerChanged(GameLine line)
         {
             int framehit;
