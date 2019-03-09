@@ -47,7 +47,7 @@ namespace linerider.UI
             };
             return panel;
         }
-        public static void CreateLabeledControl(ControlBase parent, string label, ControlBase control)
+        public static ControlBase CreateLabeledControl(ControlBase parent, string label, ControlBase control)
         {
             control.Dock = Dock.Right;
             ControlBase container = new ControlBase(parent)
@@ -67,6 +67,7 @@ namespace linerider.UI
                 Dock = Dock.Top,
                 Margin = new Margin(0, 1, 0, 1)
             };
+            return container;
         }
         public static ComboBox CreateLabeledCombobox(ControlBase parent, string label)
         {
