@@ -1,4 +1,4 @@
-﻿using OpenTK;
+using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -27,6 +27,42 @@ namespace linerider.IO
         private const int SONGINFO_INDEX = 3;
         private const int IGNORABLE_TRIGGER_INDEX = 4;
         private const int ZEROSTART_INDEX = 5;
+        private static float ParseFloat(string f)
+        {
+            if (!float.TryParse(
+                f,
+                NumberStyles.Float,
+                Program.Culture,
+                out float ret))
+                throw new TrackIO.TrackLoadException(
+                    "Unable to parse string into float");
+            return ret;
+        }
+        private static int ParseInt(string f)
+        {
+            if (!int.TryParse(
+                f,
+                NumberStyles.Float,
+                Program.Culture,
+                out int ret))
+                throw new TrackIO.TrackLoadException(
+                    "Unable to parse string into int");
+            return ret;
+        }
+        private static void ParseMetadata(Track ret, BinaryReader br)
+        {
+            var count = br.ReadInt16();
+            for (int i = 0; i < count; i++)
+            {
+                var metadata = ReadString(br).Split('=');
+                switch (metadata[0])
+                {
+                    case TrackMetadata.startzoom:
+                        ret.StartZoom = ParseFloat(metadata[1]);
+                        break;
+                }
+            }
+        }
         public static Track LoadTrack(string trackfile, string trackname)
         {
             var ret = new Track();
@@ -224,19 +260,7 @@ namespace linerider.IO
                     var meta = br.ReadInt32();
                     if (meta == ('M' | 'E' << 8 | 'T' << 16 | 'A' << 24))
                     {
-                        var count = br.ReadInt16();
-                        for (int i = 0; i < count; i++)
-                        {
-                            var metadata = ReadString(br).Split('=');
-                            switch (metadata[0])
-                            {
-                                case TrackMetadata.startzoom:
-                                    if (!float.TryParse(metadata[1], NumberStyles.Float, Program.Culture, out float startzoom))
-                                        throw new TrackIO.TrackLoadException("Startzoom property was invalid");
-                                    ret.StartZoom = startzoom;
-                                    break;
-                            }
-                        }
+                        ParseMetadata(ret, br);
                     }
                     else
                     {
