@@ -11,6 +11,13 @@ namespace linerider.IO.json
             public float target;
             public int frames;
         }
+        public class gametrigger_json
+        {
+            public int start;
+            public int end;
+            public int triggerType;
+            public float zoomTarget = 4;
+        }
         public class point_json
         {
             public double x;
@@ -28,6 +35,7 @@ namespace linerider.IO.json
         public string linesArrayCompressed { get; set; }
         public object[][] linesArray { get; set; }
         public List<zoomtrigger_json> triggers { get; set; }
+        public List<gametrigger_json> gameTriggers { get; set; }
 
         public bool ShouldSerializezeroStart()
         {

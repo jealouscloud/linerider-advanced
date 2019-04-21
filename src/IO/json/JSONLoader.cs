@@ -73,6 +73,7 @@ namespace linerider.IO
             }
             if (trackobj.triggers != null)
             {
+                List<LineTrigger> linetriggers = new List<LineTrigger>();
                 foreach (var trigger in trackobj.triggers)
                 {
                     if (ret.LineLookup.TryGetValue(trigger.ID, out GameLine line))
@@ -81,18 +82,47 @@ namespace linerider.IO
                         {
                             if (trigger.zoom)
                             {
-                                stl.Trigger = new LineTrigger()
+                                linetriggers.Add(new LineTrigger()
                                 {
                                     ZoomTrigger = trigger.zoom,
                                     ZoomTarget = (float)MathHelper.Clamp(
                                         trigger.target,
                                         Utils.Constants.MinimumZoom,
                                         Utils.Constants.MaxZoom),
-                                    ZoomFrames = trigger.frames
-                                };
+                                    ZoomFrames = trigger.frames,
+                                    LineID = trigger.ID
+                                });
                             }
                         }
                     }
+                }
+                ret.Triggers = TriggerConverter.ConvertTriggers(linetriggers, ret);
+
+            }
+            if (trackobj.gameTriggers != null)
+            {
+                foreach (var t in trackobj.gameTriggers)
+                {
+                    if (t.start < 1 || t.end < 1 || t.end < t.start)
+                        throw new TrackIO.TrackLoadException(
+                            "Trigger timing was outside of range");
+                    TriggerType ttype;
+                    try
+                    {
+                        ttype = (TriggerType)t.triggerType;
+                    }
+                    catch
+                    {
+                        throw new TrackIO.TrackLoadException(
+                            "Unsupported trigger type " + t.triggerType);
+                    }
+                    ret.Triggers.Add(new GameTrigger()
+                    {
+                        Start = t.start,
+                        End = t.end,
+                        TriggerType = ttype,
+                        ZoomTarget = t.zoomTarget,
+                    });
                 }
             }
             return ret;
