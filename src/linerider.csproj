@@ -158,6 +158,7 @@
     <Compile Include="IO\SOLLoader.cs" />
     <Compile Include="IO\SOLWriter.cs" />
     <Compile Include="IO\TrackIO.cs" />
+    <Compile Include="IO\TriggerConverter.cs" />
     <Compile Include="IO\TrackFeatures.cs" />
     <Compile Include="IO\TrackMetadata.cs" />
     <Compile Include="IO\TrackRecorder.cs" />
