@@ -121,11 +121,9 @@ namespace linerider.Game
         {
             // even though its this frame that may need changing, we have to 
             // regenerate it using the previos frame.
-            int trig = 0;
             var newsimulated = _frames[frame - 1].Rider.Simulate(
                 _track.Grid,
                 _track.Bones,
-                ref trig,
                 null,
                 6,
                 false);

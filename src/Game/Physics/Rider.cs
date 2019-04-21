@@ -166,7 +166,6 @@ namespace linerider.Game
             ISimulationGrid grid,
             SimulationPoint[] body,
             ref RectLRTB physinfo,
-            ref int activetriggers,
             LinkedList<int> collisions = null)
         {
             int bodylen = body.Length;
@@ -193,16 +192,8 @@ namespace linerider.Game
                             if (line.Interact(ref body[i]))
                             {
                                 collisions?.AddLast(line.ID);
-                                if (line.Trigger != null)
-                                {
-                                    if (activetriggers != line.ID)
-                                    {
-                                        activetriggers = line.ID;
-                                    }
-                                }
                             }
                         }
-
                     }
                 }
             }
@@ -275,13 +266,11 @@ namespace linerider.Game
         }
         public Rider Simulate(Track track, int maxiteration = 6, LinkedList<int> collisions = null)
         {
-            int trig = 0;
-            return Simulate(track.Grid, track.Bones, ref trig, collisions, maxiteration);
+            return Simulate(track.Grid, track.Bones, collisions, maxiteration);
         }
         public Rider Simulate(
             ISimulationGrid grid,
             Bone[] bones,
-            ref int activetriggers,
             LinkedList<int> collisions,
             int maxiteration = 6,
             bool stepscarf = true,
@@ -297,7 +286,7 @@ namespace linerider.Game
                 for (int i = 0; i < maxiteration; i++)
                 {
                     ProcessBones(bones, body, ref dead);
-                    ProcessLines(grid, body, ref phys, ref activetriggers, collisions);
+                    ProcessLines(grid, body, ref phys, collisions);
                 }
             }
             if (maxiteration == 6)
@@ -350,8 +339,7 @@ namespace linerider.Game
                     {
                         return breaks;
                     }
-                    int trig = 0;
-                    ProcessLines(grid, body, ref phys, ref trig);
+                    ProcessLines(grid, body, ref phys);
                 }
             }
             if (maxiteration == 6)

@@ -35,6 +35,7 @@ namespace linerider
         public SimulationGrid Grid = new SimulationGrid();
         public LinkedList<int> Lines = new LinkedList<int>();
         public Dictionary<int, GameLine> LineLookup = new Dictionary<int, GameLine>();
+        public List<GameTrigger> Triggers = new List<GameTrigger>();
 
         public string Name = Constants.DefaultTrackName;
         public string Filename = null;

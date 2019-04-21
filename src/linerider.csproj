@@ -107,9 +107,11 @@
     <Compile Include="Game\EditorGrid.cs" />
     <Compile Include="Game\FPSCounter.cs" />
     <Compile Include="Game\GameScheduler.cs" />
+    <Compile Include="Game\GameTrigger.cs" />
     <Compile Include="Game\HitTestManager.cs" />
     <Compile Include="Game\RiderFrame.cs" />
     <Compile Include="Game\Track.cs" />
+    <Compile Include="Game\TriggerType.cs" />
     <Compile Include="Game\Timeline.cs" />
     <Compile Include="Game\Timeline.Engine.cs" />
     <Compile Include="Game\TrackReader.cs" />

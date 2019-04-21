@@ -34,8 +34,6 @@ namespace linerider.Game
         struct frameinfo
         {
             public Rider Rider;
-            public int TriggerLineID;
-            public int TriggerHitFrame;
             public float Zoom;
         }
         private HitTestManager _hittest = new HitTestManager();
@@ -95,7 +93,7 @@ namespace linerider.Game
             {
                 _hittest.Reset();
                 _frames.Clear();
-                _frames.Add(new frameinfo() { Rider = state, TriggerHitFrame = -1, TriggerLineID = -1, Zoom = zoom });
+                _frames.Add(new frameinfo() { Rider = state, Zoom = zoom });
                 using (changesync.AcquireWrite())
                 {
                     _first_invalid_frame = _frames.Count;
@@ -143,11 +141,9 @@ namespace linerider.Game
             bool isiteration = iteration != 6 && frame > 0;
             if (iteration != 6 && frame > 0)
             {
-                int trig = 0;
                 return GetFrame(frame - 1).Simulate(
                         _track.Grid,
                         _track.Bones,
-                        ref trig,
                         null,
                         iteration,
                         frameid: frame);
@@ -198,19 +194,14 @@ namespace linerider.Game
             GetFrame(frame);
             return _hittest.HasUniqueCollisions(frame);
         }
-        public void TriggerChanged(GameLine line)
+        public void TriggerChanged(GameTrigger oldtrigger, GameTrigger newtrigger)
         {
-            int framehit;
-            using (_framesync.AcquireWrite())
+            using (changesync.AcquireWrite())
             {
-                framehit = _hittest.GetHitFrame(line.ID);
-            }
-            if (framehit != -1)
-            {
-                using (changesync.AcquireWrite())
-                {
-                    _first_invalid_frame = Math.Min(framehit, _first_invalid_frame);
-                }
+                var earliest = Math.Min(oldtrigger.Start, newtrigger.Start);
+                _first_invalid_frame = Math.Max(
+                    1,
+                    Math.Min(earliest, _first_invalid_frame));
             }
         }
         private void UnsafeEnsureFrameValid(int frame)
@@ -229,6 +220,27 @@ namespace linerider.Game
             {
                 ThreadUnsafeRunFrames(start, count);
             }
+        }
+        private bool GetTriggersForFrame(GameTrigger[] triggers, int frame)
+        {
+            bool foundtrigger = false;
+            for (int i = 0; i < triggers.Length; i++)
+            {
+                triggers[i] = null;
+            }
+            foreach (var trigger in _track.Triggers)
+            {
+                if (trigger.Start <= frame && trigger.End >= frame)
+                {
+                    int index = (int)trigger.TriggerType;
+                    var prev = triggers[index];
+                    if (!(prev?.Start > trigger.Start))
+                        triggers[index] = trigger;
+
+                    foundtrigger = true;
+                }
+            }
+            return foundtrigger;
         }
         /// <summary>
         /// The meat of the recompute engine, updating hit test and the
@@ -254,31 +266,23 @@ namespace linerider.Game
             using (var sync = changesync.AcquireRead())
             {
                 _hittest.MarkFirstInvalid(start);
+                GameTrigger[] triggers = new GameTrigger[GameTrigger.TriggerTypes];
                 for (int i = 0; i < count; i++)
                 {
                     int currentframe = start + i;
                     var collisions = new LinkedList<int>();
-                    var oldtrigid = current.TriggerLineID;
-                    var zoom =
                     current.Rider = current.Rider.Simulate(
                         _savedcells,
                         bones,
-                        ref current.TriggerLineID,
                         collisions,
                         frameid: currentframe);
-                    if (current.TriggerLineID != oldtrigid)
+                    if (GetTriggersForFrame(triggers, currentframe))
                     {
-                        current.TriggerHitFrame = currentframe;
-                    }
-                    if (current.TriggerLineID != -1)
-                    {
-                        var std = (StandardLine)_track.LineLookup[current.TriggerLineID];
-                        Debug.Assert(std.Trigger != null, "Trigger line proc on line with no trigger");
-                        var delta = currentframe - current.TriggerHitFrame;
-                        if (!std.Trigger.Activate(delta, ref current.Zoom))
+                        var zoomtrigger = triggers[(int)TriggerType.Zoom];
+                        if (zoomtrigger != null)
                         {
-                            current.TriggerLineID = -1;
-                            current.TriggerHitFrame = -1;
+                            var delta = currentframe - zoomtrigger.Start;
+                            zoomtrigger.ActivateZoom(delta, ref current.Zoom);
                         }
                     }
                     steps[i] = current;

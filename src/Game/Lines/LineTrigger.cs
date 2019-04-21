@@ -25,6 +25,7 @@ namespace linerider.Game
         public bool ZoomTrigger = false;
         public float ZoomTarget = 4;
         public int ZoomFrames = 40;
+        public int LineID = -1;
         public LineTrigger()
         {
         }

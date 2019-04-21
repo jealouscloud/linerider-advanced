@@ -68,6 +68,21 @@ namespace linerider
                 return _editorcells;
             }
         }
+        public List<GameTrigger> Triggers
+        {
+            get
+            {
+                if (_disposed)
+                    throw new ObjectDisposedException("TrackWriter");
+                return _track.Triggers;
+            }
+            set
+            {
+                if (_disposed)
+                    throw new ObjectDisposedException("TrackWriter");
+                _track.Triggers = value;
+            }
+        }
         protected TrackWriter(ResourceSync.ResourceLock sync, Track track)
         : base(sync, track)
         {
@@ -174,7 +189,6 @@ namespace linerider
             RegisterUndoAction(oldline, newline);
 
             var std = oldline as StandardLine;
-            bool triggerchange = false;
             if (std != null)
             {
                 SaveCells(oldline.Position, oldline.Position2);
@@ -190,21 +204,12 @@ namespace linerider
                 }
                 if (_updateextensions)
                     AddExtensions(newstd);
-                if (std.Trigger != null || newstd.Trigger != null)
-                {
-                    if (std.Trigger == null)
-                        triggerchange = true;
-                    else if (!std.Trigger.CompareTo(newstd.Trigger))
-                        triggerchange = true;
-                }
             }
 
             _editorcells.RemoveLine(oldline);
             _editorcells.AddLine(newline);
 
             Track.LineLookup[newline.ID] = newline;
-            if (triggerchange)
-                _timeline.TriggerChanged(newline);
             _renderer.RedrawLine(newline);
         }
 
