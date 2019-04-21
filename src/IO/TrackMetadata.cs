@@ -7,5 +7,9 @@ namespace linerider.IO
         /// string=float
         /// </summary>
         public const string startzoom = "STARTZOOM";
+        /// <summary>
+        /// 
+        /// </summary>
+        public const string triggers = "TRIGGERS";
     }
 }

@@ -1,4 +1,4 @@
-using OpenTK;
+﻿using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -59,6 +59,43 @@ namespace linerider.IO
                 {
                     case TrackMetadata.startzoom:
                         ret.StartZoom = ParseFloat(metadata[1]);
+                        break;
+                    case TrackMetadata.triggers:
+                        string[] triggers = metadata[1].Split('&');
+                        foreach (var t in triggers)
+                        {
+                            string[] tdata = t.Split(':');
+                            TriggerType ttype;
+                            try
+                            {
+                                ttype = (TriggerType)int.Parse(tdata[0]);
+                            }
+                            catch
+                            {
+                                throw new TrackIO.TrackLoadException(
+                                    "Unsupported trigger type");
+                            }
+                            GameTrigger newtrigger;
+                            switch (ttype)
+                            {
+                                case TriggerType.Zoom:
+                                    var target = ParseFloat(tdata[1]);
+                                    var start = ParseInt(tdata[2]);
+                                    var end = ParseInt(tdata[3]);
+                                    newtrigger = new GameTrigger()
+                                    {
+                                        Start = start,
+                                        End = end,
+                                        TriggerType = TriggerType.Zoom,
+                                        ZoomTarget = target,
+                                    };
+                                    break;
+                                default:
+                                    throw new TrackIO.TrackLoadException(
+                                        "Unsupported trigger type");
+                            }
+                            ret.Triggers.Add(newtrigger);
+                        }
                         break;
                 }
             }
@@ -155,6 +192,7 @@ namespace linerider.IO
                 }
                 ret.StartOffset = new Vector2d(br.ReadDouble(), br.ReadDouble());
                 var lines = br.ReadInt32();
+                List<LineTrigger> linetriggers = new List<LineTrigger>();
                 for (var i = 0; i < lines; i++)
                 {
                     GameLine l;
@@ -167,7 +205,7 @@ namespace linerider.IO
                     var nxtID = -1;
                     var multiplier = 1;
                     var linewidth = 1f;
-                    LineTrigger tr = ignorabletrigger ? new LineTrigger() : null;
+                    LineTrigger tr = null;
                     if (redmultipier)
                     {
                         if (lt == LineType.Red)
@@ -182,6 +220,7 @@ namespace linerider.IO
                             bool zoomtrigger = br.ReadBoolean();
                             if (zoomtrigger)
                             {
+                                tr = new LineTrigger();
                                 tr.ZoomTrigger = true;
                                 var target = br.ReadSingle();
                                 var frames = br.ReadInt16();
@@ -212,6 +251,12 @@ namespace linerider.IO
                     var y1 = br.ReadDouble();
                     var x2 = br.ReadDouble();
                     var y2 = br.ReadDouble();
+
+                    if (tr != null)
+                    {
+                        tr.LineID = ID;
+                        linetriggers.Add(tr);
+                    }
                     switch (lt)
                     {
                         case LineType.Blue:
@@ -219,7 +264,6 @@ namespace linerider.IO
                             bl.ID = ID;
                             bl.Extension = (StandardLine.Ext)lim;
                             l = bl;
-                            bl.Trigger = tr;
                             break;
 
                         case LineType.Red:
@@ -231,7 +275,6 @@ namespace linerider.IO
                                 rl.Multiplier = multiplier;
                             }
                             l = rl;
-                            rl.Trigger = tr;
                             break;
 
                         case LineType.Scenery:
@@ -255,6 +298,7 @@ namespace linerider.IO
                         ret.AddLine(l);
                     }
                 }
+                ret.Triggers = TriggerConverter.ConvertTriggers(linetriggers, ret);
                 if (br.BaseStream.Position != br.BaseStream.Length)
                 {
                     var meta = br.ReadInt32();

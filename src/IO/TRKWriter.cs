@@ -119,8 +119,26 @@ namespace linerider.IO
                 }
                 bw.Write(new byte[] { (byte)'M', (byte)'E', (byte)'T', (byte)'A' });
                 List<string> metadata = new List<string>();
-                metadata.Add("STARTZOOM=" + trk.StartZoom.ToString(Program.Culture));
+                metadata.Add(TrackMetadata.startzoom + "=" + trk.StartZoom.ToString(Program.Culture));
+                StringBuilder triggerstring = new StringBuilder();
+                for (int i = 0; i < trk.Triggers.Count; i++)
+                {
+                    GameTrigger t = trk.Triggers[i];
+                    if (i != 0)
+                        triggerstring.Append("&");
 
+                    triggerstring.Append((int)TriggerType.Zoom);
+                    triggerstring.Append(":");
+                    if (t.TriggerType == TriggerType.Zoom)
+                    {
+                        triggerstring.Append(t.ZoomTarget.ToString(Program.Culture));
+                        triggerstring.Append(":");
+                    }
+                    triggerstring.Append(t.Start.ToString(Program.Culture));
+                    triggerstring.Append(":");
+                    triggerstring.Append(t.End.ToString(Program.Culture));
+                }
+                metadata.Add(TrackMetadata.triggers+"="+ triggerstring.ToString());
                 bw.Write((short)metadata.Count);
                 foreach (var str in metadata)
                 {
