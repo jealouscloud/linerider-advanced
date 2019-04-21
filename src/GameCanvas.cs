@@ -276,6 +276,10 @@ namespace linerider
         {
             ShowDialog(new TrackInfoWindow(this, game.Track));
         }
+        public void ShowTriggerWindow()
+        {
+            ShowDialog(new TriggerWindow(this, game.Track));
+        }
         public void ShowExportVideoWindow()
         {
             if (File.Exists(linerider.IO.ffmpeg.FFMPEG.ffmpeg_path))

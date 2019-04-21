@@ -164,6 +164,7 @@ namespace linerider.UI
                 };
                 menu.AddItem("Preferences").Clicked += (o2, e2) => _canvas.ShowPreferencesDialog();
                 menu.AddItem("Track Properties").Clicked += (o2, e2) => _canvas.ShowTrackPropertiesDialog();
+                menu.AddItem("Triggers").Clicked += (o2, e2) => _canvas.ShowTriggerWindow();
                 menu.AddItem("Export Video").Clicked += (o2, e2) => _canvas.ShowExportVideoWindow();
                 var canvaspos = LocalPosToCanvas(new Point(_menu.X, _menu.Y));
                 menu.SetPosition(canvaspos.X, canvaspos.Y + 32);

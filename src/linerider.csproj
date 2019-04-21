@@ -194,6 +194,7 @@
     <Compile Include="UI\Dialogs\LineWindow.cs" />
     <Compile Include="UI\Dialogs\SaveWindow.cs" />
     <Compile Include="UI\Dialogs\TrackInfoWindow.cs" />
+    <Compile Include="UI\Dialogs\TriggerWindow.cs" />
     <Compile Include="UI\Dialogs\RebindHotkeyWindow.cs" />
   </ItemGroup>
   <ItemGroup>
