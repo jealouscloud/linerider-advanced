@@ -92,7 +92,6 @@ namespace linerider.UI
         private void Setup()
         {
             SetupRedOptions(_proptree);
-            SetupTriggers(_proptree);
             Panel bottom = new Panel(this)
             {
                 Dock = Dock.Bottom,
@@ -177,89 +176,6 @@ namespace linerider.UI
                         owner.Position2 = _ownerline.Position;
                         owner.inv = accelinverse.IsChecked;
                         UpdateOwnerLine(trk, owner);
-                    }
-                };
-            }
-        }
-        private void SetupTriggers(PropertyTree tree)
-        {
-            if (_ownerline is StandardLine physline)
-            {
-                var table = tree.Add("Triggers", 120);
-                var currenttrigger = physline.Trigger;
-                var triggerenabled = GwenHelper.AddPropertyCheckbox(
-                    table,
-                    "Enabled",
-                    currenttrigger != null);
-
-                var zoom = new NumberProperty(table)
-                {
-                    Min = Constants.MinimumZoom,
-                    Max = Constants.MaxZoom,
-                    NumberValue = 4
-                };
-                table.Add("Target Zoom", zoom);
-                var frames = new NumberProperty(table)
-                {
-                    Min = 0,
-                    Max = 40 * 60 * 2,//2 minutes is enough for a zoom trigger, you crazy nuts.
-                    NumberValue = 40,
-                    OnlyWholeNumbers = true,
-                };
-                if (currenttrigger != null)
-                {
-                    zoom.NumberValue = currenttrigger.ZoomTarget;
-                    frames.NumberValue = currenttrigger.ZoomFrames;
-                }
-                table.Add("Frames", frames);
-                zoom.ValueChanged += (o, e) =>
-                {
-                    using (var trk = _editor.CreateTrackWriter())
-                    {
-                        trk.DisableExtensionUpdating();
-                        if (triggerenabled.IsChecked)
-                        {
-                            var cpy = (StandardLine)_ownerline.Clone();
-                            cpy.Trigger.ZoomTarget = (float)zoom.NumberValue;
-                            UpdateOwnerLine(trk, cpy);
-                        }
-                    }
-                };
-                frames.ValueChanged += (o, e) =>
-                {
-                    using (var trk = _editor.CreateTrackWriter())
-                    {
-                        trk.DisableExtensionUpdating();
-                        if (triggerenabled.IsChecked)
-                        {
-                            var cpy = (StandardLine)_ownerline.Clone();
-                            cpy.Trigger.ZoomFrames = (int)frames.NumberValue;
-                            UpdateOwnerLine(trk, cpy);
-                        }
-                    }
-                };
-                triggerenabled.ValueChanged += (o, e) =>
-                {
-                    using (var trk = _editor.CreateTrackWriter())
-                    {
-                        trk.DisableExtensionUpdating();
-                        var cpy = (StandardLine)_ownerline.Clone();
-                        if (triggerenabled.IsChecked)
-                        {
-                            cpy.Trigger = new LineTrigger()
-                            {
-                                ZoomTrigger = true,
-                                ZoomFrames = (int)frames.NumberValue,
-                                ZoomTarget = (float)zoom.NumberValue
-                            };
-
-                            UpdateOwnerLine(trk, cpy);
-                        }
-                        else
-                        {
-                            cpy.Trigger = null;
-                            UpdateOwnerLine(trk, cpy);
-                        }
                     }
                 };
             }

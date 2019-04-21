@@ -280,7 +280,7 @@ namespace linerider.Tools
             using (var trk = game.Track.CreateTrackWriter())
             {
                 var line = SelectLine(trk, gamepos, out bool knob);
-                if (line != null && line.Type != LineType.Scenery)
+                if (line != null && line.Type == LineType.Red)
                 {
                     game.Canvas.ShowLineWindow(line, (int)pos.X, (int)pos.Y);
                 }
