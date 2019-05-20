@@ -93,17 +93,22 @@ namespace linerider.UI
                 if (UI.InputUtils.Check(Hotkey.PlayButtonIgnoreFlag))
                 {
                     _editor.StartIgnoreFlag();
+                    _editor.Scheduler.DefaultSpeed();
                 }
                 else
                 {
                     if (_editor.Paused)
+                    {
                         _editor.TogglePause();
+                    }
                     else
+                    {
                         _editor.StartFromFlag();
+                        _editor.Scheduler.DefaultSpeed();
+                    }
                 }
-                _editor.Scheduler.DefaultSpeed();
                 _pause.IsHidden = false;
-                _start.IsHidden = true; ;
+                _start.IsHidden = true;
             };
             _stop.Clicked += (o, e) =>
             {
