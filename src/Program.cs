@@ -67,6 +67,13 @@ namespace linerider
                             _userdir = documents;
                         }
                     }
+                    // linux support: some users use XDG_DOCUMENTS_DIR to change
+                    // their Documents directory location.
+                    var xdg_dir =  Environment.GetEnvironmentVariable("XDG_DOCUMENTS_DIR");
+                    if (!string.IsNullOrEmpty(xdg_dir) && Directory.Exists(xdg_dir))
+                    {
+                        _userdir = xdg_dir;
+                    }
                     _userdir += Path.DirectorySeparatorChar + "LRA" + Path.DirectorySeparatorChar;
                 }
                 return _userdir;
