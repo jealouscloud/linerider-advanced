@@ -109,7 +109,7 @@ namespace linerider.UI
                 Dock = Dock.Left,
                 TextRequest = (o, e) =>
                 {
-                    string ret = GetTimeString((int)Playhead.Value);
+                    string ret = GetTimeString((int)Math.Round(Playhead.Value));
                     return ret;
                 },
                 Alignment = Pos.Center,
@@ -119,7 +119,7 @@ namespace linerider.UI
                 Dock = Dock.Right,
                 TextRequest = (o, e) =>
                 {
-                    string ret = GetTimeString((int)Playhead.DisplayMax);
+                    string ret = GetTimeString(Playhead.DisplayMax);
                     return ret;
                 },
                 Alignment = Pos.Center,
