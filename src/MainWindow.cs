@@ -98,6 +98,7 @@ namespace linerider
             WindowBorder = WindowBorder.Resizable;
             RenderFrame += (o, e) => { Render(); };
             UpdateFrame += (o, e) => { GameUpdate(); };
+            new Thread(AutosaveThreadRunner) { IsBackground = true, Name = "Autosave" }.Start();
             GameService.Initialize(this);
             RegisterHotkeys();
         }
@@ -197,6 +198,24 @@ namespace linerider
                 CurrentTools.SelectedTool.OnMouseMoved(new Vector2d(x, y));
             }
         }
+        /// <summary>
+        /// Indefinitely run the autosave function every 5 minutes
+        /// </summary>
+        private void AutosaveThreadRunner()
+        {
+            while (true)
+            {
+                Thread.Sleep(1000 * 60 * 5); // 5 minutes
+                try
+                {
+                    Track.BackupTrack(false);
+                }
+                catch
+                {
+                    // do nothing
+                }
+            }
+        }
         public void GameUpdate()
         {
             GameUpdateHandleInput();
@@ -212,12 +231,6 @@ namespace linerider
                         Track.ZoomBy(-0.08f);
                 }
             }
-            if (_autosavewatch.Elapsed.TotalMinutes >= 5)
-            {
-                _autosavewatch.Restart();
-                new Thread(() => { Track.BackupTrack(false); }).Start();
-            }
-
 
             if (Track.Playing)
             {
