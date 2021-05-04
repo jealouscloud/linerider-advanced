@@ -39,3 +39,5 @@ The UI is a personally modified version of gwen-dotnet
 
 # License
 linerider-advanced is licensed under GPL3.
+
+linerider is a registered trademark of boštjan čadež
